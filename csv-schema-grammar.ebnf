@@ -1,0 +1,35 @@
+Schema                  ::=     GlobalDirectives Definition+
+
+GlobalDirectives        ::=     SeparatorDirective? QuotedDirective? TotalColumnsExpr? (NoHeaderDirective | IgnoreColumnNameCaseDirective)?)
+
+SeparatorDirective      ::=     "@Separator" SeperatorChar
+QuotedDirective         ::=     "@Quoted" (TABExpr | SeparatorChar)
+TotalColumnsDirective   ::=     "@TotalColumns" IntegerLiteral
+NoHeaderDirective       ::=     "@NoHeader"
+IgnoreColumnNameCase    ::=     "@IgnoreColumnNameCase"
+
+TABExpr                 ::=     "TAB(" IntegerLiteral ")"
+SeparatorChar           ::=     CharacterLiteral
+
+Definition              ::=     Comment | ColumnDefinition
+
+Comment                 ::=     SingleLineComment | MultiLineComment
+SingleLineComment       ::=     "//" Char*
+MultiLineComment        ::=     "/*" Char* "*/"
+
+ColumnDefinition        ::=     ColumnIdentifier ":" ColumnValidationExpr ColumnDirectives
+ColumnIdentifier        ::=     IntegerLiteral | StringLiteral
+ColumnValidationExpr    ::=     RegExpExpr
+
+RegExprExpr             ::=     "regexp(" StringLiteral ")"     
+
+ColumnDirectives        ::=     IgnoreCaseDirective? MatchIsFalseDirective? NotEmpty? Unique?
+IgnoreCaseDirective     ::=     "@IgnoreCase"
+MatchIsFalse            ::=     "@MatchIsFalse"
+NotEmpty                ::=     "@NotEmpty"
+Unique	                ::=     "@Unique"
+
+
+IntegerLiteral
+CharacterLiteral
+StringLiteral
