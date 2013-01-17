@@ -1,7 +1,6 @@
 package uk.gov.tna.dri.schema
 
 import org.specs2.mutable._
-import uk.gov.tna.SchemaReader
 
 class SchemaReaderSpec extends Specification {
 
@@ -9,6 +8,10 @@ class SchemaReaderSpec extends Specification {
 
     "check if the file exists" in {
       SchemaReader.fileExists("/there/is/no/file/here.txt") must_== false
+    }
+
+    "check the file is readable" in {
+      SchemaReader.fileReadable("src/test/resources/schema.readable.txt") must_== true
     }
 
   }
