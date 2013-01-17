@@ -2,6 +2,8 @@ name := "csv-validator-core"
 
 version := "1.0"
 
+organization := "uk.gov.tna.dri"
+
 scalaVersion := "2.10.0"
 
 publishTo := Some("Artifactory Realm" at "http://wb-d-tfs2.web.local:8081/artifactory/libs-release-local")
