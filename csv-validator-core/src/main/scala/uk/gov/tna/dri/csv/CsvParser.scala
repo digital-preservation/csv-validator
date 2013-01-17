@@ -2,11 +2,12 @@ package uk.gov.tna.dri.csv
 
 import util.parsing.combinator.JavaTokenParsers
 
+
 /**
  * User: Jim Collins
  * Date: 1/15/13
  */
-class CsvParser  extends JavaTokenParsers {
+class CsvParser extends JavaTokenParsers {
 
   def schema: Parser[Any] = (
     "{"
@@ -90,37 +91,5 @@ class CsvParser  extends JavaTokenParsers {
   def charLiteral: Parser[String] = """[\w,;]""".r
 
   def positiveNumber: Parser[String] = """\d+""".r
-}
 
-object CsvParser  {
-  def main(args: Array[String]) {
-    val csvParser = new CsvParser
-    val res = csvParser.parseAll(csvParser.schema,
-      """
-        {//a single line comment{
-
-          globalDirective{
-            @Separator: ;
-
-            @TotalColumns: 100
-            @NoHeader
-
-          }
-          /*
-            *
-            *a multi line comment
-            *
-          */
-        columnDefinitions{
-          column1{
-            @ColumnValidationExpr: "jimbo was here"
-            @MatchIsFalse
-          }
-
-          column2{ @NotEmpty @Unique }
-        }
-        }
-      """.stripMargin)
-    println(res)
-  }
 }

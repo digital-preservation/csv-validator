@@ -15,7 +15,8 @@ publishMavenStyle := true
 resolvers += "artifactory-external-releases" at "http://wb-d-tfs2.web.local:8081/artifactory/ext-release-local"
 
 libraryDependencies ++= Seq(
-  "org.specs2" %% "specs2" % "1.12.3" % "test"
+  "org.specs2" %% "specs2" % "1.12.3" % "test",
+  "org.scalatest" %% "scalatest" % "1.9.1" % "test"
 )
 
 
