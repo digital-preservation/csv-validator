@@ -7,7 +7,7 @@ class SchemaReaderSpec extends Specification {
   "The schema reader"  should  {
 
     "check if the file exists" in {
-      SchemaReader.fileExists("/there/is/no/file/here.txt") must_== false
+      SchemaReader.fileReadable("/there/is/no/file/here.txt") must_== false
     }
 
     "check the file is readable" in {
