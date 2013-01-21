@@ -15,13 +15,13 @@ class TemplateReaderSpec extends Specification {
     }
   }
 
-  "numberOfColumns" should {
+  "totalColumns" should {
     "be present" in {
-      TemplateReader.read("src/test/resources/template.with.numberOfColumns.txt") must_== Some(Template(10))
+      TemplateReader.read("src/test/resources/template.with.totalColumns.txt") must_== Some(Template(10))
     }
 
     "detect not present" in {
-      TemplateReader.read("src/test/resources/template.without.numberOfColumns.txt") must_== None
+      TemplateReader.read("src/test/resources/template.without.totalColumns.txt") must_== None
     }
   }
 }
