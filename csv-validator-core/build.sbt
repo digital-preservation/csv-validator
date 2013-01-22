@@ -8,7 +8,8 @@ scalaVersion := "2.10.0"
 
 publishTo := Some("Artifactory Realm" at "http://wb-d-tfs2.web.local:8081/artifactory/libs-release-local")
 
-credentials += Credentials("Artifactory Realm", "wb-d-tfs2.web.local", "admin", "Swansong7")
+#TODO credentials SHOULD be externalised from the build and MUST not be kept in SCM
+credentials += Credentials("Artifactory Realm", "wb-d-tfs2.web.local", "YOUR-USERNAME", "YOUR-PASSWORD")
 
 publishMavenStyle := true
 
