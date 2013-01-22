@@ -1,17 +1,10 @@
 package uk.gov.tna.dri.schema
 
-import util.parsing.combinator.JavaTokenParsers
+import util.parsing.combinator._
 
-object SchemaParser extends JavaTokenParsers {
+object SchemaParser extends RegexParsers {
 
-  def parse(schema: String) = {
-    parseAll(rules, schema) match {
-      case Success(result, _) => Schema(result)
-      case Failure(message, input) => message + " at line: " + input.pos.line + ", column: " + input.pos.column
-    }
-  }
+  def totalColumns = "@TotalColumns : " ~> positiveNumber ^^ { _.toInt }
 
-  def rules: Parser[String] = "@TotalColumns : " ~> positiveNumber
-
-  def positiveNumber: Parser[String] = """\d+""".r
+  def positiveNumber = """\d+""".r
 }
