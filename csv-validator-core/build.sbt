@@ -19,4 +19,11 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "1.9.1" % "test"
 )
 
+libraryDependencies ++= Seq(
+  "net.sf.opencsv" % "opencsv" % "2.3",
+  "org.scalaz" %% "scalaz-core" % "6.0.4",
+  "net.liftweb" %% "lift-json-scalaz" % "2.5-M4"
+)
+
+
 

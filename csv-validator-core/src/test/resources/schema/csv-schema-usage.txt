@@ -1,2 +1,0 @@
-name = Scooby Doo
-totalColumns = 10
