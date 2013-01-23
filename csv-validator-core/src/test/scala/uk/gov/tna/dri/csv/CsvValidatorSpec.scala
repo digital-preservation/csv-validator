@@ -27,7 +27,7 @@ class CsvValidatorSpec extends Specification {
         """col1, col2, col3
            col1, col2
            col1, col2, col3"""
-      CsvValidator.validate("col1, col2", Schema(totalColumns = 3)) mustEqual false
+      CsvValidator.validate(csv, Schema(totalColumns = 3)) mustEqual false
     }
   }
 }
