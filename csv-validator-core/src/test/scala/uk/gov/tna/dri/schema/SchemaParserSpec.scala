@@ -11,35 +11,39 @@ class SchemaParserSpec extends Specification with ParserMatchers {
   "@TotalColumns" should {
 
     "fail for incorrect field name" in {
-      totalColumns must failOn("@ToalColumns: 23")
+      totalColumns must failOn("@ToalColumns 23")
     }
 
     "fail for field name incorrect case" in {
-      totalColumns must failOn("@totalColumns: 65")
+      totalColumns must failOn("@totalColumns 65")
     }
 
     "fail for missing value" in {
-      totalColumns must failOn("@TotalColumns :")
+      totalColumns must failOn("@TotalColumns ")
     }
 
-    "succeed for positive integer" in {
-      totalColumns must succeedOn("@TotalColumns : 5").withResult(5)
+    "succeed for integer > 0" in {
+      totalColumns must succeedOn("@TotalColumns 5").withResult(5)
     }
 
-    "succeed for zero" in {
-      totalColumns must succeedOn("@TotalColumns : 0").withResult(0)
+    "allow whitespace between field and value" in {
+      totalColumns must succeedOn("@TotalColumns    43").withResult(43)
+    }
+
+    "fail for zero" in {
+      totalColumns must failOn("@TotalColumns 0")
     }
 
     "fail for negative integer" in {
-      totalColumns must failOn("@TotalColumns : -23")
+      totalColumns must failOn("@TotalColumns -23")
     }
 
     "fail for non integer" in {
-      totalColumns must failOn("@TotalColumns : 132.45")
+      totalColumns must failOn("@TotalColumns 132.45")
     }
 
     "fail for non numeric" in {
-      totalColumns must failOn("@TotalColumns : blah")
+      totalColumns must failOn("@TotalColumns blah")
     }
 
   }
@@ -48,14 +52,14 @@ class SchemaParserSpec extends Specification with ParserMatchers {
 
     "include @TotalColumns" in {
       schema must succeedOn(
-        """{@TotalColumns : 5}""")
+        """{@TotalColumns 5}""")
         .withResult(Schema(5))
     }
 
     "allow @Quoted" in {
       schema must succeedOn(
-        """{@TotalColumns : 5
-            @Quoted : -}""")
+        """{@TotalColumns 5
+            @Quoted -}""")
         .withResult(Schema(5, Some("-")))
     }
   }
