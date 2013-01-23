@@ -6,7 +6,7 @@ object SchemaParser extends JavaTokenParsers {
 
   def strToInt(s: String): Int = Integer.parseInt(s, 10)
 
-  def schema = "{" ~> totalColumns ~ country <~ "}" ^^ {case totalColumns ~ country => Schema(totalColumns, country)}
+  def schema = "{" ~> totalColumns ~ opt(quoted) <~ "}" ^^ {case totalColumns ~ quoted => Schema(totalColumns, quoted)}
 
   def positiveNumber = """\d+""".r
 
@@ -15,5 +15,5 @@ object SchemaParser extends JavaTokenParsers {
   //def totalColumns = "@TotalColumns : " ~> positiveNumber ^^ { _.toInt } - this should work - in scala !
   def totalColumns = "@TotalColumns : " ~> positiveNumber ^^ { strToInt }
 
-  def country = regex("@Country : "r) ~> regex("[a-zA-Z]+"r)
+  def quoted = regex("@Quoted : "r) ~> regex("-"r)
 }

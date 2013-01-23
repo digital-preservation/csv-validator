@@ -8,34 +8,55 @@ class SchemaParserSpec extends Specification with ParserMatchers {
 
   import SchemaParser._
 
-  "Total columns" should {
+  "@TotalColumns" should {
 
-    "allow positive integers" in {
+    "fail for incorrect field name" in {
+      totalColumns must failOn("@ToalColumns: 23")
+    }
+
+    "fail for field name incorrect case" in {
+      totalColumns must failOn("@totalColumns: 65")
+    }
+
+    "fail for missing value" in {
+      totalColumns must failOn("@TotalColumns :")
+    }
+
+    "succeed for positive integer" in {
       totalColumns must succeedOn("@TotalColumns : 5").withResult(5)
     }
 
-    "allow zero" in {
+    "succeed for zero" in {
       totalColumns must succeedOn("@TotalColumns : 0").withResult(0)
     }
 
-    "fail on negative integers" in {
+    "fail for negative integer" in {
       totalColumns must failOn("@TotalColumns : -23")
     }
 
-    "fail on non integers" in {
+    "fail for non integer" in {
       totalColumns must failOn("@TotalColumns : 132.45")
     }
 
-    "fail on non numeric" in {
+    "fail for non numeric" in {
       totalColumns must failOn("@TotalColumns : blah")
     }
+
   }
 
   "Schema" should {
-    "include mandatory totalColumns" in {
+
+    "include @TotalColumns" in {
       schema must succeedOn(
-        """{@TotalColumns : 5 @Country : UK}""")
-        .withResult(Schema(5, "UK"))
+        """{@TotalColumns : 5}""")
+        .withResult(Schema(5))
+    }
+
+    "allow @Quoted" in {
+      schema must succeedOn(
+        """{@TotalColumns : 5
+            @Quoted : -}""")
+        .withResult(Schema(5, Some("-")))
     }
   }
 }
