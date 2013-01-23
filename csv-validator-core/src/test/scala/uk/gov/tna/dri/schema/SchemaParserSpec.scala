@@ -5,7 +5,8 @@ import org.specs2.matcher.ParserMatchers
 
 class SchemaParserSpec extends Specification with ParserMatchers {
   override val parsers = SchemaParser
-  import SchemaParser.totalColumns
+
+  import SchemaParser._
 
   "Total columns" should {
 
@@ -27,6 +28,14 @@ class SchemaParserSpec extends Specification with ParserMatchers {
 
     "fail on non numeric" in {
       totalColumns must failOn("@TotalColumns : blah")
+    }
+  }
+
+  "Schema" should {
+    "include mandatory totalColumns" in {
+      schema must succeedOn(
+        """{@TotalColumns : 5 @Country : UK}""")
+        .withResult(Schema(5, "UK"))
     }
   }
 }
