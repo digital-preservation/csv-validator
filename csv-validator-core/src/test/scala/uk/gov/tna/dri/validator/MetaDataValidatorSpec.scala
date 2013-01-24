@@ -1,14 +1,14 @@
-package uk.gov.tna.dri.csv
+package uk.gov.tna.dri.validator
 
 import org.specs2.mutable.Specification
 import uk.gov.tna.dri.schema.SchemaParser
 import java.io.StringReader
 
-class CsvValidatorSpec extends Specification {
+class MetaDataValidatorSpec extends Specification {
 
   implicit def stringToStringReader(text: String) = new StringReader(text)
 
-  val csvValidator = new CsvValidator with SchemaParser
+  val csvValidator = new MetaDataValidator with SchemaParser
 
   "Validation" should {
     "succeed for correct total columns" in {

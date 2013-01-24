@@ -1,11 +1,11 @@
-package uk.gov.tna.dri.csv
+package uk.gov.tna.dri.validator
 
 import uk.gov.tna.dri.schema.{SchemaParser, Schema}
 import au.com.bytecode.opencsv.CSVReader
 import java.io.Reader
 import scala.collection.JavaConversions._
 
-trait CsvValidator {
+trait MetaDataValidator {
   this: SchemaParser =>
 
   def validate(csv: Reader, schema: Reader) = {
