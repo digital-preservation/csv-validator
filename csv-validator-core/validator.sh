@@ -2,8 +2,10 @@
 
 ###################################################################################################################################################
 # 1a) Prepare for building an executable JAR by setting up sbt-assembly, which can build a (one) JAR that includes code plus all dependencies.
+#     Note that any dependencies to be excluded can be done in several ways e.g. stating "provided" as part of a dependency. See
+#     https://github.com/sbt/sbt-assembly
 #
-#     Within file ~/.sbt/plugins/build.sbt you must have sbt-assembly plugin, taken from https://github.com/sbt/sbt-assembly
+#     Within file ~/.sbt/plugins/build.sbt you must have sbt-assembly plugin:
 #
 #     resolvers += Resolver.url("artifactory", url("http://scalasbt.artifactoryonline.com/scalasbt/sbt-plugin-releases"))(Resolver.ivyStylePatterns)
 #
