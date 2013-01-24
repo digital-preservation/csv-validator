@@ -32,4 +32,4 @@
 #     ./validator.sh <meta data file path> <schema file path>
 ###################################################################################################################################################
 
-java -Xmx2048M -jar csv-validator-core-assembly-1.0.jar $1 $2
+java -Xmx2048M -jar meta-data-validator.jar $1 $2
