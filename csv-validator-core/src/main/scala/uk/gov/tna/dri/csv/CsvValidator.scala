@@ -10,6 +10,7 @@ trait CsvValidator {
 
   def validate(csv: Reader, schema: Reader) = {
     val reader = new CSVReader(csv)
+
     parse(schema) match {
       case Success(s: Schema, _) => reader.readAll.forall(row => row.length == s.totalColumns)
       case _ => false
