@@ -1,10 +1,11 @@
 package uk.gov.tna.dri.schema
 
 import util.parsing.combinator._
+import java.io.Reader
 
 trait SchemaParser extends JavaTokenParsers {
 
-  def parse(schemaText: String) = parseAll(schemaGrammer, schemaText)
+  def parse(reader: Reader) = parseAll(schemaGrammer, reader)
 
   def schemaGrammer = "{" ~> totalColumns ~ opt(quoted) <~ "}" ^^ { case totalColumns ~ quoted => Schema(totalColumns, quoted) }
 
