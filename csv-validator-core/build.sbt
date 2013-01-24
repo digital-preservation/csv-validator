@@ -20,15 +20,15 @@ resolvers += "artifactory-external-releases" at "http://wb-d-tfs2.web.local:8081
 
 assemblySettings
 
+jarName in assembly := "meta-data-validator.jar"
+
 libraryDependencies ++= Seq(
   "org.specs2" %% "specs2" % "1.12.3" % "test",
   "org.scalatest" %% "scalatest" % "1.9.1" % "test"
 )
 
 libraryDependencies ++= Seq(
-  "net.sf.opencsv" % "opencsv" % "2.3",
-  "org.scalaz" %% "scalaz-core" % "6.0.4",
-  "net.liftweb" %% "lift-json-scalaz" % "2.5-M4"
+  "net.sf.opencsv" % "opencsv" % "2.3"
 )
 
 
