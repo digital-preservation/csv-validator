@@ -2,11 +2,11 @@ package uk.gov.tna.dri.schema
 
 import util.parsing.combinator._
 
-object SchemaParser extends JavaTokenParsers {
+trait SchemaParser extends JavaTokenParsers {
 
-  def parse(rules: String) = parseAll(schema, rules)
+  def parse(schemaText: String) = parseAll(schemaGrammer, schemaText)
 
-  def schema = "{" ~> totalColumns ~ opt(quoted) <~ "}" ^^ { case totalColumns ~ quoted => Schema(totalColumns, quoted) }
+  def schemaGrammer = "{" ~> totalColumns ~ opt(quoted) <~ "}" ^^ { case totalColumns ~ quoted => Schema(totalColumns, quoted) }
 
   //def totalColumns = "@TotalColumns : " ~> positiveNumber ^^ { _.toInt } - this should work - in scala !
   def totalColumns = "@TotalColumns " ~> positiveNumber ^^ { strToInt }

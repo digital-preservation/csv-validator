@@ -1,17 +1,20 @@
 package uk.gov.tna.dri.csv
 
 import org.specs2.mutable.Specification
-import uk.gov.tna.dri.schema.Schema
+import uk.gov.tna.dri.schema.{SchemaParser, Schema}
 
 class CsvValidatorSpec extends Specification {
 
+  val validator = new CsvValidator with SchemaParser
+
   "Validation" should {
     "succeed for correct total columns" in {
-      CsvValidator.validate("col1", Schema(totalColumns = 1)) mustEqual true
+
+      validator.validate("col1", "{ @TotalColumns 1 }") mustEqual true
     }
 
     "fail for incorrect number of total columns" in {
-      CsvValidator.validate("col1, col2", Schema(totalColumns = 1)) mustEqual false
+      validator.validate("col1, col2", "{ @TotalColumns 1 }") mustEqual false
     }
 
     "succeed for correct total columns for multiple lines" in {
@@ -19,7 +22,7 @@ class CsvValidatorSpec extends Specification {
         """col1, col2
            col1, col2"""
 
-      CsvValidator.validate(csv, Schema(totalColumns = 2)) mustEqual true
+      validator.validate(csv, "{ @TotalColumns 2 }") mustEqual true
     }
 
     "fail for incorrect number of total columns for multiple lines" in {
@@ -27,7 +30,7 @@ class CsvValidatorSpec extends Specification {
         """col1, col2, col3
            col1, col2
            col1, col2, col3"""
-      CsvValidator.validate(csv, Schema(totalColumns = 3)) mustEqual false
+      validator.validate(csv, "{ @TotalColumns 3 }") mustEqual false
     }
   }
 }

@@ -4,9 +4,12 @@ import org.specs2.mutable._
 import org.specs2.matcher.ParserMatchers
 
 class SchemaParserSpec extends Specification with ParserMatchers {
-  override val parsers = SchemaParser
 
-  import SchemaParser._
+  object TestSchemaParser extends SchemaParser
+
+  override val parsers = TestSchemaParser
+
+  import TestSchemaParser._
 
   "@TotalColumns" should {
 
@@ -51,13 +54,13 @@ class SchemaParserSpec extends Specification with ParserMatchers {
   "Schema" should {
 
     "include @TotalColumns" in {
-      schema must succeedOn(
+      schemaGrammer must succeedOn(
         """{@TotalColumns 5}""")
         .withResult(Schema(5))
     }
 
     "allow @Quoted" in {
-      schema must succeedOn(
+      schemaGrammer must succeedOn(
         """{@TotalColumns 5
             @Quoted -}""")
         .withResult(Schema(5, Some("-")))
