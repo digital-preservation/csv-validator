@@ -14,5 +14,6 @@ class CsvValidatorIntegrationSpec extends Specification {
       val metaDataReader = new FileReader("src/test/resources/uk/gov/tna/dri/csv/metaData.csv")
       validator.validate(metaDataReader, schemaReader) mustEqual true
     }
+
   }
 }

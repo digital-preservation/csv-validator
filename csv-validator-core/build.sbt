@@ -6,7 +6,7 @@ organization := "uk.gov.tna.dri"
 
 scalaVersion := "2.10.0"
 
-
+parallelExecution in Test := true
 
 publishTo := Some("Artifactory Realm" at "http://wb-d-tfs2.web.local:8081/artifactory/libs-release-local")
 
