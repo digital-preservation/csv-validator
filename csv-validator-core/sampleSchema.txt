@@ -1,1 +1,1 @@
-{@TotalColumns 3}
+@TotalColumns 3

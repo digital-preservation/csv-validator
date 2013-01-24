@@ -1,1 +1,1 @@
-{@TotalColumns 2}
+@TotalColumns 2

@@ -8,32 +8,32 @@ class MetaDataValidatorSpec extends Specification {
 
   implicit def stringToStringReader(text: String) = new StringReader(text)
 
-  val csvValidator = new MetaDataValidator with SchemaParser
+  val validator = new MetaDataValidator with SchemaParser
 
   "Validation" should {
     "succeed for correct total columns" in {
-      csvValidator.validate("col1", "{ @TotalColumns 1 }") mustEqual true
+      validator.validate("col1", "@TotalColumns 1") mustEqual true
     }
 
     "fail for incorrect number of total columns" in {
-      csvValidator.validate("col1, col2", "{ @TotalColumns 1 }") mustEqual false
+      validator.validate("col1, col2", "@TotalColumns 1") mustEqual false
     }
 
     "succeed for correct total columns for multiple lines" in {
-      val csv =
+      val metaData =
         """col1, col2
            col1, col2"""
 
-      csvValidator.validate(csv, "{ @TotalColumns 2 }") mustEqual true
+      validator.validate(metaData, "@TotalColumns 2") mustEqual true
     }
 
     "fail for incorrect number of total columns for multiple lines" in {
-      val csv =
+      val metaData =
         """col1, col2, col3
            col1, col2
            col1, col2, col3"""
 
-      csvValidator.validate(csv, "{ @TotalColumns 3 }") mustEqual false
+      validator.validate(metaData, "@TotalColumns 3") mustEqual false
     }
   }
 }

@@ -55,14 +55,14 @@ class SchemaParserSpec extends Specification with ParserMatchers {
 
     "include @TotalColumns" in {
       schemaGrammer must succeedOn(
-        """{@TotalColumns 5}""")
+        """@TotalColumns 5""")
         .withResult(Schema(5))
     }
 
     "allow @Quoted" in {
       schemaGrammer must succeedOn(
-        """{@TotalColumns 5
-            @Quoted -}""")
+        """@TotalColumns 5
+            @Quoted -""")
         .withResult(Schema(5, Some("-")))
     }
   }

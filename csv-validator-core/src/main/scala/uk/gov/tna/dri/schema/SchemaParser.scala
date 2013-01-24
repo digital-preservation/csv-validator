@@ -7,7 +7,7 @@ trait SchemaParser extends JavaTokenParsers {
 
   def parse(reader: Reader) = parseAll(schemaGrammer, reader)
 
-  def schemaGrammer = "{" ~> totalColumns ~ opt(quoted) <~ "}" ^^ { case totalColumns ~ quoted => Schema(totalColumns, quoted) }
+  def schemaGrammer = totalColumns ~ opt(quoted) ^^ { case totalColumns ~ quoted => Schema(totalColumns, quoted) }
 
   //def totalColumns = "@TotalColumns : " ~> positiveNumber ^^ { _.toInt } - this should work - in scala !
   def totalColumns = "@TotalColumns " ~> positiveNumber ^^ { strToInt }
