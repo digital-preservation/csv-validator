@@ -8,15 +8,15 @@ class CsvValidatorSpec extends Specification {
 
   implicit def stringToStringReader(text: String) = new StringReader(text)
 
-  val validator = new CsvValidator with SchemaParser
+  val csvValidator = new CsvValidator with SchemaParser
 
   "Validation" should {
     "succeed for correct total columns" in {
-      validator.validate("col1", "{ @TotalColumns 1 }") mustEqual true
+      csvValidator.validate("col1", "{ @TotalColumns 1 }") mustEqual true
     }
 
     "fail for incorrect number of total columns" in {
-      validator.validate("col1, col2", "{ @TotalColumns 1 }") mustEqual false
+      csvValidator.validate("col1, col2", "{ @TotalColumns 1 }") mustEqual false
     }
 
     "succeed for correct total columns for multiple lines" in {
@@ -24,7 +24,7 @@ class CsvValidatorSpec extends Specification {
         """col1, col2
            col1, col2"""
 
-      validator.validate(csv, "{ @TotalColumns 2 }") mustEqual true
+      csvValidator.validate(csv, "{ @TotalColumns 2 }") mustEqual true
     }
 
     "fail for incorrect number of total columns for multiple lines" in {
@@ -33,7 +33,7 @@ class CsvValidatorSpec extends Specification {
            col1, col2
            col1, col2, col3"""
 
-      validator.validate(csv, "{ @TotalColumns 3 }") mustEqual false
+      csvValidator.validate(csv, "{ @TotalColumns 3 }") mustEqual false
     }
   }
 }
