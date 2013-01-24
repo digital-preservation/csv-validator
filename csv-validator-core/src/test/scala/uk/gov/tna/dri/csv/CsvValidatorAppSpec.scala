@@ -20,6 +20,10 @@ class CsvValidatorAppSpec extends Specification {
       CsvValidatorApp.argumentCountValid(Array[String]("metaDataFile", "schemaFile")) mustEqual true
     }
 
+    "give the meta data file from first argument and schema file from second argument" in {
+      CsvValidatorApp.inputFilePaths(Array[String]("metaDataFile.csv", "schema.txt")) mustEqual("metaDataFile.csv", "schema.txt")
+    }
+
     "fail for unreadable input file" in {
       CsvValidatorApp.fileReadable("/some/non/existant/file") mustEqual false
     }
@@ -30,10 +34,6 @@ class CsvValidatorAppSpec extends Specification {
 
     "give a file not readable message for file path" in {
       CsvValidatorApp.fileNotReadableMessage("no/file/here.txt") mustEqual "Unable to read file : no/file/here.txt"
-    }
-
-    "give the meta data file from fist argument" in {
-      CsvValidatorApp.inputFilePaths(Array[String]("metaDataFile.csv", "schema.txt")) mustEqual("metaDataFile.csv", "schema.txt")
     }
   }
 }

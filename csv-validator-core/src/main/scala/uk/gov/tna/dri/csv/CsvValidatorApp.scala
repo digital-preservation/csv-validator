@@ -5,10 +5,10 @@ import uk.gov.tna.dri.schema.{SchemaParser, Schema}
 
 object CsvValidatorApp extends App {
 
-  if (!argumentCountValid(args)) { println(usage); System.exit(0) }
+  if (!argumentCountValid(args)) { println(usage); System.exit(1) }
   val (metaDataFilePath, schemaFilePath) = inputFilePaths(args)
-  if (!fileReadable(metaDataFilePath)) { println(fileNotReadableMessage(metaDataFilePath))}
-  if (!fileReadable(schemaFilePath)) { println(fileNotReadableMessage(schemaFilePath))}
+  if (!fileReadable(metaDataFilePath)) { println(fileNotReadableMessage(metaDataFilePath)); System.exit(1)}
+  if (!fileReadable(schemaFilePath)) { println(fileNotReadableMessage(schemaFilePath)); System.exit(1)}
 
   val validator = new CsvValidator with SchemaParser
 
