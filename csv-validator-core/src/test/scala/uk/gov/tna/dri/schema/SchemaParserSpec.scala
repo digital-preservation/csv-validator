@@ -54,17 +54,6 @@ class SchemaParserSpec extends Specification with ParserMatchers {
 
   "Schema" should {
 
-    "include @TotalColumns" in {
-      schemaGrammer must succeedOn("@TotalColumns 5").withResult(Schema(5))
-    }
-
-    "allow @Quoted" in {
-      schemaGrammer must succeedOn(
-        """@TotalColumns 5
-            @Quoted -""")
-        .withResult(Schema(5, Some("-")))
-    }
-
     "fail for invalid schema" in {
       parse(new StringReader("rubbish")) must beLike { case Failure(message, _) => message mustEqual "`@TotalColumns ' expected but `r' found" }
     }
