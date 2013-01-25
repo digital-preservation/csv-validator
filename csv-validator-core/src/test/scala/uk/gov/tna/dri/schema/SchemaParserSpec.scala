@@ -67,7 +67,7 @@ class SchemaParserSpec extends Specification with ParserMatchers {
 
     "fail for invalid schema" in {
       parse(new StringReader("rubbish")) match {
-        case Failure(_, _) => success
+        case Failure(message, next) => message mustEqual "`@TotalColumns ' expected but `r' found"; success
         case _ => failure
       }
     }
