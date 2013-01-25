@@ -6,17 +6,17 @@ import java.io.StringReader
 
 class MetaDataValidatorSpec extends Specification {
 
-  implicit def stringToStringReader(text: String) = new StringReader(text)
-
   object TestMetaDataValidator extends MetaDataValidator
 
   "Validation" should {
     "succeed for correct total columns" in {
-      TestMetaDataValidator.validate("col1", Schema(1)) mustEqual true
+      val metaData = "col1"
+      TestMetaDataValidator.validate(new StringReader(metaData), Schema(1)) mustEqual true
     }
 
     "fail for incorrect number of total columns" in {
-      TestMetaDataValidator.validate("col1, col2", Schema(1)) mustEqual false
+      val metaData = "col1, col2"
+      TestMetaDataValidator.validate(new StringReader(metaData), Schema(1)) mustEqual false
     }
 
     "succeed for correct total columns for multiple lines" in {
@@ -24,7 +24,7 @@ class MetaDataValidatorSpec extends Specification {
         """col1, col2
            col1, col2"""
 
-      TestMetaDataValidator.validate(metaData, Schema(2)) mustEqual true
+      TestMetaDataValidator.validate(new StringReader(metaData), Schema(2)) mustEqual true
     }
 
     "fail for incorrect number of total columns for multiple lines" in {
@@ -33,7 +33,7 @@ class MetaDataValidatorSpec extends Specification {
            col1, col2
            col1, col2, col3"""
 
-      TestMetaDataValidator.validate(metaData, Schema(3)) mustEqual false
+      TestMetaDataValidator.validate(new StringReader(metaData), Schema(3)) mustEqual false
     }
   }
 }

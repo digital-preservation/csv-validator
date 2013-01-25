@@ -19,7 +19,9 @@ object MetaDataValidatorApp extends App with MetaDataValidator with SchemaParser
       println("Result : " + validate(new FileReader(metaDataFilePath), schema))
     }
 
-    case NoSuccess(message, next) => println(s"${message} at line ${next.pos.line}, column ${next.pos.column}"); System.exit(1)
+    case NoSuccess(message, next) =>
+      println(s"${message} at line ${next.pos.line}, column ${next.pos.column}")
+      System.exit(1)
   }
 
   def argumentCountValid(args: Array[String]) = args.length == 2
@@ -33,6 +35,7 @@ object MetaDataValidatorApp extends App with MetaDataValidator with SchemaParser
   def fileNotReadableMessage(filePath: String) = "Unable to read file : " + filePath
 
   private def assert(assertion: Boolean, message: String) = if (!assertion) {
-    println(message); System.exit(1)
+    println(message)
+    System.exit(1)
   }
 }
