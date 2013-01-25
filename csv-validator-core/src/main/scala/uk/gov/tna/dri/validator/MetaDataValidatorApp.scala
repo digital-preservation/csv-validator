@@ -19,7 +19,7 @@ object MetaDataValidatorApp extends App with MetaDataValidator with SchemaParser
       println("Result : " + validate(new FileReader(metaDataFilePath), schema))
     }
 
-    case NoSuccess(message, next) => println(s"Invalid schema (line ${next.pos.line}, column ${next.pos.column}): ${message}\n"); System.exit(1)
+    case NoSuccess(message, next) => println(s"${message} at line ${next.pos.line}, column ${next.pos.column}"); System.exit(1)
   }
 
   def argumentCountValid(args: Array[String]) = args.length == 2
