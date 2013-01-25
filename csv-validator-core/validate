@@ -3,4 +3,4 @@
 # ./validate <meta data file path> <schema file path>
 ###################################################################################################################################################
 
-java -Xmx2048M -jar target/meta-data-validator.jar $1 $2
+java -Xmx2048M -jar target/meta-data-validator.jar $@
