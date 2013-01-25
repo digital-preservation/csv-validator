@@ -26,10 +26,5 @@ object MetaDataValidatorApp extends App {
 
   def fileNotReadableMessage(filePath: String) = "Unable to read file : " + filePath
 
-  private def assert(assertion: Boolean, message: => String) = {
-    if (!assertion) {
-      println(message)
-      System.exit(1)
-    }
-  }
+  private def assert(assertion: Boolean, message: String) = if (!assertion) { println(message); System.exit(1) }
 }
