@@ -2,6 +2,7 @@ package uk.gov.tna.dri.schema
 
 import org.specs2.mutable._
 import org.specs2.matcher.ParserMatchers
+import java.io.{FileReader, StringReader}
 
 class SchemaParserSpec extends Specification with ParserMatchers {
 
@@ -62,6 +63,20 @@ class SchemaParserSpec extends Specification with ParserMatchers {
         """@TotalColumns 5
             @Quoted -""")
         .withResult(Schema(5, Some("-")))
+    }
+
+    "fail for invalid schema" in {
+      parse(new StringReader("rubbish")) match {
+        case Failure(_, _) => success
+        case _ => failure
+      }
+    }
+
+    "succeed for valid schema" in {
+      parse(new StringReader("@TotalColumns 43")) match {
+        case Success(_, _) => success
+        case _ => failure
+      }
     }
   }
 }

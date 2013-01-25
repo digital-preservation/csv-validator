@@ -1,19 +1,10 @@
 package uk.gov.tna.dri.validator
 
-import uk.gov.tna.dri.schema.{SchemaParser, Schema}
+import uk.gov.tna.dri.schema.Schema
 import au.com.bytecode.opencsv.CSVReader
 import java.io.Reader
 import scala.collection.JavaConversions._
 
 trait MetaDataValidator {
-  this: SchemaParser =>
-
-  def validate(csv: Reader, schema: Reader) = {
-    val reader = new CSVReader(csv)
-
-    parse(schema) match {
-      case Success(s: Schema, _) => reader.readAll.forall(row => row.length == s.totalColumns)
-      case _ => false
-    }
-  }
+  def validate(csv: Reader, schema: Schema) = new CSVReader(csv).readAll.forall(row => row.length == schema.totalColumns)
 }

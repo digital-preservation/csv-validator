@@ -1,9 +1,9 @@
 package uk.gov.tna.dri.validator
 
 import java.io.{FileReader, File}
-import uk.gov.tna.dri.schema.SchemaParser
+import uk.gov.tna.dri.schema.{Schema, SchemaParser}
 
-object MetaDataValidatorApp extends App {
+object MetaDataValidatorApp extends App with MetaDataValidator with SchemaParser {
 
   assert(argumentCountValid(args), usage)
 
@@ -11,10 +11,16 @@ object MetaDataValidatorApp extends App {
   assert(fileReadable(metaDataFilePath), fileNotReadableMessage(metaDataFilePath))
   assert(fileReadable(schemaFilePath), fileNotReadableMessage(schemaFilePath))
 
-  val validator = new MetaDataValidator with SchemaParser
+  println("Checking Schema...")
 
-  println("Validating...")
-  println("Result : " + validator.validate(new FileReader(metaDataFilePath), new FileReader(schemaFilePath)))
+  parse(new FileReader(schemaFilePath)) match {
+    case Success(schema: Schema, _) => {
+      println("Validating Meta-Data File...")
+      println("Result : " + validate(new FileReader(metaDataFilePath), schema))
+    }
+
+    case NoSuccess(message, _) => println("Invalid Schema"); System.exit(1)
+  }
 
   def argumentCountValid(args: Array[String]) = args.length == 2
 
@@ -26,5 +32,7 @@ object MetaDataValidatorApp extends App {
 
   def fileNotReadableMessage(filePath: String) = "Unable to read file : " + filePath
 
-  private def assert(assertion: Boolean, message: String) = if (!assertion) { println(message); System.exit(1) }
+  private def assert(assertion: Boolean, message: String) = if (!assertion) {
+    println(message); System.exit(1)
+  }
 }
