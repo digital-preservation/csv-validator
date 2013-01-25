@@ -1,5 +1,3 @@
-import AssemblyKeys._
-
 name := "csv-validator-core"
 
 version := "1.0"
@@ -17,10 +15,6 @@ credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
 publishMavenStyle := true
 
 resolvers += "artifactory-external-releases" at "http://wb-d-tfs2.web.local:8081/artifactory/ext-release-local"
-
-assemblySettings
-
-jarName in assembly := "meta-data-validator.jar"
 
 libraryDependencies ++= Seq(
   "org.specs2" %% "specs2" % "1.12.3" % "test",
