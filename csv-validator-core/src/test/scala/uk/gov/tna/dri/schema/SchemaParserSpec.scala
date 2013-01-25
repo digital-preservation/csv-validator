@@ -54,9 +54,7 @@ class SchemaParserSpec extends Specification with ParserMatchers {
   "Schema" should {
 
     "include @TotalColumns" in {
-      schemaGrammer must succeedOn(
-        """@TotalColumns 5""")
-        .withResult(Schema(5))
+      schemaGrammer must succeedOn("@TotalColumns 5").withResult(Schema(5))
     }
 
     "allow @Quoted" in {

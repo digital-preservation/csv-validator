@@ -1,20 +1,20 @@
 package uk.gov.tna.dri.validator
 
 import java.io.{FileReader, File}
-import uk.gov.tna.dri.schema.{SchemaParser, Schema}
+import uk.gov.tna.dri.schema.SchemaParser
 
 object MetaDataValidatorApp extends App {
 
-  if (!argumentCountValid(args)) { println(usage); System.exit(1) }
+  assert(argumentCountValid(args), usage)
+
   val (metaDataFilePath, schemaFilePath) = inputFilePaths(args)
-  if (!fileReadable(metaDataFilePath)) { println(fileNotReadableMessage(metaDataFilePath)); System.exit(1)}
-  if (!fileReadable(schemaFilePath)) { println(fileNotReadableMessage(schemaFilePath)); System.exit(1)}
+  assert(fileReadable(metaDataFilePath), fileNotReadableMessage(metaDataFilePath))
+  assert(fileReadable(schemaFilePath), fileNotReadableMessage(schemaFilePath))
 
   val validator = new MetaDataValidator with SchemaParser
 
   println("Validating...")
   println("Result : " + validator.validate(new FileReader(metaDataFilePath), new FileReader(schemaFilePath)))
-
 
   def argumentCountValid(args: Array[String]) = args.length == 2
 
@@ -25,4 +25,11 @@ object MetaDataValidatorApp extends App {
   def fileReadable(filePath: String) = new File(filePath).canRead
 
   def fileNotReadableMessage(filePath: String) = "Unable to read file : " + filePath
+
+  private def assert(assertion: Boolean, message: => String) = {
+    if (!assertion) {
+      println(message)
+      System.exit(1)
+    }
+  }
 }
