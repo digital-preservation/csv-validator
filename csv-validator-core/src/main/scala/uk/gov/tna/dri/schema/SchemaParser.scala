@@ -9,7 +9,7 @@ trait SchemaParser extends JavaTokenParsers {
 
   def schema = totalColumns ^^ { Schema(_) }
 
-  def totalColumns = "@TotalColumns " ~> positiveNumber ^^ { _.toInt }
+  def totalColumns = "@TotalColumns " ~> positiveNumber ^^ { _.toInt } | failure("@TotalColumns invalid")
 
   private def positiveNumber = """[1-9][0-9]*""".r
 }
