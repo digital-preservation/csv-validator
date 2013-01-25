@@ -16,7 +16,10 @@ object MetaDataValidatorApp extends App with MetaDataValidator with SchemaParser
   parse(new FileReader(schemaFilePath)) match {
     case Success(schema: Schema, _) => {
       println("Validating Meta-Data File...")
-      println("Result : " + validate(new FileReader(metaDataFilePath), schema))
+      validate(new FileReader(metaDataFilePath), schema) match {
+        case Some(failure) => println("FAIL: " + failure)
+        case _ => println("PASS")
+      }
     }
 
     case NoSuccess(message, next) =>
