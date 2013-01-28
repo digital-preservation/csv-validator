@@ -49,7 +49,16 @@ class SchemaParserSpec extends Specification with ParserMatchers {
     "fail for non numeric" in {
       totalColumns must failOn("@TotalColumns blah")
     }
+  }
 
+  "regex" should {
+    "fail for missing value" in {
+      regex must failOn("regex")
+    }
+
+    "success for valid regex" in {
+      regex must succeedOn(""" regex "[0-9]"""")
+    }
   }
 
   "Schema" should {
