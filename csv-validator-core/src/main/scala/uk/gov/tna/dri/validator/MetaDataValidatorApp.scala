@@ -1,5 +1,6 @@
 package uk.gov.tna.dri.validator
 
+
 import java.io.{FileReader, File}
 import uk.gov.tna.dri.schema.{Schema, SchemaParser}
 
@@ -17,7 +18,7 @@ object MetaDataValidatorApp extends App with MetaDataValidator with SchemaParser
     case Success(schema: Schema, _) => {
       println("Validating Meta-Data File...")
       validate(new FileReader(metaDataFilePath), schema) match {
-        case Some(failure) => println("FAIL: " + failure)
+        case scalaz.Failure(f) =>  println("FAIL: " + f.list.mkString("\n"))
         case _ => println("PASS")
       }
     }

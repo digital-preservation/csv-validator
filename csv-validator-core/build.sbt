@@ -28,7 +28,8 @@ libraryDependencies ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "net.sf.opencsv" % "opencsv" % "2.3"
+  "net.sf.opencsv" % "opencsv" % "2.3",
+  "org.scalaz" %% "scalaz-core" % "6.0.4"
 )
 
 
