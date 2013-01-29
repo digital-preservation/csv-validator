@@ -3,6 +3,7 @@ package uk.gov.tna.dri.schema
 import org.specs2.mutable._
 import org.specs2.matcher.ParserMatchers
 import java.io.StringReader
+import util.matching.Regex
 
 class SchemaParserSpec extends Specification with ParserMatchers {
 
@@ -68,7 +69,26 @@ class SchemaParserSpec extends Specification with ParserMatchers {
     }
 
     "succeed for valid schema" in {
-      parse(new StringReader("@TotalColumns 43")) must  beLike { case Success(schema, _) => schema mustEqual Schema(43) }
+      parse(new StringReader("@TotalColumns 43")) must beLike { case Success(schema, _) => schema mustEqual Schema(43) }
+    }
+
+    "succeed for valid @TotalColumns and regex" in {
+
+      parse(new StringReader(
+
+        """
+          @TotalColumns 5
+          regex "[a]"
+        """)) must beLike { case Success( Schema(5, Some(reg)), _) => reg.pattern.pattern mustEqual "[a]" }
+    }
+
+    "fail for bad regex" in {
+
+      parse(new StringReader(
+        """
+          @TotalColumns 5
+          regex "[a"
+        """)) must beLike { case Failure("regex invalid: [a", _) => ok}
     }
   }
 }

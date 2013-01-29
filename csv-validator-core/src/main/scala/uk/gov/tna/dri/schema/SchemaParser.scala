@@ -2,6 +2,7 @@ package uk.gov.tna.dri.schema
 
 import util.parsing.combinator._
 import java.io.Reader
+import util.Try
 import util.matching.Regex
 
 trait SchemaParser extends JavaTokenParsers {
@@ -12,7 +13,11 @@ trait SchemaParser extends JavaTokenParsers {
 
   def totalColumns = "@TotalColumns " ~> positiveNumber ^^ { _.toInt } | failure("@TotalColumns invalid")
 
-  def regex = "regex " ~> stringLiteral ^^ {_.r} | failure("regex invalid")
+  def regex = "regex " ~> stringLiteral ^? (isValidRegex, s => "regex invalid: " + unQuote(s))
+
+  def isValidRegex: PartialFunction[String, Regex] = { case s: String if Try(unQuote(s).r).isSuccess => unQuote(s).r }
 
   private def positiveNumber = """[1-9][0-9]*""".r
+
+  private def unQuote(str: String): String = str.tail.dropRight(1)
 }
