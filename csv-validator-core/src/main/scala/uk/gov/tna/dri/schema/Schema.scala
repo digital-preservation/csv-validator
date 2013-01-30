@@ -1,5 +1,3 @@
 package uk.gov.tna.dri.schema
 
-import util.matching.Regex
-
-case class Schema(totalColumns: Int, regex: Option[Regex] = None)
+case class Schema(totalColumns: Int, columns: List[Column] = Nil)

@@ -3,7 +3,6 @@ package uk.gov.tna.dri.schema
 import org.specs2.mutable._
 import org.specs2.matcher.ParserMatchers
 import java.io.StringReader
-import util.matching.Regex
 
 class SchemaParserSpec extends Specification with ParserMatchers {
 
@@ -52,13 +51,23 @@ class SchemaParserSpec extends Specification with ParserMatchers {
     }
   }
 
-  "regex" should {
-    "fail for missing value" in {
-      regex must failOn("regex")
+  "regex for a given column directive" should {
+    "succeed for valid regex" in {
+      regex must succeedOn(""" regex "[0-9]"""")
+    }
+  }
+
+  "Column directive" should  {
+    "fail for missing value in regex" in {
+      column must failOn(""""Last Name" regex""")
     }
 
-    "success for valid regex" in {
-      regex must succeedOn(""" regex "[0-9]"""")
+    "fail for an invalid regex" in {
+      column must failOn(""""Last Name" regex "[0-9"""")
+    }
+
+    "succeed for a valid regex" in {
+      column must succeedOn(""""Last Name" regex "[0-9]"""")
     }
   }
 
@@ -73,13 +82,11 @@ class SchemaParserSpec extends Specification with ParserMatchers {
     }
 
     "succeed for valid @TotalColumns and regex" in {
-
       parse(new StringReader(
-
         """
           @TotalColumns 5
-          regex "[a]"
-        """)) must beLike { case Success( Schema(5, Some(reg)), _) => reg.pattern.pattern mustEqual "[a]" }
+          "Last Name" regex "[a]"
+        """)) must beLike { case Success(Schema(5, List(Column(_, List(RegexRule(r))))), _) => r.pattern.pattern mustEqual "[a]" }
     }
 
     "fail for bad regex" in {
@@ -87,7 +94,7 @@ class SchemaParserSpec extends Specification with ParserMatchers {
       parse(new StringReader(
         """
           @TotalColumns 5
-          regex "[a"
+          "Last Name" regex "[a"
         """)) must beLike { case Failure("regex invalid: [a", _) => ok}
     }
   }

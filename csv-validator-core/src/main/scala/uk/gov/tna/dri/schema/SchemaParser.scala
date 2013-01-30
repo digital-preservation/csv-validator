@@ -9,13 +9,15 @@ trait SchemaParser extends JavaTokenParsers {
 
   def parse(reader: Reader) = parseAll(schema, reader)
 
-  def schema = totalColumns ~ opt(regex) ^^ { case totalColumns ~ regex => Schema(totalColumns, regex) }
+  def schema = totalColumns ~ rep(column) ^^ { case totalColumns ~ columns => Schema(totalColumns, columns) }
 
   def totalColumns = "@TotalColumns " ~> positiveNumber ^^ { _.toInt } | failure("@TotalColumns invalid")
 
+  def column = stringLiteral ~ opt(regex) ^^ { case s ~ r => if (r.isEmpty) Column(s, Nil) else Column(s, List(RegexRule(r.get))) }
+
   def regex = "regex " ~> stringLiteral ^? (isValidRegex, s => "regex invalid: " + unQuote(s))
 
-  def isValidRegex: PartialFunction[String, Regex] = { case s: String if Try(unQuote(s).r).isSuccess => unQuote(s).r }
+  private def isValidRegex: PartialFunction[String, Regex] = { case s: String if Try(unQuote(s).r).isSuccess => unQuote(s).r }
 
   private def positiveNumber = """[1-9][0-9]*""".r
 
