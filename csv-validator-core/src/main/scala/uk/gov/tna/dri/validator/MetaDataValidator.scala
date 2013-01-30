@@ -1,6 +1,6 @@
 package uk.gov.tna.dri.validator
 
-import uk.gov.tna.dri.schema.Schema
+import uk.gov.tna.dri.schema.{RegexRule, Schema}
 import au.com.bytecode.opencsv.CSVReader
 import java.io.Reader
 import scala.collection.JavaConversions._
@@ -10,39 +10,37 @@ import util.matching.Regex
 
 trait MetaDataValidator {
 
-  def validate(csv: Reader, schema: Schema) : ValidationNEL[String, Int] = {
+  def validate(csv: Reader, schema: Schema) = {
     val rows = new CSVReader(csv).readAll() toList
 
     val totalCols = totalColumns(rows, schema)
-    //val reg = regex(rows, schema)
+    val reg = true.successNel[String]
 
-    //(totalCols |@| reg)  { MetaData(_, _) }
-    totalCols
+    (totalCols |@| reg) tupled
   }
 
-  def totalColumns(rows: List[Array[String]], schema: Schema): ValidationNEL[String, Int] = {
+  def totalColumns(rows: List[Array[String]], schema: Schema) = {
     rows.zipWithIndex.find(r => r._1.length != schema.totalColumns) match {
-      case Some((row, rowIndex)) => s"Expected @TotalColumns of ${schema.totalColumns} and found ${row.length} on line ${rowIndex + 1}".failNel[Int]
-      case _ => schema.totalColumns.successNel[String]
+      case Some((row, rowIndex)) => s"Expected @TotalColumns of ${schema.totalColumns} and found ${row.length} on line ${rowIndex + 1}".failNel[Boolean]
+      case _ => true.successNel[String]
     }
   }
 
-//  def regex(rows: List[Array[String]], schema: Schema): ValidationNEL[String, String] = {
-//    schema.regex match {
-//      case Some(regex) => rows.map(regexForRow(_, regex)) exists (_.isFailure) match {
-//        case true => "fail".failNel[String]
-//        case false => "success".successNel[String]
-//      }
-//      case _ => "success".successNel[String]
-//    }
-//  }
 
-  def regexForRow(row: Array[String], regex: Regex): ValidationNEL[String, String] = {
-    row exists (!_.matches(regex.pattern.pattern)) match {
-      case true => s"Expected regex ${regex}".failNel[String]
-      case false => row.mkString.successNel[String]
+  def regexForValue(value: String, rule: RegexRule) : Validation[String, Boolean] = {
+    val regex = rule.regex.pattern.pattern
+    if (value matches regex) true.success[String] else s"Value: ${value} does not match Regex: ${regex}".fail[Boolean]
+  }
+
+  def regexForRow(row: List[String], rule: RegexRule) = {
+    row match {
+      case first :: t => regexForValue(first, rule)
+      case _ => "Column vale missing".fail[Boolean]
     }
+  }
+
+  def regex(rows: List[List[String]], rule: RegexRule) = {
+    val validations = rows map (row => regexForRow(row, rule) liftFailNel)
+    validations.sequence[({type x[a] = ValidationNEL[String, a]})#x, Boolean]
   }
 }
-
-case class MetaData(numOfColumns: Int, regexResult: String)
