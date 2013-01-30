@@ -1,6 +1,6 @@
 package uk.gov.tna.dri.validator
 
-import uk.gov.tna.dri.schema.{RegexRule, Schema}
+import uk.gov.tna.dri.schema.{Rule, ColumnDefinition, RegexRule, Schema}
 import au.com.bytecode.opencsv.CSVReader
 import java.io.Reader
 import scala.collection.JavaConversions._
@@ -26,16 +26,15 @@ trait MetaDataValidator {
     }
   }
 
-
   def regexForValue(value: String, rule: RegexRule) : Validation[String, Boolean] = {
     val regex = rule.regex.pattern.pattern
-    if (value matches regex) true.success[String] else s"Value: ${value} does not match Regex: ${regex}".fail[Boolean]
+    if (value matches regex) true.success[String] else s"Value: ${value} does not match regex: ${regex}".fail[Boolean]
   }
 
   def regexForRow(row: List[String], rule: RegexRule) = {
     row match {
       case first :: t => regexForValue(first, rule)
-      case _ => "Column vale missing".fail[Boolean]
+      case _ => "ColumnDefinition vale missing".fail[Boolean]
     }
   }
 
@@ -43,4 +42,14 @@ trait MetaDataValidator {
     val validations = rows map (row => regexForRow(row, rule) liftFailNel)
     validations.sequence[({type x[a] = ValidationNEL[String, a]})#x, Boolean]
   }
+
+  def regexForRowWithColumnDef(row: List[String], columnDefinitions: List[ColumnDefinition]) = {
+    val valueWithColumnDefinition = row.zip(columnDefinitions)
+    val validations =
+      for { (value, columnDef) <- valueWithColumnDefinition
+             rule <- columnDef.rules
+        } yield rule.execute(value)
+
+    validations.sequence[({type x[a] = ValidationNEL[String, a]})#x, Boolean]
+   }
 }

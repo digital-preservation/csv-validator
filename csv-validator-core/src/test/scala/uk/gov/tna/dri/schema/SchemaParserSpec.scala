@@ -86,7 +86,7 @@ class SchemaParserSpec extends Specification with ParserMatchers {
         """
           @TotalColumns 5
           "Last Name" regex "[a]"
-        """)) must beLike { case Success(Schema(5, List(Column(_, List(RegexRule(r))))), _) => r.pattern.pattern mustEqual "[a]" }
+        """)) must beLike { case Success(Schema(5, List(ColumnDefinition(_, List(RegexRule(r))))), _) => r.pattern.pattern mustEqual "[a]" }
     }
 
     "fail for bad regex" in {

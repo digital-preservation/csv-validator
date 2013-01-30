@@ -13,7 +13,7 @@ trait SchemaParser extends JavaTokenParsers {
 
   def totalColumns = "@TotalColumns " ~> positiveNumber ^^ { _.toInt } | failure("@TotalColumns invalid")
 
-  def column = stringLiteral ~ opt(regex) ^^ { case s ~ r => if (r.isEmpty) Column(s, Nil) else Column(s, List(RegexRule(r.get))) }
+  def column = stringLiteral ~ opt(regex) ^^ { case s ~ r => if (r.isEmpty) ColumnDefinition(s, Nil) else ColumnDefinition(s, List(RegexRule(r.get))) }
 
   def regex = "regex " ~> stringLiteral ^? (isValidRegex, s => "regex invalid: " + unQuote(s))
 
