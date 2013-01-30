@@ -47,13 +47,11 @@ class MetaDataValidatorSpec extends Specification {
     }
 
     "succeed if all first column values pass regex rule" in {
-
       val rows = List (List("23","dfdf","gg4"), List("12","ef","4"), List("1","x","sds"))
       regex(rows, RegexRule("[0-9]*".r)) must beLike { case Success(_) => ok }
     }
 
     "fail if not all first column values pass regex rule" in {
-
       val rows = List (List("23","dfdf","gg4"), List("aa","ef","4"), List("qq","x","sds"))
       regex(rows, RegexRule("[0-9]*".r)) must beLike { case Failure(msgs) => msgs.list must contain("Value: aa does not match regex: [0-9]*", "Value: qq does not match regex: [0-9]*")}
     }
@@ -80,7 +78,10 @@ class MetaDataValidatorSpec extends Specification {
 
     "fail if first and second columns do not pass" in {
       val columnDefs = List(ColumnDefinition("first", List(RegexRule("[3-8]*".r))), ColumnDefinition("second",List(RegexRule("[a-c]*".r))))
-      regexForRowWithColumnDef(List("99", "xxx"), columnDefs) must beLike { case Failure(msgs) => msgs.list must contain ("Value: 99 does not match regex: [3-8]*", "Value: xxx does not match regex: [a-c]*") }
+
+      regexForRowWithColumnDef(List("99", "xxx"), columnDefs) must beLike {
+        case Failure(msgs) => msgs.list must contain ("Value: 99 does not match regex: [3-8]*", "Value: xxx does not match regex: [a-c]*")
+      }
     }
   }
 }
