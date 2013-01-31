@@ -70,5 +70,15 @@ class MetaDataValidatorSpec extends Specification {
       validateRows(rows, schema) must beLike { case Success(_) => ok }
     }
 
+    "succeed for valid schema and meta-data" in {
+
+      val schema = Schema(2, List(ColumnDefinition("col1"), ColumnDefinition("col2WithRule", List(RegexRule("[0-9]*".r)))))
+      val metaData =
+        """someData,345
+           someMore,12"""
+
+      validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
+    }
+
   }
 }
