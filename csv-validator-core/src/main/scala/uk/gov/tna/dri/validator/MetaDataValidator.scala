@@ -12,10 +12,10 @@ trait MetaDataValidator {
   def validate(csv: Reader, schema: Schema) = {
     val rows = new CSVReader(csv).readAll() toList
 
-    val totalCols = totalColumns(rows, schema)
-    val reg =  regexForRowWithColumnDef(rows.map(_.toList).head, schema.columns)
+    val totalColsValidation = totalColumns(rows, schema)
+    val rowsValidation =  validateRows(rows.map(_.toList), schema)
 
-    (totalCols |@| reg) tupled
+    (totalColsValidation |@| rowsValidation) tupled
   }
 
   def totalColumns(rows: List[Array[String]], schema: Schema) = {
@@ -25,9 +25,7 @@ trait MetaDataValidator {
     }
   }
 
-
-
-  def regexForRowWithColumnDef(row: List[String], columnDefinitions: List[ColumnDefinition]) = {
+  def validateRow(row: List[String], columnDefinitions: List[ColumnDefinition]) = {
     val valueWithColumnDefinition = row.zip(columnDefinitions)
     val validations =
       for { (value, columnDef) <- valueWithColumnDefinition
@@ -37,25 +35,9 @@ trait MetaDataValidator {
     validations.sequence[({type x[a] = ValidationNEL[String, a]})#x, Boolean]
    }
 
-//  def validateColumnDefinitions(rows: List[List[String]], schema: Schema) = {
-//    val validations = for {row <- rows} yield (regexForRowWithColumnDef(row, schema.columns))
-//    validations.sequence[({type x[a] = ValidationNEL[String, a]})#x, Boolean]
-//  }
-
-  def regexForValue(value: String, rule: RegexRule) : Validation[String, Boolean] = {
-    val regex = rule.regex.pattern.pattern
-    if (value matches regex) true.success[String] else s"Value: ${value} does not match regex: ${regex}".fail[Boolean]
+  def validateRows(rows: List[List[String]], schema: Schema) = {
+    val validations = for {row <- rows} yield (validateRow(row, schema.columns))
+    validations.sequence[({type x[a] = ValidationNEL[String, a]})#x, List[Boolean]]
   }
 
-  def regexForRow(row: List[String], rule: RegexRule) = {
-    row match {
-      case first :: t => regexForValue(first, rule)
-      case _ => "Column value missing".fail[Boolean]
-    }
-  }
-
-  def regex(rows: List[List[String]], rule: RegexRule) = {
-    val validations = rows map (row => regexForRow(row, rule) liftFailNel)
-    validations.sequence[({type x[a] = ValidationNEL[String, a]})#x, Boolean]
-  }
 }
