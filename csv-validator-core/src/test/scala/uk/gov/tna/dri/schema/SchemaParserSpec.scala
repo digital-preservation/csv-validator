@@ -57,7 +57,11 @@ class SchemaParserSpec extends Specification with ParserMatchers {
     }
   }
 
-  "Column directive" should  {
+  "Column definition" should  {
+    "succeed for no rules" in {
+      column must succeedOn(""""Last Name"""")
+    }
+
     "fail for missing value in regex" in {
       column must failOn(""""Last Name" regex""")
     }
@@ -68,6 +72,18 @@ class SchemaParserSpec extends Specification with ParserMatchers {
 
     "succeed for a valid regex" in {
       column must succeedOn(""""Last Name" regex "[0-9]"""")
+    }
+
+    "fail if there are more than 1 regex rules" in {
+      column must failOn(""""Last Name" regex "[0-9]" regex "a"""")
+    }
+
+    "fail if there are more than 1 regex rule including any invalid regex" in {
+      column must failOn(""""Last Name" regex "[0-9]" regex "[a"""")
+    }
+
+    "fail if there a regex but no column identifier" in {
+      column must failOn(""""regex "[0-9]"""")
     }
   }
 
