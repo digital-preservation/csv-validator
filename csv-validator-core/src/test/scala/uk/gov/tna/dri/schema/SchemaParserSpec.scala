@@ -51,83 +51,59 @@ class SchemaParserSpec extends Specification with ParserMatchers {
     }
   }
 
-  "regex for a given column directive" should {
+  "regex" should {
+
     "succeed for valid regex" in {
-      regex must succeedOn(""" regex "[0-9]"""")
+      regex must succeedOn("""regex "[0-9]"""")
+    }
+
+    "fail for an invalid regex" in {
+      regex("""regex "[0-9"""") must beLike { case n: NoSuccess => n.msg mustEqual "regex invalid: [0-9" }
+    }
+
+    "fail for missing value in regex" in {
+      regex must failOn("regex").withMsg("Invalid regex rule")
     }
   }
 
   "Column definition" should  {
+
     "succeed for no rules" in {
       column must succeedOn(""""Last Name"""")
     }
 
-    "fail for missing value in regex" in {
-      column must failOn(""""Last Name" regex""")
-    }
-
-    "fail for an invalid regex" in {
-      column must failOn(""""Last Name" regex "[0-9"""")
-    }
-
-    "succeed for a valid regex" in {
+    "succeed with single regex rule" in {
       column must succeedOn(""""Last Name" regex "[0-9]"""")
     }
 
-    "fail if there are more than 1 regex rules" in {
-      column must failOn(""""Last Name" regex "[0-9]" regex "a"""")
-    }
-
-    "fail if there are more than 1 regex rule including any invalid regex" in {
-      column must failOn(""""Last Name" regex "[0-9]" regex "[a"""")
-    }
-
-    "fail if there are more than 1 regex rule including but regex keyword is given once" in {
-      column must failOn(""""Last Name" regex "[0-9]" "[a"""")
-    }
-
-    "fail if there a regex but no column identifier" in {
+    "fail if there is a regex rule but no column identifier" in {
       column must failOn(""""regex "[0-9]"""")
     }
   }
 
   "Schema" should {
 
-    "fail for invalid @TotalColumns" in {
+    "fail for missing @TotalColumns" in {
       parse(new StringReader("rubbish")) must beLike {
         case Failure(message, next) => (message mustEqual "@TotalColumns invalid") and (next.pos.line mustEqual 1) and (next.pos.column mustEqual 1)
       }
     }
 
-    "fail for more than 1 regex for a given column definition" in {
-      parse(new StringReader(
-        """
-          @TotalColumns 5
-          "Last Name" regex "[a]" regex "a"
-        """)) must beLike {
-          case Failure(message, next) => (message mustEqual "string matching regex `\\z' expected but `r' found") and (next.pos.line mustEqual 3) and (next.pos.column mustEqual 35)
-      }
-    }
-
-    "succeed for valid schema" in {
+    "succeed for valid minimal schema" in {
       parse(new StringReader("@TotalColumns 43")) must beLike { case Success(schema, _) => schema mustEqual Schema(43) }
     }
 
-    "succeed for valid @TotalColumns and regex" in {
-      parse(new StringReader(
-        """
-          @TotalColumns 5
-          "Last Name" regex "[a]"
-        """)) must beLike { case Success(Schema(5, List(ColumnDefinition(_, List(RegexRule(r))))), _) => r.pattern.pattern mustEqual "[a]" }
+    "succeed for valid schema with single rule" in {
+      val schema = """@TotalColumns 5
+                     "Last Name" regex "[a]""""
+      parse(new StringReader(schema)) must beLike { case Success(Schema(5, List(ColumnDefinition("Last Name", List(RegexRule(r))))), _) => r.pattern.pattern mustEqual "[a]" }
     }
 
-    "fail for bad regex" in {
+    "fail if there are more than 1 regex rules with *****HORRIBLE MESSAGE*****" in {
+      val schema = """@TotalColumns 5
+                     "Last Name" regex "[a]" regex "[0-5]""""
 
-      parse(new StringReader(
-        """
-          @TotalColumns 5
-          "Last Name" regex "[a"
-        """)) must beLike { case Failure("regex invalid: [a", _) => ok}
+      parse(new StringReader(schema)) must beLike { case Failure(message, next) => (message mustEqual "string matching regex `\\z' expected but `r' found") }
     }
   }
 }
