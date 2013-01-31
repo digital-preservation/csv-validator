@@ -82,6 +82,10 @@ class SchemaParserSpec extends Specification with ParserMatchers {
       column must failOn(""""Last Name" regex "[0-9]" regex "[a"""")
     }
 
+    "fail if there are more than 1 regex rule including but regex keyword is given once" in {
+      column must failOn(""""Last Name" regex "[0-9]" "[a"""")
+    }
+
     "fail if there a regex but no column identifier" in {
       column must failOn(""""regex "[0-9]"""")
     }
@@ -89,8 +93,20 @@ class SchemaParserSpec extends Specification with ParserMatchers {
 
   "Schema" should {
 
-    "fail for invalid schema" in {
-      parse(new StringReader("rubbish")) must beLike { case Failure(message, next) => (message mustEqual "@TotalColumns invalid") and (next.pos.line mustEqual 1) and (next.pos.column mustEqual 1) }
+    "fail for invalid @TotalColumns" in {
+      parse(new StringReader("rubbish")) must beLike {
+        case Failure(message, next) => (message mustEqual "@TotalColumns invalid") and (next.pos.line mustEqual 1) and (next.pos.column mustEqual 1)
+      }
+    }
+
+    "fail for more than 1 regex for a given column definition" in {
+      parse(new StringReader(
+        """
+          @TotalColumns 5
+          "Last Name" regex "[a]" regex "a"
+        """)) must beLike {
+          case Failure(message, next) => (message mustEqual "string matching regex `\\z' expected but `r' found") and (next.pos.line mustEqual 3) and (next.pos.column mustEqual 35)
+      }
     }
 
     "succeed for valid schema" in {
