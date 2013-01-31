@@ -83,5 +83,11 @@ class MetaDataValidatorSpec extends Specification {
         case Failure(msgs) => msgs.list must contain ("Value: 99 does not match regex: [3-8]*", "Value: xxx does not match regex: [a-c]*")
       }
     }
+
+//    "success if validates multiple rows" in {
+//      val rows = List(List("a", "1"), List("b", "2"))
+//      val schema = Schema(2, List(ColumnDefinition("column1", List(RegexRule("[a-c]".r))), ColumnDefinition("column2", List(RegexRule("[0-9]".r)))))
+//      validate(new StringReader("a, 1"), schema) must beLike { case Success(_) => ok }
+//    }
   }
 }

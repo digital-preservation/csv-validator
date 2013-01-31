@@ -13,7 +13,7 @@ trait MetaDataValidator {
     val rows = new CSVReader(csv).readAll() toList
 
     val totalCols = totalColumns(rows, schema)
-    val reg = true.successNel[String]
+    val reg =  regexForRowWithColumnDef(rows.map(_.toList).head, schema.columns)
 
     (totalCols |@| reg) tupled
   }
@@ -24,6 +24,23 @@ trait MetaDataValidator {
       case _ => true.successNel[String]
     }
   }
+
+
+
+  def regexForRowWithColumnDef(row: List[String], columnDefinitions: List[ColumnDefinition]) = {
+    val valueWithColumnDefinition = row.zip(columnDefinitions)
+    val validations =
+      for { (value, columnDef) <- valueWithColumnDefinition
+             rule <- columnDef.rules
+        } yield rule.execute(value)
+
+    validations.sequence[({type x[a] = ValidationNEL[String, a]})#x, Boolean]
+   }
+
+//  def validateColumnDefinitions(rows: List[List[String]], schema: Schema) = {
+//    val validations = for {row <- rows} yield (regexForRowWithColumnDef(row, schema.columns))
+//    validations.sequence[({type x[a] = ValidationNEL[String, a]})#x, Boolean]
+//  }
 
   def regexForValue(value: String, rule: RegexRule) : Validation[String, Boolean] = {
     val regex = rule.regex.pattern.pattern
@@ -41,14 +58,4 @@ trait MetaDataValidator {
     val validations = rows map (row => regexForRow(row, rule) liftFailNel)
     validations.sequence[({type x[a] = ValidationNEL[String, a]})#x, Boolean]
   }
-
-  def regexForRowWithColumnDef(row: List[String], columnDefinitions: List[ColumnDefinition]) = {
-    val valueWithColumnDefinition = row.zip(columnDefinitions)
-    val validations =
-      for { (value, columnDef) <- valueWithColumnDefinition
-             rule <- columnDef.rules
-        } yield rule.execute(value)
-
-    validations.sequence[({type x[a] = ValidationNEL[String, a]})#x, Boolean]
-   }
 }
