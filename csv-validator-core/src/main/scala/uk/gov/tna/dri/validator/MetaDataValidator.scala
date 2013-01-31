@@ -1,12 +1,11 @@
 package uk.gov.tna.dri.validator
 
-import uk.gov.tna.dri.schema.{Rule, ColumnDefinition, RegexRule, Schema}
+import uk.gov.tna.dri.schema.{ColumnDefinition, RegexRule, Schema}
 import au.com.bytecode.opencsv.CSVReader
 import java.io.Reader
 import scala.collection.JavaConversions._
 import scalaz._
 import Scalaz._
-import util.matching.Regex
 
 trait MetaDataValidator {
 
