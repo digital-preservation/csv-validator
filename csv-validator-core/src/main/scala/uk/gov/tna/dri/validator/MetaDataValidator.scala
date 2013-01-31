@@ -33,7 +33,7 @@ trait MetaDataValidator {
   def regexForRow(row: List[String], rule: RegexRule) = {
     row match {
       case first :: t => regexForValue(first, rule)
-      case _ => "ColumnDefinition vale missing".fail[Boolean]
+      case _ => "Column value missing".fail[Boolean]
     }
   }
 
