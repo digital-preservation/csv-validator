@@ -6,13 +6,13 @@ import Scalaz._
 
 sealed trait Rule {
 
-  def execute(str: String): ValidationNEL[String, Boolean]
+  def execute(value: String): ValidationNEL[String, Boolean]
 }
 
 case class RegexRule(regex: Regex) extends Rule {
 
-  override def execute(str: String): ValidationNEL[String, Boolean] = {
+  override def execute(value: String): ValidationNEL[String, Boolean] = {
     val exp = regex.pattern.pattern
-    if (str matches exp) true.successNel[String] else s"Value: ${str} does not match regex: ${exp}".failNel[Boolean]
+    if (value matches exp) true.successNel[String] else s"Value: ${value} does not match regex: ${exp}".failNel[Boolean]
   }
 }
