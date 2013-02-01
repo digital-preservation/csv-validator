@@ -79,14 +79,5 @@ class MetaDataValidatorSpec extends Specification {
 
       validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
     }
-
-//    "fail when schema has more column definitions than columns in the meta-data" in {
-//      val schema = Schema(2, List(ColumnDefinition("col1"), ColumnDefinition("col2"), ColumnDefinition("col3")))
-//      val metaData =
-//        """someData,345
-//           someMore,12"""
-//
-//      validate(new StringReader(metaData), schema) must beLike { case Failure(_) => ok }
-//    }
   }
 }

@@ -9,19 +9,17 @@ trait SchemaParser extends JavaTokenParsers {
 
   def parse(reader: Reader) = parseAll(schema, reader)
 
-  def schema = totalColumns ~ rep(column) ^? (createSchema, { case tc ~ c => s"Schema Invalid as @TotalColumns = ${tc} but number of columns defined = ${c.length}" })
+  def schema = totalColumns ~ columnDefinitions ^? (createSchema, { case tc ~ c => s"Schema invalid as @TotalColumns = ${tc} but number of columns defined = ${c.length}" })
 
   def totalColumns = "@TotalColumns " ~> positiveNumber ^^ { _.toInt } | failure("@TotalColumns invalid")
 
-  def column = stringLiteral ~ opt(regex) ^^ { case s ~ r => if (r.isEmpty) ColumnDefinition(unquote(s), Nil) else ColumnDefinition(unquote(s), List(RegexRule(r.get))) }
+  def columnDefinitions = rep('\n' ~> columnDefinition)
+
+  def columnDefinition = stringLiteral ~ opt(regex) ^^ { case s ~ r => if (r.isEmpty) ColumnDefinition(unquote(s), Nil) else ColumnDefinition(unquote(s), List(RegexRule(r.get))) }
 
   def regex = "regex " ~> stringLiteral ^? (isValidRegex, s => "regex invalid: " + unquote(s)) | failure("Invalid regex rule")
 
-  private def createSchema: PartialFunction[~[Int, List[ColumnDefinition]], Schema] = {
-    case tc ~ l if tc == l.length => {
-      Schema(tc, l)
-    }
-  }
+  private def createSchema: PartialFunction[~[Int, List[ColumnDefinition]], Schema] = { case totalCols ~ colDefs if totalCols == colDefs.length => Schema(totalCols, colDefs) }
 
   private def isValidRegex: PartialFunction[String, Regex] = { case s: String if Try(unquote(s).r).isSuccess => unquote(s).r }
 

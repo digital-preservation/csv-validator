@@ -36,7 +36,7 @@ trait MetaDataValidator {
    }
 
   def validateRows(rows: List[List[String]], schema: Schema) = {
-    val validations = for {row <- rows} yield (validateRow(row, schema.columns))
+    val validations = for {row <- rows} yield (validateRow(row, schema.columnDefinitions))
     validations.sequence[({type x[a] = ValidationNEL[String, a]})#x, List[Boolean]]
   }
 
