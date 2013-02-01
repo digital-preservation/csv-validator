@@ -17,8 +17,8 @@ class MetaDataValidatorSpec extends Specification {
       val metaData =
         """col1, col2
            col1, col2"""
-
-      validate(new StringReader(metaData), Schema(2)) must beLike { case Success(_) => ok }
+      val colDefs = List(new ColumnDefinition("\"column1\""),new ColumnDefinition("\"column2\""))
+      validate(new StringReader(metaData), Schema(2, colDefs)) must beLike { case Success(_) => ok }
     }
 
     "fail for incorrect number of total columns for multiple lines" in {
@@ -26,8 +26,8 @@ class MetaDataValidatorSpec extends Specification {
         """col1, col2, col3
            col1, col2
            col1, col2, col3"""
-
-      validate(new StringReader(metaData), Schema(3)) must beLike { case Failure(messages) => messages.head mustEqual "Expected @TotalColumns of 3 and found 2 on line 2" }
+      val colDefs = List(new ColumnDefinition("\"column1\""),new ColumnDefinition("\"column2\""),new ColumnDefinition("\"column3\""))
+      validate(new StringReader(metaData), Schema(3, colDefs)) must beLike { case Failure(messages) => messages.head mustEqual "Expected @TotalColumns of 3 and found 2 on line 2" }
     }
 
     "fail if first column doesnt pass regex rule" in {
