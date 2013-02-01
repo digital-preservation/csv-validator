@@ -105,5 +105,11 @@ class SchemaParserSpec extends Specification with ParserMatchers {
 
       parse(new StringReader(schema)) must beLike { case Failure(message, next) => (message mustEqual "string matching regex `\\z' expected but `r' found") }
     }
+//
+//    "fail for more than one column definition on a line" in {
+//      val schema = """@TotalColumns 5
+//                     "Last Name" regex "[a-z]*" "Age""""
+//      parse(new StringReader(schema)) must beLike { case Failure(_, _) => ok }
+//    }
   }
 }
