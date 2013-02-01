@@ -1,35 +1,83 @@
-Schema                  ::=     GlobalDirectives Definition+
+Schema                  ::=     Prolog Body
 
-GlobalDirectives        ::=     SeparatorDirective? QuotedDirective? TotalColumnsExpr? (NoHeaderDirective | IgnoreColumnNameCaseDirective)?)
+Prolog                  ::=     VersionDecl GlobalDirectives
 
-SeparatorDirective      ::=     "@Separator" SeperatorChar
-QuotedDirective         ::=     "@Quoted" (TABExpr | SeparatorChar)
-TotalColumnsDirective   ::=     "@TotalColumns" IntegerLiteral
-NoHeaderDirective       ::=     "@NoHeader"
-IgnoreColumnNameCase    ::=     "@IgnoreColumnNameCase"
+VersionDecl             ::=     "version 1.0"
 
-TABExpr                 ::=     "TAB(" IntegerLiteral ")"
+GlobalDirectives        ::=     SeparatorDirective? QuotedDirective? TotalColumnsExpr? (NoHeaderDirective | IgnoreColumnNameCaseDirective)?
+
+DirectivePrefix         ::=     "@"
+
+SeparatorDirective      ::=     DirectivePrefix "Separator" (TABExpr | SeparatorChar)
+QuotedDirective         ::=     DirectivePrefix "Quoted"
+TotalColumnsDirective   ::=     DirectivePrefix "TotalColumns" PositiveNonZeroIntegerLiteral
+NoHeaderDirective       ::=     DirectivePrefix "NoHeader"
+IgnoreColumnNameCase    ::=     DirectivePrefix "IgnoreColumnNameCase"
+
+TABExpr                 ::=     "TAB" ("(" IntegerLiteral ")")?
 SeparatorChar           ::=     CharacterLiteral
 
-Definition              ::=     Comment | ColumnDefinition
+Body                    ::=     Comment* | ColumnDefinition+
 
 Comment                 ::=     SingleLineComment | MultiLineComment
-SingleLineComment       ::=     "//" Char*
+SingleLineComment       ::=     "//" NonBreakingChar*
 MultiLineComment        ::=     "/*" Char* "*/"
 
-ColumnDefinition        ::=     ColumnIdentifier ":" ColumnValidationExpr ColumnDirectives
-ColumnIdentifier        ::=     IntegerLiteral | StringLiteral
-ColumnValidationExpr    ::=     RegExpExpr
+ColumnDefinition        ::=     ColumnIdentifier ":" ColumnValidationExpr* ColumnDirectives
+ColumnIdentifier        ::=     IntegerLiteral | Ident
 
-RegExprExpr             ::=     "regexp(" StringLiteral ")"     
+ColumnValidationExpr    ::=     SingleExpr | ExternalSingleExpr | CombinatorialExpr | ParenthesizedExpr
 
+SingleExpr              ::=     IsExpr | NotExpr | InExpr | StarstWithExpr | EndsWithExpr | RegExpExpr | NotEmptyExpr | UniqueExpr | UriExpr | XsdDateTimeExpr | XsdDateExpr | UkDateExpr | XsdTimeExpr | Uuid4Expr
+
+IsExpr                  ::=     "is(" StringProvider ")"
+NotExpr                 ::=     "not(" StringProvider ")"
+InExpr                  ::=     "in(" StringProvider ")"
+StartsWithExpr          ::=     "starts(" StringProvider ")"
+EndsWithExpr            ::=     "ends(" StringProvider ")"
+RegExpExpr              ::=     "regexp(" StringLiteral ")"
+NotEmptyExpr            ::=     "NotEmpty"
+UniqueExpr	            ::=     "Unique"
+UriExpr                 ::=     "URI"
+XsdDateTimeExpr         ::=     "XDateTime"            
+XsdDateExpr             ::=     "XDate"
+UkDateExpr              ::=     "UKDate"
+XsdTimeExpr             ::=     "XTime"
+Uuid4Expr               ::=     "UUID4"
+
+/* External expressions cause the checking of a value against some external source or process */
+ExternalSingleExpr      ::=     FileExistsExpr | ChecksumExpr | FileCountExpr
+
+FileExistsExpr          ::=     "FileExists" ("(" StringLiteral ")")?                                               /* optional path to prepend to this cell with filename in */
+ChecksumExpr            ::=     "Checksum(" FileExpr "," StringLiteral ")"                                          /* first arg is file expr, second arg is algorithm to use for checksum */
+FileCountExpr           ::=     "FileCount(" FileExpr ")"
+FileExpr                ::=     "file(" (StringProvider ",")? (ColumnRef | FileNameExpr) ")"                         /* first (optional) arg is path (or ColumnRef of path) to prepend to second arg, second arg is reference to column containing filename, of a FileNameExpr */
+FileNameExpr            ::=     StringLiteral
+
+StringProvider          ::=     ColumnRef | StringLiteral
+
+ColumnRef               ::=     "$" ColumnIdentifier
+
+CombinatorialExpr       ::=     OrExpr | AndExpr
+OrExpr                  ::=     ColumnValidatonExpr ("or" ColumnValidationExpr)*
+AndExpr                 ::=     ColumnValidationExpr ("and" ColumnValidationExpr)*
+
+ParenthesizedExpr       ::=     "(" ColumnValidationExpr ")"
+
+/* Column Directives modify the behaviour of ColumnValidatonExpr(s) */
 ColumnDirectives        ::=     IgnoreCaseDirective? MatchIsFalseDirective? NotEmpty? Unique?
-IgnoreCaseDirective     ::=     "@IgnoreCase"
-MatchIsFalse            ::=     "@MatchIsFalse"
-NotEmpty                ::=     "@NotEmpty"
-Unique	                ::=     "@Unique"
+IgnoreCaseDirective     ::=     DirectivePrefix "IgnoreCase"
+MatchIsFalseDirective   ::=     DirectivePrefix "MatchIsFalse"
+OptionalDirective       ::=     DirectivePrefix "Optional"
 
 
-IntegerLiteral
-CharacterLiteral
-StringLiteral
+/* Lexical */
+PositiveNonZeroIntegerLiteral           //IntegerLiteral constrained by [1-9]{1}[0-9]+
+IntegerLiteral                          ::= Integer
+CharacterLiteral                        ::= "'" NonBreakingChar "'"
+StringLiteral                           ::= "\"" NonBreakingChar+ "\"" 
+Ident                                   // [A-Za-z0-9\-_\.]+
+
+Integer          
+NonBreakingChar                         //same class as char but without \n or \r
+Char
