@@ -31,7 +31,7 @@ trait SchemaParser extends RegexParsers {
   def columnDefinitions = rep1(columnDefinition)
 
   def columnDefinition = (white ~> columnIdentifier <~ (white ~ ":" ~ white)) ~ opt(regex) <~ endOfColumnDefinition ^^ {
-    case i ~ r => ColumnDefinition(i, List(r).filter(_ != None).map(_.get))
+    case i ~ r => ColumnDefinition(i, List(r).collect { case Some(r) => r })
   }
 
   def regex = ("regex" ~ white) ~> (quotedRegex withFailureMessage("regex definition missing quotes")) ^? (isValidRegex, s => "regex invalid: " + s) | failure("Invalid regex rule")
