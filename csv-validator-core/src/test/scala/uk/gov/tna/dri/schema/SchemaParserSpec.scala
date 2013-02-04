@@ -136,7 +136,7 @@ class SchemaParserSpec extends Specification with ParserMatchers {
                      "First Name" dfsdfsdfwe
                      "Age""""
 
-      parse(new StringReader(schema)) must beLike {  case Failure(message, _) => message mustEqual """`regex ' expected but `d' found""" }
+      parse(new StringReader(schema)) must beLike { case Failure(message, _) => message mustEqual """Failed to parse a regex""" }
     }
   }
 }

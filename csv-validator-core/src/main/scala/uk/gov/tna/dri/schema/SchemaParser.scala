@@ -17,7 +17,7 @@ trait SchemaParser extends JavaTokenParsers {
 
   def columnDefinition = stringLiteral ~ opt(regex) ^^ { case s ~ r => if (r.isEmpty) ColumnDefinition(unquote(s), Nil) else ColumnDefinition(unquote(s), List(RegexRule(r.get))) }
 
-  def regex = "regex " ~> stringLiteral ^? (isValidRegex, s => "regex invalid: " + unquote(s)) | failure("Invalid regex rule")
+  def regex = ("regex " withFailureMessage("Failed to parse a regex")) ~> stringLiteral ^? (isValidRegex, s => "regex invalid: " + unquote(s)) | failure("Invalid regex rule")
 
   private def createSchema: PartialFunction[~[Int, List[ColumnDefinition]], Schema] = { case totalCols ~ colDefs if totalCols == colDefs.length => Schema(totalCols, colDefs) }
 
