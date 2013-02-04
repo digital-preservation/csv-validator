@@ -1,4 +1,4 @@
 @TotalColumns 3
 Name:
-Age: regex "[0-9]+"
-Country:  regex "UK"
+Age: regex ("[0-9]+")
+Country:  regex ("UK")

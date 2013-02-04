@@ -19,7 +19,7 @@ object MetaDataValidatorApp extends App with MetaDataValidator with SchemaParser
       println("Validating Meta-Data File...")
 
       validate(new FileReader(metaDataFilePath), schema) match {
-        case scalaz.Failure(f) =>  println("FAIL: " + f.list.mkString("\n"))
+        case scalaz.Failure(f) =>  println("FAIL:\n" + f.list.mkString("\n"))
         case _ => println("PASS")
       }
     }
