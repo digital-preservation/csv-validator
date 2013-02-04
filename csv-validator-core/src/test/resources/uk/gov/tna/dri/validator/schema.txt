@@ -1,1 +1,3 @@
 @TotalColumns 2
+Name:
+Age:
