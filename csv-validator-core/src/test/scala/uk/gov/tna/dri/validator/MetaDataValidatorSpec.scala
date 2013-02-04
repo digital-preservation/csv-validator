@@ -33,33 +33,19 @@ class MetaDataValidatorSpec extends Specification {
     "fail if first column doesnt pass regex rule" in {
 
       val columnDefs = List(ColumnDefinition("first", List(RegexRule("[3-8]*".r))), ColumnDefinition("second"))
-      validateRow(List("99", "xxx"), columnDefs) must beLike { case Failure(msgs) => msgs.head mustEqual "Value: 99 does not match regex: [3-8]*" }
+      validateRows(List(List("99", "xxx")), Schema(2, columnDefs)) must beLike { case Failure(msgs) => msgs.head mustEqual "regex: [3-8]* fails for line 1, column: first" }
     }
 
-    "pass if first and second columns pass regex rule" in {
 
-      val columnDefs = List(ColumnDefinition("first", List(RegexRule("[3-8]*".r))), ColumnDefinition("second",List(RegexRule("[a-c]*".r))))
-      validateRow(List("88", "abc"), columnDefs) must beLike { case Success(_) => ok }
-    }
+    "fail if columns on multiple rows do not pass" in {
 
-    "fail if first column doesnt pass regex rule and second does" in {
+      val schema = Schema(2, List(ColumnDefinition("first", List(RegexRule("[3-8]*".r))), ColumnDefinition("second",List(RegexRule("[a-c]*".r)))))
+      val metaData =
+        """34,xxxy
+           abcd,uii"""
 
-      val columnDefs = List(ColumnDefinition("first", List(RegexRule("[3-8]*".r))), ColumnDefinition("second",List(RegexRule("[a-c]*".r))))
-      validateRow(List("99", "abc"), columnDefs) must beLike { case Failure(msgs) => msgs.head mustEqual "Value: 99 does not match regex: [3-8]*" }
-    }
-
-    "fail if first column does pass regex rule and second does not" in {
-
-      val columnDefs = List(ColumnDefinition("first", List(RegexRule("[3-8]*".r))), ColumnDefinition("second",List(RegexRule("[a-c]*".r))))
-      validateRow(List("88", "xxx"), columnDefs) must beLike { case Failure(msgs) => msgs.head mustEqual "Value: xxx does not match regex: [a-c]*" }
-    }
-
-    "fail if first and second columns do not pass" in {
-
-      val columnDefs = List(ColumnDefinition("first", List(RegexRule("[3-8]*".r))), ColumnDefinition("second",List(RegexRule("[a-c]*".r))))
-
-      validateRow(List("99", "xxx"), columnDefs) must beLike {
-        case Failure(msgs) => msgs.list must contain ("Value: 99 does not match regex: [3-8]*", "Value: xxx does not match regex: [a-c]*").only
+      validate(new StringReader(metaData), schema) must beLike {
+        case Failure(msgs) => msgs.list must contain ("regex: [a-c]* fails for line 1, column: second", "regex: [3-8]* fails for line 2, column: first", "regex: [a-c]* fails for line 2, column: second").only
       }
     }
 

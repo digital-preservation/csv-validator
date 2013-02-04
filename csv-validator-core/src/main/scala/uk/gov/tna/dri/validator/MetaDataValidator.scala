@@ -25,19 +25,18 @@ trait MetaDataValidator {
     }
   }
 
-  def validateRow(row: List[String], columnDefinitions: List[ColumnDefinition]) = {
+  def validateRows(rows: List[List[String]], schema: Schema) = {
+    val validations = for {(row, rowIndex) <- rows.zipWithIndex} yield (validateRow(rowIndex, row, schema.columnDefinitions))
+    validations.sequence[({type x[a] = ValidationNEL[String, a]})#x, List[Boolean]]
+  }
+
+  private def validateRow(rowIndex: Int, row: List[String], columnDefinitions: List[ColumnDefinition]) = {
     val valueWithColumnDefinition = row.zip(columnDefinitions)
     val validations =
       for { (value, columnDef) <- valueWithColumnDefinition
              rule <- columnDef.rules
-        } yield rule.execute(value)
+        } yield rule.execute(rowIndex, columnDef, value)
 
     validations.sequence[({type x[a] = ValidationNEL[String, a]})#x, Boolean]
    }
-
-  def validateRows(rows: List[List[String]], schema: Schema) = {
-    val validations = for {row <- rows} yield (validateRow(row, schema.columnDefinitions))
-    validations.sequence[({type x[a] = ValidationNEL[String, a]})#x, List[Boolean]]
-  }
-
 }
