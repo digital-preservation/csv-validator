@@ -28,7 +28,7 @@ ColumnIdentifier        ::=     IntegerLiteral | Ident
 
 ColumnValidationExpr    ::=     SingleExpr | ExternalSingleExpr | CombinatorialExpr | ParenthesizedExpr
 
-SingleExpr              ::=     IsExpr | NotExpr | InExpr | StarstWithExpr | EndsWithExpr | RegExpExpr | NotEmptyExpr | UniqueExpr | UriExpr | XsdDateTimeExpr | XsdDateExpr | UkDateExpr | XsdTimeExpr | Uuid4Expr
+SingleExpr              ::=     IsExpr | NotExpr | InExpr | StarstWithExpr | EndsWithExpr | RegExpExpr | NotEmptyExpr | UniqueExpr | UriExpr | XsdDateTimeExpr | XsdDateExpr | UkDateExpr | XsdTimeExpr | Uuid4Expr | PositiveIntegerExpr
 
 IsExpr                  ::=     "is(" StringProvider ")"
 NotExpr                 ::=     "not(" StringProvider ")"
@@ -44,6 +44,7 @@ XsdDateExpr             ::=     "XDate"
 UkDateExpr              ::=     "UKDate"
 XsdTimeExpr             ::=     "XTime"
 Uuid4Expr               ::=     "UUID4"
+PositiveIntegerExpr     ::=     "PositiveInteger"           /* [0-9]+ */
 
 /* External expressions cause the checking of a value against some external source or process */
 ExternalSingleExpr      ::=     FileExistsExpr | ChecksumExpr | FileCountExpr

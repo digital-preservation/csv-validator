@@ -1,0 +1,56 @@
+version 1.0
+
+@TotalColumns 46
+
+/*
+    CSV Schema for BatchPIMS.csv
+    Metadata for Home Guard PoC 
+*/
+
+batch_id:
+uuid: UUID4 Unique in($uri)         //TODO UUIDInImageEmbeddedURI(jp2ValidatorPy, root, 2)
+file_path: URI regexp("[A-Z]{2,3}/[0-9]+/[0-9]+_[0-9]+/[0-9]+/[0-9]+-[0-9]+_[0-9]+_[0-9]+.jp2") FileExists
+collection: NotEmpty
+uri: URI Unique
+scanner_operator: PositiveInteger          
+scanner_id: NotEmpty            
+scanner_manufacturer: NotEmpty
+scanner_model: NotEmpty           
+scanning_location: is("TNA, kew")            
+scanning_software_name: NotEmpty
+scanning_software_version: NotEmpty
+scanning_software_parameters: not("#NAME") @IgnoreCase
+scnning_start: XDateTime
+scnning_end: XDateTime
+conversion_software_name: NotEmpty
+conversion_software_version: NotEmpty
+conversion_software_parameters: not("#NAME") @IgnoreCase
+conversion_timestamp: XDateTime
+uuid_software_name: NotEmpty
+uuid_software_version: NotEmpty
+uuid_software_parameters: not("#NAME") @IgnoreCase
+uuid_timestamp: XDateTime
+embedding_software_name: NotEmpty
+embedding_software_version: NotEmpty
+embedding_software_parameters: not("#NAME") @IgnoreCase
+embedding_timestamp: XDateTime
+image_resolution: NotEmpty
+image_dimensions: NotEmpty
+image_checksum: Checksum($file_path, "md5")
+image_split: is("Y") or is("N") @IgnoreCase
+split_image_1_uuid: UUIDv4 @Optional
+split_image_2_uuid: UUIDv4 @Optional
+split_operator: PositiveInteger @Optional
+split_timestamp: XDateTime @Optional
+image_crop: is("Y") or is("N") @IgnoreCase @Optional
+image_crop_type: is("manual") or is("auto") @Optional
+image_crop_operator: PositiveInteger @Optional
+image_crop_timestamp: XDateTime @Optional
+image_deskew: is("Y") or is("N") @IgnoreCase @Optional
+image_deskew_operator: PositiveInteger @Optional
+image_deskew_timestamp: XDateTime @Optional
+image_tonal_resolution: NotEmpty
+image_format: NotEmpty
+image_orientation: is("portrait") or is("landscape")
+image_colour_space: NotEmpty
+comments:
