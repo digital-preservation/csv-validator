@@ -59,26 +59,26 @@ class SchemaParserSpec extends Specification with ParserMatchers {
 
     "succeed for valid regex rule" in {
       val schema = """@TotalColumns 1
-                      LastName: regex "[a]""""
+                      LastName: regex ("[a]")"""
 
       parse(new StringReader(schema)) must beLike { case Success(Schema(1, List(ColumnDefinition("LastName", List(RegexRule(r))))), _) => r.pattern.pattern mustEqual "[a]" }
     }
 
     "fail for an invalid regex" in {
       val schema = """@TotalColumns 1
-                      Something: regex "[0-9""""
+                      Something: regex ("[0-9")"""
 
-      parse(new StringReader(schema)) must beLike { case Failure(message, next) => (message mustEqual "regex invalid: \"[0-9\"") }
+      parse(new StringReader(schema)) must beLike { case Failure(message, next) => (message mustEqual "regex invalid: [0-9") }
     }
 
     "fail for missing quotes defining a regex" in {
       val schema = """@TotalColumns 3
                       LastName:
-                      FirstName: regex "a
+                      FirstName: regex ("a)
                       Age:"""
 
       parse(new StringReader(schema)) must beLike {
-        case Failure(message, _) => message mustEqual "regex definition missing quotes"
+        case Failure(message, _) => message mustEqual "regex not correctly delimited as (\"your regex\")"
       }
     }
 
@@ -86,19 +86,19 @@ class SchemaParserSpec extends Specification with ParserMatchers {
       val schema = """@TotalColumns 1
                       Something: regex"""
 
-      parse(new StringReader(schema)) must beLike { case Failure(message, next) => (message mustEqual "regex definition missing quotes") }
+      parse(new StringReader(schema)) must beLike { case Failure(message, next) => (message mustEqual "regex not correctly delimited as (\"your regex\")") }
     }
 
     "fail if there is more than 1 regex rule" in {
       val schema = """@TotalColumns 1
-                      LastName: regex "[a]" regex "[0-5]""""
+                      LastName: regex ("[a]") regex ("[0-5]")"""
 
-      parse(new StringReader(schema)) must beLike { case Failure(message, next) => (message mustEqual "Column definition contains invalid (extra) text") }
+      parse(new StringReader(schema)) must beLike { case Failure(message, next) => (message mustEqual "regex invalid: [a]\") regex (\"[0-5]") }
     }
 
     "fail if the total number of columns does not match the number of column definitions" in {
       val schema = """@TotalColumns 2
-                      LastName: regex "[a]""""
+                      LastName: regex ("[a]")"""
 
       parse(new StringReader(schema)) must beLike { case Failure(message, _) => message mustEqual "Schema invalid as @TotalColumns = 2 but number of columns defined = 1" }
     }
@@ -119,21 +119,21 @@ class SchemaParserSpec extends Specification with ParserMatchers {
 
     "succeed for column definition with single regex rule" in {
       val schema = """@TotalColumns 1
-                      Age: regex "[1-9]*""""
+                      Age: regex ("[1-9]*")"""
 
       parse(new StringReader(schema)) must beLike { case Success(Schema(1, List(ColumnDefinition("Age", List(RegexRule(r))))), _) => r.pattern.pattern mustEqual "[1-9]*" }
     }
 
     "fail for more than one column definition on a line" in {
       val schema = """@TotalColumns 1
-                      LastName: regex "[a-z]*" Age"""
+                      LastName: regex ("[a-z]*") Age"""
 
       parse(new StringReader(schema)) must beLike { case Failure(message, _) => message mustEqual """Column definition contains invalid (extra) text""" }
     }
 
     "fail for extra text after column definition on a line" in {
       val schema = """@TotalColumns 3
-                      LastName: regex "[a-z]*"
+                      LastName: regex ("[a-z]*")
                       FirstName: dfsdfsdfwe
                       Age:"""
 
