@@ -18,23 +18,23 @@ trait SchemaParser extends RegexParsers {
 
   val positiveNumber: Parser[String] = """[1-9][0-9]*"""r
 
-  val quote: Parser[String] = "\""r
+  val Regex = """([(]")(.*)("[)])"""r
 
-  val quotedRegex: Parser[String] = "\".*?\""r
+  val regexParser: Parser[String] = Regex withFailureMessage("""regex not correctly delimited as ("your regex")""")
 
   def parse(reader: Reader) = parseAll(schema, reader)
 
-  def schema = totalColumns ~ columnDefinitions ^? (createSchema, { case tc ~ c => s"Schema invalid as @TotalColumns = ${tc} but number of columns defined = ${c.length}" })
+  def schema = totalColumns ~ columnDefinitions ^? (createSchema, { case t ~ c => s"Schema invalid as @TotalColumns = ${t} but number of columns defined = ${c.length}" })
 
   def totalColumns = (("@TotalColumns" ~ white) ~> positiveNumber <~ eol ^^ { _.toInt }).withFailureMessage("@TotalColumns invalid")
 
   def columnDefinitions = rep1(columnDefinition)
 
   def columnDefinition = (white ~> columnIdentifier <~ (white ~ ":" ~ white)) ~ opt(regex) <~ endOfColumnDefinition ^^ {
-    case i ~ r => ColumnDefinition(i, List(r).collect { case Some(r) => r })
+    case i ~ r => ColumnDefinition(i, List(r).filter(_ != None).map(_.get))
   }
 
-  def regex = ("regex" ~ white) ~> (quotedRegex withFailureMessage("regex definition missing quotes")) ^? (isValidRegex, s => "regex invalid: " + s) | failure("Invalid regex rule")
+  def regex = ("regex" ~ white) ~> regexParser ^? (validateRegex, s => "regex invalid: " + stripRegexDelimiters(s)) | failure("Invalid regex rule")
 
   private def createSchema: PartialFunction[~[Int, List[ColumnDefinition]], Schema] = {
     case totalColumns ~ columnDefinitions if totalColumns == columnDefinitions.length => Schema(totalColumns, columnDefinitions)
@@ -49,7 +49,9 @@ trait SchemaParser extends RegexParsers {
     }
   }
 
-  private def isValidRegex: PartialFunction[String, RegexRule] = { case s: String if Try(unquote(s).r).isSuccess => RegexRule(unquote(s).r) }
+  private def validateRegex: PartialFunction[String, RegexRule] = {
+    case Regex(_, s, _) if Try(s.r).isSuccess => RegexRule(Try(s.r).get)
+  }
 
-  private def unquote(str: String): String = str.tail.dropRight(1)
+  private def stripRegexDelimiters(s: String) = s.drop(2).dropRight(2)
 }
