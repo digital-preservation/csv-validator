@@ -1,7 +1,7 @@
 package uk.gov.tna.dri.validator
 
 import org.specs2.mutable.Specification
-import uk.gov.tna.dri.schema.{ColumnDefinition, RegexRule, Schema}
+import uk.gov.tna.dri.schema.{InRule, ColumnDefinition, RegexRule, Schema}
 import java.io.StringReader
 import scalaz._
 
@@ -62,6 +62,16 @@ class MetaDataValidatorSpec extends Specification {
       val metaData =
         """someData,345
            someMore,12"""
+
+      validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
+    }
+
+    "succeed for multiple rules on a column" in {
+
+      val schema = Schema(2, List(ColumnDefinition("col1"), ColumnDefinition("col2WithRule", List(RegexRule("[0-9]*[a-z]*".r),InRule("dog")))))
+      val metaData =
+        """someData,345dog
+           someMore,12doghappy"""
 
       validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
     }
