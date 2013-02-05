@@ -16,3 +16,9 @@ case class RegexRule(regex: Regex) extends Rule {
     if (value matches exp) true.successNel[String] else s"regex: ${exp} fails for line ${rowIndex+1}, column: ${colDef.id}".failNel[Boolean]
   }
 }
+
+case class InRule(inVal: String) extends Rule {
+  override def execute(rowIndex: Int, colDef: ColumnDefinition, value: String): ValidationNEL[String, Boolean] = {
+    if (value.contains(inVal)) true.successNel[String] else s"inRule: ${inVal} fails for line ${rowIndex+1}, column: ${colDef.id}, value: ${value}".failNel[Boolean]
+  }
+}
