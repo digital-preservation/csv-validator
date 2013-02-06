@@ -31,7 +31,7 @@ class RuleSpec extends Specification{
 
     "fail if inRule is not in value" in {
       inRule.execute(1, ColumnDefinition("column1"), "hell world today") must beLike {
-        case Failure(msgs) => msgs.head mustEqual "inRule: hello world fails for line 2, column: column1, value: hell world today"
+        case Failure(msgs) => msgs.head mustEqual "inRule: hello world fails for line 1, column: column1, value: hell world today"
       }
     }
 
