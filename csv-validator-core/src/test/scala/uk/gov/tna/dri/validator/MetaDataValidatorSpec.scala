@@ -1,7 +1,7 @@
 package uk.gov.tna.dri.validator
 
 import org.specs2.mutable.Specification
-import uk.gov.tna.dri.schema.{InRule, ColumnDefinition, RegexRule, Schema}
+import uk.gov.tna.dri.schema.{ColumnDefinition, RegexRule, Schema}
 import java.io.StringReader
 import scalaz._
 
@@ -30,13 +30,6 @@ class MetaDataValidatorSpec extends Specification {
       validate(new StringReader(metaData), Schema(3, colDefs)) must beLike { case Failure(messages) => messages.head mustEqual "Expected @TotalColumns of 3 and found 2 on line 2" }
     }
 
-    "fail if first column doesnt pass regex rule" in {
-
-      val columnDefs = List(ColumnDefinition("first", List(RegexRule("[3-8]*".r))), ColumnDefinition("second"))
-      validateRows(List(List("99", "xxx")), Schema(2, columnDefs)) must beLike { case Failure(msgs) => msgs.head mustEqual "regex: [3-8]* fails for line 1, column: first" }
-    }
-
-
     "fail if columns on multiple rows do not pass" in {
 
       val schema = Schema(2, List(ColumnDefinition("first", List(RegexRule("[3-8]*".r))), ColumnDefinition("second",List(RegexRule("[a-c]*".r)))))
@@ -49,14 +42,7 @@ class MetaDataValidatorSpec extends Specification {
       }
     }
 
-    "succeed if validates multiple rows" in {
-
-      val rows = List(List("a", "1"), List("b", "2"))
-      val schema = Schema(2, List(ColumnDefinition("column1", List(RegexRule("[a-c]".r))), ColumnDefinition("column2", List(RegexRule("[0-9]".r)))))
-      validateRows(rows, schema) must beLike { case Success(_) => ok }
-    }
-
-    "succeed for valid schema and meta-data" in {
+    "succeed for multiple rows" in {
 
       val schema = Schema(2, List(ColumnDefinition("col1"), ColumnDefinition("col2WithRule", List(RegexRule("[0-9]*".r)))))
       val metaData =
@@ -66,14 +52,33 @@ class MetaDataValidatorSpec extends Specification {
       validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
     }
 
-    "succeed for multiple rules on a column" in {
+    "fail for @TotalColumns invalid" in {
 
-      val schema = Schema(2, List(ColumnDefinition("col1"), ColumnDefinition("col2WithRule", List(RegexRule("[0-9]*[a-z]*".r),InRule("dog")))))
-      val metaData =
-        """someData,345dog
-           someMore,12doghappy"""
+      val m = """c11,c12
+                |c21,c22""".stripMargin
+      val schema = Schema(1, List(ColumnDefinition("Col1")))
 
-      validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
+      validate(new StringReader(m), schema) should beLike {
+        case Failure(msgs) => msgs.list must contain ("Expected @TotalColumns of 1 and found 2 on line 1", "Expected @TotalColumns of 1 and found 2 on line 2").only
+      }
+    }
+
+    "fail for a single rule" in {
+      val m = "c11,c12"
+      val schema = Schema(2, List(ColumnDefinition("Col1", List(RegexRule("C11"r))), ColumnDefinition("Col2")))
+
+      validate(new StringReader(m), schema) should beLike {
+        case Failure(msgs) => msgs.head mustEqual "regex: C11 fails for line 1, column: Col1"
+      }
+    }
+
+    "fail for rule when cell missing" in {
+      val m = "1"
+      val schema = Schema(2, List(ColumnDefinition("Col1"), ColumnDefinition("Col2", List(RegexRule("[0-9]"r)))))
+
+      validate(new StringReader(m), schema) should beLike {
+        case Failure(msgs) => msgs.list must contain ("Expected @TotalColumns of 2 and found 1 on line 1", "Missing value at line: 1, column: Col2").only
+      }
     }
   }
 }

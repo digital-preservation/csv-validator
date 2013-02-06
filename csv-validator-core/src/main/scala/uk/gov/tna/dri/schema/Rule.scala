@@ -6,19 +6,19 @@ import Scalaz._
 
 sealed trait Rule {
 
-  def execute(rowIndex: Int, colDef: ColumnDefinition, value: String): ValidationNEL[String, Boolean]
+  def execute(rowIndex: Int, colDef: ColumnDefinition, value: String): ValidationNEL[String, Any]
 }
 
 case class RegexRule(regex: Regex) extends Rule {
 
-  override def execute(rowIndex: Int, colDef: ColumnDefinition, value: String): ValidationNEL[String, Boolean] = {
+  override def execute(lineNumber: Int, colDef: ColumnDefinition, value: String): ValidationNEL[String, Any] = {
     val exp = regex.pattern.pattern
-    if (value matches exp) true.successNel[String] else s"regex: ${exp} fails for line ${rowIndex+1}, column: ${colDef.id}".failNel[Boolean]
+    if (value matches exp) true.successNel[String] else s"regex: ${exp} fails for line ${lineNumber}, column: ${colDef.id}".failNel[Any]
   }
 }
 
 case class InRule(inVal: String) extends Rule {
-  override def execute(rowIndex: Int, colDef: ColumnDefinition, value: String): ValidationNEL[String, Boolean] = {
-    if (value.contains(inVal)) true.successNel[String] else s"inRule: ${inVal} fails for line ${rowIndex+1}, column: ${colDef.id}, value: ${value}".failNel[Boolean]
+  override def execute(rowIndex: Int, colDef: ColumnDefinition, value: String): ValidationNEL[String, Any] = {
+    if (value.contains(inVal)) true.successNel[String] else s"inRule: ${inVal} fails for line ${rowIndex+1}, column: ${colDef.id}, value: ${value}".failNel[Any]
   }
 }
