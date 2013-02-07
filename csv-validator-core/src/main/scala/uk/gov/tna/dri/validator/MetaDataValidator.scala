@@ -1,6 +1,6 @@
 package uk.gov.tna.dri.validator
 
-import uk.gov.tna.dri.schema.{CellContext, Schema}
+import uk.gov.tna.dri.schema.{Optional, CellContext, Schema}
 import au.com.bytecode.opencsv.CSVReader
 import java.io.Reader
 import scala.collection.JavaConversions._
@@ -20,6 +20,7 @@ trait MetaDataValidator {
 
   private def validateRow(row: Row, schema: Schema) = {
     val totalColumnsV = totalColumns(row, schema)
+
     val rulesV = rules(row, schema)
     (totalColumnsV |@| rulesV) { _ :: _ }
   }
@@ -31,9 +32,7 @@ trait MetaDataValidator {
 
   private def rules(row: Row, schema: Schema) = {
     val cells = row.cells.lift
-
     val v = for { (columnDefinition, columnIndex) <- schema.columnDefinitions.zipWithIndex } yield validateCell(cells(columnIndex), CellContext(columnIndex, row, schema))
-
     v.sequence[MetaDataValidation, Any]
   }
 
@@ -43,6 +42,7 @@ trait MetaDataValidator {
   }
 
   private def rulesForCell(cellContext: CellContext) = {
-    cellContext.rules.map(_.execute(cellContext)).sequence[MetaDataValidation, Any]
+    if (cellContext.cell.value.trim.isEmpty && cellContext.columnDirectives.contains(Optional())) true.successNel
+    else cellContext.rules.map(_.execute(cellContext)).sequence[MetaDataValidation, Any]
   }
 }

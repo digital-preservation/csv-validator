@@ -7,18 +7,12 @@ import uk.gov.tna.dri.metadata.Row
 
 case class CellContext(columnIndex: Int, row: Row, schema: Schema) {
   lazy val cell = row.cells(columnIndex)
-
   lazy val columnIdentifier = schema.columnDefinitions(columnIndex).id
-
   lazy val lineNumber = row.lineNumber
-
   lazy val rules = schema.columnDefinitions(columnIndex).rules
-
   lazy val columnDefWithValue = schema.columnDefinitions.zip(row.cells)
-
-  lazy val myMap = columnDefWithValue.collect {
-    case (x, y) => (x.id , y.value)
-  } toMap
+  lazy val cellsByColumnId = columnDefWithValue.collect { case (x, y) => (x.id , y.value)} toMap
+  lazy val columnDirectives = schema.columnDefinitions(columnIndex).directives
 }
 
 sealed trait Rule {
@@ -36,7 +30,7 @@ case class RegexRule(regex: Regex) extends Rule {
 
 case class InRule(inVal: StringProvider) extends Rule {
   override def execute(cellContext: CellContext): ValidationNEL[String, Any] = {
-    val colVal = util.Try (inVal.getColumnValue(cellContext.myMap)).getOrElse("Invalid Column Name")
+    val colVal = util.Try (inVal.getColumnValue(cellContext.cellsByColumnId)).getOrElse("Invalid Column Name")
 
     if (cellContext.cell.value.contains(colVal)) true.successNel[String]
     else s"inRule: ${colVal} fails for line ${cellContext.lineNumber}, column: ${cellContext.columnIdentifier}, value: ${cellContext.cell.value}".failNel[Any]

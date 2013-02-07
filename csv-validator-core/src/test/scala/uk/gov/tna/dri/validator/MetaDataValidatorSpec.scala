@@ -97,59 +97,38 @@ class MetaDataValidatorSpec extends Specification {
 
       validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
     }
-    "succeed for multiple rows with InRule which has a column reference" in {
 
-      val schema = Schema(2, List(ColumnDefinition("col1"), ColumnDefinition("col2WithRule", List(RegexRule("[0-9a-z]*".r),InRule(ColumnTypeProvider("$col1"))))))
-      val metaData =
-        """dog,345dog
-          |dog,12dogggy""".stripMargin
+    "succeed when @Optional is given for an empty cell" in {
 
-      validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
+      val colDefs = ColumnDefinition("Col1") ::  ColumnDefinition("Col2", List(RegexRule("[0-9]"r)), List(Optional())) :: ColumnDefinition("Col3") :: Nil
+      val schema = Schema(3, colDefs)
+      val m = "1, , 3"
+
+      validate(new StringReader(m), schema) must beLike { case Success(_) => ok }
     }
 
-    "fail for multiple rows with InRule" in {
-      val schema = Schema(2, List(ColumnDefinition("col1"), ColumnDefinition("col2WithRule", List(RegexRule("[0-9a-z]*".r),InRule(LiteralTypeProvider("cat"))))))
-      val metaData =
-        """someData,345dog
-           someMore,12dog"""
+    "fail when @Optional is given for non empty cell with a failing rule" in {
 
-      validate(new StringReader(metaData), schema) should beLike {
-        case Failure(msgs) => {
-          msgs.list.size must be_==(2)
-          msgs.head must be_==("inRule: cat fails for line 1, column: col2WithRule, value: 345dog")
-        }
+      val colDefs = ColumnDefinition("Col1") ::  ColumnDefinition("Col2", List(RegexRule("[0-9]"r)), List(Optional())) :: ColumnDefinition("Col3") :: Nil
+      val schema = Schema(3, colDefs)
+      val m = "1, a, 3"
+
+      validate(new StringReader(m), schema) should beLike {
+        case Failure(msgs) => msgs.head mustEqual "regex: [0-9] fails for line 1, column: Col2"
       }
     }
 
-    "fail for multiple rows with InRule which has a column reference" in {
-      val schema = Schema(2, List(ColumnDefinition("col1"), ColumnDefinition("col2WithRule", List(RegexRule("[0-9a-z]*".r),InRule(ColumnTypeProvider("$col1"))))))
-      val metaData =
-        """someData,345dog
-          |someMore,12dog""".stripMargin
+    "pass for empty cell with @Optional but fail for empty cell without @Optional for the same rule" in {
 
-      validate(new StringReader(metaData), schema) should beLike {
-        case Failure(msgs) => {
-          msgs.list.size must be_==(2)
-          msgs.list(0) must be_==("inRule: someData fails for line 1, column: col2WithRule, value: 345dog")
-          msgs.list(1) must be_==("inRule: someMore fails for line 2, column: col2WithRule, value: 12dog")
-        }
+      val colDefs = ColumnDefinition("Col1") :: ColumnDefinition("Col2", List(RegexRule("[0-9]"r)), List(Optional())) :: ColumnDefinition("Col3", List(RegexRule("[0-9]"r))) :: ColumnDefinition("Col4") :: Nil
+      val schema = Schema(4, colDefs)
+      val m =
+        """1,,,4
+          |1,a,,4""".stripMargin
+
+      validate(new StringReader(m), schema) should beLike {
+        case Failure(msgs) => msgs.list must contain ("regex: [0-9] fails for line 1, column: Col3", "regex: [0-9] fails for line 2, column: Col2", "regex: [0-9] fails for line 2, column: Col3")
       }
     }
-
-    "fail for multiple rows with InRule which has a column reference which is invalid" in {
-      val schema = Schema(2, List(ColumnDefinition("col1"), ColumnDefinition("col2WithRule", List(RegexRule("[0-9a-z]*".r),InRule(ColumnTypeProvider("$col22"))))))
-      val metaData =
-        """someData,345dog
-          |someMore,12dog""".stripMargin
-
-      validate(new StringReader(metaData), schema) should beLike {
-        case Failure(msgs) => {
-          msgs.list.size must be_==(2)
-          msgs.list(0) must be_==("inRule: Invalid Column Name fails for line 1, column: col2WithRule, value: 345dog")
-          msgs.list(1) must be_==("inRule: Invalid Column Name fails for line 2, column: col2WithRule, value: 12dog")
-        }
-      }
-    }
-
   }
 }
