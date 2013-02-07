@@ -30,24 +30,19 @@ trait SchemaParser extends RegexParsers {
 
   def columnDefinitions = rep1(columnDefinition)
 
-  def columnDefinition = (white ~> columnIdentifier <~ (white ~ ":" ~ white)) ~ opt(regex) ~ opt(inRule) <~ endOfColumnDefinition ^^ {
-    case i ~ Some(r) ~ Some(ir) => {
-      ColumnDefinition(i, r :: ir :: Nil)
-    }
-    case i ~ Some(r) ~ None => {
-      ColumnDefinition(i, r :: Nil)
-    }
-    case i ~ None ~ Some(ir) => {
-      ColumnDefinition(i, ir :: Nil)
-    }
-    case i ~ None ~ None => {
-      ColumnDefinition(i)
-    }
+  def columnDefinition = (white ~> columnIdentifier <~ (white ~ ":" ~ white)) ~ opt(regex) ~ (white ~> opt(inRule)) <~ endOfColumnDefinition ^^ {
+    case i ~ r ~ in => ColumnDefinition(i, List(r,in).collect { case Some(r) => r })
   }
 
   def regex = ("regex" ~ white) ~> regexParser ^? (validateRegex, s => "regex invalid: " + stripRegexDelimiters(s)) | failure("Invalid regex rule")
 
-  def inRule = "in(" ~> "\\w*".r <~ ")"  ^^ {InRule(_)}
+  def inRule = "in(" ~> stringProvider <~ ")"  ^^ {InRule(_)}
+
+  def stringProvider: Parser[StringProvider] = """^\$\w+""".r ^^ {ColumnTypeProvider(_)} | "\\w*".r ^^ {LiteralTypeProvider(_)}
+
+  def columnRef: Parser[StringProvider] = "$" ~> columnIdentifier ^^ {ColumnTypeProvider(_)}
+
+
 
   private def createSchema: PartialFunction[~[Int, List[ColumnDefinition]], Schema] = {
     case totalColumns ~ columnDefinitions if totalColumns == columnDefinitions.length => Schema(totalColumns, columnDefinitions)
