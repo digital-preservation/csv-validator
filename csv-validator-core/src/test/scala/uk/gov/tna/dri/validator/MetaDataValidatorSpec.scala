@@ -23,8 +23,9 @@ class MetaDataValidatorSpec extends Specification {
       val metaData =
         """col1, col2
            col1, col2"""
-      val colDefs = List(new ColumnDefinition("\"column1\""),new ColumnDefinition("\"column2\""))
-      validate(new StringReader(metaData), Schema(2, colDefs)) must beLike { case Success(_) => ok }
+
+      val columnDefinitions = List(new ColumnDefinition("\"column1\""),new ColumnDefinition("\"column2\""))
+      validate(new StringReader(metaData), Schema(2, columnDefinitions)) must beLike { case Success(_) => ok }
     }
 
     "fail for incorrect number of total columns for multiple lines" in {
@@ -32,13 +33,14 @@ class MetaDataValidatorSpec extends Specification {
         """col1, col2, col3
            col1, col2
            col1, col2, col3"""
-      val colDefs = List(new ColumnDefinition("\"column1\""),new ColumnDefinition("\"column2\""),new ColumnDefinition("\"column3\""))
-      validate(new StringReader(metaData), Schema(3, colDefs)) must beLike { case Failure(messages) => messages.head mustEqual "Expected @TotalColumns of 3 and found 2 on line 2" }
+
+      val columnDefinitions = List(new ColumnDefinition("\"column1\""),new ColumnDefinition("\"column2\""),new ColumnDefinition("\"column3\""))
+      validate(new StringReader(metaData), Schema(3, columnDefinitions)) must beLike { case Failure(messages) => messages.head mustEqual "Expected @TotalColumns of 3 and found 2 on line 2" }
     }
 
     "fail if columns on multiple rows do not pass" in {
-
       val schema = Schema(2, List(ColumnDefinition("first", List(RegexRule("[3-8]*".r))), ColumnDefinition("second",List(RegexRule("[a-c]*".r)))))
+
       val metaData =
         """34,xxxy
            abcd,uii"""
@@ -49,8 +51,8 @@ class MetaDataValidatorSpec extends Specification {
     }
 
     "succeed for multiple rows" in {
-
       val schema = Schema(2, List(ColumnDefinition("col1"), ColumnDefinition("col2WithRule", List(RegexRule("[0-9]*".r)))))
+
       val metaData =
         """someData,345
            someMore,12"""
@@ -59,9 +61,9 @@ class MetaDataValidatorSpec extends Specification {
     }
 
     "fail for @TotalColumns invalid" in {
-
       val m = """c11,c12
                 |c21,c22""".stripMargin
+
       val schema = Schema(1, List(ColumnDefinition("Col1")))
 
       validate(new StringReader(m), schema) should beLike {

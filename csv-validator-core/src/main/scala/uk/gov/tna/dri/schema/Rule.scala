@@ -3,25 +3,42 @@ package uk.gov.tna.dri.schema
 import util.matching.Regex
 import scalaz._
 import Scalaz._
+import uk.gov.tna.dri.metadata.Row
+
+case class CellContext(columnIndex: Int, row: Row, schema: Schema) {
+  lazy val cell = row.cells(columnIndex)
+
+  lazy val columnIdentifier = schema.columnDefinitions(columnIndex).id
+
+  lazy val lineNumber = row.lineNumber
+
+  lazy val rules = schema.columnDefinitions(columnIndex).rules
+
+  lazy val columnDefWithValue = schema.columnDefinitions.zip(row.cells)
+
+  lazy val myMap = columnDefWithValue.collect {
+    case (x, y) => (x.id , y.value)
+  } toMap
+}
 
 sealed trait Rule {
-
-  def execute(rowIndex: Int, columnToValueMap: Map[String,String], colDef: ColumnDefinition, value: String): ValidationNEL[String, Any]
+  def execute(cellContext: CellContext): ValidationNEL[String, Any]
 }
 
 case class RegexRule(regex: Regex) extends Rule {
-
-  override def execute(lineNumber: Int, columnToValueMap: Map[String,String], colDef: ColumnDefinition, value: String): ValidationNEL[String, Any] = {
+  override def execute(cellContext: CellContext): ValidationNEL[String, Any] = {
     val exp = regex.pattern.pattern
-    if (value matches exp) true.successNel[String] else s"regex: ${exp} fails for line ${lineNumber}, column: ${colDef.id}".failNel[Any]
+
+    if (cellContext.cell.value matches exp) true.successNel[String]
+    else s"regex: ${exp} fails for line ${cellContext.lineNumber}, column: ${cellContext.columnIdentifier}".failNel[Any]
   }
 }
 
 case class InRule(inVal: StringProvider) extends Rule {
+  override def execute(cellContext: CellContext): ValidationNEL[String, Any] = {
+    val colVal = util.Try (inVal.getColumnValue(cellContext.myMap)).getOrElse("Invalid Column Name")
 
-  override def execute(lineNumber: Int, columnToValueMap: Map[String,String], colDef: ColumnDefinition, value: String): ValidationNEL[String, Any] = {
-    val colVal = util.Try (inVal.getColumnValue(columnToValueMap)).getOrElse("Invalid Column Name")
-
-    if (value.contains(colVal)) true.successNel[String] else s"inRule: ${colVal} fails for line ${lineNumber}, column: ${colDef.id}, value: ${value}".failNel[Any]
+    if (cellContext.cell.value.contains(colVal)) true.successNel[String]
+    else s"inRule: ${colVal} fails for line ${cellContext.lineNumber}, column: ${cellContext.columnIdentifier}, value: ${cellContext.cell.value}".failNel[Any]
   }
 }

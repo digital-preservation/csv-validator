@@ -34,11 +34,11 @@ trait SchemaParser extends RegexParsers {
 
   def regex = ("regex" ~ white) ~> regexParser ^? (validateRegex, s => "regex invalid: " + stripRegexDelimiters(s)) | failure("Invalid regex rule")
 
-  def inRule = "in(" ~> stringProvider <~ ")"  ^^ {InRule(_)}
+  def inRule = "in(" ~> stringProvider <~ ")"  ^^ { InRule }
 
-  def stringProvider: Parser[StringProvider] = """^\$\w+""".r ^^ {ColumnTypeProvider(_)} | "\\w*".r ^^ {LiteralTypeProvider(_)}
+  def stringProvider: Parser[StringProvider] = """^\$\w+""".r ^^ { ColumnTypeProvider } | "\\w*".r ^^ { LiteralTypeProvider }
 
-  def columnRef: Parser[StringProvider] = "$" ~> columnIdentifier ^^ {ColumnTypeProvider(_)}
+  def columnRef: Parser[StringProvider] = "$" ~> columnIdentifier ^^ { ColumnTypeProvider }
 
   def optional = "@Optional" ^^^ Optional()
 
