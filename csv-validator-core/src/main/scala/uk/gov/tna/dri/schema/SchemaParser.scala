@@ -56,7 +56,7 @@ trait SchemaParser extends RegexParsers {
   }
 
   private def validateRegex: PartialFunction[String, RegexRule] = {
-    case Regex(_, s, _) if Try(s.r).isSuccess => RegexRule(Try(s.r).get)
+    case Regex(_, s, _) if Try(s.r).isSuccess => RegexRule(s.r)
   }
 
   private def stripRegexDelimiters(s: String) = s.drop(2).dropRight(2)
