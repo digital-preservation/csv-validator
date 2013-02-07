@@ -1,9 +1,15 @@
 package uk.gov.tna.dri.validator
 
 import org.specs2.mutable.Specification
-import uk.gov.tna.dri.schema.{ColumnDefinition, RegexRule, Schema}
+import uk.gov.tna.dri.schema._
 import java.io.StringReader
 import scalaz._
+import scalaz.Success
+import uk.gov.tna.dri.schema.ColumnDefinition
+import uk.gov.tna.dri.schema.RegexRule
+import scalaz.Failure
+import uk.gov.tna.dri.schema.Schema
+import uk.gov.tna.dri.schema.LiteralTypeProvider
 
 class MetaDataValidatorSpec extends Specification {
 
@@ -80,5 +86,16 @@ class MetaDataValidatorSpec extends Specification {
         case Failure(msgs) => msgs.list must contain ("Expected @TotalColumns of 2 and found 1 on line 1", "Missing value at line: 1, column: Col2").only
       }
     }
+
+    "succeed for multiple rows with InRule" in {
+
+      val schema = Schema(2, List(ColumnDefinition("col1"), ColumnDefinition("col2WithRule", List(RegexRule("[0-9a-z]*".r),InRule(LiteralTypeProvider("dog"))))))
+      val metaData =
+        """someData,345dog
+           someMore,12dog"""
+
+      validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
+    }
+
   }
 }
