@@ -28,8 +28,8 @@ trait SchemaParser extends RegexParsers {
 
   def columnDefinitions = rep1(columnDefinition)
 
-  def columnDefinition = (columnIdentifier <~ ":") ~ opt(regex) ~ opt(inRule) ~ opt(optional) <~ endOfColumnDefinition ^^ {
-    case id ~ reg ~ in ~ o => ColumnDefinition(id, List(reg, in).collect { case Some(r) => r }, List(o).collect { case Some(o) => o } )
+  def columnDefinition = (columnIdentifier <~ ":") ~ opt(regex) ~ opt(inRule) ~ opt(optional) ~ opt(ignoreCase) <~ endOfColumnDefinition ^^ {
+    case id ~ reg ~ in ~ o ~ ig => ColumnDefinition(id, List(reg, in).collect { case Some(r) => r }, List(o, ig).collect { case Some(d) => d } )
   }
 
   def regex = ("regex" ~ white) ~> regexParser ^? (validateRegex, s => "regex invalid: " + stripRegexDelimiters(s)) | failure("Invalid regex rule")
@@ -41,6 +41,8 @@ trait SchemaParser extends RegexParsers {
   def columnRef: Parser[StringProvider] = "$" ~> columnIdentifier ^^ { ColumnTypeProvider }
 
   def optional = "@Optional" ^^^ Optional()
+
+  def ignoreCase = "@IgnoreCase" ^^^ IgnoreCase()
 
   private def createSchema: PartialFunction[~[Int, List[ColumnDefinition]], Schema] = {
     case totalColumns ~ columnDefinitions if totalColumns == columnDefinitions.length => Schema(totalColumns, columnDefinitions)

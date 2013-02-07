@@ -21,3 +21,5 @@ case class LiteralTypeProvider(override val value: String) extends StringProvide
 trait ColumnDirective
 
 case class Optional() extends ColumnDirective
+
+case class IgnoreCase() extends ColumnDirective

@@ -14,11 +14,18 @@ class SchemaParserColumnDirectivesSpec extends Specification with ParserMatchers
 
   "Schema" should {
 
-    "succeed for an @Optional column directive" in {
+    "succeed for a @Optional column directive" in {
       val schema = """@TotalColumns 1
                       column1: @Optional"""
 
-      parse(new StringReader(schema)) must beLike { case Success(Schema(_,List(ColumnDefinition("column1", _, List(Optional())))),_) => ok }
+      parse(new StringReader(schema)) must beLike { case Success(Schema(_, List(ColumnDefinition("column1", _, List(Optional())))),_) => ok }
+    }
+
+    "succeed for a @IgnoreCase column directive" in {
+      val schema = """@TotalColumns 1
+                      column1: @IgnoreCase"""
+
+      parse(new StringReader(schema)) must beLike { case Success(Schema(_, List(ColumnDefinition("column1", _, List(IgnoreCase())))),_) => ok }
     }
   }
 }
