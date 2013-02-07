@@ -97,6 +97,5 @@ class MetaDataValidatorSpec extends Specification {
 
       validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
     }
-
   }
 }
