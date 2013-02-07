@@ -9,11 +9,13 @@ import Scalaz._
 
 trait MetaDataValidator {
 
+  type MetaDataValidation[A] = ValidationNEL[String, A]
+
   def validate(csv: Reader, schema: Schema) = {
     val rows = new CSVReader(csv).readAll()
 
     val v = for ((row, rowIndex) <- rows.zipWithIndex) yield validateRow(rowIndex + 1, row.toList, schema)
-    v.sequence[({type x[a] = ValidationNEL[String, a]})#x, List[Any]]
+    v.sequence[MetaDataValidation, Any]
   }
 
   private def validateRow(lineNumber: Int, row: List[String], schema: Schema) = {
@@ -35,7 +37,7 @@ trait MetaDataValidator {
     val cells = row.lift
     val v = for { (columnDefinition, columnIndex) <- schema.columnDefinitions.zipWithIndex } yield validateCell(myMap, lineNumber, cells(columnIndex), columnDefinition)
 
-    v.sequence[({type x[a] = ValidationNEL[String, a]})#x, Any]
+    v.sequence[MetaDataValidation, Any]
   }
 
   def validateCell(colToMap: Map[String, String], lineNumber: Int, cell: Option[String], columnDefinition: ColumnDefinition) = cell match {
@@ -44,6 +46,6 @@ trait MetaDataValidator {
   }
 
   private def rulesForCell(colToMap: Map[String, String], lineNumber: Int, cell: String, columnDefinition: ColumnDefinition) = {
-    columnDefinition.rules.map(_.execute(lineNumber, colToMap, columnDefinition, cell)).sequence[({type x[a] = ValidationNEL[String, a]})#x, Any]
+    columnDefinition.rules.map(_.execute(lineNumber, colToMap, columnDefinition, cell)).sequence[MetaDataValidation, Any]
   }
 }
