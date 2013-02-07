@@ -39,7 +39,7 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
       val schema = """@TotalColumns 1
                       Age: regex ("[1-9]*")"""
 
-      parse(new StringReader(schema)) must beLike { case Success(Schema(1, List(ColumnDefinition("Age", List(RegexRule(r))))), _) => r.pattern.pattern mustEqual "[1-9]*" }
+      parse(new StringReader(schema)) must beLike { case Success(Schema(1, List(ColumnDefinition("Age", List(RegexRule(r)), _))), _) => r.pattern.pattern mustEqual "[1-9]*" }
     }
 
     "fail for more than one column definition on a line" in {

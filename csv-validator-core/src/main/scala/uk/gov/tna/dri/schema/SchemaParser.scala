@@ -6,13 +6,11 @@ import util.Try
 
 trait SchemaParser extends RegexParsers {
 
-  override val skipWhitespace = false
-
   override protected val whiteSpace = """[ \t]*""".r
 
-  val eol = sys.props("line.separator")
-
   val white: Parser[String] = whiteSpace
+
+  val eol = sys.props("line.separator")
 
   val columnIdentifier: Parser[String] = ("""\w+\b"""r) withFailureMessage("Column identifier invalid")
 
@@ -30,8 +28,8 @@ trait SchemaParser extends RegexParsers {
 
   def columnDefinitions = rep1(columnDefinition)
 
-  def columnDefinition = (white ~> columnIdentifier <~ (white ~ ":" ~ white)) ~ opt(regex) ~ (white ~> opt(inRule)) <~ endOfColumnDefinition ^^ {
-    case i ~ r ~ in => ColumnDefinition(i, List(r,in).collect { case Some(r) => r })
+  def columnDefinition = (columnIdentifier <~ ":") ~ opt(regex) ~ opt(inRule) ~ opt(optional) <~ endOfColumnDefinition ^^ {
+    case id ~ reg ~ in ~ o => ColumnDefinition(id, List(reg, in).collect { case Some(r) => r }, List(o).collect { case Some(o) => o } )
   }
 
   def regex = ("regex" ~ white) ~> regexParser ^? (validateRegex, s => "regex invalid: " + stripRegexDelimiters(s)) | failure("Invalid regex rule")
@@ -42,13 +40,13 @@ trait SchemaParser extends RegexParsers {
 
   def columnRef: Parser[StringProvider] = "$" ~> columnIdentifier ^^ {ColumnTypeProvider(_)}
 
-
+  def optional = "@Optional" ^^^ Optional()
 
   private def createSchema: PartialFunction[~[Int, List[ColumnDefinition]], Schema] = {
     case totalColumns ~ columnDefinitions if totalColumns == columnDefinitions.length => Schema(totalColumns, columnDefinitions)
   }
 
-  private def endOfColumnDefinition: Parser[Any] = white ~ (eol | endOfInput | failure("Column definition contains invalid (extra) text"))
+  private def endOfColumnDefinition: Parser[Any] = whiteSpace ~ (eol | endOfInput | failure("Column definition contains invalid (extra) text"))
 
   private def endOfInput: Parser[Any] = new Parser[Any] {
     def apply(input: Input) = {
