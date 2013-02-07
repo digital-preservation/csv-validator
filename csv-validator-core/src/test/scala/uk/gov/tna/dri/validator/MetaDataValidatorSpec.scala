@@ -130,5 +130,23 @@ class MetaDataValidatorSpec extends Specification {
         case Failure(msgs) => msgs.list must contain ("regex: [0-9] fails for line 1, column: Col3", "regex: [0-9] fails for line 2, column: Col2", "regex: [0-9] fails for line 2, column: Col3")
       }
     }
+
+    "ignore case of a given regex" in {
+      val columnDefinitions = ColumnDefinition("1", List(RegexRule("[a-z]+"r)), List(IgnoreCase())) :: Nil
+      val schema = Schema(1, columnDefinitions)
+      val meta = """SCOOBY"""
+
+      validate(new StringReader(meta), schema) must beLike { case Success(_) => ok }
+    }
+
+    "fail to ignore case of a given regex when not providing @IgnoreCase" in {
+      val columnDefinitions = ColumnDefinition("1", List(RegexRule("[a-z]+"r))) :: Nil
+      val schema = Schema(1, columnDefinitions)
+      val meta = """SCOOBY"""
+
+      validate(new StringReader(meta), schema) should beLike {
+        case Failure(msgs) => msgs.list must haveTheSameElementsAs(List("regex: [a-z]+ fails for line 1, column: 1"))
+      }
+    }
   }
 }
