@@ -1,24 +1,20 @@
 package uk.gov.tna.dri.validator
 
-import uk.gov.tna.dri.schema.{CellContext, ColumnDefinition, Schema}
+import uk.gov.tna.dri.schema.{CellContext, Schema}
 import au.com.bytecode.opencsv.CSVReader
 import java.io.Reader
 import scala.collection.JavaConversions._
 import scalaz._
 import Scalaz._
-import uk.gov.tna.dri.metadata.{Cell, Row, MetaData}
+import uk.gov.tna.dri.metadata.{Cell, Row}
 
 trait MetaDataValidator {
 
   type MetaDataValidation[A] = ValidationNEL[String, A]
 
   def validate(csv: Reader, schema: Schema) = {
-    val rows = new CSVReader(csv).readAll().toList
-    validateMetaData(MetaData.fromStrings(rows.map(_.toList)), schema)
-  }
-
-  private def validateMetaData(metaData: MetaData, schema: Schema) = {
-    val v = for (row <- metaData.rows) yield validateRow(row, schema)
+    val rows = new CSVReader(csv).readAll()
+    val v = for ((row, rowIndex) <- rows.zipWithIndex) yield validateRow(Row(row.toList.map(Cell(_)), rowIndex + 1), schema)
     v.sequence[MetaDataValidation, Any]
   }
 
