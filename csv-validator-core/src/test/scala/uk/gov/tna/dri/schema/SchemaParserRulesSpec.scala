@@ -59,7 +59,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
 
       parse(new StringReader(schema)) must beLike { case Success(Schema(1, List(ColumnDefinition("Name", List(RegexRule(r),InRule(ir))))), _) => {
         r.pattern.pattern mustEqual "[1-9][a-z]*"
-        //ir mustEqual "LiteralTypeProvider(dog)"
+        ir mustEqual LiteralTypeProvider("dog")
       } }
     }
   }
