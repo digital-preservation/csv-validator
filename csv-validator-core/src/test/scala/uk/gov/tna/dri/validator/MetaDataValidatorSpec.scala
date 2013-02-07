@@ -3,7 +3,6 @@ package uk.gov.tna.dri.validator
 import org.specs2.mutable.Specification
 import uk.gov.tna.dri.schema._
 import java.io.StringReader
-import scalaz._
 import scalaz.Success
 import uk.gov.tna.dri.schema.ColumnDefinition
 import uk.gov.tna.dri.schema.RegexRule
