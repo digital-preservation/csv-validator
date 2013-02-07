@@ -50,6 +50,12 @@ class RuleSpec extends Specification{
       }
     }
 
+    "fail if the referenced column does not exist" in {
+      colInRule.execute(1, Map("column1" -> "hello", "column12" -> "world"), ColumnDefinition("column1"), "myhello today") must beLike {
+        case Failure(msgs) => msgs.head mustEqual "inRule: Invalid Column Name fails for line 2, column: column1, value: myhello today"
+      }
+    }
+
   }
 
 }

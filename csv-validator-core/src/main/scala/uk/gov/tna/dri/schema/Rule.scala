@@ -19,7 +19,7 @@ case class RegexRule(regex: Regex) extends Rule {
 
 case class InRule(inVal: StringProvider) extends Rule {
   override def execute(rowIndex: Int, columnToValueMap: Map[String,String], colDef: ColumnDefinition, value: String): ValidationNEL[String, Any] = {
-    val colVal = inVal.getColumnValue(columnToValueMap)
+    val colVal = util.Try (inVal.getColumnValue(columnToValueMap)).getOrElse("Invalid Column Name")
 
     if (value.contains(colVal)) true.successNel[String] else s"inRule: ${colVal} fails for line ${rowIndex+1}, column: ${colDef.id}, value: ${value}".failNel[Any]
   }
