@@ -33,7 +33,7 @@ class RuleSpec extends Specification{
 
     "fail if inRule is not in value" in {
       litInRule.execute(1, Map("column1" -> "myhello world today"), ColumnDefinition("column1"), "hell world today") must beLike {
-        case Failure(msgs) => msgs.head mustEqual "inRule: hello world fails for line 2, column: column1, value: hell world today"
+        case Failure(msgs) => msgs.head mustEqual "inRule: hello world fails for line 1, column: column1, value: hell world today"
       }
     }
 
@@ -46,13 +46,13 @@ class RuleSpec extends Specification{
 
     "fail if the value in the referenced column is not in this value" in {
       colInRule.execute(1, Map("column1" -> "hello", "column2" -> "world"), ColumnDefinition("column1"), "myhello today") must beLike {
-        case Failure(msgs) => msgs.head mustEqual "inRule: world fails for line 2, column: column1, value: myhello today"
+        case Failure(msgs) => msgs.head mustEqual "inRule: world fails for line 1, column: column1, value: myhello today"
       }
     }
 
     "fail if the referenced column does not exist" in {
       colInRule.execute(1, Map("column1" -> "hello", "column12" -> "world"), ColumnDefinition("column1"), "myhello today") must beLike {
-        case Failure(msgs) => msgs.head mustEqual "inRule: Invalid Column Name fails for line 2, column: column1, value: myhello today"
+        case Failure(msgs) => msgs.head mustEqual "inRule: Invalid Column Name fails for line 1, column: column1, value: myhello today"
       }
     }
 
