@@ -73,5 +73,11 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
       } }
     }
 
+    "succeed for single file exists rule" in {
+      val schema = """@TotalColumns 1
+                      Name: fileExists()"""
+      parse(new StringReader(schema)) must beLike { case Success(Schema(1, List(ColumnDefinition("Name", List(FileExistsRule(None)), _))), _) => ok}
+    }
+
   }
 }

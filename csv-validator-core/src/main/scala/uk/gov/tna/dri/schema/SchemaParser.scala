@@ -28,13 +28,17 @@ trait SchemaParser extends RegexParsers {
 
   def columnDefinitions = rep1(columnDefinition)
 
-  def columnDefinition = (columnIdentifier <~ ":") ~ opt(regex) ~ opt(inRule) ~ opt(optional) ~ opt(ignoreCase) <~ endOfColumnDefinition ^^ {
-    case id ~ reg ~ in ~ o ~ ig => ColumnDefinition(id, List(reg, in).collect { case Some(r) => r }, List(o, ig).collect { case Some(d) => d } )
+  def columnDefinition = (columnIdentifier <~ ":") ~ opt(regex) ~ opt(inRule) ~ opt(fileExistsRule) ~ opt(optional) ~ opt(ignoreCase) <~ endOfColumnDefinition ^^ {
+    case id ~ reg ~ in ~ fe ~ o ~ ig => ColumnDefinition(id, List(reg, in, fe).collect { case Some(r) => r }, List(o, ig).collect { case Some(d) => d } )
   }
 
   def regex = ("regex" ~ white) ~> regexParser ^? (validateRegex, s => "regex invalid: " + stripRegexDelimiters(s)) | failure("Invalid regex rule")
 
   def inRule = "in(" ~> stringProvider <~ ")"  ^^ { InRule }
+
+  def fileExistsRule = "fileExists(" ~> opt(rootFilePath) <~ ")" ^^ { FileExistsRule }
+
+  def rootFilePath: Parser[String] = "\"\\S*\"".r
 
   def stringProvider: Parser[StringProvider] = """^\$\w+""".r ^^ { ColumnTypeProvider } | "\\w*".r ^^ { LiteralTypeProvider }
 

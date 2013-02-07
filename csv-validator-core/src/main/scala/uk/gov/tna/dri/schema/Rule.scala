@@ -37,7 +37,7 @@ case class InRule(inVal: StringProvider) extends Rule {
   }
 }
 
-case class FileExistsRule(rootPath: Option[String]) extends Rule {
+case class FileExistsRule(rootPath: Option[String] = None) extends Rule {
   val fileSeparator = sys.props("file.separator")
 
   override def execute(cellContext: CellContext): ValidationNEL[String, Any] = {
