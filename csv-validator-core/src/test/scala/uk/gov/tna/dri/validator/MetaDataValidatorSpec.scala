@@ -97,5 +97,59 @@ class MetaDataValidatorSpec extends Specification {
 
       validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
     }
+    "succeed for multiple rows with InRule which has a column reference" in {
+
+      val schema = Schema(2, List(ColumnDefinition("col1"), ColumnDefinition("col2WithRule", List(RegexRule("[0-9a-z]*".r),InRule(ColumnTypeProvider("$col1"))))))
+      val metaData =
+        """dog,345dog
+          |dog,12dogggy""".stripMargin
+
+      validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
+    }
+
+    "fail for multiple rows with InRule" in {
+      val schema = Schema(2, List(ColumnDefinition("col1"), ColumnDefinition("col2WithRule", List(RegexRule("[0-9a-z]*".r),InRule(LiteralTypeProvider("cat"))))))
+      val metaData =
+        """someData,345dog
+           someMore,12dog"""
+
+      validate(new StringReader(metaData), schema) should beLike {
+        case Failure(msgs) => {
+          msgs.list.size must be_==(2)
+          msgs.head must be_==("inRule: cat fails for line 1, column: col2WithRule, value: 345dog")
+        }
+      }
+    }
+
+    "fail for multiple rows with InRule which has a column reference" in {
+      val schema = Schema(2, List(ColumnDefinition("col1"), ColumnDefinition("col2WithRule", List(RegexRule("[0-9a-z]*".r),InRule(ColumnTypeProvider("$col1"))))))
+      val metaData =
+        """someData,345dog
+          |someMore,12dog""".stripMargin
+
+      validate(new StringReader(metaData), schema) should beLike {
+        case Failure(msgs) => {
+          msgs.list.size must be_==(2)
+          msgs.list(0) must be_==("inRule: someData fails for line 1, column: col2WithRule, value: 345dog")
+          msgs.list(1) must be_==("inRule: someMore fails for line 2, column: col2WithRule, value: 12dog")
+        }
+      }
+    }
+
+    "fail for multiple rows with InRule which has a column reference which is invalid" in {
+      val schema = Schema(2, List(ColumnDefinition("col1"), ColumnDefinition("col2WithRule", List(RegexRule("[0-9a-z]*".r),InRule(ColumnTypeProvider("$col22"))))))
+      val metaData =
+        """someData,345dog
+          |someMore,12dog""".stripMargin
+
+      validate(new StringReader(metaData), schema) should beLike {
+        case Failure(msgs) => {
+          msgs.list.size must be_==(2)
+          msgs.list(0) must be_==("inRule: Invalid Column Name fails for line 1, column: col2WithRule, value: 345dog")
+          msgs.list(1) must be_==("inRule: Invalid Column Name fails for line 2, column: col2WithRule, value: 12dog")
+        }
+      }
+    }
+
   }
 }
