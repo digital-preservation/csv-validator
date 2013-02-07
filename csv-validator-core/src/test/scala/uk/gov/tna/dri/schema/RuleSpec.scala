@@ -35,7 +35,6 @@ class RuleSpec extends Specification{
         case Failure(msgs) => msgs.head mustEqual "inRule: hello world fails for line 1, column: column1, value: hell world today"
       }
     }
-
    }
 
   "InRule with a column ref behaviour" should {
