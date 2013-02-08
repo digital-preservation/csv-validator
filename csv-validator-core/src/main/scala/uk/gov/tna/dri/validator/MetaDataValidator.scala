@@ -10,7 +10,7 @@ import uk.gov.tna.dri.metadata.{Cell, Row}
 
 trait MetaDataValidator {
 
-  type MetaDataValidation[A] = ValidationNEL[String, A]
+  type MetaDataValidation[S] = ValidationNEL[String, S]
 
   def validate(csv: Reader, schema: Schema) = {
     val rows = new CSVReader(csv).readAll()
