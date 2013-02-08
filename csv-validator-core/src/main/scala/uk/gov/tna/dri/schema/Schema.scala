@@ -7,7 +7,7 @@ case class Schema(totalColumns: Int, columnDefinitions: List[ColumnDefinition]) 
 }
 
 case class ColumnDefinition(id: String, rules: List[Rule] = Nil, directives: List[ColumnDirective] = Nil) {
-  def ignoreCase = Try(directives.contains(IgnoreCase())).getOrElse(false)
+  def contains(columnDirective: ColumnDirective) = Try(directives.contains(columnDirective)).getOrElse(false)
 }
 
 abstract class StringProvider(val value: String) {

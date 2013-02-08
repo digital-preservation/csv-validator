@@ -22,7 +22,7 @@ sealed trait Rule {
 
 case class RegexRule(regex: Regex) extends Rule {
   override def execute(cellContext: CellContext): ValidationNEL[String, Any] = {
-    val exp = if (cellContext.columnDefinition.ignoreCase) "(?i)" + regex.pattern.pattern else regex.pattern.pattern
+    val exp = if (cellContext.columnDefinition.contains(IgnoreCase())) "(?i)" + regex.pattern.pattern else regex.pattern.pattern
 
     if (cellContext.cell.value matches exp) true.successNel[String]
     else s"regex: ${exp} fails for line ${cellContext.lineNumber}, column: ${cellContext.columnIdentifier}".failNel[Any]
