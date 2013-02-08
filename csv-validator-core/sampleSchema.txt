@@ -1,4 +1,5 @@
-@TotalColumns 3
+@TotalColumns 4
 Name: regex ("[0-9]+[a-z]+") in($Age)
 Age: regex ("[0-9]+")
-Country:  regex ("UK")
+Country: in(UK)
+Fred:
