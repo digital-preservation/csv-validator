@@ -148,5 +148,13 @@ class MetaDataValidatorSpec extends Specification {
         case Failure(msgs) => msgs.list must haveTheSameElementsAs(List("regex: [a-z]+ fails for line 1, column: 1"))
       }
     }
+
+    "succeed with valid file path" in {
+      val columnDefinitions = ColumnDefinition("1", List(FileExistsRule())) :: Nil
+      val schema = Schema(1, columnDefinitions)
+      val meta = """"src/test/resources/uk/gov/tna/dri/schema/mustExistForRule.txt""""
+
+      validate(new StringReader(meta), schema) must beLike { case Success(_) => ok }
+    }
   }
 }
