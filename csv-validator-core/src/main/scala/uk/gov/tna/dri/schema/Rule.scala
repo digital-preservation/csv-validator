@@ -4,6 +4,7 @@ import util.matching.Regex
 import scalaz._
 import Scalaz._
 import uk.gov.tna.dri.metadata.Row
+import util.Try
 
 case class CellContext(columnIndex: Int, row: Row, schema: Schema) {
   lazy val cell = row.cells(columnIndex)
@@ -22,19 +23,25 @@ sealed trait Rule {
 
 case class RegexRule(regex: Regex) extends Rule {
   override def execute(cellContext: CellContext): ValidationNEL[String, Any] = {
-    val exp = if (cellContext.columnDefinition.contains(IgnoreCase())) "(?i)" + regex.pattern.pattern else regex.pattern.pattern
+    val reg = if (cellContext.columnDefinition.contains(IgnoreCase())) "(?i)" + regex.pattern.pattern else regex.pattern.pattern
 
-    if (cellContext.cell.value matches exp) true.successNel[String]
-    else s"regex: ${exp} fails for line ${cellContext.lineNumber}, column: ${cellContext.columnIdentifier}".failNel[Any]
+    if (cellContext.cell.value matches reg) true.successNel[String]
+    else s"regex: ${reg} fails for line ${cellContext.lineNumber}, column: ${cellContext.columnIdentifier}".failNel[Any]
   }
 }
 
 case class InRule(inVal: StringProvider) extends Rule {
   override def execute(cellContext: CellContext): ValidationNEL[String, Any] = {
-    val colVal = util.Try (inVal.getColumnValue(cellContext.cellsByColumnId)).getOrElse("Invalid Column Name")
+    val colVal = Try(inVal.getColumnValue(cellContext.cellsByColumnId)).getOrElse("Invalid Column Name")
 
-    if (cellContext.cell.value.contains(colVal)) true.successNel[String]
-    else s"inRule: ${colVal} fails for line ${cellContext.lineNumber}, column: ${cellContext.columnIdentifier}, value: ${cellContext.cell.value}".failNel[Any]
+    /* Crap implementation */
+    if (cellContext.columnDefinition.contains(IgnoreCase())) {
+      if (cellContext.cell.value.toLowerCase().contains(colVal.toLowerCase())) true.successNel[String]
+      else s"inRule: ${colVal} fails for line ${cellContext.lineNumber}, column: ${cellContext.columnIdentifier}, value: ${cellContext.cell.value}".failNel[Any]
+    } else {
+      if (cellContext.cell.value.contains(colVal)) true.successNel[String]
+      else s"inRule: ${colVal} fails for line ${cellContext.lineNumber}, column: ${cellContext.columnIdentifier}, value: ${cellContext.cell.value}".failNel[Any]
+    }
   }
 }
 
