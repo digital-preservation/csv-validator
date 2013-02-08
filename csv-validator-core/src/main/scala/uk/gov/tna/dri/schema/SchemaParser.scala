@@ -38,11 +38,9 @@ trait SchemaParser extends RegexParsers {
 
   def fileExistsRule = "fileExists(" ~> opt(rootFilePath) <~ ")" ^^ { FileExistsRule }
 
-  def rootFilePath: Parser[String] = "\"\\S*\"".r
+  def rootFilePath: Parser[String] = """^"\S+"""".r
 
   def stringProvider: Parser[StringProvider] = """^\$\w+""".r ^^ { ColumnTypeProvider } | "\\w*".r ^^ { LiteralTypeProvider }
-
-  def columnRef: Parser[StringProvider] = "$" ~> columnIdentifier ^^ { ColumnTypeProvider }
 
   def optional = "@Optional" ^^^ Optional()
 
