@@ -40,7 +40,7 @@ trait SchemaParser extends RegexParsers {
 
   def rootFilePath: Parser[String] = """^"\S+"""".r ^^ { stripQuotes }
 
-  private def stripQuotes(s: String) = s.tail.dropRight(1)
+  private def stripQuotes(s: String) = s.tail.init
 
   def stringProvider: Parser[StringProvider] = """^\$\w+""".r ^^ { ColumnTypeProvider } | "\\w*".r ^^ { LiteralTypeProvider }
 
