@@ -12,27 +12,30 @@ sealed trait Rule {
 
 case class RegexRule(regex: Regex) extends Rule {
   override def execute(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
-    val reg = if (schema.columnDefinitions(columnIndex).contains(IgnoreCase())) "(?i)" + regex.pattern.pattern else regex.pattern.pattern
+    val columnDefinition = schema.columnDefinitions(columnIndex)
+    val reg = if (columnDefinition.contains(IgnoreCase())) "(?i)" + regex.pattern.pattern else regex.pattern.pattern
 
     if (row.cells(columnIndex).value matches reg) true.successNel[String]
-    else s"regex: ${reg} fails for line ${row.lineNumber}, column: ${schema.columnDefinitions(columnIndex).id}".failNel[Any]
+    else s"regex: ${reg} fails for line ${row.lineNumber}, column: ${columnDefinition.id}".failNel[Any]
   }
 }
 
 case class InRule(inVal: StringProvider) extends Rule {
   override def execute(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
-    lazy val columnDefWithValue = schema.columnDefinitions.zip(row.cells)
-    lazy val cellsByColumnId = columnDefWithValue.collect { case (x, y) => (x.id , y.value)} toMap
+    val columnDefinition = schema.columnDefinitions(columnIndex)
+
+    val columnDefWithValue = schema.columnDefinitions.zip(row.cells)
+    val cellsByColumnId = columnDefWithValue.collect { case (x, y) => (x.id , y.value)} toMap
 
     val colVal = Try(inVal.getColumnValue(cellsByColumnId)).getOrElse("Invalid Column Name")
 
     /* Crap implementation */
     if (schema.columnDefinitions(columnIndex).contains(IgnoreCase())) {
       if (row.cells(columnIndex).value.toLowerCase().contains(colVal.toLowerCase())) true.successNel[String]
-      else s"inRule: ${colVal} fails for line ${row.lineNumber}, column: ${schema.columnDefinitions(columnIndex).id}, value: ${row.cells(columnIndex).value}".failNel[Any]
+      else s"inRule: ${colVal} fails for line ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
     } else {
       if (row.cells(columnIndex).value.contains(colVal)) true.successNel[String]
-      else s"inRule: ${colVal} fails for line ${row.lineNumber}, column: ${schema.columnDefinitions(columnIndex).id}, value: ${row.cells(columnIndex).value}".failNel[Any]
+      else s"inRule: ${colVal} fails for line ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
     }
   }
 }
