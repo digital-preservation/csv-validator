@@ -46,7 +46,7 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
       val schema = """@TotalColumns 1
                       LastName: regex ("[a-z]*") Age"""
 
-      parse(new StringReader(schema)) must beLike { case Failure(message, _) => message mustEqual """Column definition contains invalid (extra) text""" }
+      parse(new StringReader(schema)) must beLike { case Failure(message, _) => message mustEqual """Column definition contains invalid text""" }
     }
 
     "fail for extra text after column definition on a line" in {
@@ -55,7 +55,7 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
                       FirstName: dfsdfsdfwe
                       Age:"""
 
-      parse(new StringReader(schema)) must beLike { case Failure(message, _) => message mustEqual "Column definition contains invalid (extra) text" }
+      parse(new StringReader(schema)) must beLike { case Failure(message, _) => message mustEqual "Column definition contains invalid text" }
     }
 
     "fail for invalid column identifier as 'stripMargin' just to prove that only numbers, letters and underscore are allowed as part of a column identifier" in {
@@ -66,6 +66,5 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
         case Failure(message, _) => message mustEqual "Column identifier invalid"
       }
     }
-
   }
 }
