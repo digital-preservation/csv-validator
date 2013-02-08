@@ -45,7 +45,9 @@ trait MetaDataValidator {
   }
 
   private def rulesForCell(columnIndex: Int, row: Row, schema: Schema) = {
-    if (row.cells(columnIndex).value.trim.isEmpty && schema.columnDefinitions(columnIndex).contains(Optional())) true.successNel
-    else schema.columnDefinitions(columnIndex).rules.map(_.execute(columnIndex, row, schema)).sequence[MetaDataValidation, Any]
+    val columnDefinition = schema.columnDefinitions(columnIndex)
+
+    if (row.cells(columnIndex).value.trim.isEmpty && columnDefinition.contains(Optional())) true.successNel
+    else columnDefinition.rules.map(_.execute(columnIndex, row, schema)).sequence[MetaDataValidation, Any]
   }
 }
