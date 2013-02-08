@@ -156,5 +156,13 @@ class MetaDataValidatorSpec extends Specification {
 
       validate(new StringReader(meta), schema) must beLike { case Success(_) => ok }
     }
+
+    "succeed with valid file path where fileExists rule prepends path to the filename" in {
+      val columnDefinitions = ColumnDefinition("1", List(FileExistsRule(Some("src/test/resources/uk/gov/")))) :: Nil
+      val schema = Schema(1, columnDefinitions)
+      val meta = """"tna/dri/schema/mustExistForRule.txt""""
+
+      validate(new StringReader(meta), schema) must beLike { case Success(_) => ok }
+    }
   }
 }
