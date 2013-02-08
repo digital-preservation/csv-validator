@@ -4,10 +4,6 @@ import org.specs2.mutable.Specification
 import scalaz.{Failure, Success}
 import uk.gov.tna.dri.metadata.{Cell, Row}
 
-/**
- * User: Jim Collins
- * Date: 2/5/13
- */
 class RuleSpec extends Specification{
   val litInRule = InRule(LiteralTypeProvider("hello world"))
 
@@ -60,6 +56,12 @@ class RuleSpec extends Specification{
     "fail for non-existent file" in {
       FileExistsRule(None).execute(CellContext(0, Row(List(Cell("some/non/existent/file")), 1), Schema(1, List(ColumnDefinition("column1"))))) must beLike {
         case Failure(msgs) => msgs.head mustEqual "fileExistsRule: fails for line 1, column: column1, value: some/non/existent/file"
+      }
+    }
+
+    "fail for empty file path" in {
+      FileExistsRule(None).execute(CellContext(1, Row(List(Cell("abc"), Cell("")), 2), Schema(2, List(ColumnDefinition("column1"), ColumnDefinition("column2"))))) must beLike {
+        case Failure(msgs) => msgs.head mustEqual "fileExistsRule: fails for line 2, column: column2, value: "
       }
     }
 

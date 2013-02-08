@@ -36,9 +36,11 @@ trait SchemaParser extends RegexParsers {
 
   def inRule = "in(" ~> stringProvider <~ ")"  ^^ { InRule }
 
-  def fileExistsRule = "fileExists(" ~> opt(rootFilePath) <~ ")" ^^ { FileExistsRule }
+  def fileExistsRule = ("fileExists(" ~> opt(rootFilePath) <~ ")" ^^ { FileExistsRule }) .withFailureMessage("Invalid fileExists rule")
 
-  def rootFilePath: Parser[String] = """^"\S+"""".r
+  def rootFilePath: Parser[String] = """^"\S+"""".r ^^ { stripQuotes }
+
+  private def stripQuotes(s: String) = s.tail.dropRight(1)
 
   def stringProvider: Parser[StringProvider] = """^\$\w+""".r ^^ { ColumnTypeProvider } | "\\w*".r ^^ { LiteralTypeProvider }
 

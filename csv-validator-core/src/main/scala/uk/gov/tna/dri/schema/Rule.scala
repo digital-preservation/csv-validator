@@ -39,14 +39,17 @@ case class InRule(inVal: StringProvider) extends Rule {
 }
 
 case class FileExistsRule(rootPath: Option[String] = None) extends Rule {
-  val fileSeparator = sys.props("file.separator")
 
   override def execute(cellContext: CellContext): ValidationNEL[String, Any] = {
     import java.io.File
+
+    val filePath = cellContext.cell.value
     val fileExists = rootPath match {
-      case Some(root) => new File(root, cellContext.cell.value).exists()
+      case Some(root) =>
+        new File(root, filePath).exists()
       case None => new File(cellContext.cell.value).exists()
     }
-    if (fileExists) true.successNel else "fileExistsRule: fails for line 1, column: column1, value: some/non/existent/file".failNel[Any]
+
+    if (fileExists) true.successNel else s"fileExistsRule: fails for line ${cellContext.lineNumber}, column: ${cellContext.columnIdentifier}, value: ${filePath}".failNel[Any]
   }
 }
