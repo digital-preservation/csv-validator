@@ -1,6 +1,6 @@
 package uk.gov.tna.dri.validator
 
-import uk.gov.tna.dri.schema.{Optional, CellContext, Schema}
+import uk.gov.tna.dri.schema.{Optional, Schema}
 import au.com.bytecode.opencsv.CSVReader
 import java.io.Reader
 import scala.collection.JavaConversions._
@@ -31,18 +31,21 @@ trait MetaDataValidator {
   }
 
   private def rules(row: Row, schema: Schema) = {
-    val cells = row.cells.lift
-    val v = for { (columnDefinition, columnIndex) <- schema.columnDefinitions.zipWithIndex } yield validateCell(cells(columnIndex), CellContext(columnIndex, row, schema))
+    val v = for { (columnDefinition, columnIndex) <- schema.columnDefinitions.zipWithIndex } yield validateCell(columnIndex, row, schema)
     v.sequence[MetaDataValidation, Any]
   }
 
-  private def validateCell(cell: Option[Cell], cellContext: CellContext) = cell match {
-    case Some(c) => rulesForCell(cellContext)
-    case _ => s"Missing value at line: ${cellContext.lineNumber}, column: ${cellContext.columnIdentifier}".failNel[Any]
+  private def validateCell(columnIndex: Int, row: Row, schema: Schema) = {
+    val cells = row.cells.lift
+
+    cells(columnIndex) match {
+      case Some(c) => rulesForCell(columnIndex, row, schema)
+      case _ => s"Missing value at line: ${row.lineNumber}, column: ${schema.columnDefinitions(columnIndex).id}".failNel[Any]
+    }
   }
 
-  private def rulesForCell(cellContext: CellContext) = {
-    if (cellContext.cell.value.trim.isEmpty && cellContext.columnDirectives.contains(Optional())) true.successNel
-    else cellContext.rules.map(_.execute(cellContext)).sequence[MetaDataValidation, Any]
+  private def rulesForCell(columnIndex: Int, row: Row, schema: Schema) = {
+    if (row.cells(columnIndex).value.trim.isEmpty && schema.columnDefinitions(columnIndex).contains(Optional())) true.successNel
+    else schema.columnDefinitions(columnIndex).rules.map(_.execute(columnIndex, row, schema)).sequence[MetaDataValidation, Any]
   }
 }

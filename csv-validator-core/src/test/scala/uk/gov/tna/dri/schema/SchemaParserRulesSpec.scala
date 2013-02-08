@@ -94,7 +94,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
     "fail for non parentheses" in {
       val schema = """@TotalColumns 1
                       Name: fileExists /root/path"""
-      parse(new StringReader(schema)) must beLike { case Failure("Column definition contains invalid (extra) text", _) => ok}
+      parse(new StringReader(schema)) must beLike { case Failure("Column definition contains invalid text", _) => ok}
     }
   }
 }

@@ -6,57 +6,49 @@ import Scalaz._
 import uk.gov.tna.dri.metadata.Row
 import util.Try
 
-case class CellContext(columnIndex: Int, row: Row, schema: Schema) {
-  lazy val cell = row.cells(columnIndex)
-  lazy val columnIdentifier = schema.columnDefinitions(columnIndex).id
-  lazy val columnDefinition = schema.columnDefinitions(columnIndex)
-  lazy val lineNumber = row.lineNumber
-  lazy val rules = schema.columnDefinitions(columnIndex).rules
-  lazy val columnDefWithValue = schema.columnDefinitions.zip(row.cells)
-  lazy val cellsByColumnId = columnDefWithValue.collect { case (x, y) => (x.id , y.value)} toMap
-  lazy val columnDirectives = schema.columnDefinitions(columnIndex).directives
-}
-
 sealed trait Rule {
-  def execute(cellContext: CellContext): ValidationNEL[String, Any]
+  def execute(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any]
 }
 
 case class RegexRule(regex: Regex) extends Rule {
-  override def execute(cellContext: CellContext): ValidationNEL[String, Any] = {
-    val reg = if (cellContext.columnDefinition.contains(IgnoreCase())) "(?i)" + regex.pattern.pattern else regex.pattern.pattern
+  override def execute(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
+    val reg = if (schema.columnDefinitions(columnIndex).contains(IgnoreCase())) "(?i)" + regex.pattern.pattern else regex.pattern.pattern
 
-    if (cellContext.cell.value matches reg) true.successNel[String]
-    else s"regex: ${reg} fails for line ${cellContext.lineNumber}, column: ${cellContext.columnIdentifier}".failNel[Any]
+    if (row.cells(columnIndex).value matches reg) true.successNel[String]
+    else s"regex: ${reg} fails for line ${row.lineNumber}, column: ${schema.columnDefinitions(columnIndex).id}".failNel[Any]
   }
 }
 
 case class InRule(inVal: StringProvider) extends Rule {
-  override def execute(cellContext: CellContext): ValidationNEL[String, Any] = {
-    val colVal = Try(inVal.getColumnValue(cellContext.cellsByColumnId)).getOrElse("Invalid Column Name")
+  override def execute(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
+    lazy val columnDefWithValue = schema.columnDefinitions.zip(row.cells)
+    lazy val cellsByColumnId = columnDefWithValue.collect { case (x, y) => (x.id , y.value)} toMap
+
+    val colVal = Try(inVal.getColumnValue(cellsByColumnId)).getOrElse("Invalid Column Name")
 
     /* Crap implementation */
-    if (cellContext.columnDefinition.contains(IgnoreCase())) {
-      if (cellContext.cell.value.toLowerCase().contains(colVal.toLowerCase())) true.successNel[String]
-      else s"inRule: ${colVal} fails for line ${cellContext.lineNumber}, column: ${cellContext.columnIdentifier}, value: ${cellContext.cell.value}".failNel[Any]
+    if (schema.columnDefinitions(columnIndex).contains(IgnoreCase())) {
+      if (row.cells(columnIndex).value.toLowerCase().contains(colVal.toLowerCase())) true.successNel[String]
+      else s"inRule: ${colVal} fails for line ${row.lineNumber}, column: ${schema.columnDefinitions(columnIndex).id}, value: ${row.cells(columnIndex).value}".failNel[Any]
     } else {
-      if (cellContext.cell.value.contains(colVal)) true.successNel[String]
-      else s"inRule: ${colVal} fails for line ${cellContext.lineNumber}, column: ${cellContext.columnIdentifier}, value: ${cellContext.cell.value}".failNel[Any]
+      if (row.cells(columnIndex).value.contains(colVal)) true.successNel[String]
+      else s"inRule: ${colVal} fails for line ${row.lineNumber}, column: ${schema.columnDefinitions(columnIndex).id}, value: ${row.cells(columnIndex).value}".failNel[Any]
     }
   }
 }
 
 case class FileExistsRule(rootPath: Option[String] = None) extends Rule {
 
-  override def execute(cellContext: CellContext): ValidationNEL[String, Any] = {
+  override def execute(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
     import java.io.File
 
-    val filePath = cellContext.cell.value
+    val filePath = row.cells(columnIndex).value
+
     val fileExists = rootPath match {
-      case Some(root) =>
-        new File(root, filePath).exists()
-      case None => new File(cellContext.cell.value).exists()
+      case Some(root) => new File(root, filePath).exists()
+      case None => new File(row.cells(columnIndex).value).exists()
     }
 
-    if (fileExists) true.successNel else s"fileExistsRule: fails for line ${cellContext.lineNumber}, column: ${cellContext.columnIdentifier}, value: ${filePath}".failNel[Any]
+    if (fileExists) true.successNel else s"fileExistsRule: fails for line ${row.lineNumber}, column: ${schema.columnDefinitions(columnIndex).id}, value: ${filePath}".failNel[Any]
   }
 }
