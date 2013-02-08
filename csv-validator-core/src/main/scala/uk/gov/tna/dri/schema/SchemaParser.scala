@@ -52,7 +52,7 @@ trait SchemaParser extends RegexParsers {
     case totalColumns ~ columnDefinitions if totalColumns == columnDefinitions.length => Schema(totalColumns, columnDefinitions)
   }
 
-  private def endOfColumnDefinition: Parser[Any] = whiteSpace ~ (eol | endOfInput | failure("Column definition contains invalid (extra) text"))
+  private def endOfColumnDefinition: Parser[Any] = whiteSpace ~ (eol | endOfInput | failure("Column definition contains invalid text"))
 
   private def endOfInput: Parser[Any] = new Parser[Any] {
     def apply(input: Input) = {
