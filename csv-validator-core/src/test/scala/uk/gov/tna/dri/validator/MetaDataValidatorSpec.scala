@@ -152,17 +152,27 @@ class MetaDataValidatorSpec extends Specification {
     "succeed with valid file path" in {
       val columnDefinitions = ColumnDefinition("1", List(FileExistsRule())) :: Nil
       val schema = Schema(1, columnDefinitions)
-      val meta = """"src/test/resources/uk/gov/tna/dri/schema/mustExistForRule.txt""""
+      val meta = "src/test/resources/uk/gov/tna/dri/schema/mustExistForRule.txt"
 
       validate(new StringReader(meta), schema) must beLike { case Success(_) => ok }
     }
 
-    "succeed with valid file path where fileExists rule prepends path to the filename" in {
+    "succeed with valid file path where fileExists rule prepends root path to the filename" in {
       val columnDefinitions = ColumnDefinition("1", List(FileExistsRule(Some("src/test/resources/uk/gov/")))) :: Nil
       val schema = Schema(1, columnDefinitions)
-      val meta = """"tna/dri/schema/mustExistForRule.txt""""
+      val meta = "tna/dri/schema/mustExistForRule.txt"
 
       validate(new StringReader(meta), schema) must beLike { case Success(_) => ok }
+    }
+
+    "fail for non existent file path" in {
+      val columnDefinitions = ColumnDefinition("First Column", List(FileExistsRule())) :: Nil
+      val schema = Schema(1, columnDefinitions)
+      val meta = "some/non/existent/file"
+
+      validate(new StringReader(meta), schema) must beLike {
+        case Failure(msgs) => msgs.head mustEqual "fileExistsRule: fails for line 1, column: First Column, value: some/non/existent/file"
+      }
     }
   }
 }
