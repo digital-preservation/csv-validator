@@ -32,9 +32,9 @@ case class InRule(inVal: StringProvider) extends Rule {
 
     val colVal = Try(inVal.getColumnValue(cellsByColumnId)).getOrElse("Invalid Column Name")
 
-    val reg = if (schema.columnDefinitions(columnIndex).contains(IgnoreCase())) ("(?i)" + colVal).r else colVal.r
+    val reg = if (schema.columnDefinitions(columnIndex).contains(IgnoreCase())) ("(?i)" + row.cells(columnIndex).value).r else row.cells(columnIndex).value.r
 
-    if (reg.pattern.matcher(row.cells(columnIndex).value).find()) true.successNel[String]
+    if (reg.pattern.matcher(colVal).find()) true.successNel[String]
     else s"inRule: ${colVal} fails for line ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
   }
 }
@@ -54,3 +54,5 @@ case class FileExistsRule(rootPath: Option[String] = None) extends Rule {
     if (fileExists) true.successNel else s"fileExistsRule: fails for line ${row.lineNumber}, column: ${schema.columnDefinitions(columnIndex).id}, value: ${filePath}".failNel[Any]
   }
 }
+
+

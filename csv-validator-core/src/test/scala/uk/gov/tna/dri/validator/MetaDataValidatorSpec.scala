@@ -89,12 +89,12 @@ class MetaDataValidatorSpec extends Specification {
     }
 
     "succeed for multiple rows with InRule as string literal" in {
-      val columnDefinitions = ColumnDefinition("col1") :: ColumnDefinition("col2WithRule", List(RegexRule("[0-9a-z]*".r), InRule(LiteralTypeProvider("dog")))) :: Nil
+      val columnDefinitions = ColumnDefinition("col1") :: ColumnDefinition("col2WithRule", List(RegexRule("[0-9a-z]*".r), InRule(LiteralTypeProvider("345dog")))) :: Nil
       val schema = Schema(2, columnDefinitions)
 
       val metaData =
-        """someData,345dog
-           someMore,12dog"""
+        """someData,dog
+           someMore,dog"""
 
       validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
     }
@@ -104,8 +104,8 @@ class MetaDataValidatorSpec extends Specification {
       val schema = Schema(2, columnDefinitions)
 
       val metaData =
-        """mustBeIn,blah_mustBeIn_blah
-           |andMustBeIn,blah_andMustBeIn""".stripMargin
+        """blah_mustBeIn_blah,mustBeIn
+           |blah_andMustBeIn,andMustBeIn""".stripMargin
 
       validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
     }
@@ -115,11 +115,11 @@ class MetaDataValidatorSpec extends Specification {
       val schema = Schema(2, columnDefinitions)
 
       val metaData =
-        """mustBeIn,blah_MUSTBEIN_blah
-          |andMustBeIn,blah_andMustBeIn""".stripMargin
+        """blah_MUSTBEIN_blah,mustBeIn
+          |blah_andMustBeIn,andMustBeIn""".stripMargin
 
       validate(new StringReader(metaData), schema) should beLike {
-        case Failure(messages) => messages.list must haveTheSameElementsAs(List("inRule: mustBeIn fails for line 1, column: col2WithRule, value: blah_MUSTBEIN_blah"))
+        case Failure(messages) => messages.list must haveTheSameElementsAs(List("inRule: blah_MUSTBEIN_blah fails for line 1, column: col2WithRule, value: mustBeIn"))
       }
     }
 
@@ -128,8 +128,8 @@ class MetaDataValidatorSpec extends Specification {
       val schema = Schema(2, columnDefinitions)
 
       val metaData =
-        """mustBeIn,blah_MUSTBEIN_blah
-          |andMustBeIn,blah_andMustBeIn""".stripMargin
+        """blah_MUSTBEIN_blah,mustBeIn
+          |blah_andMustBeIn,andMustBeIn""".stripMargin
 
       validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
     }
