@@ -123,5 +123,17 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
         case Failure(errors) => errors.list must be_==(List("regex: [A-D]+[a-z]+ fails for line 1, column: Age"))
       }
     }
+
+    "return all errors when not enabled" in {
+      MetaDataValidatorApp.validate(basePath + "twoRulesFailMetaData.csv", basePath + "twoRuleSchemaFail.txt", false) must beLike {
+        case Failure(errors) => errors.list must contain(
+          "regex: [A-D]+[a-z]+ fails for line 1, column: Age",
+          "inRule: AEyearstoday fails for line 2, column: Age, value: ABDyears",
+          "regex: [A-D]+[a-z]+ fails for line 3, column: Age",
+          "inRule: AEyearstoday fails for line 3, column: Age, value: AEyearsnow",
+          "inRule: some date fails for line 3, column: CrossRef, value: year").only
+      }
+    }
+
   }
 }
