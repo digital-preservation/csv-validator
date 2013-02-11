@@ -29,4 +29,12 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
       }
     }
   }
+
+  "Combining two rules" should {
+    "succeed " in {
+      MetaDataValidatorApp.validate(basePath + "twoRulesPassMetaData.csv", basePath + "twoRuleSchema.txt") must beLike {
+        case Success(_) => ok
+      }
+    }
+  }
 }
