@@ -33,9 +33,20 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
   }
 
   "Combining two rules" should {
-    "succeed" in {
+    "succeed when metadata valid" in {
       MetaDataValidatorApp.validate(basePath + "twoRulesPassMetaData.csv", basePath + "twoRuleSchema.txt") must beLike {
         case Success(_) => ok
+      }
+    }
+
+    "fail when rules fail for all permutations" in {
+      MetaDataValidatorApp.validate(basePath + "twoRulesFailMetaData.csv", basePath + "twoRuleSchemaFail.txt") must beLike {
+        case Failure(errors) => errors.list must contain(
+          "regex: [A-D]+[a-z]+ fails for line 1, column: Age",
+          "inRule: AEyearstoday fails for line 2, column: Age, value: ABDyears",
+          "regex: [A-D]+[a-z]+ fails for line 3, column: Age",
+          "inRule: AEyearstoday fails for line 3, column: Age, value: AEyearsnow",
+          "inRule: some date fails for line 3, column: CrossRef, value: year").only
       }
     }
   }
