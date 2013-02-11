@@ -57,10 +57,12 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
       val schema = """@TotalColumns 1
                       Name: regex ("[1-9][a-z]*") in(dog)"""
 
-      parse(new StringReader(schema)) must beLike { case Success(Schema(1, List(ColumnDefinition("Name", List(RegexRule(r), InRule(ir)), _))), _) => {
-        r.pattern.pattern mustEqual "[1-9][a-z]*"
-        ir mustEqual LiteralTypeProvider("dog")
-      } }
+      parse(new StringReader(schema)) must beLike {
+        case Success(Schema(1, List(ColumnDefinition("Name", List(RegexRule(r), InRule(ir)), _))), _) => {
+          r.pattern.pattern mustEqual "[1-9][a-z]*"
+          ir mustEqual LiteralTypeProvider("dog")
+        }
+      }
     }
 
     "succeed for regex and inRule rules on a single and inRule has column reference" in {
