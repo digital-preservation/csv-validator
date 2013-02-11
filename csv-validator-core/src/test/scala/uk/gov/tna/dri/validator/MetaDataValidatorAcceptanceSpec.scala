@@ -17,7 +17,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
 
     "fail with line number and column id in error message " in {
       MetaDataValidatorApp.validate(basePath + "regexRuleFailMetaData.csv", basePath + "regexRuleSchema.txt") must beLike {
-        case Failure(errors) => errors.head mustEqual "regex: [0-9]+ fails for line 1, column: Age"
+        case Failure(errors) => errors.list must containTheSameElementsAs(List("regex: [0-9]+ fails for line 1, column: Age"))
       }
     }
   }
@@ -52,6 +52,18 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
         case Failure(errors) => errors.list must contain(
           "inRule: thevaluemustbeinthisstring fails for line 1, column: SomeInRule, value: valuenotinrule",
           "inRule: thevaluemustbeinthisstring fails for line 3, column: SomeInRule, value: thisonewillfailtoo").only
+      }
+    }
+
+    "succeed if the column value is in the rule's cross referenced column" in {
+      MetaDataValidatorApp.validate(basePath + "inRuleCrossReferencePassMetaData.csv", basePath + "inRuleCrossReferenceSchema.txt") must beLike {
+        case Success(_) => ok
+      }
+    }
+
+    "fail if the column value is not in the rule's cross referenced column" in {
+      MetaDataValidatorApp.validate(basePath + "inRuleCrossReferenceFailMetaData.csv", basePath + "inRuleCrossReferenceSchema.txt") must beLike {
+        case Failure(errors) => errors.list must containTheSameElementsAs(List("inRule: David Ainslie fails for line 2, column: FirstName, value: Dave"))
       }
     }
   }
