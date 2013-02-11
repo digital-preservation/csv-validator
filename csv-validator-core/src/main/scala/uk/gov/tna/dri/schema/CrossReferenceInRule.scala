@@ -4,17 +4,9 @@ import uk.gov.tna.dri.metadata.Row
 import scalaz._
 import Scalaz._
 
-case class SchemaX(t: Int, columnDefinitions: List[ColumnDefinitionX])
+case class CrossReferenceInRule(crossReferenceId: String) extends Rule {
 
-case class ColumnDefinitionX(id: String, rules: List[RuleX] = Nil)
-
-trait RuleX {
-  def execute(columnIndex: Int, row: Row, schema: SchemaX): ValidationNEL[String, Any]
-}
-
-case class CrossReferenceInRule(crossReferenceId: String) extends RuleX {
-
-  override def execute(columnIndex: Int, row: Row, schema: SchemaX): ValidationNEL[String, Any] = {
+  override def execute(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
     if (!schema.columnDefinitions.exists(_.id == crossReferenceId)) {
       ("in($" + s"${crossReferenceId}) references a non-existent column").failNel[Any]
     } else {

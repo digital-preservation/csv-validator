@@ -6,8 +6,7 @@ import Scalaz._
 import uk.gov.tna.dri.metadata.Row
 import util.Try
 
-sealed trait Rule {
-
+trait Rule {
   def execute(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any]
 }
 
