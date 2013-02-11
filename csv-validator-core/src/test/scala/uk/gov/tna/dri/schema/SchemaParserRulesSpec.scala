@@ -65,15 +65,6 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
       }
     }
 
-    /*"TEST" in {
-      val schema = """@TotalColumns 1
-                      Name: in(scooby-doo)"""
-
-      val expectedRules = InRule(LiteralTypeProvider("scooby-doo")) :: Nil
-      val expectedColumnDefinitions = ColumnDefinition("Name", expectedRules) :: Nil
-      parse(new StringReader(schema)) mustEqual Schema(1, expectedColumnDefinitions)
-    }*/
-
     "succeed for regex and inRule rules on a single and inRule has column reference" in {
       val schema = """@TotalColumns 1
                       Name: regex ("[1-9][a-z]*") in($dog)"""
