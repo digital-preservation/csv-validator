@@ -116,4 +116,12 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
       }
     }
   }
+
+  "Failfast" should {
+    "only report first error" in {
+      MetaDataValidatorApp.validate(basePath + "twoRulesFailMetaData.csv", basePath + "twoRuleSchemaFail.txt", true) must beLike {
+        case Failure(errors) => errors.list must be_==(List("regex: [A-D]+[a-z]+ fails for line 1, column: Age"))
+      }
+    }
+  }
 }
