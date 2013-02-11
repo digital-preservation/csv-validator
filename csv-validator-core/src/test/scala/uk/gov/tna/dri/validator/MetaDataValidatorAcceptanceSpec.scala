@@ -25,15 +25,33 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
   "Multiple errors " should {
     "all be reported" in {
       MetaDataValidatorApp.validate(basePath + "multipleErrorsMetaData.csv", basePath + "regexRuleSchema.txt") must beLike {
-        case Failure(errors) => errors.list must contain("regex: [0-9]+ fails for line 1, column: Age", "regex: [0-9]+ fails for line 2, column: Age")
+        case Failure(errors) => errors.list must contain(
+          "regex: [0-9]+ fails for line 1, column: Age",
+          "regex: [0-9]+ fails for line 2, column: Age").only
       }
     }
   }
 
   "Combining two rules" should {
-    "succeed " in {
+    "succeed" in {
       MetaDataValidatorApp.validate(basePath + "twoRulesPassMetaData.csv", basePath + "twoRuleSchema.txt") must beLike {
         case Success(_) => ok
+      }
+    }
+  }
+
+  "An in rule" should {
+    "succeed if the column value is in the rule's literal string" in {
+      MetaDataValidatorApp.validate(basePath + "inRulePassMetaData.csv", basePath + "inRuleSchema.txt") must beLike {
+        case Success(_) => ok
+      }
+    }
+
+    "fail if the column value is not in the rule's literal string" in {
+      MetaDataValidatorApp.validate(basePath + "inRuleFailMetaData.csv", basePath + "inRuleSchema.txt") must beLike {
+        case Failure(errors) => errors.list must contain(
+          "inRule: thevaluemustbeinthisstring fails for line 1, column: SomeInRule, value: valuenotinrule",
+          "inRule: thevaluemustbeinthisstring fails for line 3, column: SomeInRule, value: thisonewillfailtoo").only
       }
     }
   }
