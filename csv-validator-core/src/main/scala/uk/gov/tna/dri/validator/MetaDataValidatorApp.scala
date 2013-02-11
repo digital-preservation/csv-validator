@@ -13,9 +13,10 @@ object MetaDataValidatorApp extends App with MetaDataValidator with SchemaParser
 
     case SuccessZ(_) => {
       val (metaDataFile, schemaFile) = inputFilePaths(args.toList)
+      val failFast = args.exists( _ == "--failFast")
       println("Validating...")
 
-      validate(metaDataFile, schemaFile, false) match {
+      validate(metaDataFile, schemaFile, failFast) match {
         case FailureZ(errors) => println(prettyPrint(errors))
         case SuccessZ(_) => println("PASS")
       }
