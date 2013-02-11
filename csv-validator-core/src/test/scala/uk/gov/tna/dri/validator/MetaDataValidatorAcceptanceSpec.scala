@@ -67,4 +67,18 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
       }
     }
   }
+
+  "An @Optional column directive" should {
+    "allow a column to have an empty value and ignore other rules" in {
+      MetaDataValidatorApp.validate(basePath + "optionalColumnDirectivePassMetaData.csv", basePath + "optionalColumnDirectiveSchema.txt") must beLike {
+        case Success(_) => ok
+      }
+    }
+
+    "fail if a non empty value fails a rule" in {
+      MetaDataValidatorApp.validate(basePath + "optionalColumnDirectiveFailMetaData.csv", basePath + "optionalColumnDirectiveSchema.txt") must beLike {
+        case Failure(errors) => errors.list must containTheSameElementsAs(List("inRule: Benjamin Parker fails for line 1, column: Name, value: BP"))
+      }
+    }
+  }
 }
