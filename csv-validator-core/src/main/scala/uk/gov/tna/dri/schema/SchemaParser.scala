@@ -40,8 +40,6 @@ trait SchemaParser extends RegexParsers {
 
   def rootFilePath: Parser[String] = """^"\S+"""".r ^^ { stripQuotes }
 
-  private def stripQuotes(s: String) = s.tail.init
-
   def stringProvider: Parser[StringProvider] = """^\$\w+""".r ^^ { ColumnTypeProvider } | "\\w*".r ^^ { LiteralTypeProvider }
 
   def optional = "@Optional" ^^^ Optional()
@@ -64,6 +62,8 @@ trait SchemaParser extends RegexParsers {
   private def validateRegex: PartialFunction[String, RegexRule] = {
     case Regex(_, s, _) if Try(s.r).isSuccess => RegexRule(s.r)
   }
+
+  private def stripQuotes(s: String) = s.tail.init
 
   private def stripRegexDelimiters(s: String) = s.drop(2).dropRight(2)
 }
