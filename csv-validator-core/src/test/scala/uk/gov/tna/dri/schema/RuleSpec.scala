@@ -7,8 +7,6 @@ import uk.gov.tna.dri.metadata.{Cell, Row}
 class RuleSpec extends Specification{
   val litInRule = InRule(LiteralTypeProvider("myhello world today"))
 
-
-
   "InRule with a string literal behaviour" should  {
     "succeed if inRule is embedded in value" in {
       litInRule.execute(0, Row(List(Cell("hello world")), 1), Schema(1, List(ColumnDefinition("column1")))) must be_==(Success(true))
@@ -34,27 +32,6 @@ class RuleSpec extends Specification{
       }
     }
    }
-
-  "InRule with a column ref behaviour" should {
-    val colInRule = InRule(ColumnTypeProvider("$column2"))
-    "succeed if value is in referenced column" in {
-      colInRule.execute(0, Row(List(Cell("world"), Cell("my world today")), 1), Schema(2, List(ColumnDefinition("column1"), ColumnDefinition("column2")))) must be_==(Success(true))
-    }
-
-    "fail if the value in the referenced column is not in this value" in {
-      val colInRule = InRule(ColumnTypeProvider("$column2"))
-      colInRule.execute(0, Row(List(Cell("myhello today"), Cell("world")), 1), Schema(2, List(ColumnDefinition("column1"), ColumnDefinition("column2")))) must beLike {
-        case Failure(msgs) => msgs.head mustEqual "inRule: world fails for line 1, column: column1, value: myhello today"
-      }
-    }
-
-    "fail if the referenced column does not exist" in {
-      val colInRule = InRule(ColumnTypeProvider("$column2"))
-      colInRule.execute(0, Row(List(Cell("myhello today"), Cell("today")), 1), Schema(2, List(ColumnDefinition("column1"), ColumnDefinition("column12")))) must beLike {
-        case Failure(msgs) => msgs.head mustEqual "inRule: Invalid Column Name fails for line 1, column: column1, value: myhello today"
-      }
-    }
-  }
 
   "FileExistsRule" should {
 
