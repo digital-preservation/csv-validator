@@ -32,5 +32,14 @@ class SchemaParserSpec extends Specification with ParserMatchers {
 
       parse(new StringReader(schema)) must beLike { case Success(schema, _) => schema mustEqual Schema(2, List(ColumnDefinition("Name"), ColumnDefinition("Age"))) }
     }
+
+    "have rules declared before column directives" in {
+      val schema = """@TotalColumns 1
+                      LastName: @IgnoreCase regex ("[a]")"""
+
+      parse(new StringReader(schema)) must beLike {
+        case Failure(messages, _) => messages mustEqual "Column definition contains invalid text"
+      }
+    }
   }
 }

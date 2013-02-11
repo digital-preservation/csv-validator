@@ -65,14 +65,38 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
       }
     }
 
+    /*"TEST" in {
+      val schema = """@TotalColumns 1
+                      Name: in(scooby-doo)"""
+
+      val expectedRules = InRule(LiteralTypeProvider("scooby-doo")) :: Nil
+      val expectedColumnDefinitions = ColumnDefinition("Name", expectedRules) :: Nil
+      parse(new StringReader(schema)) mustEqual Schema(1, expectedColumnDefinitions)
+    }*/
+
     "succeed for regex and inRule rules on a single and inRule has column reference" in {
       val schema = """@TotalColumns 1
                       Name: regex ("[1-9][a-z]*") in($dog)"""
 
-      parse(new StringReader(schema)) must beLike { case Success(Schema(1, List(ColumnDefinition("Name", List(RegexRule(r), InRule(ir)), _))), _) => {
-        r.pattern.pattern mustEqual "[1-9][a-z]*"
-        ir mustEqual ColumnTypeProvider("$dog")
-      } }
+      parse(new StringReader(schema)) must beLike {
+        case Success(Schema(1, List(ColumnDefinition("Name", List(RegexRule(r), InRule(ir)), _))), _) => {
+          r.pattern.pattern mustEqual "[1-9][a-z]*"
+          ir mustEqual ColumnTypeProvider("$dog")
+        }
+      }
+    }
+
+    "succeed for inRule regex rules on a single and inRule has column reference and rules have had their order changed" in {
+      val schema = """@TotalColumns 1
+                      Name: in($dog) regex ("[1-9][a-z]*") in(dog)"""
+
+      parse(new StringReader(schema)) must beLike {
+        case Success(Schema(1, List(ColumnDefinition("Name", List(InRule(ir), RegexRule(r), InRule(ir2)), _))), _) => {
+          r.pattern.pattern mustEqual "[1-9][a-z]*"
+          ir mustEqual ColumnTypeProvider("$dog")
+          ir2 mustEqual LiteralTypeProvider("dog")
+        }
+      }
     }
 
     "succeed for file exists rule" in {

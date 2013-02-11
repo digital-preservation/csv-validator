@@ -28,4 +28,20 @@ class SchemaParserColumnDirectivesSpec extends Specification with ParserMatchers
       parse(new StringReader(schema)) must beLike { case Success(Schema(_, List(ColumnDefinition("column1", _, List(IgnoreCase())))),_) => ok }
     }
   }
+
+  "Schema ordering" should {
+    "allow any ordering of column directives - optional before ignore case" in {
+      val schema = """@TotalColumns 1
+                      column1: @Optional @IgnoreCase"""
+
+      parse(new StringReader(schema)) must beLike { case Success(Schema(_, List(ColumnDefinition("column1", _, Optional() :: IgnoreCase() :: Nil))),_) => ok }
+    }
+
+    "allow any ordering of column directives - ignore case before optional" in {
+      val schema = """@TotalColumns 1
+                      column1: @IgnoreCase @Optional"""
+
+      parse(new StringReader(schema)) must beLike { case Success(Schema(_, List(ColumnDefinition("column1", _, IgnoreCase() :: Optional() :: Nil))),_) => ok }
+    }
+  }
 }
