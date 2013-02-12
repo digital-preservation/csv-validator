@@ -10,12 +10,15 @@ case class InRule(value: String) extends Rule {
     val columnDefinition = schema.columnDefinitions(columnIndex)
 
     if (schema.columnDefinitions(columnIndex).contains(IgnoreCase())) {
-      if (value.toLowerCase.contains(row.cells(columnIndex).value.toLowerCase)) true.successNel[String]
-      else s"inRule: ${value} fails for line ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
+      if (value.toLowerCase.contains(row.cells(columnIndex).value.toLowerCase))
+        true.successNel[String]
+      else
+        s"inRule: ${value} fails for line ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
     } else {
-      if (row.cells(columnIndex).value.contains(value)) true.successNel[String]
-      if (value.contains(row.cells(columnIndex).value)) true.successNel[String]
-      else s"inRule: ${value} fails for line ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
+      if (value.contains(row.cells(columnIndex).value))
+        true.successNel[String]
+      else
+        s"inRule: ${value} fails for line ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
     }
   }
 }
