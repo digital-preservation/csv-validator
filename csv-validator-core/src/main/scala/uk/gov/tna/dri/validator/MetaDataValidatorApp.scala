@@ -7,7 +7,7 @@ import Scalaz._
 
 object MetaDataValidatorApp extends App with MetaDataValidator with FailFastMetaDataValidator with SchemaParser {
 
-  checkArguments(args.toList) match {
+  checkFileArguments(args.toList) match {
 
     case FailureZ(errors) => println(prettyPrint(errors))
 
@@ -22,12 +22,17 @@ object MetaDataValidatorApp extends App with MetaDataValidator with FailFastMeta
     }
   }
 
-  def checkArguments(args: List[String]): ValidationNEL[String, List[String]] = {
+  def checkFileArguments(args: List[String]): ValidationNEL[String, List[String]] = {
     checkArgumentCount(args) match {
       case SuccessZ(args) => checkFilesReadable(args)
       case fail => fail
     }
   }
+
+  def failFast( args: List[String]): Boolean = {
+    args.contains("--failFast")
+  }
+
 
   def validate(metaDataFile: String, schemaFile: String): FailFastMetaDataValidation[Any] = {
     parseSchema(schemaFile) match {
@@ -57,7 +62,7 @@ object MetaDataValidatorApp extends App with MetaDataValidator with FailFastMeta
 
   private def argumentCountValid(args: List[String]) = args.length == 2
 
-  private def usage = "Usage: validate <meta-data file path> <schema file path>"
+  private def usage = "Usage: validate [--failFast] <meta-data file path> <schema file path>"
 
   private def inputFilePaths(args: List[String]) = (args(0), args(1))
 
