@@ -36,11 +36,7 @@ trait SchemaParser extends RegexParsers {
 
   def columnDirectives = optional | ignoreCase
 
-  def regex = "regex" ~> regexParser ^? (validateRegex, s => "regex invalid: " + stripRegexDelimiters(s)) | failure("Invalid regex rule")
-
-  //def inRule = "in(\"" ~> """\w+""".r <~ "\")"  ^^ { InRule }
-
-  //def crossReferenceInRule = "in(\"$" ~> """\w+""".r <~ "\")" ^^ { CrossReferenceInRule }
+  def regex = "regex" ~> regexParser ^? (validateRegex, s => s"regex invalid: ${s}") | failure("Invalid regex rule")
 
   def inRule = "in(\"" ~> stringProvider <~ "\")" ^^ { InRule  }
 
@@ -72,6 +68,4 @@ trait SchemaParser extends RegexParsers {
   }
 
   private def stripQuotes(s: String) = s.tail.init
-
-  private def stripRegexDelimiters(s: String) = s.drop(2).dropRight(2)
 }

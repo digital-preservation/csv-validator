@@ -25,7 +25,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
       val schema = """@TotalColumns 1
                       Something: regex ("[0-9")"""
 
-      parse(new StringReader(schema)) must beLike { case Failure(message, _) => (message mustEqual "regex invalid: [0-9") }
+      parse(new StringReader(schema)) must beLike { case Failure(message, _) => (message mustEqual """regex invalid: ("[0-9")""") }
     }
 
     "fail for missing quotes defining a regex" in {
@@ -35,7 +35,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
                       Age:"""
 
       parse(new StringReader(schema)) must beLike {
-        case Failure(message, _) => message mustEqual "regex not correctly delimited as (\"your regex\")"
+        case Failure(message, _) => message mustEqual """regex not correctly delimited as ("your regex")"""
       }
     }
 
