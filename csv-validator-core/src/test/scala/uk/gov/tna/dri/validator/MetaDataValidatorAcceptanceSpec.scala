@@ -116,4 +116,18 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
       }
     }
   }
+
+  "Validate fail fast" should {
+
+    "only report first error for invalid @TotalColumns" in {
+
+      MetaDataValidatorApp.validateFailFast(basePath + "totalColumnsFailMetaData.csv", basePath + "totalColumnsSchema.txt") must beLike {
+
+        case Failure(errors) => errors.list mustEqual (List("Expected @TotalColumns of 1 and found 2 on line 2"))
+      }
+    }
+
+
+
+  }
 }

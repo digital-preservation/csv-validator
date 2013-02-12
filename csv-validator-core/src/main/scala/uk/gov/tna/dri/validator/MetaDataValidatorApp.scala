@@ -5,7 +5,7 @@ import uk.gov.tna.dri.schema.{Schema, SchemaParser}
 import scalaz.{Success => SuccessZ, Failure => FailureZ, _}
 import Scalaz._
 
-object MetaDataValidatorApp extends App with MetaDataValidator with SchemaParser {
+object MetaDataValidatorApp extends App with MetaDataValidator with FailFastMetaDataValidator with SchemaParser {
 
   checkArguments(args.toList) match {
 
@@ -29,10 +29,17 @@ object MetaDataValidatorApp extends App with MetaDataValidator with SchemaParser
     }
   }
 
-  def validate(metaDataFile: String, schemaFile: String): MetaDataValidation[Any] = {
+  def validate(metaDataFile: String, schemaFile: String): FailFastMetaDataValidation[Any] = {
     parseSchema(schemaFile) match {
       case FailureZ(errors) => errors.fail[Any]
       case SuccessZ(schema) => validate(new FileReader(metaDataFile), schema)
+    }
+  }
+
+  def validateFailFast(metaDataFile: String, schemaFile: String): FailFastMetaDataValidation[Any] = {
+    parseSchema(schemaFile) match {
+      case FailureZ(errors) => errors.fail[Any]
+      case SuccessZ(schema) => validateFailFast(new FileReader(metaDataFile), schema)
     }
   }
 
@@ -54,7 +61,7 @@ object MetaDataValidatorApp extends App with MetaDataValidator with SchemaParser
 
   private def inputFilePaths(args: List[String]) = (args(0), args(1))
 
-  private def checkFilesReadable(args: List[String]) = args.map(fileReadable).sequence[MetaDataValidation, String]
+  private def checkFilesReadable(args: List[String]) = args.map(fileReadable).sequence[FailFastMetaDataValidation, String]
 
   private def fileReadable(filePath: String): ValidationNEL[String, String] = if (new File(filePath).canRead) filePath.successNel[String] else fileNotReadableMessage(filePath).failNel[String]
 
