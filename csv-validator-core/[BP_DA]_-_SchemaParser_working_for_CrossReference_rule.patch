@@ -1,0 +1,123 @@
+Index: src/main/scala/uk/gov/tna/dri/schema/SchemaParser.scala
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/scala/uk/gov/tna/dri/schema/SchemaParser.scala	(revision 4552)
++++ src/main/scala/uk/gov/tna/dri/schema/SchemaParser.scala	(revision )
+@@ -20,6 +20,8 @@
+ 
+   val regexParser: Parser[String] = Regex withFailureMessage("""regex not correctly delimited as ("your regex")""")
+ 
++  val crossReferenceParser: Parser[String] = Regex withFailureMessage("""blah""")
++
+   def parse(reader: Reader) = parseAll(schema, reader)
+ 
+   def schema = totalColumns ~ columnDefinitions ^? (createSchema, { case t ~ c => s"Schema invalid as @TotalColumns = ${t} but number of columns defined = ${c.length}" })
+@@ -32,20 +34,31 @@
+     case id ~ rules ~ columnDirectives => ColumnDefinition(id, rules, columnDirectives)
+   }
+ 
+-  def columnRules = regex | inRule | fileExistsRule
++  def columnRules = regex | log(crossReferenceInRule)("xRef ==> ") | fileExistsRule
+ 
+   def columnDirectives = optional | ignoreCase
+ 
++
++
++
++
+   def regex = ("regex" ~ white) ~> regexParser ^? (validateRegex, s => "regex invalid: " + stripRegexDelimiters(s)) | failure("Invalid regex rule")
+ 
++  def crossReferenceInRule = ("in" ~ white) ~> log(crossReferenceParser)(">>>> ") ^? (validateCrossReference, s => "cross reference rule invalid" ) | failure("Invalid cross reference in rule")
++
++
++
++
++
++
+   def inRule = "in(" ~> stringProvider <~ ")"  ^^ { InRule }
+ 
++  def stringProvider: Parser[StringProvider] = "\\w*".r ^^ { LiteralTypeProvider }
++
+   def fileExistsRule = ("fileExists(" ~> opt(rootFilePath) <~ ")" ^^ { FileExistsRule }) .withFailureMessage("Invalid fileExists rule")
+ 
+   def rootFilePath: Parser[String] = """^"\S+"""".r ^^ { stripQuotes }
+ 
+-  def stringProvider: Parser[StringProvider] = """^\$\w+""".r ^^ { ColumnTypeProvider } | "\\w*".r ^^ { LiteralTypeProvider }
+-
+   def optional = "@Optional" ^^^ Optional()
+ 
+   def ignoreCase = "@IgnoreCase" ^^^ IgnoreCase()
+@@ -65,6 +78,10 @@
+ 
+   private def validateRegex: PartialFunction[String, RegexRule] = {
+     case Regex(_, s, _) if Try(s.r).isSuccess => RegexRule(s.r)
++  }
++
++  private def validateCrossReference: PartialFunction[String, CrossReferenceInRule] = {
++    case Regex(_, s, _) => CrossReferenceInRule(s)
+   }
+ 
+   private def stripQuotes(s: String) = s.tail.init
+\ No newline at end of file
+Index: src/test/scala/uk/gov/tna/dri/schema/SchemaParserRulesSpec.scala
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/test/scala/uk/gov/tna/dri/schema/SchemaParserRulesSpec.scala	(revision 4552)
++++ src/test/scala/uk/gov/tna/dri/schema/SchemaParserRulesSpec.scala	(revision )
+@@ -53,39 +53,36 @@
+       parse(new StringReader(schema)) must beLike { case Failure(message, _) => (message mustEqual "regex invalid: [a]\") regex (\"[0-5]") }
+     }
+ 
+-    "succeed for regex and inRule rules on a single column" in {
+-      val schema = """@TotalColumns 1
+-                      Name: regex ("[1-9][a-z]*") in(dog)"""
++    "succeed for cross reference in rule" in {
++      val schema = """@TotalColumns 2
++                      Name:in("fullname")""" + '\n' + """fullname:"""
+ 
+       parse(new StringReader(schema)) must beLike {
+-        case Success(Schema(1, List(ColumnDefinition("Name", List(RegexRule(r), InRule(ir)), _))), _) => {
+-          r.pattern.pattern mustEqual "[1-9][a-z]*"
+-          ir mustEqual LiteralTypeProvider("dog")
++//        case Success(Schema(1, List(ColumnDefinition("Name", rules, _), _*)), _) => { rules must containTheSameElementsAs(List(CrossReferenceInRule("FullName"))) }
++        case Success(Schema(1, List(ColumnDefinition("Name", rules, _), _*)), _) => { rules.head mustEqual CrossReferenceInRule("fullname") }
+-        }
+-      }
++      }
++    }
+-    }
+ 
+-    "succeed for regex and inRule rules on a single and inRule has column reference" in {
++    "succeed for regex and inRule rules on a single column" in {
+       val schema = """@TotalColumns 1
+-                      Name: regex ("[1-9][a-z]*") in($dog)"""
++                      Name: regex ("[1-9][a-z]*") in(dog)"""
+ 
+       parse(new StringReader(schema)) must beLike {
+         case Success(Schema(1, List(ColumnDefinition("Name", List(RegexRule(r), InRule(ir)), _))), _) => {
+           r.pattern.pattern mustEqual "[1-9][a-z]*"
+-          ir mustEqual ColumnTypeProvider("$dog")
++          ir mustEqual LiteralTypeProvider("dog")
+         }
+       }
+     }
+ 
+     "succeed for inRule regex rules on a single and inRule has column reference and rules have had their order changed" in {
+       val schema = """@TotalColumns 1
+-                      Name: in($dog) regex ("[1-9][a-z]*") in(dog)"""
++                      Name: in($dog) regex ("[1-9][a-z]*")"""
+ 
+       parse(new StringReader(schema)) must beLike {
+-        case Success(Schema(1, List(ColumnDefinition("Name", List(InRule(ir), RegexRule(r), InRule(ir2)), _))), _) => {
++        case Success(Schema(1, List(ColumnDefinition("Name", List(InRule(ir), RegexRule(r)), _))), _) => {
+           r.pattern.pattern mustEqual "[1-9][a-z]*"
+           ir mustEqual ColumnTypeProvider("$dog")
+-          ir2 mustEqual LiteralTypeProvider("dog")
+         }
+       }
+     }
+\ No newline at end of file
