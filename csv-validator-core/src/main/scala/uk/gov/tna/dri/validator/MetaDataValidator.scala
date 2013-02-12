@@ -15,7 +15,7 @@ trait MetaDataValidator {
   def validate(csv: Reader, schema: Schema, failFast: Boolean) = {
     val rows = new CSVReader(csv).readAll()
     var valid:Boolean = true
-    val v: List[scalaz.Validation[scalaz.NonEmptyList[String],List[Any]]] = rows.zipWithIndex.toStream.map(r => validateRow(Row(r._1.toList.map(Cell(_)), r._2 + 1), schema)).takeWhile{x => {
+    val v: List[scalaz.Validation[scalaz.NonEmptyList[String],List[Any]]] = rows.zipWithIndex.toStream.map(r => validateRow(Row(r._1.toList.map(Cell(_)), r._2 + 1), schema)).takeWhile { x => {
       val isValid:Boolean = valid
       valid = x match {
         case Success (_) => {
@@ -59,8 +59,9 @@ trait MetaDataValidator {
   private def rulesForCell(columnIndex: Int, row: Row, schema: Schema) = {
     val columnDefinition = schema.columnDefinitions(columnIndex)
 
-    if (row.cells(columnIndex).value.trim.isEmpty && columnDefinition.contains(Optional())) {println("cell ok");true.successNel }
-    else {
+    if (row.cells(columnIndex).value.trim.isEmpty && columnDefinition.contains(Optional())) {
+      true.successNel
+    } else {
       columnDefinition.rules.map(_.execute(columnIndex, row, schema)).sequence[MetaDataValidation, Any]
     }
   }
