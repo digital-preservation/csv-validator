@@ -61,7 +61,6 @@ trait MetaDataValidator {
 
     if (row.cells(columnIndex).value.trim.isEmpty && columnDefinition.contains(Optional())) {println("cell ok");true.successNel }
     else {
-      println("executing rules for " + columnDefinition.rules)
       columnDefinition.rules.map(_.execute(columnIndex, row, schema)).sequence[MetaDataValidation, Any]
     }
   }
