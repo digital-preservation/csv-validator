@@ -11,7 +11,7 @@ import uk.gov.tna.dri.schema.Schema
 
 class MetaDataValidatorSpec extends Specification {
 
-  object TestMetaDataValidator extends MetaDataValidator
+  object TestMetaDataValidator extends AllErrorsMetaDataValidator
 
   import TestMetaDataValidator._
 

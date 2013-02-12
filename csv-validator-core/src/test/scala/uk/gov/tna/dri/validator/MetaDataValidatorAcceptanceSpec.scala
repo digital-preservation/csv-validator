@@ -7,16 +7,19 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
 
   val basePath = "src/test/resources/uk/gov/tna/dri/validator/acceptance/"
 
+  val v: MetaDataValidatorApp = new MetaDataValidatorApp with AllErrorsMetaDataValidator
+  import v.validate
+  
   "Regex rule" should {
 
     "succeed for metadata file with column that passes regex rule" in {
-      MetaDataValidatorApp.validate(basePath + "regexRulePassMetaData.csv", basePath + "regexRuleSchema.txt") must beLike {
+      validate(basePath + "regexRulePassMetaData.csv", basePath + "regexRuleSchema.txt") must beLike {
         case Success(_) => ok
       }
     }
 
     "fail with line number and column id in error message " in {
-      MetaDataValidatorApp.validate(basePath + "regexRuleFailMetaData.csv", basePath + "regexRuleSchema.txt") must beLike {
+      validate(basePath + "regexRuleFailMetaData.csv", basePath + "regexRuleSchema.txt") must beLike {
         case Failure(errors) => errors.list must containTheSameElementsAs(List("regex: [0-9]+ fails for line 1, column: Age"))
       }
     }
@@ -24,7 +27,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
 
   "Multiple errors " should {
     "all be reported" in {
-      MetaDataValidatorApp.validate(basePath + "multipleErrorsMetaData.csv", basePath + "regexRuleSchema.txt") must beLike {
+      validate(basePath + "multipleErrorsMetaData.csv", basePath + "regexRuleSchema.txt") must beLike {
         case Failure(errors) => errors.list must contain(
           "regex: [0-9]+ fails for line 1, column: Age",
           "regex: [0-9]+ fails for line 2, column: Age").only
@@ -34,13 +37,13 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
 
   "Combining two rules" should {
     "succeed when metadata valid" in {
-      MetaDataValidatorApp.validate(basePath + "twoRulesPassMetaData.csv", basePath + "twoRuleSchema.txt") must beLike {
+      validate(basePath + "twoRulesPassMetaData.csv", basePath + "twoRuleSchema.txt") must beLike {
         case Success(_) => ok
       }
     }
 
     "fail when rules fail for all permutations" in {
-      MetaDataValidatorApp.validate(basePath + "twoRulesFailMetaData.csv", basePath + "twoRuleSchemaFail.txt") must beLike {
+      validate(basePath + "twoRulesFailMetaData.csv", basePath + "twoRuleSchemaFail.txt") must beLike {
         case Failure(errors) => errors.list must contain(
           "regex: [A-D]+[a-z]+ fails for line 1, column: Age",
           "in: AEyearstoday fails for line 2, column: Age, value: ABDyears",
@@ -53,13 +56,13 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
 
   "An in rule" should {
     "succeed if the column value is in the rule's literal string" in {
-      MetaDataValidatorApp.validate(basePath + "inRulePassMetaData.csv", basePath + "inRuleSchema.txt") must beLike {
+      validate(basePath + "inRulePassMetaData.csv", basePath + "inRuleSchema.txt") must beLike {
         case Success(_) => ok
       }
     }
 
     "fail if the column value is not in the rule's literal string" in {
-      MetaDataValidatorApp.validate(basePath + "inRuleFailMetaData.csv", basePath + "inRuleSchema.txt") must beLike {
+      validate(basePath + "inRuleFailMetaData.csv", basePath + "inRuleSchema.txt") must beLike {
         case Failure(errors) => errors.list must contain(
           "in: thevaluemustbeinthisstring fails for line 1, column: SomeInRule, value: valuenotinrule",
           "in: thevaluemustbeinthisstring fails for line 3, column: SomeInRule, value: thisonewillfailtoo").only
@@ -67,13 +70,13 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
     }
 
     "succeed if the column value is in the rule's cross referenced column" in {
-      MetaDataValidatorApp.validate(basePath + "inRuleCrossReferencePassMetaData.csv", basePath + "inRuleCrossReferenceSchema.txt") must beLike {
+      validate(basePath + "inRuleCrossReferencePassMetaData.csv", basePath + "inRuleCrossReferenceSchema.txt") must beLike {
         case Success(_) => ok
       }
     }
 
     "fail if the column value is not in the rule's cross referenced column" in {
-      MetaDataValidatorApp.validate(basePath + "inRuleCrossReferenceFailMetaData.csv", basePath + "inRuleCrossReferenceSchema.txt") must beLike {
+      validate(basePath + "inRuleCrossReferenceFailMetaData.csv", basePath + "inRuleCrossReferenceSchema.txt") must beLike {
         case Failure(errors) => errors.list must containTheSameElementsAs(List("in: David Ainslie fails for line 2, column: FirstName, value: Dave"))
       }
     }
@@ -81,13 +84,13 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
 
   "An @Optional column directive" should {
     "allow a column to have an empty value and ignore other rules" in {
-      MetaDataValidatorApp.validate(basePath + "optionalPassMetaData.csv", basePath + "optionalSchema.txt") must beLike {
+      validate(basePath + "optionalPassMetaData.csv", basePath + "optionalSchema.txt") must beLike {
         case Success(_) => ok
       }
     }
 
     "fail if a non empty value fails a rule" in {
-      MetaDataValidatorApp.validate(basePath + "optionalFailMetaData.csv", basePath + "optionalSchema.txt") must beLike {
+      validate(basePath + "optionalFailMetaData.csv", basePath + "optionalSchema.txt") must beLike {
         case Failure(errors) => errors.list must containTheSameElementsAs(List("in: Benjamin Parker fails for line 1, column: Name, value: BP"))
       }
     }
@@ -95,7 +98,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
 
   "An @IgnoreCase column directive" should {
     "pass a rule ignoring case" in {
-      MetaDataValidatorApp.validate(basePath + "ignoreCasePassMetaData.csv", basePath + "ignoreCaseSchema.txt") must beLike {
+      validate(basePath + "ignoreCasePassMetaData.csv", basePath + "ignoreCaseSchema.txt") must beLike {
         case Success(_) => ok
       }
     }
@@ -103,13 +106,13 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
 
   "A fileExists rule" should {
     "ensure the file exists on the file system" in {
-      MetaDataValidatorApp.validate(basePath + "fileExistsPassMetaData.csv", basePath + "fileExistsSchema.txt") must beLike {
+      validate(basePath + "fileExistsPassMetaData.csv", basePath + "fileExistsSchema.txt") must beLike {
         case Success(_) => ok
       }
     }
 
     "fail if the file does not exist on the file system" in {
-      MetaDataValidatorApp.validate(basePath + "fileExistsPassMetaData.csv", basePath + "fileExistsSchemaWithBadBasePath.txt") must beLike {
+      validate(basePath + "fileExistsPassMetaData.csv", basePath + "fileExistsSchemaWithBadBasePath.txt") must beLike {
         case Failure(errors) => errors.list must contain (
           "fileExistsRule: fails for line 1, column: PasswordFile, value: benPass.txt",
           "fileExistsRule: fails for line 2, column: PasswordFile, value: andyPass.txt")
@@ -118,21 +121,22 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
   }
 
   "Validate fail fast" should {
+    val app = new MetaDataValidatorApp with FailFastMetaDataValidator
 
     "only report first error for invalid @TotalColumns" in {
-      MetaDataValidatorApp.validateFailFast(basePath + "totalColumnsFailMetaData.csv", basePath + "totalColumnsSchema.txt") must beLike {
+      app.validate(basePath + "totalColumnsFailMetaData.csv", basePath + "totalColumnsSchema.txt") must beLike {
         case Failure(errors) => errors.list mustEqual (List("Expected @TotalColumns of 1 and found 2 on line 2"))
       }
     }
 
     "only report first rule fail for multiple rules on a column" in {
-      MetaDataValidatorApp.validateFailFast(basePath + "rulesFailMetaData.csv", basePath + "rulesSchema.txt") must beLike {
+      app.validate(basePath + "rulesFailMetaData.csv", basePath + "rulesSchema.txt") must beLike {
         case Failure(errors) => errors.list mustEqual (List("regex: [A-Z][a-z]+ fails for line 2, column: Name"))
       }
     }
 
     "succeed for multiple rules with valid metadata" in {
-      MetaDataValidatorApp.validateFailFast(basePath + "twoRulesPassMetaData.csv", basePath + "twoRuleSchema.txt") must beLike {
+      app.validate(basePath + "twoRulesPassMetaData.csv", basePath + "twoRuleSchema.txt") must beLike {
         case Success(_) => ok
       }
     }
