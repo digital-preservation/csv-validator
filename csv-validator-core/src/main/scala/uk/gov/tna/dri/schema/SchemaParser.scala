@@ -32,15 +32,19 @@ trait SchemaParser extends RegexParsers {
     case id ~ rules ~ columnDirectives => ColumnDefinition(id, rules, columnDirectives)
   }
 
-  def columnRules = regex | inRule | crossReferenceInRule | fileExistsRule
+  def columnRules = regex | inRule | fileExistsRule
 
   def columnDirectives = optional | ignoreCase
 
   def regex = "regex" ~> regexParser ^? (validateRegex, s => "regex invalid: " + stripRegexDelimiters(s)) | failure("Invalid regex rule")
 
-  def inRule = "in(\"" ~> """\w+""".r <~ "\")"  ^^ { InRule }
+  //def inRule = "in(\"" ~> """\w+""".r <~ "\")"  ^^ { InRule }
 
-  def crossReferenceInRule = "in(\"$" ~> """\w+""".r <~ "\")" ^^ { CrossReferenceInRule }
+  //def crossReferenceInRule = "in(\"$" ~> """\w+""".r <~ "\")" ^^ { CrossReferenceInRule }
+
+  def inRule = "in(\"" ~> stringProvider <~ "\")" ^^ { InRule  }
+
+  def stringProvider: Parser[StringProvider] = "$" ~> """\w+""".r ^^ { ColumnTypeProvider } | """\w+""".r ^^ { LiteralTypeProvider }
 
   def fileExistsRule = ("fileExists(" ~> opt(rootFilePath) <~ ")" ^^ { FileExistsRule }) .withFailureMessage("Invalid fileExists rule")
 

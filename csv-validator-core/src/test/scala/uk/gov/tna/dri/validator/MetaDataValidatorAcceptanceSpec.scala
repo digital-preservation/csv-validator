@@ -43,10 +43,10 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
       MetaDataValidatorApp.validate(basePath + "twoRulesFailMetaData.csv", basePath + "twoRuleSchemaFail.txt") must beLike {
         case Failure(errors) => errors.list must contain(
           "regex: [A-D]+[a-z]+ fails for line 1, column: Age",
-          "inRule: AEyearstoday fails for line 2, column: Age, value: ABDyears",
+          "in: AEyearstoday fails for line 2, column: Age, value: ABDyears",
           "regex: [A-D]+[a-z]+ fails for line 3, column: Age",
-          "inRule: AEyearstoday fails for line 3, column: Age, value: AEyearsnow",
-          "in($Name) fails for line 3, column: CrossRef, value: year").only
+          "in: AEyearstoday fails for line 3, column: Age, value: AEyearsnow",
+          "in: some date fails for line 3, column: CrossRef, value: year").only
       }
     }
   }
@@ -61,8 +61,8 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
     "fail if the column value is not in the rule's literal string" in {
       MetaDataValidatorApp.validate(basePath + "inRuleFailMetaData.csv", basePath + "inRuleSchema.txt") must beLike {
         case Failure(errors) => errors.list must contain(
-          "inRule: thevaluemustbeinthisstring fails for line 1, column: SomeInRule, value: valuenotinrule",
-          "inRule: thevaluemustbeinthisstring fails for line 3, column: SomeInRule, value: thisonewillfailtoo").only
+          "in: thevaluemustbeinthisstring fails for line 1, column: SomeInRule, value: valuenotinrule",
+          "in: thevaluemustbeinthisstring fails for line 3, column: SomeInRule, value: thisonewillfailtoo").only
       }
     }
 
@@ -74,7 +74,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
 
     "fail if the column value is not in the rule's cross referenced column" in {
       MetaDataValidatorApp.validate(basePath + "inRuleCrossReferenceFailMetaData.csv", basePath + "inRuleCrossReferenceSchema.txt") must beLike {
-        case Failure(errors) => errors.list must containTheSameElementsAs(List("in($FullName) fails for line 2, column: FirstName, value: Dave"))
+        case Failure(errors) => errors.list must containTheSameElementsAs(List("in: David Ainslie fails for line 2, column: FirstName, value: Dave"))
       }
     }
   }
@@ -88,7 +88,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
 
     "fail if a non empty value fails a rule" in {
       MetaDataValidatorApp.validate(basePath + "optionalFailMetaData.csv", basePath + "optionalSchema.txt") must beLike {
-        case Failure(errors) => errors.list must containTheSameElementsAs(List("in($FullName) fails for line 1, column: Name, value: BP"))
+        case Failure(errors) => errors.list must containTheSameElementsAs(List("in: Benjamin Parker fails for line 1, column: Name, value: BP"))
       }
     }
   }

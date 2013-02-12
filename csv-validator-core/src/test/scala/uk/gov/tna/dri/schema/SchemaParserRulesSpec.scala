@@ -59,7 +59,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
                       FullName:"""
 
       parse(new StringReader(schema)) must beLike {
-        case Success(Schema(2, List(ColumnDefinition("Name", List(CrossReferenceInRule("FullName")), _), _)), _)  => ok
+        case Success(Schema(2, List(ColumnDefinition("Name", List(InRule(ColumnTypeProvider("FullName"))), _), _)), _)  => ok
       }
     }
 
@@ -68,7 +68,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
                       Name: regex ("[1-9][a-z]*") in("dog")"""
 
       parse(new StringReader(schema)) must beLike {
-        case Success(Schema(1, List(ColumnDefinition("Name", List(RegexRule(r), InRule(ir)), _))), _) => {
+        case Success(Schema(1, List(ColumnDefinition("Name", List(RegexRule(r), InRule(LiteralTypeProvider(ir))), _))), _) => {
           r.pattern.pattern mustEqual "[1-9][a-z]*"
           ir mustEqual "dog"
         }
@@ -80,7 +80,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
                       Name: in("$dog") regex ("[1-9][a-z]*")"""
 
       parse(new StringReader(schema)) must beLike {
-        case Success(Schema(1, List(ColumnDefinition("Name", List(CrossReferenceInRule(ir), RegexRule(r)), _))), _) => {
+        case Success(Schema(1, List(ColumnDefinition("Name", List(InRule(ColumnTypeProvider(ir)), RegexRule(r)), _))), _) => {
           r.pattern.pattern mustEqual "[1-9][a-z]*"
           ir mustEqual "dog"
         }
