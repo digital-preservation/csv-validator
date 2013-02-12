@@ -117,16 +117,23 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
     }
   }
 
-  "Failfast" should {
+  "Validate fail fast" should {
 
-    "return all errors when not enabled" in {
-      MetaDataValidatorApp.validate(basePath + "twoRulesFailMetaData.csv", basePath + "twoRuleSchemaFail.txt") must beLike {
-        case Failure(errors) => errors.list must contain(
-          "regex: [A-D]+[a-z]+ fails for line 1, column: Age",
-          "inRule: AEyearstoday fails for line 2, column: Age, value: ABDyears",
-          "regex: [A-D]+[a-z]+ fails for line 3, column: Age",
-          "inRule: AEyearstoday fails for line 3, column: Age, value: AEyearsnow",
-          "in($Name) fails for line 3, column: CrossRef, value: year").only
+    "only report first error for invalid @TotalColumns" in {
+      MetaDataValidatorApp.validateFailFast(basePath + "totalColumnsFailMetaData.csv", basePath + "totalColumnsSchema.txt") must beLike {
+        case Failure(errors) => errors.list mustEqual (List("Expected @TotalColumns of 1 and found 2 on line 2"))
+      }
+    }
+
+    "only report first rule fail for multiple rules on a column" in {
+      MetaDataValidatorApp.validateFailFast(basePath + "rulesFailMetaData.csv", basePath + "rulesSchema.txt") must beLike {
+        case Failure(errors) => errors.list mustEqual (List("regex: [A-Z][a-z]+ fails for line 2, column: Name"))
+      }
+    }
+
+    "succeed for multiple rules with valid metadata" in {
+      MetaDataValidatorApp.validateFailFast(basePath + "twoRulesPassMetaData.csv", basePath + "twoRuleSchema.txt") must beLike {
+        case Success(_) => ok
       }
     }
   }

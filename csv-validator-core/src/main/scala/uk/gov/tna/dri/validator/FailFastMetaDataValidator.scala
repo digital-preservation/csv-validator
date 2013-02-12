@@ -1,6 +1,6 @@
 package uk.gov.tna.dri.validator
 
-import uk.gov.tna.dri.schema.{Optional, Schema}
+import uk.gov.tna.dri.schema.{Rule, ColumnDefinition, Optional, Schema}
 import au.com.bytecode.opencsv.CSVReader
 import java.io.Reader
 import scala.collection.JavaConversions._
@@ -24,9 +24,8 @@ trait FailFastMetaDataValidator {
     validateRows(rows)
   }
 
-
   private def validateRow(row: Row, schema: Schema): FailFastMetaDataValidation[Any] = {
-    totalColumns(row, schema)
+    totalColumns(row, schema).fold(e => e.fail[Any], s => rules(row, schema))
   }
 
   private def totalColumns(row: Row, schema: Schema) = {
@@ -34,9 +33,12 @@ trait FailFastMetaDataValidator {
     else s"Expected @TotalColumns of ${schema.totalColumns} and found ${row.cells.length} on line ${row.lineNumber}".failNel[Any]
   }
 
-  private def rules(row: Row, schema: Schema) = {
-    val v = for { (columnDefinition, columnIndex) <- schema.columnDefinitions.zipWithIndex } yield validateCell(columnIndex, row, schema)
-    v.sequence[FailFastMetaDataValidation, Any]
+  private def rules(row: Row, schema: Schema): FailFastMetaDataValidation[Any] = {
+    def rulesRecur(columnDefinitions:List[(ColumnDefinition,Int)]): FailFastMetaDataValidation[Any] = columnDefinitions match {
+      case Nil => true.successNel[String]
+      case (columnDef, columnIndex) :: tail => validateCell(columnIndex, row, schema).fold(e => e.fail[Any], s => rulesRecur(tail) )
+    }
+    rulesRecur(schema.columnDefinitions.zipWithIndex)
   }
 
   private def validateCell(columnIndex: Int, row: Row, schema: Schema) = {
@@ -51,7 +53,12 @@ trait FailFastMetaDataValidator {
   private def rulesForCell(columnIndex: Int, row: Row, schema: Schema) = {
     val columnDefinition = schema.columnDefinitions(columnIndex)
 
+    def rulesForCellRecur(rules:List[Rule]): FailFastMetaDataValidation[Any] = rules match {
+      case Nil => true.successNel[String]
+      case rule :: tail => rule.execute(columnIndex, row, schema).fold(e => e.fail[Any], s => rulesForCellRecur(tail) )
+    }
+
     if (row.cells(columnIndex).value.trim.isEmpty && columnDefinition.contains(Optional())) true.successNel
-    else columnDefinition.rules.map(_.execute(columnIndex, row, schema)).sequence[FailFastMetaDataValidation, Any]
+    else rulesForCellRecur(columnDefinition.rules)
   }
 }
