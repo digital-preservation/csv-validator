@@ -14,23 +14,19 @@ trait MetaDataValidator {
 
   def validate(csv: Reader, schema: Schema, failFast: Boolean) = {
     val rows = new CSVReader(csv).readAll()
-    var cont = true
-    val v = for {
-      (row, rowIndex) <- rows.zipWithIndex
-      if (cont)
-         validatedRow = validateRow(Row(row.toList.map(Cell(_)), rowIndex + 1), schema)
-      dummyValNotUsed = validatedRow match {
-      case Success (xv) => {
-        true
+    var valid:Boolean = true
+    val v: List[scalaz.Validation[scalaz.NonEmptyList[String],List[Any]]] = rows.zipWithIndex.toStream.map(r => validateRow(Row(r._1.toList.map(Cell(_)), r._2 + 1), schema)).takeWhile{x => {
+      val isValid:Boolean = valid
+      valid = x match {
+        case Success (_) => {
+          true
+        }
+        case _ => {
+          !failFast
+        }
       }
-      case f => {
-        if (failFast)
-          cont = false
-        false
-      }
-      }
-
-    } yield validatedRow
+      isValid
+    }} toList;
     v.sequence[MetaDataValidation, Any]
   }
 
