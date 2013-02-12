@@ -42,9 +42,9 @@ trait SchemaParser extends RegexParsers {
 
   def stringProvider: Parser[StringProvider] = "$" ~> """\w+""".r ^^ { ColumnTypeProvider } | """\w+""".r ^^ { LiteralTypeProvider }
 
-  def fileExistsRule = ("fileExists(" ~> opt(rootFilePath) <~ ")" ^^ { FileExistsRule }) .withFailureMessage("Invalid fileExists rule")
+  def fileExistsRule = "fileExists(\"" ~> rootFilePath <~ "\")" ^^ { s => FileExistsRule(Some(s)) } | "fileExists()" ^^^ { FileExistsRule(None) } | failure("Invalid fileExists rule")
 
-  def rootFilePath: Parser[String] = """^"\S+"""".r ^^ { stripQuotes }
+  def rootFilePath: Parser[String] = """[a-zA-Z\/-_\d]+""".r
 
   def optional = "@Optional" ^^^ Optional()
 
@@ -66,6 +66,4 @@ trait SchemaParser extends RegexParsers {
   private def validateRegex: PartialFunction[String, RegexRule] = {
     case Regex(_, s, _) if Try(s.r).isSuccess => RegexRule(s.r)
   }
-
-  private def stripQuotes(s: String) = s.tail.init
 }

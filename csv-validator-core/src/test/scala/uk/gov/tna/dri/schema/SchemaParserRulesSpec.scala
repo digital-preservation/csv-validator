@@ -102,7 +102,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
     "fail for non quoted root file path" in {
       val schema = """@TotalColumns 1
                       Name: fileExists(some/other/root/path)"""
-      parse(new StringReader(schema)) must beLike { case Failure("Invalid fileExists rule", _) => ok}
+      parse(new StringReader(schema)) must beLike { case Failure("Column definition contains invalid text", _) => ok}
     }
 
     "fail for non parentheses" in {
