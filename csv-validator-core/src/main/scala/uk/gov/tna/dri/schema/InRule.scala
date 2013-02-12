@@ -15,10 +15,14 @@ case class InRule(inVal: StringProvider) extends Rule {
 
     val colVal = Try(inVal.getColumnValue(cellsByColumnId)).getOrElse("Invalid Column Name")
 
-    val reg = if (schema.columnDefinitions(columnIndex).contains(IgnoreCase())) ("(?i)" + row.cells(columnIndex).value).r else row.cells(columnIndex).value.r
-
-    if (reg.pattern.matcher(colVal).find()) true.successNel[String]
-    else s"inRule: ${colVal} fails for line ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
+    if (schema.columnDefinitions(columnIndex).contains(IgnoreCase())) {
+      if (colVal.toLowerCase.contains(row.cells(columnIndex).value.toLowerCase)) true.successNel[String]
+      else s"inRule: ${colVal} fails for line ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
+    } else {
+      if (row.cells(columnIndex).value.contains(colVal)) true.successNel[String]
+      if (colVal.contains(row.cells(columnIndex).value)) true.successNel[String]
+      else s"inRule: ${colVal} fails for line ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
+    }
   }
 }
 

@@ -176,6 +176,13 @@ class MetaDataValidatorSpec extends Specification {
       validate(new StringReader(meta), schema) must beLike { case Success(_) => ok }
     }
 
+    "ignore case with in rule succeeds if value contains reg ex characters" in {
+      val columnDefinitions = ColumnDefinition("1", List(InRule(LiteralTypeProvider("[abc]"))), List(IgnoreCase())) :: Nil
+      val schema = Schema(1, columnDefinitions)
+      val meta ="""[abc"""
+      validate(new StringReader(meta), schema) must beLike { case Success(_) => ok }
+    }
+
     "fail to ignore case of a given regex when not providing @IgnoreCase" in {
       val columnDefinitions = ColumnDefinition("1", List(RegexRule("[a-z]+"r))) :: Nil
       val schema = Schema(1, columnDefinitions)
