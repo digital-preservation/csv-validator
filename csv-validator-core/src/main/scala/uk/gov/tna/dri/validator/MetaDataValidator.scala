@@ -12,21 +12,9 @@ trait MetaDataValidator {
 
   type MetaDataValidation[S] = ValidationNEL[String, S]
 
-  def validate(csv: Reader, schema: Schema, failFast: Boolean) = {
+  def validate(csv: Reader, schema: Schema) = {
     val rows = new CSVReader(csv).readAll()
-    var valid:Boolean = true
-    val v: List[scalaz.Validation[scalaz.NonEmptyList[String],List[Any]]] = rows.zipWithIndex.toStream.map(r => validateRow(Row(r._1.toList.map(Cell(_)), r._2 + 1), schema)).takeWhile { x => {
-      val isValid:Boolean = valid
-      valid = x match {
-        case Success (_) => {
-          true
-        }
-        case _ => {
-          !failFast
-        }
-      }
-      isValid
-    }} toList;
+    val v = for ((row, rowIndex) <- rows.zipWithIndex) yield validateRow(Row(row.toList.map(Cell(_)), rowIndex + 1), schema)
     v.sequence[MetaDataValidation, Any]
   }
 
@@ -59,10 +47,7 @@ trait MetaDataValidator {
   private def rulesForCell(columnIndex: Int, row: Row, schema: Schema) = {
     val columnDefinition = schema.columnDefinitions(columnIndex)
 
-    if (row.cells(columnIndex).value.trim.isEmpty && columnDefinition.contains(Optional())) {
-      true.successNel
-    } else {
-      columnDefinition.rules.map(_.execute(columnIndex, row, schema)).sequence[MetaDataValidation, Any]
-    }
+    if (row.cells(columnIndex).value.trim.isEmpty && columnDefinition.contains(Optional())) true.successNel
+    else columnDefinition.rules.map(_.execute(columnIndex, row, schema)).sequence[MetaDataValidation, Any]
   }
 }

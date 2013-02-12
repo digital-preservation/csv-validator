@@ -13,10 +13,9 @@ object MetaDataValidatorApp extends App with MetaDataValidator with SchemaParser
 
     case SuccessZ(_) => {
       val (metaDataFile, schemaFile) = inputFilePaths(args.toList)
-      val failFast = args.exists( _ == "--failFast")
       println("Validating...")
 
-      validate(metaDataFile, schemaFile, failFast) match {
+      validate(metaDataFile, schemaFile) match {
         case FailureZ(errors) => println(prettyPrint(errors))
         case SuccessZ(_) => println("PASS")
       }
@@ -25,15 +24,15 @@ object MetaDataValidatorApp extends App with MetaDataValidator with SchemaParser
 
   def checkArguments(args: List[String]): ValidationNEL[String, List[String]] = {
     checkArgumentCount(args) match {
-      case SuccessZ(args) => checkFilesReadable(args.take(2))
+      case SuccessZ(args) => checkFilesReadable(args)
       case fail => fail
     }
   }
 
-  def validate(metaDataFile: String, schemaFile: String, fastFail: Boolean = false): MetaDataValidation[Any] = {
+  def validate(metaDataFile: String, schemaFile: String): MetaDataValidation[Any] = {
     parseSchema(schemaFile) match {
       case FailureZ(errors) => errors.fail[Any]
-      case SuccessZ(schema) => validate(new FileReader(metaDataFile), schema, fastFail)
+      case SuccessZ(schema) => validate(new FileReader(metaDataFile), schema)
     }
   }
 
@@ -49,16 +48,9 @@ object MetaDataValidatorApp extends App with MetaDataValidator with SchemaParser
     else args.successNel[String]
   }
 
-  private def argumentCountValid(args: List[String]) = {
-    args match  {
-      case _ :: _ :: "--failFast" :: Nil => true
-      case _ :: _ :: Nil => true
-      case _ => false
-    }
+  private def argumentCountValid(args: List[String]) = args.length == 2
 
-  }
-
-  private def usage = "Usage: validate <meta-data file path> <schema file path> [--failFast]"
+  private def usage = "Usage: validate <meta-data file path> <schema file path>"
 
   private def inputFilePaths(args: List[String]) = (args(0), args(1))
 

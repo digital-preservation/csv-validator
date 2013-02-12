@@ -9,19 +9,15 @@ class MetaDataValidatorAppSpec extends Specification {
 
   "Argument check" should {
     "give usage message when no arguments supplied" in {
-      MetaDataValidatorApp.checkArguments(Nil) must beLike { case Failure(errors) => errors.head mustEqual "Usage: validate <meta-data file path> <schema file path> [--failFast]" }
+      MetaDataValidatorApp.checkArguments(Nil) must beLike { case Failure(errors) => errors.head mustEqual "Usage: validate <meta-data file path> <schema file path>" }
     }
 
     "give usage message when one argument supplied" in {
-      MetaDataValidatorApp.checkArguments(List("meta file")) must beLike { case Failure(errors) => errors.head mustEqual "Usage: validate <meta-data file path> <schema file path> [--failFast]"}
+      MetaDataValidatorApp.checkArguments(List("meta file")) must beLike { case Failure(errors) => errors.head mustEqual "Usage: validate <meta-data file path> <schema file path>"}
     }
 
     "give usage message when too many arguments supplied" in {
-      MetaDataValidatorApp.checkArguments(List("somMetaData.csv", "someSchema.txt", "something extra")) must beLike { case Failure(errors) => errors.head mustEqual "Usage: validate <meta-data file path> <schema file path> [--failFast]" }
-    }
-
-    "succeed if third arg is --fileFast" in {
-      MetaDataValidatorApp.checkArguments(List(basePath + "metaData.csv", basePath + "schema.txt", "--failFast")) must beLike { case Success(_) => ok }
+      MetaDataValidatorApp.checkArguments(List("somMetaData.csv", "someSchema.txt", "something extra")) must beLike { case Failure(errors) => errors.head mustEqual "Usage: validate <meta-data file path> <schema file path>" }
     }
 
     "fail if metadata file is unreadable" in {

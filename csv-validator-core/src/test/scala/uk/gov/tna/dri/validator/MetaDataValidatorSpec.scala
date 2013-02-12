@@ -24,7 +24,7 @@ class MetaDataValidatorSpec extends Specification {
            col1, col2"""
 
       val columnDefinitions = List(new ColumnDefinition("\"column1\""),new ColumnDefinition("\"column2\""))
-      validate(new StringReader(metaData), Schema(2, columnDefinitions), false) must beLike { case Success(_) => ok }
+      validate(new StringReader(metaData), Schema(2, columnDefinitions)) must beLike { case Success(_) => ok }
     }
 
     "fail for incorrect number of total columns for multiple lines" in {
@@ -34,7 +34,7 @@ class MetaDataValidatorSpec extends Specification {
            col1, col2, col3"""
 
       val columnDefinitions = List(new ColumnDefinition("\"column1\""),new ColumnDefinition("\"column2\""),new ColumnDefinition("\"column3\""))
-      validate(new StringReader(metaData), Schema(3, columnDefinitions), false) must beLike { case Failure(messages) => messages.head mustEqual "Expected @TotalColumns of 3 and found 2 on line 2" }
+      validate(new StringReader(metaData), Schema(3, columnDefinitions)) must beLike { case Failure(messages) => messages.head mustEqual "Expected @TotalColumns of 3 and found 2 on line 2" }
     }
 
     "fail if columns on multiple rows do not pass" in {
@@ -44,7 +44,7 @@ class MetaDataValidatorSpec extends Specification {
         """34,xxxy
            abcd,uii"""
 
-      validate(new StringReader(metaData), schema, false) must beLike {
+      validate(new StringReader(metaData), schema) must beLike {
         case Failure(messages) => messages.list must contain ("regex: [a-c]* fails for line 1, column: second", "regex: [3-8]* fails for line 2, column: first", "regex: [a-c]* fails for line 2, column: second").only
       }
     }
@@ -56,7 +56,7 @@ class MetaDataValidatorSpec extends Specification {
         """someData,345
            someMore,12"""
 
-      validate(new StringReader(metaData), schema, false) must beLike { case Success(_) => ok }
+      validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
     }
 
     "fail for @TotalColumns invalid" in {
@@ -65,7 +65,7 @@ class MetaDataValidatorSpec extends Specification {
 
       val schema = Schema(1, List(ColumnDefinition("Col1")))
 
-      validate(new StringReader(m), schema, false) should beLike {
+      validate(new StringReader(m), schema) should beLike {
         case Failure(messages) => messages.list must contain ("Expected @TotalColumns of 1 and found 2 on line 1", "Expected @TotalColumns of 1 and found 2 on line 2").only
       }
     }
@@ -74,7 +74,7 @@ class MetaDataValidatorSpec extends Specification {
       val m = "c11,c12"
       val schema = Schema(2, List(ColumnDefinition("Col1", List(RegexRule("C11"r))), ColumnDefinition("Col2")))
 
-      validate(new StringReader(m), schema, false) should beLike {
+      validate(new StringReader(m), schema) should beLike {
         case Failure(messages) => messages.head mustEqual "regex: C11 fails for line 1, column: Col1"
       }
     }
@@ -83,7 +83,7 @@ class MetaDataValidatorSpec extends Specification {
       val m = "1"
       val schema = Schema(2, List(ColumnDefinition("Col1"), ColumnDefinition("Col2", List(RegexRule("[0-9]"r)))))
 
-      validate(new StringReader(m), schema, false) should beLike {
+      validate(new StringReader(m), schema) should beLike {
         case Failure(messages) => messages.list must contain ("Expected @TotalColumns of 2 and found 1 on line 1", "Missing value at line: 1, column: Col2").only
       }
     }
@@ -96,7 +96,7 @@ class MetaDataValidatorSpec extends Specification {
         """someData,dog
            someMore,dog"""
 
-      validate(new StringReader(metaData), schema, false) must beLike { case Success(_) => ok }
+      validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
     }
 
     "succeed for InRule as column reference" in {
@@ -107,7 +107,7 @@ class MetaDataValidatorSpec extends Specification {
         """blah_mustBeIn_blah,mustBeIn
            |blah_andMustBeIn,andMustBeIn""".stripMargin
 
-      validate(new StringReader(metaData), schema, false) must beLike { case Success(_) => ok }
+      validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
     }
 
     "fail for InRule as column reference where case does not match" in {
@@ -118,7 +118,7 @@ class MetaDataValidatorSpec extends Specification {
         """blah_MUSTBEIN_blah,mustBeIn
           |blah_andMustBeIn,andMustBeIn""".stripMargin
 
-      validate(new StringReader(metaData), schema, false) should beLike {
+      validate(new StringReader(metaData), schema) should beLike {
         case Failure(messages) => messages.list must haveTheSameElementsAs(List("inRule: blah_MUSTBEIN_blah fails for line 1, column: col2WithRule, value: mustBeIn"))
       }
     }
@@ -131,7 +131,7 @@ class MetaDataValidatorSpec extends Specification {
         """blah_MUSTBEIN_blah,mustBeIn
           |blah_andMustBeIn,andMustBeIn""".stripMargin
 
-      validate(new StringReader(metaData), schema, false) must beLike { case Success(_) => ok }
+      validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
     }
 
     "succeed when @Optional is given for an empty cell" in {
@@ -140,7 +140,7 @@ class MetaDataValidatorSpec extends Specification {
       val schema = Schema(3, columnDefinitions)
       val m = "1, , 3"
 
-      validate(new StringReader(m), schema, false) must beLike { case Success(_) => ok }
+      validate(new StringReader(m), schema) must beLike { case Success(_) => ok }
     }
 
     "fail when @Optional is given for non empty cell with a failing rule" in {
@@ -149,7 +149,7 @@ class MetaDataValidatorSpec extends Specification {
       val schema = Schema(3, columnDefinitions)
       val m = "1, a, 3"
 
-      validate(new StringReader(m), schema, false) should beLike {
+      validate(new StringReader(m), schema) should beLike {
         case Failure(messages) => messages.head mustEqual "regex: [0-9] fails for line 1, column: Col2"
       }
     }
@@ -163,7 +163,7 @@ class MetaDataValidatorSpec extends Specification {
         """1,,,4
           |1,a,,4""".stripMargin
 
-      validate(new StringReader(m), schema, false) should beLike {
+      validate(new StringReader(m), schema) should beLike {
         case Failure(messages) => messages.list must contain ("regex: [0-9] fails for line 1, column: Col3", "regex: [0-9] fails for line 2, column: Col2", "regex: [0-9] fails for line 2, column: Col3")
       }
     }
@@ -173,7 +173,7 @@ class MetaDataValidatorSpec extends Specification {
       val schema = Schema(1, columnDefinitions)
       val meta = """SCOOBY"""
 
-      validate(new StringReader(meta), schema, false) must beLike { case Success(_) => ok }
+      validate(new StringReader(meta), schema) must beLike { case Success(_) => ok }
     }
 
     "fail to ignore case of a given regex when not providing @IgnoreCase" in {
@@ -181,7 +181,7 @@ class MetaDataValidatorSpec extends Specification {
       val schema = Schema(1, columnDefinitions)
       val meta = """SCOOBY"""
 
-      validate(new StringReader(meta), schema, false) should beLike {
+      validate(new StringReader(meta), schema) should beLike {
         case Failure(messages) => messages.list must haveTheSameElementsAs(List("regex: [a-z]+ fails for line 1, column: 1"))
       }
     }
@@ -191,7 +191,7 @@ class MetaDataValidatorSpec extends Specification {
       val schema = Schema(1, columnDefinitions)
       val meta = "src/test/resources/uk/gov/tna/dri/schema/mustExistForRule.txt"
 
-      validate(new StringReader(meta), schema, false) must beLike { case Success(_) => ok }
+      validate(new StringReader(meta), schema) must beLike { case Success(_) => ok }
     }
 
     "succeed with valid file path where fileExists rule prepends root path to the filename" in {
@@ -199,7 +199,7 @@ class MetaDataValidatorSpec extends Specification {
       val schema = Schema(1, columnDefinitions)
       val meta = "tna/dri/schema/mustExistForRule.txt"
 
-      validate(new StringReader(meta), schema, false) must beLike { case Success(_) => ok }
+      validate(new StringReader(meta), schema) must beLike { case Success(_) => ok }
     }
 
     "fail for non existent file path" in {
@@ -207,7 +207,7 @@ class MetaDataValidatorSpec extends Specification {
       val schema = Schema(1, columnDefinitions)
       val meta = "some/non/existent/file"
 
-      validate(new StringReader(meta), schema, false) must beLike {
+      validate(new StringReader(meta), schema) must beLike {
         case Failure(messages) => messages.head mustEqual "fileExistsRule: fails for line 1, column: First Column, value: some/non/existent/file"
       }
     }
