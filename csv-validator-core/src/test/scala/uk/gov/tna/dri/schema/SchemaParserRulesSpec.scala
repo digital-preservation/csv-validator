@@ -16,7 +16,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
 
     "succeed for valid regex rule" in {
       val schema = """@TotalColumns 1
-                      LastName: regex ("[a]")"""
+                      LastName: regex("[a]")"""
 
       parse(new StringReader(schema)) must beLike { case Success(Schema(1, List(ColumnDefinition("LastName", List(RegexRule(r)), _))), _) => r.pattern.pattern mustEqual "[a]" }
     }
@@ -46,46 +46,43 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
       parse(new StringReader(schema)) must beLike { case Failure(message, _) => (message mustEqual "regex not correctly delimited as (\"your regex\")") }
     }
 
-    "fail if there is more than 1 regex rule" in {
+    "succeed for more than 1 regex rule" in {
       val schema = """@TotalColumns 1
-                      LastName: regex ("[a]") regex ("[0-5]")"""
+                      LastName: regex("[a]") regex("[0-5]")"""
 
-      parse(new StringReader(schema)) must beLike { case Failure(message, _) => (message mustEqual "regex invalid: [a]\") regex (\"[0-5]") }
+      parse(new StringReader(schema)) must beLike { case Success(_, _) => ok }
+    }
+
+    "succeed for cross reference in rule" in {
+      val schema = """@TotalColumns 2
+                      Name: in("$FullName")
+                      FullName:"""
+
+      parse(new StringReader(schema)) must beLike {
+        case Success(Schema(2, List(ColumnDefinition("Name", List(CrossReferenceInRule("FullName")), _), _)), _)  => ok
+      }
     }
 
     "succeed for regex and inRule rules on a single column" in {
       val schema = """@TotalColumns 1
-                      Name: regex ("[1-9][a-z]*") in(dog)"""
+                      Name: regex ("[1-9][a-z]*") in("dog")"""
 
       parse(new StringReader(schema)) must beLike {
         case Success(Schema(1, List(ColumnDefinition("Name", List(RegexRule(r), InRule(ir)), _))), _) => {
           r.pattern.pattern mustEqual "[1-9][a-z]*"
-          ir mustEqual LiteralTypeProvider("dog")
-        }
-      }
-    }
-
-    "succeed for regex and inRule rules on a single and inRule has column reference" in {
-      val schema = """@TotalColumns 1
-                      Name: regex ("[1-9][a-z]*") in($dog)"""
-
-      parse(new StringReader(schema)) must beLike {
-        case Success(Schema(1, List(ColumnDefinition("Name", List(RegexRule(r), InRule(ir)), _))), _) => {
-          r.pattern.pattern mustEqual "[1-9][a-z]*"
-          ir mustEqual ColumnTypeProvider("$dog")
+          ir mustEqual "dog"
         }
       }
     }
 
     "succeed for inRule regex rules on a single and inRule has column reference and rules have had their order changed" in {
       val schema = """@TotalColumns 1
-                      Name: in($dog) regex ("[1-9][a-z]*") in(dog)"""
+                      Name: in("$dog") regex ("[1-9][a-z]*")"""
 
       parse(new StringReader(schema)) must beLike {
-        case Success(Schema(1, List(ColumnDefinition("Name", List(InRule(ir), RegexRule(r), InRule(ir2)), _))), _) => {
+        case Success(Schema(1, List(ColumnDefinition("Name", List(CrossReferenceInRule(ir), RegexRule(r)), _))), _) => {
           r.pattern.pattern mustEqual "[1-9][a-z]*"
-          ir mustEqual ColumnTypeProvider("$dog")
-          ir2 mustEqual LiteralTypeProvider("dog")
+          ir mustEqual "dog"
         }
       }
     }

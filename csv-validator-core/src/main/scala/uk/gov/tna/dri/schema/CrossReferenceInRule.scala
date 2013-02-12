@@ -13,9 +13,14 @@ case class CrossReferenceInRule(crossReferenceId: String) extends Rule {
       val referencedIndex = schema.columnDefinitions.indexWhere(_.id == crossReferenceId)
       val columnDefinition = schema.columnDefinitions(columnIndex)
 
-      if (row.cells(referencedIndex).value contains row.cells(columnIndex).value) row.successNel[String]
+
+      if (columnDefinition.contains(IgnoreCase())) {
+        if (row.cells(referencedIndex).value.toLowerCase() contains row.cells(columnIndex).value.toLowerCase()) row.successNel[String]
         else ("in($" + s"${crossReferenceId}) fails for line ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}").failNel[Any]
+      } else {
+        if (row.cells(referencedIndex).value contains row.cells(columnIndex).value) row.successNel[String]
+        else ("in($" + s"${crossReferenceId}) fails for line ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}").failNel[Any]
+      }
     }
   }
 }
-

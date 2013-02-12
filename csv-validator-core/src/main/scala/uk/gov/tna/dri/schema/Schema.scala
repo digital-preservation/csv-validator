@@ -10,18 +10,6 @@ case class ColumnDefinition(id: String, rules: List[Rule] = Nil, directives: Lis
   def contains(columnDirective: ColumnDirective) = Try(directives.contains(columnDirective)).getOrElse(false)
 }
 
-abstract class StringProvider(val value: String) {
-  def getColumnValue(colToValMap: Map[String, String]): String
-}
-
-case class ColumnTypeProvider(override val value: String) extends StringProvider(value) {
-  def getColumnValue(colToValMap: Map[String, String]): String = colToValMap(value.tail)
-}
-
-case class LiteralTypeProvider(override val value: String) extends StringProvider(value) {
-  def getColumnValue(colToValMap: Map[String, String]): String = value
-}
-
 trait ColumnDirective
 
 case class Optional() extends ColumnDirective

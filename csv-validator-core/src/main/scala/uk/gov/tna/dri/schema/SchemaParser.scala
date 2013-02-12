@@ -16,7 +16,7 @@ trait SchemaParser extends RegexParsers {
 
   val positiveNumber: Parser[String] = """[1-9][0-9]*"""r
 
-  val Regex = """([(]")(.*)("[)])"""r
+  val Regex = """([(]")(.*?)("[)])"""r
 
   val regexParser: Parser[String] = Regex withFailureMessage("""regex not correctly delimited as ("your regex")""")
 
@@ -32,19 +32,19 @@ trait SchemaParser extends RegexParsers {
     case id ~ rules ~ columnDirectives => ColumnDefinition(id, rules, columnDirectives)
   }
 
-  def columnRules = regex | inRule | fileExistsRule
+  def columnRules = regex | inRule | crossReferenceInRule | fileExistsRule
 
   def columnDirectives = optional | ignoreCase
 
-  def regex = ("regex" ~ white) ~> regexParser ^? (validateRegex, s => "regex invalid: " + stripRegexDelimiters(s)) | failure("Invalid regex rule")
+  def regex = "regex" ~> regexParser ^? (validateRegex, s => "regex invalid: " + stripRegexDelimiters(s)) | failure("Invalid regex rule")
 
-  def inRule = "in(" ~> stringProvider <~ ")"  ^^ { InRule }
+  def inRule = "in(\"" ~> """\w+""".r <~ "\")"  ^^ { InRule }
+
+  def crossReferenceInRule = "in(\"$" ~> """\w+""".r <~ "\")" ^^ { CrossReferenceInRule }
 
   def fileExistsRule = ("fileExists(" ~> opt(rootFilePath) <~ ")" ^^ { FileExistsRule }) .withFailureMessage("Invalid fileExists rule")
 
   def rootFilePath: Parser[String] = """^"\S+"""".r ^^ { stripQuotes }
-
-  def stringProvider: Parser[StringProvider] = """^\$\w+""".r ^^ { ColumnTypeProvider } | "\\w*".r ^^ { LiteralTypeProvider }
 
   def optional = "@Optional" ^^^ Optional()
 

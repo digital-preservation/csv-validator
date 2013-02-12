@@ -8,7 +8,6 @@ import uk.gov.tna.dri.schema.ColumnDefinition
 import uk.gov.tna.dri.schema.RegexRule
 import scalaz.Failure
 import uk.gov.tna.dri.schema.Schema
-import uk.gov.tna.dri.schema.LiteralTypeProvider
 
 class MetaDataValidatorSpec extends Specification {
 
@@ -89,7 +88,7 @@ class MetaDataValidatorSpec extends Specification {
     }
 
     "succeed for multiple rows with InRule as string literal" in {
-      val columnDefinitions = ColumnDefinition("col1") :: ColumnDefinition("col2WithRule", List(RegexRule("[0-9a-z]*".r), InRule(LiteralTypeProvider("345dog")))) :: Nil
+      val columnDefinitions = ColumnDefinition("col1") :: ColumnDefinition("col2WithRule", List(RegexRule("[0-9a-z]*".r), InRule("345dog"))) :: Nil
       val schema = Schema(2, columnDefinitions)
 
       val metaData =
@@ -100,36 +99,36 @@ class MetaDataValidatorSpec extends Specification {
     }
 
     "succeed for InRule as column reference" in {
-      val columnDefinitions = ColumnDefinition("col1") :: ColumnDefinition("col2WithRule", List(RegexRule("\\w*"r), InRule(ColumnTypeProvider("$col1")))) :: Nil
+      val columnDefinitions = ColumnDefinition("col1") :: ColumnDefinition("col2WithRule", List(RegexRule("\\w*"r), CrossReferenceInRule("col1"))) :: Nil
       val schema = Schema(2, columnDefinitions)
 
       val metaData =
         """blah_mustBeIn_blah,mustBeIn
-           |blah_andMustBeIn,andMustBeIn""".stripMargin
+           blah_andMustBeIn,andMustBeIn"""
 
       validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
     }
 
     "fail for InRule as column reference where case does not match" in {
-      val columnDefinitions = ColumnDefinition("col1") :: ColumnDefinition("col2WithRule", List(RegexRule("\\w*"r), InRule(ColumnTypeProvider("$col1")))) :: Nil
+      val columnDefinitions = ColumnDefinition("col1") :: ColumnDefinition("col2WithRule", List(RegexRule("\\w*"r), CrossReferenceInRule("col1"))) :: Nil
       val schema = Schema(2, columnDefinitions)
 
       val metaData =
         """blah_MUSTBEIN_blah,mustBeIn
-          |blah_andMustBeIn,andMustBeIn""".stripMargin
+           blah_andMustBeIn,andMustBeIn"""
 
       validate(new StringReader(metaData), schema) should beLike {
-        case Failure(messages) => messages.list must haveTheSameElementsAs(List("inRule: blah_MUSTBEIN_blah fails for line 1, column: col2WithRule, value: mustBeIn"))
+        case Failure(messages) => messages.list must haveTheSameElementsAs(List("in($col1) fails for line 1, column: col2WithRule, value: mustBeIn"))
       }
     }
 
     "succeed for InRule as column reference where case is ignored" in {
-      val columnDefinitions = ColumnDefinition("col1") :: ColumnDefinition("col2WithRule", List(RegexRule("\\w*"r), InRule(ColumnTypeProvider("$col1"))), List(IgnoreCase())) :: Nil
+      val columnDefinitions = ColumnDefinition("col1") :: ColumnDefinition("col2WithRule", List(RegexRule("\\w*"r), CrossReferenceInRule("col1")), List(IgnoreCase())) :: Nil
       val schema = Schema(2, columnDefinitions)
 
       val metaData =
         """blah_MUSTBEIN_blah,mustBeIn
-          |blah_andMustBeIn,andMustBeIn""".stripMargin
+           blah_andMustBeIn,andMustBeIn"""
 
       validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
     }
@@ -177,7 +176,7 @@ class MetaDataValidatorSpec extends Specification {
     }
 
     "ignore case with in rule succeeds if value contains reg ex characters" in {
-      val columnDefinitions = ColumnDefinition("1", List(InRule(LiteralTypeProvider("[abc]"))), List(IgnoreCase())) :: Nil
+      val columnDefinitions = ColumnDefinition("1", List(InRule("[abc]")), List(IgnoreCase())) :: Nil
       val schema = Schema(1, columnDefinitions)
       val meta ="""[abc"""
       validate(new StringReader(meta), schema) must beLike { case Success(_) => ok }
