@@ -9,7 +9,7 @@ import scala.App
 
 object MetaDataValidatorCommandLineApp extends App with SchemaParser {
 
-  checkFileArguments(args.toList) match {
+  checkArguments(args.toList) match {
 
     case FailureZ(errors) => println(prettyPrint(errors))
 
@@ -26,27 +26,29 @@ object MetaDataValidatorCommandLineApp extends App with SchemaParser {
     }
   }
 
-  def checkFileArguments(args: List[String]): ValidationNEL[String, List[String]] = {
-    checkArgumentCount(args) match {
-      case SuccessZ(args) => checkFilesReadable(args)
+  def checkArguments(args: List[String]): ValidationNEL[String, List[String]] = {
+    val fileArgs = args.filterNot( _ == "--failFast" )
+    checkFileArgumentCount(fileArgs) match {
+      case SuccessZ(fileArgs) => checkFilesReadable(fileArgs)
       case fail => fail
     }
   }
 
-  def failFast( args: List[String]): Boolean = {
-    args.contains("--failFast")
-  }
-
-  private def checkArgumentCount(args: List[String]) = {
-    if (!argumentCountValid(args)) usage.failNel[List[String]]
+  private def checkFileArgumentCount(args: List[String]) = {
+    if (!fileArgumentCountValid(args)) usage.failNel[List[String]]
     else args.successNel[String]
   }
 
-  private def argumentCountValid(args: List[String]) = args.length == 2
+  private def fileArgumentCountValid(args: List[String]) = args.length == 2
+
+  private def failFast( args: List[String]) = args.contains("--failFast")
 
   private def usage = "Usage: validate [--failFast] <meta-data file path> <schema file path>"
 
-  private def inputFilePaths(args: List[String]) = (args(0), args(1))
+  private def inputFilePaths(args: List[String]) = {
+    val fileArgs = args.filterNot( _ == "--failFast" )
+    (fileArgs(0), fileArgs(1))
+  }
 
   private def checkFilesReadable(args: List[String]) = args.map(fileReadable).sequence[AppValidation, String]
 
