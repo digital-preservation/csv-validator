@@ -13,7 +13,7 @@ object MetaDataValidatorCommandLineApp extends App with SchemaParser {
 
   checkFileArguments(fileArgs) match {
 
-    case FailureZ(errors) => println(prettyPrint(errors))
+    case FailureZ(errors) => println(prettyPrint(errors)); System.exit(1)
 
     case SuccessZ(_) => {
       val (metaDataFile, schemaFile) = inputFilePaths(fileArgs)
@@ -22,7 +22,7 @@ object MetaDataValidatorCommandLineApp extends App with SchemaParser {
       val validator = if (failFast) new MetaDataValidatorApp with FailFastMetaDataValidator else new MetaDataValidatorApp with AllErrorsMetaDataValidator
 
       validator.validate(metaDataFile, schemaFile) match {
-        case FailureZ(errors) => println(prettyPrint(errors))
+        case FailureZ(errors) => println(prettyPrint(errors)); System.exit(2)
         case SuccessZ(_) => println("PASS")
       }
     }
