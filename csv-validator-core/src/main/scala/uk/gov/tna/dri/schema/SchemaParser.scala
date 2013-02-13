@@ -38,17 +38,17 @@ trait SchemaParser extends RegexParsers {
 
   def regex = "regex" ~> regexParser ^? (validateRegex, s => s"regex invalid: ${s}") | failure("Invalid regex rule")
 
-  def isRule = "is(\"" ~> stringProvider <~ "\")" ^^ { IsRule  }
+  def isRule = "is(" ~> stringProvider <~ ")" ^^ { IsRule  }
 
-  def notRule = "not(\"" ~> stringProvider <~ "\")" ^^ { NotRule  }
+  def notRule = "not(" ~> stringProvider <~ ")" ^^ { NotRule  }
 
-  def inRule = "in(\"" ~> stringProvider <~ "\")" ^^ { InRule  }
+  def inRule = "in(" ~> stringProvider <~ ")" ^^ { InRule  }
 
-  def startsRule = "starts(\"" ~> stringProvider <~ "\")" ^^ { StartsRule  }
+  def startsRule = "starts(" ~> stringProvider <~ ")" ^^ { StartsRule  }
 
-  def endsRule = "ends(\"" ~> stringProvider <~ "\")" ^^ { EndsRule  }
+  def endsRule = "ends(" ~> stringProvider <~ ")" ^^ { EndsRule  }
 
-  def stringProvider: Parser[StringProvider] = "$" ~> """\w+""".r ^^ { ColumnTypeProvider } | """\w+""".r ^^ { LiteralTypeProvider }
+  def stringProvider: Parser[StringProvider] = "$" ~> """\w+""".r ^^ { ColumnTypeProvider } | '\"' ~> """\w+""".r <~ '\"' ^^ { LiteralTypeProvider }
 
   def fileExistsRule = "fileExists(\"" ~> rootFilePath <~ "\")" ^^ { s => FileExistsRule(Some(s)) } | "fileExists" ^^^ { FileExistsRule(None) } | failure("Invalid fileExists rule")
 

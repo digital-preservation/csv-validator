@@ -1,4 +1,4 @@
 @TotalColumns 3
 Name:
 Age: regex("[A-D]+[a-z]+") in("AEyearstoday")
-CrossRef: regex("[a-z]+") in("$Name")
+CrossRef: regex("[a-z]+") in($Name)

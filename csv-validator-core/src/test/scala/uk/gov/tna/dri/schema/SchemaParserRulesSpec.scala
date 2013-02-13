@@ -55,7 +55,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
 
     "succeed for cross reference in rule" in {
       val schema = """@TotalColumns 2
-                      Name: in("$FullName")
+                      Name: in($FullName)
                       FullName:"""
 
       parse(new StringReader(schema)) must beLike {
@@ -77,7 +77,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
 
     "succeed for inRule regex rules on a single and inRule has column reference and rules have had their order changed" in {
       val schema = """@TotalColumns 1
-                      Name: in("$dog") regex ("[1-9][a-z]*")"""
+                      Name: in($dog) regex ("[1-9][a-z]*")"""
 
       parse(new StringReader(schema)) must beLike {
         case Success(Schema(1, List(ColumnDefinition("Name", List(InRule(ColumnTypeProvider(ir)), RegexRule(r)), _))), _) => {

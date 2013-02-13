@@ -1,3 +1,3 @@
 @TotalColumns 2
-Name: regex("[A-Z][a-z]+") in("$FullName")
+Name: regex("[A-Z][a-z]+") in($FullName)
 FullName:
