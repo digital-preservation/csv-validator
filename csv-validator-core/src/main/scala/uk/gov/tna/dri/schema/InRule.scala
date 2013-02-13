@@ -14,18 +14,12 @@ case class InRule(inVal: StringProvider) extends Rule {
 
       case Right(ruleValue) => {
         val cellValue = row.cells(columnIndex).value
+        val (cv, rv) = if (schema.columnDefinitions(columnIndex).contains(IgnoreCase())) (cellValue.toLowerCase, ruleValue.toLowerCase) else (cellValue, ruleValue)
 
-        if (schema.columnDefinitions(columnIndex).contains(IgnoreCase())) {
-          if (ruleValue.toLowerCase.contains(cellValue.toLowerCase))
-            true.successNel[String]
-          else
-            s"in: ${ruleValue} fails for line ${row.lineNumber}, column: ${columnDefinition.id}, value: ${cellValue}".failNel[Any]
-        } else {
-          if (ruleValue.contains(cellValue))
-            true.successNel[String]
-          else
-            s"in: ${ruleValue} fails for line ${row.lineNumber}, column: ${columnDefinition.id}, value: ${cellValue}".failNel[Any]
-        }
+        if (rv.contains(cv))
+          true.successNel[String]
+        else
+          s"in: ${ruleValue} fails for line ${row.lineNumber}, column: ${columnDefinition.id}, value: ${cellValue}".failNel[Any]
       }
     }
   }
