@@ -18,5 +18,3 @@ case class FileExistsRule(rootPath: Option[String] = None) extends Rule {
     if (fileExists) true.successNel else s"fileExistsRule: fails for line ${row.lineNumber}, column: ${schema.columnDefinitions(columnIndex).id}, value: ${filePath}".failNel[Any]
   }
 }
-
-
