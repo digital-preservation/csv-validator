@@ -10,19 +10,19 @@ class MetaDataValidatorAppSpec extends Specification {
   "Check arguments" should {
     "give usage message when no arguments supplied" in {
       MetaDataValidatorCommandLineApp.checkFileArguments(Nil) must beLike {
-        case Failure(errors) => errors.head mustEqual "Usage: validate [--failFast] <meta-data file path> <schema file path>"
+        case Failure(errors) => errors.head mustEqual "Usage: validate [--fail-fast] <meta-data file path> <schema file path>"
       }
     }
 
     "give usage message when one argument supplied" in {
       MetaDataValidatorCommandLineApp.checkFileArguments(List("meta file")) must beLike {
-        case Failure(errors) => errors.head mustEqual "Usage: validate [--failFast] <meta-data file path> <schema file path>"
+        case Failure(errors) => errors.head mustEqual "Usage: validate [--fail-fast] <meta-data file path> <schema file path>"
       }
     }
 
     "give usage message when too many arguments supplied" in {
       MetaDataValidatorCommandLineApp.checkFileArguments(List("somMetaData.csv", "someSchema.txt", "something extra")) must beLike {
-        case Failure(errors) => errors.head mustEqual "Usage: validate [--failFast] <meta-data file path> <schema file path>"
+        case Failure(errors) => errors.head mustEqual "Usage: validate [--fail-fast] <meta-data file path> <schema file path>"
       }
     }
 
@@ -54,7 +54,11 @@ class MetaDataValidatorAppSpec extends Specification {
   "Fail fast and file args" should {
 
     "return true and the file names for fail fast" in {
-      MetaDataValidatorCommandLineApp.failFastAndFileArgs(List("--failFast", "someMetaData.csv", "someSchema.txt")) mustEqual (true, List("someMetaData.csv", "someSchema.txt"))
+      MetaDataValidatorCommandLineApp.failFastAndFileArgs(List("--fail-fast", "someMetaData.csv", "someSchema.txt")) mustEqual (true, List("someMetaData.csv", "someSchema.txt"))
+    }
+
+    "return true and the file names for fail fast short form" in {
+      MetaDataValidatorCommandLineApp.failFastAndFileArgs(List("-f", "someMetaData.csv", "someSchema.txt")) mustEqual (true, List("someMetaData.csv", "someSchema.txt"))
     }
 
     "return false and the file names for no fail fast" in {

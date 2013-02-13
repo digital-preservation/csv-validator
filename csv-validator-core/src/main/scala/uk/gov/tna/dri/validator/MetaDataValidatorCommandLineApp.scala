@@ -41,13 +41,13 @@ object MetaDataValidatorCommandLineApp extends App with SchemaParser {
   }
 
   def failFastAndFileArgs(args: List[String]) = {
-    val (flags, files) = args.partition( _ == "--failFast" )
+    val (flags, files) = args.partition( a => a ==  "--fail-fast" || a == "-f")
     (flags.nonEmpty, files)
   }
 
   private def fileArgumentCountValid(fileArgs: List[String]) = fileArgs.length == 2
 
-  private def usage = "Usage: validate [--failFast] <meta-data file path> <schema file path>"
+  private def usage = "Usage: validate [--fail-fast] <meta-data file path> <schema file path>"
 
   private def inputFilePaths(fileArgs: List[String]) = (fileArgs(0), fileArgs(1))
 
