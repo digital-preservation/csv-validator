@@ -13,7 +13,7 @@ abstract class StringProviderRule(inVal: StringProvider) {
   def runRule(columnIndex: Int, row: Row, schema: Schema, matcher: (String, String) => Boolean): ValidationNEL[String, Any] = {
     val columnDefinition = schema.columnDefinitions(columnIndex)
 
-    inVal.cellValue(columnIndex, row, schema) match {
+    inVal.referenceValue(columnIndex, row, schema) match {
       case Left(e) => e.failNel[Any]
 
       case Right(ruleValue) => {

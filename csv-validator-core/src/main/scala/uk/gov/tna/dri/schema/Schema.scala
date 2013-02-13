@@ -12,11 +12,11 @@ case class ColumnDefinition(id: String, rules: List[Rule] = Nil, directives: Lis
 }
 
 abstract class StringProvider(val value: String) {
-  def cellValue(columnIndex: Int, row: Row, schema: Schema): Either[String, String]
+  def referenceValue(columnIndex: Int, row: Row, schema: Schema): Either[String, String]
 }
 
 case class ColumnTypeProvider(override val value: String) extends StringProvider(value) {
-  def cellValue(columnIndex: Int, row: Row, schema: Schema): Either[String, String] = {
+  def referenceValue(columnIndex: Int, row: Row, schema: Schema): Either[String, String] = {
     if (!schema.columnDefinitions.exists(_.id == value)) {
       Left("in($" + s"${value}) references a non-existent column")
     } else {
@@ -27,7 +27,7 @@ case class ColumnTypeProvider(override val value: String) extends StringProvider
 }
 
 case class LiteralTypeProvider(override val value: String) extends StringProvider(value) {
-  def cellValue(columnIndex: Int, row: Row, schema: Schema): Either[String, String] = Right(value)
+  def referenceValue(columnIndex: Int, row: Row, schema: Schema): Either[String, String] = Right(value)
 }
 
 trait ColumnDirective
