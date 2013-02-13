@@ -13,7 +13,7 @@ trait AllErrorsMetaDataValidator extends MetaDataValidator  {
 
   def validate(csv: Reader, schema: Schema) = {
     val rows = new CSVReader(csv).readAll()
-    val v = for ((row, rowIndex) <- rows.zipWithIndex) yield validateRow(Row(row.toList.map(Cell(_)), rowIndex + 1), schema)
+    val v = for ((row, rowIndex) <- rows.view.zipWithIndex) yield validateRow(Row(row.toList.map(Cell(_)), rowIndex + 1), schema)
     v.sequence[MetaDataValidation, Any]
   }
 
