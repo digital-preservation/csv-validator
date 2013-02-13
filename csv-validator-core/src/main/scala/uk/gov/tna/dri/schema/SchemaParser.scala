@@ -44,7 +44,7 @@ trait SchemaParser extends RegexParsers {
 
   def fileExistsRule = "fileExists(\"" ~> rootFilePath <~ "\")" ^^ { s => FileExistsRule(Some(s)) } | "fileExists()" ^^^ { FileExistsRule(None) } | failure("Invalid fileExists rule")
 
-  def rootFilePath: Parser[String] = """[a-zA-Z\/-_\d]+""".r
+  def rootFilePath: Parser[String] = """[a-zA-Z/-_\.\d\\]+""".r
 
   def optional = "@Optional" ^^^ Optional()
 
