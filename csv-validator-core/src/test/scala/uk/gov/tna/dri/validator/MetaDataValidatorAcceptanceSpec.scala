@@ -113,8 +113,8 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
     "fail if the file does not exist on the file system" in {
       validate(basePath + "fileExistsPassMetaData.csv", basePath + "fileExistsSchemaWithBadBasePath.txt") must beLike {
         case Failure(errors) => errors.list mustEqual List(
-          "fileExistsRule: fails for line 1, column: PasswordFile, value: benPass.txt",
-          "fileExistsRule: fails for line 2, column: PasswordFile, value: andyPass.txt")
+          "fileExists: fails for line: 1, column: PasswordFile, value: benPass.txt",
+          "fileExists: fails for line: 2, column: PasswordFile, value: andyPass.txt")
       }
     }
   }

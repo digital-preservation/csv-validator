@@ -10,9 +10,14 @@ trait Rule {
 
   def evaluate(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any]
 
-  def error(ruleValue: String, columnIndex: Int, row: Row, schema: Schema) = {
+  def error(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
+    error("", columnIndex, row, schema)
+  }
+
+  def error(ruleValue: String, columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
     val columnDefinition = schema.columnDefinitions(columnIndex)
-    s"${name}: ${ruleValue} fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
+    val rv = ruleValue.isEmpty.fold("", " " + ruleValue)
+    s"${name}:${rv} fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
   }
 }
 

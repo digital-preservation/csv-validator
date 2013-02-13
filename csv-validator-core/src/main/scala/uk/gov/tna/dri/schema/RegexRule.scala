@@ -14,7 +14,6 @@ case class RegexRule(regex: Regex) extends Rule {
     val reg = if (columnDefinition.contains(IgnoreCase())) "(?i)" + regex.pattern.pattern else regex.pattern.pattern
 
     if (row.cells(columnIndex).value matches reg) true.successNel[String]
-    //else s"regex: ${reg} fails for line ${row.lineNumber}, column: ${columnDefinition.id}".failNel[Any]
     else error(regex.pattern.pattern, columnIndex, row, schema)
   }
 }

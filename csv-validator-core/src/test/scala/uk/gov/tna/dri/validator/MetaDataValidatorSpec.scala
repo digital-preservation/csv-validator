@@ -33,7 +33,11 @@ class MetaDataValidatorSpec extends Specification {
            col1, col2, col3"""
 
       val columnDefinitions = List(new ColumnDefinition("\"column1\""),new ColumnDefinition("\"column2\""),new ColumnDefinition("\"column3\""))
-      validate(new StringReader(metaData), Schema(3, columnDefinitions)) must beLike { case Failure(messages) => messages.head mustEqual "Expected @TotalColumns of 3 and found 2 on line 2" }
+      validate(new StringReader(metaData), Schema(3, columnDefinitions)) must beLike {
+        case Failure(messages) => messages.list mustEqual List(
+          "Expected @TotalColumns of 3 and found 2 on line 2",
+          "Missing value at line: 2, column: \"column3\"")
+      }
     }
 
     "fail if columns on multiple rows do not pass" in {
@@ -44,10 +48,10 @@ class MetaDataValidatorSpec extends Specification {
            |abcd,uii""".stripMargin
 
       validate(new StringReader(metaData), schema) must beLike {
-        case Failure(messages) => messages.list must contain (
+        case Failure(messages) => messages.list mustEqual List (
           "regex: [a-c]* fails for line: 1, column: second, value: xxxy",
           "regex: [3-8]* fails for line: 2, column: first, value: abcd",
-          "regex: [a-c]* fails for line: 2, column: second, value: uii").only
+          "regex: [a-c]* fails for line: 2, column: second, value: uii")
       }
     }
 
@@ -68,7 +72,7 @@ class MetaDataValidatorSpec extends Specification {
       val schema = Schema(1, List(ColumnDefinition("Col1")))
 
       validate(new StringReader(m), schema) should beLike {
-        case Failure(messages) => messages.list must contain ("Expected @TotalColumns of 1 and found 2 on line 1", "Expected @TotalColumns of 1 and found 2 on line 2").only
+        case Failure(messages) => messages.list mustEqual List("Expected @TotalColumns of 1 and found 2 on line 1", "Expected @TotalColumns of 1 and found 2 on line 2")
       }
     }
 
@@ -77,7 +81,7 @@ class MetaDataValidatorSpec extends Specification {
       val schema = Schema(2, List(ColumnDefinition("Col1", List(RegexRule("C11"r))), ColumnDefinition("Col2")))
 
       validate(new StringReader(m), schema) should beLike {
-        case Failure(messages) => messages.list must haveTheSameElementsAs(List("regex: C11 fails for line: 1, column: Col1, value: c11"))
+        case Failure(messages) => messages.list mustEqual List("regex: C11 fails for line: 1, column: Col1, value: c11")
       }
     }
 
@@ -86,7 +90,7 @@ class MetaDataValidatorSpec extends Specification {
       val schema = Schema(2, List(ColumnDefinition("Col1"), ColumnDefinition("Col2", List(RegexRule("[0-9]"r)))))
 
       validate(new StringReader(m), schema) should beLike {
-        case Failure(messages) => messages.list must contain ("Expected @TotalColumns of 2 and found 1 on line 1", "Missing value at line: 1, column: Col2").only
+        case Failure(messages) => messages.list mustEqual List("Expected @TotalColumns of 2 and found 1 on line 1", "Missing value at line: 1, column: Col2")
       }
     }
 
@@ -106,7 +110,7 @@ class MetaDataValidatorSpec extends Specification {
       val metaData = """Scooby"""
 
       validate(new StringReader(metaData), schema) must beLike {
-        case Failure(messages) => messages.list must haveTheSameElementsAs(List("regex: ^T.+ fails for line: 1, column: c1, value: Scooby", "regex: ^X.+ fails for line: 1, column: c1, value: Scooby"))
+        case Failure(messages) => messages.list mustEqual List("regex: ^T.+ fails for line: 1, column: c1, value: Scooby", "regex: ^X.+ fails for line: 1, column: c1, value: Scooby")
       }
     }
 
@@ -141,7 +145,7 @@ class MetaDataValidatorSpec extends Specification {
            blah_andMustBeIn,andMustBeIn"""
 
       validate(new StringReader(metaData), schema) should beLike {
-        case Failure(messages) => messages.list must haveTheSameElementsAs(List("in: blah_MUSTBEIN_blah fails for line 1, column: col2WithRule, value: mustBeIn"))
+        case Failure(messages) => messages.list mustEqual List("in: blah_MUSTBEIN_blah fails for line 1, column: col2WithRule, value: mustBeIn")
       }
     }
 
@@ -172,7 +176,7 @@ class MetaDataValidatorSpec extends Specification {
       val m = "1,a,3"
 
       validate(new StringReader(m), schema) should beLike {
-        case Failure(messages) => messages.list must haveTheSameElementsAs(List("regex: [0-9] fails for line: 1, column: Col2, value: a"))
+        case Failure(messages) => messages.list mustEqual List("regex: [0-9] fails for line: 1, column: Col2, value: a")
       }
     }
 
@@ -186,10 +190,10 @@ class MetaDataValidatorSpec extends Specification {
           |1,a,,4""".stripMargin
 
       validate(new StringReader(m), schema) should beLike {
-        case Failure(messages) => messages.list must contain (
+        case Failure(messages) => messages.list mustEqual List(
           "regex: [0-9] fails for line: 1, column: Col3, value: ",
           "regex: [0-9] fails for line: 2, column: Col2, value: a",
-          "regex: [0-9] fails for line: 2, column: Col3, value: ").only
+          "regex: [0-9] fails for line: 2, column: Col3, value: ")
       }
     }
 
@@ -214,7 +218,7 @@ class MetaDataValidatorSpec extends Specification {
       val meta = "SCOOBY"
 
       validate(new StringReader(meta), schema) should beLike {
-        case Failure(messages) => messages.list must haveTheSameElementsAs(List("regex: [a-z]+ fails for line: 1, column: Col1, value: SCOOBY"))
+        case Failure(messages) => messages.list mustEqual List("regex: [a-z]+ fails for line: 1, column: Col1, value: SCOOBY")
       }
     }
 
@@ -240,7 +244,7 @@ class MetaDataValidatorSpec extends Specification {
       val meta = "some/non/existent/file"
 
       validate(new StringReader(meta), schema) must beLike {
-        case Failure(messages) => messages.head mustEqual "fileExistsRule: fails for line 1, column: First Column, value: some/non/existent/file"
+        case Failure(messages) => messages.list mustEqual List("fileExists: fails for line: 1, column: First Column, value: some/non/existent/file")
       }
     }
   }
