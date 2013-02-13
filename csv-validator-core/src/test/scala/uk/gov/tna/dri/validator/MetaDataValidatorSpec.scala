@@ -87,6 +87,26 @@ class MetaDataValidatorSpec extends Specification {
       }
     }
 
+    "succeed for more than one regex" in {
+      val columnDefinitions = ColumnDefinition("c1", List(RegexRule("\\w+".r), RegexRule("^S.+".r))) :: Nil
+      val schema = Schema(1, columnDefinitions)
+
+      val metaData = """Scooby"""
+
+      validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
+    }
+
+    "fail when at least one regex fails for multiple regex provided in a column definition" in {
+      val columnDefinitions = ColumnDefinition("c1", List(RegexRule("\\w+".r), RegexRule("^T.+".r), RegexRule("^X.+".r))) :: Nil
+      val schema = Schema(1, columnDefinitions)
+
+      val metaData = """Scooby"""
+
+      validate(new StringReader(metaData), schema) must beLike {
+        case Failure(messages) => messages.list must haveTheSameElementsAs(List("regex: ^T.+ fails for line 1, column: c1", "regex: ^X.+ fails for line 1, column: c1"))
+      }
+    }
+
     "succeed for multiple rows with InRule as string literal" in {
       val columnDefinitions = ColumnDefinition("col1") :: ColumnDefinition("col2WithRule", List(RegexRule("[0-9a-z]*".r), InRule(LiteralTypeProvider("345dog")))) :: Nil
       val schema = Schema(2, columnDefinitions)
