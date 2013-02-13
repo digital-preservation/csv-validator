@@ -41,10 +41,13 @@ class MetaDataValidatorSpec extends Specification {
 
       val metaData =
         """34,xxxy
-           abcd,uii"""
+           |abcd,uii""".stripMargin
 
       validate(new StringReader(metaData), schema) must beLike {
-        case Failure(messages) => messages.list must contain ("regex: [a-c]* fails for line 1, column: second", "regex: [3-8]* fails for line 2, column: first", "regex: [a-c]* fails for line 2, column: second").only
+        case Failure(messages) => messages.list must contain (
+          "regex: [a-c]* fails for line: 1, column: second, value: xxxy",
+          "regex: [3-8]* fails for line: 2, column: first, value: abcd",
+          "regex: [a-c]* fails for line: 2, column: second, value: uii").only
       }
     }
 
@@ -74,7 +77,7 @@ class MetaDataValidatorSpec extends Specification {
       val schema = Schema(2, List(ColumnDefinition("Col1", List(RegexRule("C11"r))), ColumnDefinition("Col2")))
 
       validate(new StringReader(m), schema) should beLike {
-        case Failure(messages) => messages.head mustEqual "regex: C11 fails for line 1, column: Col1"
+        case Failure(messages) => messages.list must haveTheSameElementsAs(List("regex: C11 fails for line: 1, column: Col1, value: c11"))
       }
     }
 
@@ -103,7 +106,7 @@ class MetaDataValidatorSpec extends Specification {
       val metaData = """Scooby"""
 
       validate(new StringReader(metaData), schema) must beLike {
-        case Failure(messages) => messages.list must haveTheSameElementsAs(List("regex: ^T.+ fails for line 1, column: c1", "regex: ^X.+ fails for line 1, column: c1"))
+        case Failure(messages) => messages.list must haveTheSameElementsAs(List("regex: ^T.+ fails for line: 1, column: c1, value: Scooby", "regex: ^X.+ fails for line: 1, column: c1, value: Scooby"))
       }
     }
 
@@ -166,10 +169,10 @@ class MetaDataValidatorSpec extends Specification {
 
       val columnDefinitions = ColumnDefinition("Col1") ::  ColumnDefinition("Col2", List(RegexRule("[0-9]"r)), List(Optional())) :: ColumnDefinition("Col3") :: Nil
       val schema = Schema(3, columnDefinitions)
-      val m = "1, a, 3"
+      val m = "1,a,3"
 
       validate(new StringReader(m), schema) should beLike {
-        case Failure(messages) => messages.head mustEqual "regex: [0-9] fails for line 1, column: Col2"
+        case Failure(messages) => messages.list must haveTheSameElementsAs(List("regex: [0-9] fails for line: 1, column: Col2, value: a"))
       }
     }
 
@@ -183,7 +186,10 @@ class MetaDataValidatorSpec extends Specification {
           |1,a,,4""".stripMargin
 
       validate(new StringReader(m), schema) should beLike {
-        case Failure(messages) => messages.list must contain ("regex: [0-9] fails for line 1, column: Col3", "regex: [0-9] fails for line 2, column: Col2", "regex: [0-9] fails for line 2, column: Col3")
+        case Failure(messages) => messages.list must contain (
+          "regex: [0-9] fails for line: 1, column: Col3, value: ",
+          "regex: [0-9] fails for line: 2, column: Col2, value: a",
+          "regex: [0-9] fails for line: 2, column: Col3, value: ").only
       }
     }
 
@@ -203,12 +209,12 @@ class MetaDataValidatorSpec extends Specification {
     }
 
     "fail to ignore case of a given regex when not providing @IgnoreCase" in {
-      val columnDefinitions = ColumnDefinition("1", List(RegexRule("[a-z]+"r))) :: Nil
+      val columnDefinitions = ColumnDefinition("Col1", List(RegexRule("[a-z]+"r))) :: Nil
       val schema = Schema(1, columnDefinitions)
-      val meta = """SCOOBY"""
+      val meta = "SCOOBY"
 
       validate(new StringReader(meta), schema) should beLike {
-        case Failure(messages) => messages.list must haveTheSameElementsAs(List("regex: [a-z]+ fails for line 1, column: 1"))
+        case Failure(messages) => messages.list must haveTheSameElementsAs(List("regex: [a-z]+ fails for line: 1, column: Col1, value: SCOOBY"))
       }
     }
 

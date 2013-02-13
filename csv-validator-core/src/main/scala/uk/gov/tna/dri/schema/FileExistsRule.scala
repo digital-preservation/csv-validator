@@ -7,6 +7,8 @@ import java.io.File
 
 case class FileExistsRule(rootPath: Option[String] = None) extends Rule {
 
+  override val name = "fileExists"
+
   override def evaluate(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
     val filePath = row.cells(columnIndex).value
 
