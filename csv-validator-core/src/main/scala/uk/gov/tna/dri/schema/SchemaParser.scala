@@ -50,7 +50,7 @@ trait SchemaParser extends RegexParsers {
 
   def stringProvider: Parser[StringProvider] = "$" ~> """\w+""".r ^^ { ColumnTypeProvider } | """\w+""".r ^^ { LiteralTypeProvider }
 
-  def fileExistsRule = "fileExists(\"" ~> rootFilePath <~ "\")" ^^ { s => FileExistsRule(Some(s)) } | "fileExists()" ^^^ { FileExistsRule(None) } | failure("Invalid fileExists rule")
+  def fileExistsRule = "fileExists(\"" ~> rootFilePath <~ "\")" ^^ { s => FileExistsRule(Some(s)) } | "fileExists" ^^^ { FileExistsRule(None) } | failure("Invalid fileExists rule")
 
   def rootFilePath: Parser[String] = """[a-zA-Z/-_\.\d\\]+""".r
 
