@@ -9,15 +9,17 @@ import scala.App
 
 object MetaDataValidatorCommandLineApp extends App with SchemaParser {
 
-  checkArguments(args.toList) match {
+  val (failFast, fileArgs) = failFastAndFileArgs(args.toList)
+
+  checkFileArguments(fileArgs) match {
 
     case FailureZ(errors) => println(prettyPrint(errors))
 
     case SuccessZ(_) => {
-      val (metaDataFile, schemaFile) = inputFilePaths(args.toList)
+      val (metaDataFile, schemaFile) = inputFilePaths(fileArgs)
       println("Validating...")
 
-      val validator = if (failFast(args.toList)) new MetaDataValidatorApp with FailFastMetaDataValidator else new MetaDataValidatorApp with AllErrorsMetaDataValidator
+      val validator = if (failFast) new MetaDataValidatorApp with FailFastMetaDataValidator else new MetaDataValidatorApp with AllErrorsMetaDataValidator
 
       validator.validate(metaDataFile, schemaFile) match {
         case FailureZ(errors) => println(prettyPrint(errors))
@@ -26,31 +28,30 @@ object MetaDataValidatorCommandLineApp extends App with SchemaParser {
     }
   }
 
-  def checkArguments(args: List[String]): ValidationNEL[String, List[String]] = {
-    val fileArgs = args.filterNot( _ == "--failFast" )
+  def checkFileArguments(fileArgs: List[String]): ValidationNEL[String, List[String]] = {
     checkFileArgumentCount(fileArgs) match {
       case SuccessZ(fileArgs) => checkFilesReadable(fileArgs)
       case fail => fail
     }
   }
 
-  private def checkFileArgumentCount(args: List[String]) = {
-    if (!fileArgumentCountValid(args)) usage.failNel[List[String]]
-    else args.successNel[String]
+  private def checkFileArgumentCount(fileArgs: List[String]) = {
+    if (!fileArgumentCountValid(fileArgs)) usage.failNel[List[String]]
+    else fileArgs.successNel[String]
   }
 
-  private def fileArgumentCountValid(args: List[String]) = args.length == 2
+  def failFastAndFileArgs(args: List[String]) = {
+    val (flags, files) = args.partition( _ == "--failFast" )
+    (flags.nonEmpty, files)
+  }
 
-  private def failFast( args: List[String]) = args.contains("--failFast")
+  private def fileArgumentCountValid(fileArgs: List[String]) = fileArgs.length == 2
 
   private def usage = "Usage: validate [--failFast] <meta-data file path> <schema file path>"
 
-  private def inputFilePaths(args: List[String]) = {
-    val fileArgs = args.filterNot( _ == "--failFast" )
-    (fileArgs(0), fileArgs(1))
-  }
+  private def inputFilePaths(fileArgs: List[String]) = (fileArgs(0), fileArgs(1))
 
-  private def checkFilesReadable(args: List[String]) = args.map(fileReadable).sequence[AppValidation, String]
+  private def checkFilesReadable(fileArgs: List[String]) = fileArgs.map(fileReadable).sequence[AppValidation, String]
 
   private def fileReadable(filePath: String): ValidationNEL[String, String] = if (new File(filePath).canRead) filePath.successNel[String] else fileNotReadableMessage(filePath).failNel[String]
 
