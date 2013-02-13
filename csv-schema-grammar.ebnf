@@ -35,24 +35,24 @@ NotExpr                 ::=     "not(" StringProvider ")"
 InExpr                  ::=     "in(" StringProvider ")"
 StartsWithExpr          ::=     "starts(" StringProvider ")"
 EndsWithExpr            ::=     "ends(" StringProvider ")"
-RegExpExpr              ::=     "regexp(" StringLiteral ")"
-NotEmptyExpr            ::=     "NotEmpty"
-UniqueExpr	            ::=     "Unique"
-UriExpr                 ::=     "URI"
-XsdDateTimeExpr         ::=     "XDateTime"            
-XsdDateExpr             ::=     "XDate"
-UkDateExpr              ::=     "UKDate"
-XsdTimeExpr             ::=     "XTime"
-Uuid4Expr               ::=     "UUID4"
-PositiveIntegerExpr     ::=     "PositiveInteger"           /* [0-9]+ */
+RegExpExpr              ::=     "regex(" StringLiteral ")"
+NotEmptyExpr            ::=     "notEmpty"
+UniqueExpr	            ::=     "unique"
+UriExpr                 ::=     "uri"
+XsdDateTimeExpr         ::=     "xDateTime"            
+XsdDateExpr             ::=     "xDate"
+UkDateExpr              ::=     "ukDate"
+XsdTimeExpr             ::=     "xTime"
+Uuid4Expr               ::=     "uuid4"
+PositiveIntegerExpr     ::=     "positiveInteger"           /* [0-9]+ */
 
 /* External expressions cause the checking of a value against some external source or process */
 ExternalSingleExpr      ::=     FileExistsExpr | ChecksumExpr | FileCountExpr
 
-FileExistsExpr          ::=     "FileExists" ("(" StringLiteral ")")?                                               /* optional path to prepend to this cell with filename in */
-ChecksumExpr            ::=     "Checksum(" FileExpr "," StringLiteral ")"                                          /* first arg is file expr, second arg is algorithm to use for checksum */
-FileCountExpr           ::=     "FileCount(" FileExpr ")"
-FileExpr                ::=     "file(" (StringProvider ",")? (ColumnRef | FileNameExpr) ")"                         /* first (optional) arg is path (or ColumnRef of path) to prepend to second arg, second arg is reference to column containing filename, of a FileNameExpr */
+FileExistsExpr          ::=     "fileExists" ("(" StringProvider ")")?                                              /* optional path to prepend to this cell with filename in */
+ChecksumExpr            ::=     "checksum(" FileExpr "," StringLiteral ")"                                          /* first arg is file expr, second arg is algorithm to use for checksum */
+FileCountExpr           ::=     "fileCount(" FileExpr ")"
+FileExpr                ::=     "file(" (StringProvider ",")? (ColumnRef | FileNameExpr) ")"                        /* first (optional) arg is path (or ColumnRef of path) to prepend to second arg, second arg is reference to column containing filename, of a FileNameExpr */
 FileNameExpr            ::=     StringLiteral
 
 StringProvider          ::=     ColumnRef | StringLiteral
