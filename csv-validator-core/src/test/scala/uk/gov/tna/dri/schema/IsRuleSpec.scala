@@ -13,12 +13,12 @@ class IsRuleSpec extends Specification{
 
   "IsRule with a string literal behaviour" should  {
     "succeed if isRule equals value" in {
-      isRule.execute(0, Row(List(Cell("myhello world today")), 1), Schema(1, List(ColumnDefinition("column1")))) must be_==(Success(true))
+      isRule.evaluate(0, Row(List(Cell("myhello world today")), 1), Schema(1, List(ColumnDefinition("column1")))) must be_==(Success(true))
     }
 
     "fail if value is embedded in rule" in {
       val litRule = IsRule(LiteralTypeProvider("my hello world"))
-      litRule.execute(0, Row(List(Cell("hello")), 1), Schema(1, List(ColumnDefinition("column1")))) must beLike {
+      litRule.evaluate(0, Row(List(Cell("hello")), 1), Schema(1, List(ColumnDefinition("column1")))) must beLike {
         case Failure(msgs) => msgs.head mustEqual "in: my hello world fails for line 1, column: column1, value: hello"
       }
     }

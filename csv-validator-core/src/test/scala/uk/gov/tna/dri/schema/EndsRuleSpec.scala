@@ -13,12 +13,12 @@ class EndsRuleSpec extends Specification{
 
   "EndsRule with a string literal behaviour" should  {
     "succeed if EndsRule ends with value" in {
-      endsRule.execute(0, Row(List(Cell("hello world today today")), 1), Schema(1, List(ColumnDefinition("column1")))) must be_==(Success(true))
+      endsRule.evaluate(0, Row(List(Cell("hello world today today")), 1), Schema(1, List(ColumnDefinition("column1")))) must be_==(Success(true))
     }
 
     "fail if the value does not end with" in {
       val litRule = EndsRule(LiteralTypeProvider("my hello world today"))
-      litRule.execute(0, Row(List(Cell("my hello world")), 1), Schema(1, List(ColumnDefinition("column1")))) must beLike {
+      litRule.evaluate(0, Row(List(Cell("my hello world")), 1), Schema(1, List(ColumnDefinition("column1")))) must beLike {
         case Failure(msgs) => msgs.head mustEqual "in: my hello world today fails for line 1, column: column1, value: my hello world"
       }
     }

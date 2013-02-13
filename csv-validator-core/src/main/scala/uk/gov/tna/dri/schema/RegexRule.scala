@@ -7,7 +7,7 @@ import uk.gov.tna.dri.metadata.Row
 
 case class RegexRule(regex: Regex) extends Rule {
 
-  override def execute(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
+  override def evaluate(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
     val columnDefinition = schema.columnDefinitions(columnIndex)
     val reg = if (columnDefinition.contains(IgnoreCase())) "(?i)" + regex.pattern.pattern else regex.pattern.pattern
 

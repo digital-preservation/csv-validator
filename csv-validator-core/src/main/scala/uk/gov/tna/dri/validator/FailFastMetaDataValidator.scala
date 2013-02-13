@@ -54,7 +54,7 @@ trait FailFastMetaDataValidator extends MetaDataValidator {
 
     def rulesForCellRecur(rules:List[Rule]): MetaDataValidation[Any] = rules match {
       case Nil => true.successNel[String]
-      case rule :: tail => rule.execute(columnIndex, row, schema).fold(e => e.fail[Any], s => rulesForCellRecur(tail) )
+      case rule :: tail => rule.evaluate(columnIndex, row, schema).fold(e => e.fail[Any], s => rulesForCellRecur(tail) )
     }
 
     if (row.cells(columnIndex).value.trim.isEmpty && columnDefinition.contains(Optional())) true.successNel
