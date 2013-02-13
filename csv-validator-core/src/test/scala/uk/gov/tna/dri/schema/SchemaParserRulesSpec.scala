@@ -110,5 +110,30 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
                       Name: fileExists /root/path"""
       parse(new StringReader(schema)) must beLike { case Failure("Column definition contains invalid text", _) => ok}
     }
+
+    "succeed for is rule" in {
+      val schema = """@TotalColumns 1
+                      Name: is("valid")"""
+      parse(new StringReader(schema)) must beLike { case Success(Schema(1, List(ColumnDefinition("Name", List(IsRule(LiteralTypeProvider(ir))), _))), _) => ok}
+    }
+
+    "succeed for not rule" in {
+      val schema = """@TotalColumns 1
+                      Name: not("valid")"""
+      parse(new StringReader(schema)) must beLike { case Success(Schema(1, List(ColumnDefinition("Name", List(NotRule(LiteralTypeProvider(ir))), _))), _) => ok}
+    }
+
+    "succeed for starts rule" in {
+      val schema = """@TotalColumns 1
+                      Name: starts("valid")"""
+      parse(new StringReader(schema)) must beLike { case Success(Schema(1, List(ColumnDefinition("Name", List(StartsRule(LiteralTypeProvider(ir))), _))), _) => ok}
+    }
+
+    "succeed for ends rule" in {
+      val schema = """@TotalColumns 1
+                      Name: ends("valid")"""
+      parse(new StringReader(schema)) must beLike { case Success(Schema(1, List(ColumnDefinition("Name", List(EndsRule(LiteralTypeProvider(ir))), _))), _) => ok}
+    }
+
   }
 }

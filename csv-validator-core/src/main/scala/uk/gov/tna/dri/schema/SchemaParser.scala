@@ -32,13 +32,21 @@ trait SchemaParser extends RegexParsers {
     case id ~ rules ~ columnDirectives => ColumnDefinition(id, rules, columnDirectives)
   }
 
-  def columnRules = regex | inRule | fileExistsRule
+  def columnRules = regex | isRule | notRule | inRule | startsRule | endsRule | fileExistsRule
 
   def columnDirectives = optional | ignoreCase
 
   def regex = "regex" ~> regexParser ^? (validateRegex, s => s"regex invalid: ${s}") | failure("Invalid regex rule")
 
+  def isRule = "is(\"" ~> stringProvider <~ "\")" ^^ { IsRule  }
+
+  def notRule = "not(\"" ~> stringProvider <~ "\")" ^^ { NotRule  }
+
   def inRule = "in(\"" ~> stringProvider <~ "\")" ^^ { InRule  }
+
+  def startsRule = "starts(\"" ~> stringProvider <~ "\")" ^^ { StartsRule  }
+
+  def endsRule = "ends(\"" ~> stringProvider <~ "\")" ^^ { EndsRule  }
 
   def stringProvider: Parser[StringProvider] = "$" ~> """\w+""".r ^^ { ColumnTypeProvider } | """\w+""".r ^^ { LiteralTypeProvider }
 
