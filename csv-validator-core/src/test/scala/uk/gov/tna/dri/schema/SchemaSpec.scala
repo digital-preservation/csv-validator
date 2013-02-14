@@ -1,13 +1,7 @@
 package uk.gov.tna.dri.schema
 
 import org.specs2.mutable.Specification
-import uk.gov.tna.dri.metadata.{Cell, Row}
-import scalaz.Success
 import scala._
-import uk.gov.tna.dri.schema.ColumnTypeProvider
-import uk.gov.tna.dri.schema.Schema
-import uk.gov.tna.dri.schema.InRule
-import uk.gov.tna.dri.schema.ColumnDefinition
 
 /**
  * User: Jim Collins
