@@ -17,6 +17,12 @@ class SchemaSpec extends Specification{
       }
     }
 
+    "multi columns with same name is valid" in {
+      val schema = Schema(2, List(
+        ColumnDefinition("Column1"),
+        ColumnDefinition("Column1")))  must beLike{ case Schema(_, _)  => ok }
+    }
+
     "fail when totalcolumns does not match number of columndefinitions" in {
       val schema = Schema(2, List(ColumnDefinition("Column1"))) must throwA( new java.lang.IllegalArgumentException("requirement failed: totalColumns: 2 must be the same as the number of column definitions: 1"))
     }
