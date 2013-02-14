@@ -8,7 +8,8 @@ import scalaz.{Failure, Success}
  * User: Jim Collins
  * Date: 2/13/13
  */
-class EndsRuleSpec extends Specification{
+class EndsRuleSpec extends Specification {
+
   val endsRule = EndsRule(LiteralTypeProvider("myhello world today today"))
 
   "EndsRule with a string literal behaviour" should  {
@@ -17,9 +18,10 @@ class EndsRuleSpec extends Specification{
     }
 
     "fail if the value does not end with" in {
-      val litRule = EndsRule(LiteralTypeProvider("my hello world today"))
-      litRule.evaluate(0, Row(List(Cell("my hello world")), 1), Schema(1, List(ColumnDefinition("column1")))) must beLike {
-        case Failure(msgs) => msgs.head mustEqual "in: my hello world today fails for line 1, column: column1, value: my hello world"
+      val endsRule = EndsRule(LiteralTypeProvider("my hello world today"))
+
+      endsRule.evaluate(0, Row(List(Cell("my hello world")), 1), Schema(1, List(ColumnDefinition("column1")))) must beLike {
+        case Failure(msgs) => msgs.head mustEqual "ends: my hello world today fails for line: 1, column: column1, value: my hello world"
       }
     }
   }

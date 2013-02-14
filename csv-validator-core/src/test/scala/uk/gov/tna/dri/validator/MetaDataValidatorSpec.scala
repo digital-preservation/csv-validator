@@ -145,7 +145,7 @@ class MetaDataValidatorSpec extends Specification {
            blah_andMustBeIn,andMustBeIn"""
 
       validate(new StringReader(metaData), schema) should beLike {
-        case Failure(messages) => messages.list mustEqual List("in: blah_MUSTBEIN_blah fails for line 1, column: col2WithRule, value: mustBeIn")
+        case Failure(messages) => messages.list mustEqual List("in: blah_MUSTBEIN_blah fails for line: 1, column: col2WithRule, value: mustBeIn")
       }
     }
 

@@ -8,7 +8,8 @@ import scalaz.{Failure, Success}
  * User: Jim Collins
  * Date: 2/13/13
  */
-class NotRuleSpec extends Specification{
+class NotRuleSpec extends Specification {
+
   val notRule = NotRule(LiteralTypeProvider("myhello world today"))
 
   "NorRule with a string literal behaviour" should  {
@@ -17,9 +18,10 @@ class NotRuleSpec extends Specification{
     }
 
     "fail if the value equals the rule" in {
-      val litRule = NotRule(LiteralTypeProvider("my hello world"))
-      litRule.evaluate(0, Row(List(Cell("my hello world")), 1), Schema(1, List(ColumnDefinition("column1")))) must beLike {
-        case Failure(msgs) => msgs.head mustEqual "in: my hello world fails for line 1, column: column1, value: my hello world"
+      val notRule = NotRule(LiteralTypeProvider("my hello world"))
+
+      notRule.evaluate(0, Row(List(Cell("my hello world")), 1), Schema(1, List(ColumnDefinition("column1")))) must beLike {
+        case Failure(msgs) => msgs.head mustEqual "not: my hello world fails for line: 1, column: column1, value: my hello world"
       }
     }
   }

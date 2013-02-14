@@ -8,7 +8,8 @@ import scalaz.{Failure, Success}
  * User: Jim Collins
  * Date: 2/13/13
  */
-class IsRuleSpec extends Specification{
+class IsRuleSpec extends Specification {
+
   val isRule = IsRule(LiteralTypeProvider("myhello world today"))
 
   "IsRule with a string literal behaviour" should  {
@@ -17,9 +18,10 @@ class IsRuleSpec extends Specification{
     }
 
     "fail if value is embedded in rule" in {
-      val litRule = IsRule(LiteralTypeProvider("my hello world"))
-      litRule.evaluate(0, Row(List(Cell("hello")), 1), Schema(1, List(ColumnDefinition("column1")))) must beLike {
-        case Failure(msgs) => msgs.head mustEqual "in: my hello world fails for line 1, column: column1, value: hello"
+      val isRule = IsRule(LiteralTypeProvider("my hello world"))
+
+      isRule.evaluate(0, Row(List(Cell("hello")), 1), Schema(1, List(ColumnDefinition("column1")))) must beLike {
+        case Failure(msgs) => msgs.head mustEqual "is: my hello world fails for line: 1, column: column1, value: hello"
       }
     }
   }

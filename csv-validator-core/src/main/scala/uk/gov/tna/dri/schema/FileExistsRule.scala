@@ -18,6 +18,6 @@ case class FileExistsRule(rootPath: Option[String] = None) extends Rule {
     }
 
     if (fileExists) true.successNel
-    else error(columnIndex, row, schema)
+    else fail(columnIndex, row, schema)
   }
 }

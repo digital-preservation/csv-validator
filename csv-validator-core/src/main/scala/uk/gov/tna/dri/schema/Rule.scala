@@ -10,52 +10,31 @@ trait Rule {
 
   def evaluate(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any]
 
-  def error(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
-    error("", columnIndex, row, schema)
+  def fail(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
+    fail("", columnIndex, row, schema)
   }
 
-  def error(ruleValue: String, columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
+  def fail(ruleValue: String, columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
     val columnDefinition = schema.columnDefinitions(columnIndex)
     val rv = ruleValue.isEmpty.fold("", " " + ruleValue)
     s"${name}:${rv} fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
   }
 }
 
-abstract class StringProviderRule(inVal: StringProvider) {
+abstract class StringProviderRule(inVal: StringProvider) extends Rule {
 
   def evaluate(columnIndex: Int, row: Row, schema: Schema, matching: (String, String) => Boolean): ValidationNEL[String, Any] = {
-    val columnDefinition = schema.columnDefinitions(columnIndex)
     val cellValue = row.cells(columnIndex).value
     val ruleValue = inVal.referenceValue(columnIndex, row, schema)
 
     val (cv, rv) = if (schema.columnDefinitions(columnIndex).contains(IgnoreCase())) (cellValue.toLowerCase, ruleValue.toLowerCase) else (cellValue, ruleValue)
 
-    if (matching(rv, cv))
-      true.successNel[String]
-    else
-      s"in: ${ruleValue} fails for line ${row.lineNumber}, column: ${columnDefinition.id}, value: ${cellValue}".failNel[Any]
+    if (matching(rv, cv)) true.successNel[String]
+    else fail(ruleValue, columnIndex, row, schema)
   }
 }
 
-case class IsRule(inVal: StringProvider) extends StringProviderRule(inVal) with Rule  {
-
-  override val name = "is"
-
-  override def evaluate(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
-    evaluate(columnIndex, row, schema, _.equals(_))
-  }
-}
-
-case class NotRule(inVal: StringProvider) extends StringProviderRule(inVal) with Rule  {
-
-  override val name = "not"
-
-  override def evaluate(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
-    evaluate(columnIndex, row, schema, !_.equals(_))
-  }
-}
-
-case class InRule(inVal: StringProvider) extends StringProviderRule(inVal) with Rule  {
+case class InRule(inVal: StringProvider) extends StringProviderRule(inVal) {
 
   override val name = "in"
 
@@ -64,7 +43,25 @@ case class InRule(inVal: StringProvider) extends StringProviderRule(inVal) with 
   }
 }
 
-case class StartsRule(inVal: StringProvider) extends StringProviderRule(inVal) with Rule  {
+case class IsRule(inVal: StringProvider) extends StringProviderRule(inVal) {
+
+  override val name = "is"
+
+  override def evaluate(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
+    evaluate(columnIndex, row, schema, _.equals(_))
+  }
+}
+
+case class NotRule(inVal: StringProvider) extends StringProviderRule(inVal) {
+
+  override val name = "not"
+
+  override def evaluate(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
+    evaluate(columnIndex, row, schema, !_.equals(_))
+  }
+}
+
+case class StartsRule(inVal: StringProvider) extends StringProviderRule(inVal) {
 
   override val name = "starts"
 
@@ -73,7 +70,7 @@ case class StartsRule(inVal: StringProvider) extends StringProviderRule(inVal) w
   }
 }
 
-case class EndsRule(inVal: StringProvider) extends StringProviderRule(inVal) with Rule {
+case class EndsRule(inVal: StringProvider) extends StringProviderRule(inVal) {
 
   override val name = "ends"
 

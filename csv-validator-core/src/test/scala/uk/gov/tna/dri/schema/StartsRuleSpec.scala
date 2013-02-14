@@ -8,7 +8,8 @@ import scalaz.{Failure, Success}
  * User: Jim Collins
  * Date: 2/13/13
  */
-class StartsRuleSpec extends Specification{
+class StartsRuleSpec extends Specification {
+
   val startsRule = StartsRule(LiteralTypeProvider("myhello world today today"))
 
   "StartsRule with a string literal behaviour" should  {
@@ -17,9 +18,10 @@ class StartsRuleSpec extends Specification{
     }
 
     "fail if the value does not start with" in {
-      val litRule = StartsRule(LiteralTypeProvider("my hello world"))
-      litRule.evaluate(0, Row(List(Cell("hello world")), 1), Schema(1, List(ColumnDefinition("column1")))) must beLike {
-        case Failure(msgs) => msgs.head mustEqual "in: my hello world fails for line 1, column: column1, value: hello world"
+      val startsRule = StartsRule(LiteralTypeProvider("my hello world"))
+
+      startsRule.evaluate(0, Row(List(Cell("hello world")), 1), Schema(1, List(ColumnDefinition("column1")))) must beLike {
+        case Failure(msgs) => msgs.head mustEqual "starts: my hello world fails for line: 1, column: column1, value: hello world"
       }
     }
   }
