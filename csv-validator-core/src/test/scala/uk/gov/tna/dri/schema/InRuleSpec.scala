@@ -4,7 +4,8 @@ import org.specs2.mutable.Specification
 import scalaz.{Failure, Success}
 import uk.gov.tna.dri.metadata.{Cell, Row}
 
-class InRuleSpec extends Specification{
+class InRuleSpec extends Specification {
+
   val inRule = InRule(LiteralTypeProvider("myhello world today"))
 
   "InRule with a string literal behaviour" should  {
