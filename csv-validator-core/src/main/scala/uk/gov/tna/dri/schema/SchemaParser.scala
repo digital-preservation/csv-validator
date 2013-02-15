@@ -34,29 +34,21 @@ trait SchemaParser extends RegexParsers {
 
   def columnDefinitions = rep1(columnDefinition)
 
-  def columnDefinition = (columnIdentifier <~ ":") ~ rep(columnRules) ~ rep(columnDirectives) <~ endOfColumnDefinition ^^ {
+  def columnDefinition = (columnIdentifier <~ ":") ~ rep(rules) ~ rep(columnDirectives) <~ endOfColumnDefinition ^^ {
     case id ~ rules ~ columnDirectives => ColumnDefinition(id, rules, columnDirectives)
   }
 
-  def columnRules = regex | isRule | notRule | inRule | startsRule | endsRule | fileExistsRule
+  def rules = regex | inRule| fileExistsRule
 
   def columnDirectives = optional | ignoreCase
 
   def regex = "regex" ~> regexParser ^? (validateRegex, s => s"regex invalid: ${s}") | failure("Invalid regex rule")
 
-  def isRule = "is(" ~> stringProvider <~ ")" ^^ { IsRule  }
+  def inRule = "in(" ~> argProvider <~ ")" ^^ { InRule  }
 
-  def notRule = "not(" ~> stringProvider <~ ")" ^^ { NotRule  }
+  def argProvider: Parser[ArgProvider] = "$" ~> """\w+""".r ^^ { s => ColumnReference(s) } | '\"' ~> """\w+""".r <~ '\"' ^^ {s => Literal(Some(s)) }
 
-  def inRule = "in(" ~> stringProvider <~ ")" ^^ { InRule  }
-
-  def startsRule = "starts(" ~> stringProvider <~ ")" ^^ { StartsRule  }
-
-  def endsRule = "ends(" ~> stringProvider <~ ")" ^^ { EndsRule  }
-
-  def stringProvider: Parser[StringProvider] = "$" ~> """\w+""".r ^^ { ColumnTypeProvider } | '\"' ~> """\w+""".r <~ '\"' ^^ { LiteralTypeProvider }
-
-  def fileExistsRule = "fileExists(\"" ~> rootFilePath <~ "\")" ^^ { s => FileExistsRule(Some(s)) } | "fileExists" ^^^ { FileExistsRule(None) } | failure("Invalid fileExists rule")
+  def fileExistsRule = "fileExists(\"" ~> rootFilePath <~ "\")" ^^ { s => FileExistsRule(Literal(Some(s))) } | "fileExists" ^^^ { FileExistsRule(Literal(None)) } | failure("Invalid fileExists rule")
 
   def rootFilePath: Parser[String] = """[a-zA-Z/-_\.\d\\]+""".r
 
@@ -78,7 +70,7 @@ trait SchemaParser extends RegexParsers {
   }
 
   private def validateRegex: PartialFunction[String, RegexRule] = {
-    case Regex(_, s, _) if Try(s.r).isSuccess => RegexRule(s.r)
+    case Regex(_, s, _) if Try(s.r).isSuccess => RegexRule(Literal(Some(s)))
   }
 
   private def crossCheck(columnDefinitions: List[ColumnDefinition]): Option[String] = {
@@ -93,30 +85,17 @@ trait SchemaParser extends RegexParsers {
     }
 
     def findColumnReference(rule: Rule): Option[String] = rule match {
-      case IsRule(s) => findColumnName(s)
-      case NotRule(s) => findColumnName(s)
       case InRule(s) => findColumnName(s)
-      case StartsRule(s) => findColumnName(s)
-      case EndsRule(s) => findColumnName(s)
       case _ => None
     }
 
-    def findColumnName(s: StringProvider): Option[String] = s match {
-      case ColumnTypeProvider(name) => Some(name)
+    def findColumnName(s: ArgProvider): Option[String] = s match {
+      case ColumnReference(name) => Some(name)
       case _ => None
     }
-
-    def prettyInRules(inRule: List[Rule]): String = inRule.map {
-      case rule: IsRule => s" ${rule.name}: ${rule.inVal.value}"
-      case rule: NotRule => s" ${rule.name}: ${rule.inVal.value}"
-      case rule: InRule => s" ${rule.name}: ${rule.inVal.value}"
-      case rule: StartsRule => s" ${rule.name}: ${rule.inVal.value}"
-      case rule: EndsRule => s" ${rule.name}: ${rule.inVal.value}"
-      case _ => ""
-    }.mkString(",")
 
     val errors = columnDefinitions.map(columnDef => (columnDef, filterRules(columnDef))).filter(x => x._2.length > 0)
-    lazy val errorMessages = errors.map(e => s"Column: ${e._1.id} has invalid cross reference${prettyInRules(e._2)}")
+    lazy val errorMessages = errors.map(e => s"Column: ${e._1.id} has invalid cross reference${e._2}")
     if (errors.isEmpty) None else Some(errorMessages.mkString("\n"))
   }
 }

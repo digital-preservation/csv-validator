@@ -57,7 +57,7 @@ trait FailFastMetaDataValidator extends MetaDataValidator {
       case rule :: tail => rule.evaluate(columnIndex, row, schema).fold(e => e.fail[Any], s => rulesForCellRecur(tail) )
     }
 
-    if (row.cells(columnIndex).value.trim.isEmpty && columnDefinition.contains(Optional())) true.successNel
+    if (row.cells(columnIndex).value.trim.isEmpty && columnDefinition.directives.contains(Optional())) true.successNel
     else rulesForCellRecur(columnDefinition.rules)
   }
 }

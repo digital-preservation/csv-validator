@@ -1,27 +1,27 @@
 package uk.gov.tna.dri.schema
 
-import util.Try
 import uk.gov.tna.dri.metadata.Row
 
 case class Schema(totalColumns: Int, columnDefinitions: List[ColumnDefinition])
 
-case class ColumnDefinition(id: String, rules: List[Rule] = Nil, directives: List[ColumnDirective] = Nil) {
-  def contains(columnDirective: ColumnDirective) = Try(directives.contains(columnDirective)).getOrElse(false)
+case class ColumnDefinition(id: String, rules: List[Rule] = Nil, directives: List[ColumnDirective] = Nil)
+
+trait ArgProvider {
+  def argVal: Option[String]
+  def referenceValue(columnIndex: Int, row: Row, schema: Schema): Option[String]
 }
 
-abstract class StringProvider(val value: String) {
-  def referenceValue(columnIndex: Int, row: Row, schema: Schema): String
-}
-
-case class ColumnTypeProvider(override val value: String) extends StringProvider(value) {
-  def referenceValue(columnIndex: Int, row: Row, schema: Schema): String = {
+case class ColumnReference(value: String) extends ArgProvider {
+  def argVal: Option[String] = Some(value)
+  def referenceValue(columnIndex: Int, row: Row, schema: Schema): Option[String] = {
     val referencedIndex = schema.columnDefinitions.indexWhere(_.id == value)
-    row.cells(referencedIndex).value
+    Some(row.cells(referencedIndex).value)
   }
 }
 
-case class LiteralTypeProvider(override val value: String) extends StringProvider(value) {
-  def referenceValue(columnIndex: Int, row: Row, schema: Schema): String = value
+case class Literal(value: Option[String]) extends ArgProvider {
+  def argVal: Option[String] = value
+  def referenceValue(columnIndex: Int, row: Row, schema: Schema): Option[String] = value
 }
 
 trait ColumnDirective

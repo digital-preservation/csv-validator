@@ -46,7 +46,7 @@ trait AllErrorsMetaDataValidator extends MetaDataValidator  {
   private def rulesForCell(columnIndex: Int, row: Row, schema: Schema) = {
     val columnDefinition = schema.columnDefinitions(columnIndex)
 
-    if (row.cells(columnIndex).value.trim.isEmpty && columnDefinition.contains(Optional())) true.successNel
+    if (row.cells(columnIndex).value.trim.isEmpty && columnDefinition.directives.contains(Optional())) true.successNel
     else columnDefinition.rules.map(_.evaluate(columnIndex, row, schema)).sequence[MetaDataValidation, Any]
   }
 }
