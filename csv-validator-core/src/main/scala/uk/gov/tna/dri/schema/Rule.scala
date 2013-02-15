@@ -35,14 +35,6 @@ case class InRule(inVal: StringProvider) extends Rule {
   }
 }
 
-
-
-
-
-
-
-
-
 abstract class StringProviderRule(inVal: StringProvider) extends Rule {
 
   def evaluate(columnIndex: Int, row: Row, schema: Schema, matching: (String, String) => Boolean): ValidationNEL[String, Any] = {
@@ -57,7 +49,6 @@ abstract class StringProviderRule(inVal: StringProvider) extends Rule {
 
 
 }
-
 
 case class IsRule(inVal: StringProvider) extends StringProviderRule(inVal) {
 
