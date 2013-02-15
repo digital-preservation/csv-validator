@@ -6,7 +6,6 @@ import scalaz.{Success => SuccessZ, Failure => FailureZ, _}
 import Scalaz._
 import scala.App
 
-
 object MetaDataValidatorCommandLineApp extends App with SchemaParser {
 
   val (failFast, fileArgs) = failFastAndFileArgs(args.toList)
@@ -60,7 +59,6 @@ object MetaDataValidatorCommandLineApp extends App with SchemaParser {
   private def prettyPrint(l: NonEmptyList[String]) = l.list.mkString(eol)
 
   type AppValidation[S] = ValidationNEL[String, S]
-
 }
 
 trait MetaDataValidatorApp extends SchemaParser {
@@ -76,7 +74,7 @@ trait MetaDataValidatorApp extends SchemaParser {
   private def parseSchema(schemaFilePath: String): ValidationNEL[String, Schema] = {
     parse(new FileReader(schemaFilePath)) match {
       case Success(schema: Schema, _) => schema.successNel[String]
-      case NoSuccess(message, next) => s"Schema Parse Error: ${message} at line ${next.pos.line}, column ${next.pos.column}".failNel[Schema]
+      case NoSuccess(message, next) => s"Schema Parse Error:\n${message} at line ${next.pos.line}, column ${next.pos.column}".failNel[Schema]
     }
   }
 }

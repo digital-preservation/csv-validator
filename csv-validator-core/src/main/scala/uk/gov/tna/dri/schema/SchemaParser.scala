@@ -22,7 +22,13 @@ trait SchemaParser extends RegexParsers {
 
   def parse(reader: Reader) = parseAll(schema, reader)
 
-  def schema = totalColumns ~ columnDefinitions ^? (createSchema, { case t ~ c => s"Schema invalid as @TotalColumns = ${t} but number of columns defined = ${c.length}" })
+  def schema = totalColumns ~ columnDefinitions ^? (createSchema, {
+    case t ~ c if t != c.length => {
+      val cross = crossCheck(c)
+      s"@TotalColumns = ${t} but number of columns defined = ${c.length}" + (if (cross.isEmpty) "" else "\n") + cross.getOrElse("")
+    }
+    case t ~ c => crossCheck(c).getOrElse("")
+  })
 
   def totalColumns = (("@TotalColumns" ~ white) ~> positiveNumber <~ eol ^^ { _.toInt }).withFailureMessage("@TotalColumns invalid")
 
@@ -59,7 +65,7 @@ trait SchemaParser extends RegexParsers {
   def ignoreCase = "@IgnoreCase" ^^^ IgnoreCase()
 
   private def createSchema: PartialFunction[~[Int, List[ColumnDefinition]], Schema] = {
-    case totalColumns ~ columnDefinitions if totalColumns == columnDefinitions.length => Schema(totalColumns, columnDefinitions)
+    case totalColumns ~ columnDefinitions if totalColumns == columnDefinitions.length && crossCheck(columnDefinitions).isEmpty => Schema(totalColumns, columnDefinitions)
   }
 
   private def endOfColumnDefinition: Parser[Any] = whiteSpace ~ (eol | endOfInput | failure("Column definition contains invalid text"))
@@ -73,5 +79,44 @@ trait SchemaParser extends RegexParsers {
 
   private def validateRegex: PartialFunction[String, RegexRule] = {
     case Regex(_, s, _) if Try(s.r).isSuccess => RegexRule(s.r)
+  }
+
+  private def crossCheck(columnDefinitions: List[ColumnDefinition]): Option[String] = {
+
+    def filterRules(columnDef:ColumnDefinition ): List[Rule] = { // List of failing rules
+      columnDef.rules.filter(rule => {
+        findColumnReference(rule) match {
+          case Some(name) => !columnDefinitions.exists(col => col.id == name)
+          case None => false
+        }
+      })
+    }
+
+    def findColumnReference(rule: Rule): Option[String] = rule match {
+      case IsRule(s) => findColumnName(s)
+      case NotRule(s) => findColumnName(s)
+      case InRule(s) => findColumnName(s)
+      case StartsRule(s) => findColumnName(s)
+      case EndsRule(s) => findColumnName(s)
+      case _ => None
+    }
+
+    def findColumnName(s: StringProvider): Option[String] = s match {
+      case ColumnTypeProvider(name) => Some(name)
+      case _ => None
+    }
+
+    def prettyInRules(inRule: List[Rule]): String = inRule.map {
+      case rule: IsRule => s" ${rule.name}: ${rule.inVal.value}"
+      case rule: NotRule => s" ${rule.name}: ${rule.inVal.value}"
+      case rule: InRule => s" ${rule.name}: ${rule.inVal.value}"
+      case rule: StartsRule => s" ${rule.name}: ${rule.inVal.value}"
+      case rule: EndsRule => s" ${rule.name}: ${rule.inVal.value}"
+      case _ => ""
+    }.mkString(",")
+
+    val errors = columnDefinitions.map(columnDef => (columnDef, filterRules(columnDef))).filter(x => x._2.length > 0)
+    lazy val errorMessages = errors.map(e => s"Column: ${e._1.id} has invalid cross reference${prettyInRules(e._2)}")
+    if (errors.isEmpty) None else Some(errorMessages.mkString("\n"))
   }
 }

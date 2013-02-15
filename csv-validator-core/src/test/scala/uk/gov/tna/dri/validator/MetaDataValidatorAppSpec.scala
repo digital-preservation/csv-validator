@@ -72,7 +72,7 @@ class MetaDataValidatorAppSpec extends Specification {
 
     "fail for invalid schema" in {
       app.validate(basePath + "metaData.csv", basePath + "badSchema.txt") must beLike {
-        case Failure(errors) => errors.head mustEqual s"Schema Parse Error: @TotalColumns invalid at line 1, column 1"
+        case Failure(errors) => errors.list mustEqual List(s"Schema Parse Error:\n@TotalColumns invalid at line 1, column 1")
       }
     }
 
