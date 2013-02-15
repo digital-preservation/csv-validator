@@ -7,7 +7,7 @@ case class Schema(totalColumns: Int, columnDefinitions: List[ColumnDefinition]) 
   require(totalColumns == columnDefinitions.length, s"totalColumns: ${totalColumns} must be the same as the number of column definitions: ${columnDefinitions.size}")
 
   val errors = checkColumnDefinitionsHasValidNames(columnDefinitions)
-  val errMsg = errors.map( e => s"Column: ${e._1.id} has invalid cross reference ${prettyInRules(e._2)}" )
+  lazy val errMsg = errors.map(e => s"Column: ${e._1.id} has invalid cross reference ${prettyInRules(e._2)}")
   require(errors.length == 0, errMsg.mkString("\n"))
 
   def checkColumnDefinitionsHasValidNames(columnDefinitions: List[ColumnDefinition]): List[(ColumnDefinition, List[Rule])] = {
