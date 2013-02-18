@@ -52,7 +52,7 @@ trait SchemaParser extends RegexParsers {
 
   def rule = orRule | unaryRule
 
-  def unaryRule = regex | inRule| fileExistsRule
+  def unaryRule = regex | inRule| fileExistsRule | failure("Invalid rule")
 
   def orRule = unaryRule ~ "or" ~ unaryRule ^^ { case lhs ~ _ ~ rhs => OrRule(lhs, rhs) }
 

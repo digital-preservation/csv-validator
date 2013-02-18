@@ -130,5 +130,28 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
       }
     }
 
+    "fail for or rule with no lhs" in {
+      val schema =
+        """@TotalColumns 1
+           Country: or in("England")"""
+
+      parse(new StringReader(schema)) must beLike { case Failure("Column definition contains invalid text", _) => ok }
+    }
+
+    "fail for or rule with no rhs" in {
+      val schema =
+        """@TotalColumns 1
+           Country: in("UK") or"""
+
+      parse(new StringReader(schema)) must beLike { case Failure("Invalid rule", _) => ok }
+    }
+
+    "fail for or rule with no lhs or rhs" in {
+      val schema =
+        """@TotalColumns 1
+           Country: or"""
+
+      parse(new StringReader(schema)) must beLike { case Failure("Column definition contains invalid text", _) => ok }
+    }
   }
 }
