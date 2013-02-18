@@ -86,12 +86,10 @@ trait SchemaParser extends RegexParsers {
     case Regex(_, s, _) if Try(s.r).isSuccess => RegexRule(Literal(Some(s)))
   }
 
-  def duplicateColumns( col:List[ColumnDefinition] ):Map[ColumnDefinition,List[Int]] = {
+  def duplicateColumns(col: List[ColumnDefinition]): Map[ColumnDefinition, List[Int]] = {
     val columnsByColumnId = col.zipWithIndex.groupBy { case (id, pos) => id }
     columnsByColumnId.filter( _._2.length > 1 ).map { case (id,idAndPos) => (id, idAndPos.map{ case (id, pos) => pos}) }
   }
-
-
 
   private def crossCheck(columnDefinitions: List[ColumnDefinition]): Option[String] = {
 
@@ -114,17 +112,21 @@ trait SchemaParser extends RegexParsers {
       case _ => None
     }
 
-    def crossReferenceErrors(rules: List[Rule]): String = rules.map {
-      case rule: InRule => s""" ${rule.name}: ${rule.inValue.argValue.getOrElse("")}"""
-      case _ => ""
-    }.mkString(",")
+    def crossReferenceErrors(rules: List[Rule]): String = {
+      val errors = rules.map {
+        case rule: InRule => s""" ${rule.name}: ${rule.inValue.argValue.getOrElse("")}"""
+        case _ => ""
+      }.filter(!_.isEmpty)
+
+      (if (errors.length == 1) "cross reference" else "cross references") + errors.mkString(",")
+    }
 
     val errors = columnDefinitions.map(columnDef => (columnDef, filterRules(columnDef))).filter(x => x._2.length > 0)
 
     if (errors.isEmpty) {
       None
     } else {
-      val errorMessages = errors.map(e => s"Column: ${e._1.id} has invalid cross reference${crossReferenceErrors(e._2)}")
+      val errorMessages = errors.map(e => s"Column: ${e._1.id} has invalid ${crossReferenceErrors(e._2)}")
       Some(errorMessages.mkString("\n"))
     }
   }

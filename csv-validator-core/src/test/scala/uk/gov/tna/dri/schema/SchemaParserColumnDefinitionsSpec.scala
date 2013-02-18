@@ -94,7 +94,7 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
                      Column2:"""
 
       parse(new StringReader(schema)) must beLike {
-        case Failure(message, _) => message mustEqual "Column: Column1 has invalid cross reference in: NotAColumn1, in: NotAColumn2"
+        case Failure(message, _) => message mustEqual "Column: Column1 has invalid cross references in: NotAColumn1, in: NotAColumn2"
       }
     }
 
@@ -142,6 +142,16 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
       parse(new StringReader(schema)) must beLike {
         case Success(schema, _) => schema mustEqual Schema(globalDirsTwo, List(ColumnDefinition("Column1", List(InRule(ColumnReference("Column2")))),
                                                                    ColumnDefinition("Column2")))
+      }
+    }
+
+    "fail for invalid column cross references" in {
+      val schema ="""@TotalColumns 2
+                     Age: in($Blah) regex ("[0-9]+")
+                     Country: in($Boo)"""
+
+      parse(new StringReader(schema)) must beLike {
+        case Failure(message, _) => message mustEqual "Column: Age has invalid cross reference in: Blah\nColumn: Country has invalid cross reference in: Boo"
       }
     }
   }
