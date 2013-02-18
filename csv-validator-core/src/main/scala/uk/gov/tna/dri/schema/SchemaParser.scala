@@ -96,7 +96,7 @@ trait SchemaParser extends RegexParsers {
     }
 
     def crossReferenceErrors(rules: List[Rule]): String = rules.map {
-      case rule: InRule => s""" ${rule.name}: ${rule.inValue.argVal.getOrElse("")}"""
+      case rule: InRule => s""" ${rule.name}: ${rule.inValue.argValue.getOrElse("")}"""
       case _ => ""
     }.mkString(",")
 
