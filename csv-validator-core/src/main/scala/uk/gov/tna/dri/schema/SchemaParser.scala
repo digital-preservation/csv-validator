@@ -50,11 +50,11 @@ trait SchemaParser extends RegexParsers {
     case id ~ rules ~ columnDirectives => ColumnDefinition(id, rules, columnDirectives)
   }
 
-  def rule = unaryRule | orRule
+  def rule = orRule | unaryRule
 
   def unaryRule = regex | inRule| fileExistsRule
 
-  def orRule = unaryRule <~ "or" ~> unaryRule
+  def orRule = unaryRule ~ "or" ~ unaryRule ^^ { case lhs ~ _ ~ rhs => OrRule(lhs, rhs) }
 
   def columnDirective = optional | ignoreCase
 

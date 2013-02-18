@@ -12,10 +12,10 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
 
   import TestSchemaParser._
 
-  val globalDirsOne = GlobalDirectives(TotalColumnsDirective(1), None, None)
-  val globalDirsTwo = GlobalDirectives(TotalColumnsDirective(2), None, None)
-  "Schema" should {
+  val globalDirsOne = GlobalDirectives(TotalColumnsDirective(1))
+  val globalDirsTwo = GlobalDirectives(TotalColumnsDirective(2))
 
+  "Schema" should {
 
     "succeed for valid regex rule" in {
       val schema = """@TotalColumns 1
@@ -93,8 +93,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
     "succeed for file exists rule" in {
       val schema = """@TotalColumns 1
                       Name: fileExists"""
-      parse(new StringReader(schema)) must beLike { case Success(Schema(
-      globalDirsOne, List(ColumnDefinition("Name", List(FileExistsRule(Literal(None))), _))), _) => ok}
+      parse(new StringReader(schema)) must beLike { case Success(Schema(globalDirsOne, List(ColumnDefinition("Name", List(FileExistsRule(Literal(None))), _))), _) => ok}
     }
 
     "fail for file exists rule with empty ()" in {
@@ -120,5 +119,16 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
                       Name: fileExists /root/path"""
       parse(new StringReader(schema)) must beLike { case Failure("Column definition contains invalid text", _) => ok}
     }
+
+    "succeed for or rule" in {
+      val schema =
+        """@TotalColumns 1
+           Country: in("UK") or in("England")"""
+
+      parse(new StringReader(schema)) must beLike {
+        case Success(Schema(globalDirsOne, List(ColumnDefinition("Country", List( OrRule( InRule(Literal(Some("UK"))), InRule(Literal(Some("England"))))), _))), _) => ok
+      }
+    }
+
   }
 }
