@@ -146,4 +146,19 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
       }
     }
   }
+
+  "validate schema" should {
+
+    "fail with duplicate column ids" in {
+      validate(basePath + "duplicateColumnIdsMetaData.csv", basePath + "duplicateColumnIdsFailSchema.txt") must beLike {
+        case Failure(errors) => errors.list mustEqual List("Column: Age has duplicates in columns 1,6", "Column: Country has duplicates in columns 2,3,5")
+      }
+    }
+
+    "succeed with unique column ids" in {
+      validate(basePath + "duplicateColumnIdsMetaData.csv", basePath + "duplicateColumnIdsPassSchema.txt") must beLike {
+        case Success(_) => ok
+      }
+    }
+  }
 }

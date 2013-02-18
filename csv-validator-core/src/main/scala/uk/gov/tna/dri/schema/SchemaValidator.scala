@@ -5,14 +5,14 @@ import Scalaz._
 
 trait SchemaValidator {
 
-  type SchemaVal[A] = ValidationNEL[String, A]
+  type SchemaValidation[A] = ValidationNEL[String, A]
 
-  def validate(schema: Schema): SchemaVal[List[ColumnDefinition]] = {
+  def validate(schema: Schema): SchemaValidation[Any] = {
     val dupCols = duplicateColumns( schema.columnDefinitions)
     if (dupCols.isEmpty) schema.columnDefinitions.successNel[String]
     else {
-      val errors: List[SchemaVal[ColumnDefinition]] = dupCols.map{ case(colDef, pos) => s"Column: ${colDef.id} has duplicates in columns ${pos.mkString(",")}".failNel[ColumnDefinition]}.toList
-      errors.sequence[SchemaVal, ColumnDefinition]
+      val errors: List[SchemaValidation[ColumnDefinition]] = dupCols.map{ case(colDef, pos) => s"Column: ${colDef.id} has duplicates in columns ${pos.mkString(",")}".failNel[ColumnDefinition]}.toList.reverse
+      errors.sequence[SchemaValidation, ColumnDefinition]
     }
   }
 

@@ -1,0 +1,7 @@
+@TotalColumns 6
+Age:
+Country:
+Address:
+Name:
+DateOfBirth:
+FavouriteColour:
