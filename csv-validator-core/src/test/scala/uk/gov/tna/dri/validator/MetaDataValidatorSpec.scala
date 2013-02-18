@@ -251,5 +251,31 @@ class MetaDataValidatorSpec extends Specification {
         case Failure(messages) => messages.list mustEqual List("fileExists: fails for line: 1, column: First Column, value: some/non/existent/file")
       }
     }
+
+    "fail when first line contains invalid data and noHeader directive is set" in {
+      val columnDefinitions = ColumnDefinition("col1") :: ColumnDefinition("col2WithRule", List(RegexRule(Literal(Some("[0-9a-z]*"))), InRule(Literal(Some("345dog"))))) :: Nil
+      val schema = Schema(globalDirsTwo, columnDefinitions)
+      val metaData =
+        """someData,thisisrubbish
+           someMore,dog"""
+
+      validate(new StringReader(metaData), schema) must beLike {
+        case Failure(messages) => messages.list mustEqual List("in: 345dog fails for line: 1, column: col2WithRule, value: thisisrubbish")
+      }
+    }
+
+    "succeed when first line contains invalid data and noHeader directive is missing" in {
+      val columnDefinitions = ColumnDefinition("col1") :: ColumnDefinition("col2WithRule", List(RegexRule(Literal(Some("[0-9a-z]*"))), InRule(Literal(Some("345dog"))))) :: Nil
+      val globalDirsTwoNoheader = GlobalDirectives(TotalColumnsDirective(2), None, None)
+      val schema = Schema(globalDirsTwoNoheader, columnDefinitions)
+      val metaData =
+        """someData,thisisrubbish
+           someMore,dog"""
+
+      validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
+    }
+
   }
 }
+
+
