@@ -32,8 +32,8 @@ trait AllErrorsMetaDataValidator extends MetaDataValidator {
   }
 
   private def totalColumns(row: Row, schema: Schema) = {
-    if (row.cells.length == schema.globalDirectives.totalColsDir.numOfColumns) true.successNel[String]
-    else s"Expected @TotalColumns of ${schema.globalDirectives.totalColsDir.numOfColumns} and found ${row.cells.length} on line ${row.lineNumber}".failNel[Any]
+    if (row.cells.length == schema.globalDirectives.totalColumnsDirective.numOfColumns) true.successNel[String]
+    else s"Expected @TotalColumns of ${schema.globalDirectives.totalColumnsDirective.numOfColumns} and found ${row.cells.length} on line ${row.lineNumber}".failNel[Any]
   }
 
   private def rules(row: Row, schema: Schema) = {

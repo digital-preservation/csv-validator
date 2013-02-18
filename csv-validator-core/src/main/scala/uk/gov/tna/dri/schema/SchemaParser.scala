@@ -23,9 +23,9 @@ trait SchemaParser extends RegexParsers {
   def parse(reader: Reader) = parseAll(schema, reader)
 
   def schema = globalDirectives ~ columnDefinitions ^? (createSchema, {
-    case t ~ c if t.totalColsDir.numOfColumns != c.length => {
+    case t ~ c if t.totalColumnsDirective.numOfColumns != c.length => {
       val cross = crossCheck(c)
-      s"@TotalColumns = ${t.totalColsDir.numOfColumns} but number of columns defined = ${c.length}" + (if (cross.isEmpty) "" else "\n") + cross.getOrElse("")
+      s"@TotalColumns = ${t.totalColumnsDirective.numOfColumns} but number of columns defined = ${c.length}" + (if (cross.isEmpty) "" else "\n") + cross.getOrElse("")
     }
     case t ~ c => crossCheck(c).getOrElse("")
   })
@@ -46,13 +46,17 @@ trait SchemaParser extends RegexParsers {
 
   def columnDefinitions = rep1(columnDefinition)
 
-  def columnDefinition = (columnIdentifier <~ ":") ~ rep(rules) ~ rep(columnDirectives) <~ endOfColumnDefinition ^^ {
+  def columnDefinition = (columnIdentifier <~ ":") ~ rep(rule) ~ rep(columnDirective) <~ endOfColumnDefinition ^^ {
     case id ~ rules ~ columnDirectives => ColumnDefinition(id, rules, columnDirectives)
   }
 
-  def rules = regex | inRule| fileExistsRule
+  def rule = unaryRule | orRule
 
-  def columnDirectives = optional | ignoreCase
+  def unaryRule = regex | inRule| fileExistsRule
+
+  def orRule = unaryRule <~ "or" ~> unaryRule
+
+  def columnDirective = optional | ignoreCase
 
   def regex = "regex" ~> regexParser ^? (validateRegex, s => s"regex invalid: ${s}") | failure("Invalid regex rule")
 
@@ -61,7 +65,7 @@ trait SchemaParser extends RegexParsers {
   def argProvider: Parser[ArgProvider] = "$" ~> """\w+""".r ^^ { s => ColumnReference(s) } | '\"' ~> """\w+""".r <~ '\"' ^^ {s => Literal(Some(s)) }
 
   def fileExistsRule = "fileExists(\"" ~> rootFilePath <~ "\")" ^^ { s => FileExistsRule(Literal(Some(s))) } |
-                       "fileExists" ^^^ { FileExistsRule(Literal(None)) } | failure("Invalid fileExists rule")
+                       "fileExists" ^^^ { FileExistsRule() } | failure("Invalid fileExists rule")
 
   def rootFilePath: Parser[String] = """[a-zA-Z/-_\.\d\\]+""".r
 
@@ -70,7 +74,7 @@ trait SchemaParser extends RegexParsers {
   def ignoreCase = "@IgnoreCase" ^^^ IgnoreCase()
 
   private def createSchema: PartialFunction[~[GlobalDirectives, List[ColumnDefinition]], Schema] = {
-    case globalDirectives ~ columnDefinitions if globalDirectives.totalColsDir.numOfColumns == columnDefinitions.length && crossCheck(columnDefinitions).isEmpty => Schema(globalDirectives, columnDefinitions)
+    case globalDirectives ~ columnDefinitions if globalDirectives.totalColumnsDirective.numOfColumns == columnDefinitions.length && crossCheck(columnDefinitions).isEmpty => Schema(globalDirectives, columnDefinitions)
   }
 
   private def endOfColumnDefinition: Parser[Any] = whiteSpace ~ (eol | endOfInput | failure("Column definition contains invalid text"))
