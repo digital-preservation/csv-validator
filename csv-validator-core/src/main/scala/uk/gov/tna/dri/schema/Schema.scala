@@ -4,7 +4,9 @@ import uk.gov.tna.dri.metadata.Row
 
 case class Schema(globalDirectives: GlobalDirectives, columnDefinitions: List[ColumnDefinition])
 
-case class GlobalDirectives(totalColumnsDirective: TotalColumnsDirective, noHeaderDirective: Option[NoHeaderDirective] = None, ignoreColumnNameCaseDirective: Option[IgnoreColumnNameCaseDirective] = None)
+case class GlobalDirectives(totalColumnsDirective: TotalColumnsDirective,
+                            noHeaderDirective: Option[NoHeaderDirective] = None,
+                            ignoreColumnNameCaseDirective: Option[IgnoreColumnNameCaseDirective] = None)
 
 trait GlobalDirective
 case class SeparatorDirective(separatorChar: Char) extends GlobalDirective
