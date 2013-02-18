@@ -1,2 +1,2 @@
-@TotalColumns 1
+@TotalColumns 1 @noHeader
 Thing:

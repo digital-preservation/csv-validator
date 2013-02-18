@@ -16,10 +16,10 @@ class MetaDataValidatorSpec extends Specification {
   import TestMetaDataValidator._
 
   "Validation" should {
-    val globalDirsOne = GlobalDirectives(TotalColumnsDirective(1), None, None)
-    val globalDirsTwo = GlobalDirectives(TotalColumnsDirective(2), None, None)
-    val globalDirsThree = GlobalDirectives(TotalColumnsDirective(3), None, None)
-    val globalDirsFour = GlobalDirectives(TotalColumnsDirective(4), None, None)
+    val globalDirsOne = GlobalDirectives(TotalColumnsDirective(1), Some(NoHeaderDirective()), None)
+    val globalDirsTwo = GlobalDirectives(TotalColumnsDirective(2), Some(NoHeaderDirective()), None)
+    val globalDirsThree = GlobalDirectives(TotalColumnsDirective(3), Some(NoHeaderDirective()), None)
+    val globalDirsFour = GlobalDirectives(TotalColumnsDirective(4), Some(NoHeaderDirective()), None)
 
     "succeed for correct total columns for multiple lines" in {
       val metaData =

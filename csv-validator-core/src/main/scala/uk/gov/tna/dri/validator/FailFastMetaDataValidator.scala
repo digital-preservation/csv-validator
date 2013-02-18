@@ -1,18 +1,34 @@
 package uk.gov.tna.dri.validator
 
-import uk.gov.tna.dri.schema.{Rule, ColumnDefinition, Optional, Schema}
+import uk.gov.tna.dri.schema._
 import au.com.bytecode.opencsv.CSVReader
 import java.io.Reader
 import scala.collection.JavaConversions._
 import scalaz._
 import Scalaz._
 import uk.gov.tna.dri.metadata.{Cell, Row}
+import uk.gov.tna.dri.metadata.Cell
+import uk.gov.tna.dri.metadata.Row
+import uk.gov.tna.dri.schema.ColumnDefinition
+import uk.gov.tna.dri.schema.Schema
+import scala.Some
+import uk.gov.tna.dri.schema.Optional
 
 trait FailFastMetaDataValidator extends MetaDataValidator {
 
   def validate(csv: Reader, schema: Schema) = {
-    val csvRows = new CSVReader(csv).readAll()
-    val rows = csvRows.toList.zipWithIndex.map(r => Row(r._1.toList.map(Cell(_)), r._2 + 1))
+
+
+    def rowsWithHeadDirective(rows: List[Array[String]]): List[Array[String]] = {
+      schema match {
+        case Schema(GlobalDirectives(_, Some(dir),_), _) => rows
+        case _ => rows.tail
+      }
+    }
+
+    val csvRows = rowsWithHeadDirective(new CSVReader(csv).readAll().toList)
+
+    val rows = csvRows.zipWithIndex.map(r => Row(r._1.toList.map(Cell(_)), r._2 + 1))
 
     def validateRows(rows: List[Row]): MetaDataValidation[Any] = rows match {
       case r :: tail =>  validateRow(r, schema).fold(e => e.fail[Any], s => validateRows(tail))

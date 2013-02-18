@@ -18,8 +18,14 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
       }
     }
 
-    "fail with line number and column id in error message " in {
+    "succed when @noHeader not set as first line is skipped " in {
       validate(basePath + "regexRuleFailMetaData.csv", basePath + "regexRuleSchema.txt") must beLike {
+        case Success(_) => ok
+      }
+    }
+
+    "fail with line number and column id in error message when @noHeader set as first line is not skipped " in {
+      validate(basePath + "regexRuleFailMetaData.csv", basePath + "regexRuleSchemaWithNoHeaderSet.txt") must beLike {
         case Failure(errors) => errors.list mustEqual List("regex: [0-9]+ fails for line: 1, column: Age, value: twenty")
       }
     }
@@ -27,7 +33,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
 
   "Multiple errors " should {
     "all be reported" in {
-      validate(basePath + "multipleErrorsMetaData.csv", basePath + "regexRuleSchema.txt") must beLike {
+      validate(basePath + "multipleErrorsMetaData.csv", basePath + "regexRuleSchemaWithNoHeaderSet.txt") must beLike {
         case Failure(errors) => errors.list mustEqual List(
           "regex: [0-9]+ fails for line: 1, column: Age, value: twenty",
           "regex: [0-9]+ fails for line: 2, column: Age, value: thirty")

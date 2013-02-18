@@ -1,6 +1,6 @@
 package uk.gov.tna.dri.validator
 
-import uk.gov.tna.dri.schema.{Optional, Schema}
+import uk.gov.tna.dri.schema.{GlobalDirectives, NoHeaderDirective, Optional, Schema}
 import au.com.bytecode.opencsv.CSVReader
 import java.io.Reader
 import scala.collection.JavaConversions._
@@ -11,7 +11,15 @@ import uk.gov.tna.dri.metadata.{Cell, Row}
 trait AllErrorsMetaDataValidator extends MetaDataValidator {
 
   def validate(csv: Reader, schema: Schema) = {
-    val rows = new CSVReader(csv).readAll()
+
+    def rowsWithHeadDirective(rows: List[Array[String]]): List[Array[String]] = {
+      schema match {
+        case Schema(GlobalDirectives(_, Some(dir),_), _) => rows
+        case _ => rows.tail
+      }
+    }
+
+    val rows = rowsWithHeadDirective(new CSVReader(csv).readAll().toList)
     val v = for ((row, rowIndex) <- rows.view.zipWithIndex) yield validateRow(Row(row.toList.map(Cell(_)), rowIndex + 1), schema)
     v.sequence[MetaDataValidation, Any]
   }

@@ -1,3 +1,3 @@
-@TotalColumns 2
+@TotalColumns 2  @noHeader
 Name: in($FullName) regex("[a-z]+")
 FullName:
