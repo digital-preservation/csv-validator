@@ -40,7 +40,7 @@ trait SchemaParser extends RegexParsers {
 
   def totalColumns: Parser[TotalColumnsDirective] = (("@TotalColumns" ~ white) ~> positiveNumber ^^ { posInt => TotalColumnsDirective(posInt.toInt) }).withFailureMessage("@TotalColumns invalid")
 
-  def noHeaderDirective: Parser[NoHeaderDirective] = directivePrefix ~ "NoHeader" ^^^ NoHeaderDirective()
+  def noHeaderDirective: Parser[NoHeaderDirective] = directivePrefix ~ "noHeader" ^^^ NoHeaderDirective()
 
   def ignoreColumnNameCaseDirective: Parser[IgnoreColumnNameCaseDirective] = directivePrefix ~ "IgnoreColumnNameCase" ^^^ IgnoreColumnNameCaseDirective()
 
