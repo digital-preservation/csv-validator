@@ -74,6 +74,13 @@ trait SchemaParser extends RegexParsers {
     case Regex(_, s, _) if Try(s.r).isSuccess => RegexRule(Literal(Some(s)))
   }
 
+  def duplicateColumns( col:List[ColumnDefinition] ):Map[ColumnDefinition,List[Int]] = {
+    val columnsByColumnId = col.zipWithIndex.groupBy { case (id, pos) => id }
+    columnsByColumnId.filter( _._2.length > 1 ).map { case (id,idAndPos) => (id, idAndPos.map{ case (id, pos) => pos}) }
+  }
+
+
+
   private def crossCheck(columnDefinitions: List[ColumnDefinition]): Option[String] = {
 
     def filterRules(columnDef:ColumnDefinition ): List[Rule] = { // List of failing rules
