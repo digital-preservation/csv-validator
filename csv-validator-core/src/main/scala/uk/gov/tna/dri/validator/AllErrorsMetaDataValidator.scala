@@ -8,7 +8,7 @@ import scalaz._
 import Scalaz._
 import uk.gov.tna.dri.metadata.{Cell, Row}
 
-trait AllErrorsMetaDataValidator extends MetaDataValidator  {
+trait AllErrorsMetaDataValidator extends MetaDataValidator {
 
   def validate(csv: Reader, schema: Schema) = {
     val rows = new CSVReader(csv).readAll()
