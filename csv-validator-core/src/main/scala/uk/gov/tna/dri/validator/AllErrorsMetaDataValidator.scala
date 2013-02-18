@@ -10,7 +10,6 @@ import uk.gov.tna.dri.metadata.{Cell, Row}
 
 trait AllErrorsMetaDataValidator extends MetaDataValidator  {
 
-
   def validate(csv: Reader, schema: Schema) = {
     val rows = new CSVReader(csv).readAll()
     val v = for ((row, rowIndex) <- rows.view.zipWithIndex) yield validateRow(Row(row.toList.map(Cell(_)), rowIndex + 1), schema)

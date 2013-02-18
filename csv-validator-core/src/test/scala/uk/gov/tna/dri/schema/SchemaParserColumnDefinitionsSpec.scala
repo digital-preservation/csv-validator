@@ -67,7 +67,7 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
       }
     }
 
-    /*"fail when one invalid column reference" in {
+    "fail when one invalid column reference" in {
       val schema ="""@TotalColumns 2
                      Column1: in($NotAColumn)
                      Column2:"""
@@ -107,7 +107,7 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
       }
     }
 
-    "fail when two columns have two rules and each has one invalid column with diffferent rules" in {
+    /*"fail when two columns have two rules and each has one invalid column with diffferent rules" in {
       val schema ="""@TotalColumns 2
                      Column1: is($Column1) is($NotAColumn1)
                      Column2: not($Column2) not($NotAColumn2)
@@ -123,7 +123,7 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
                                                         |Column: Column4 has invalid cross reference starts: NotAColumn4
                                                         |Column: Column5 has invalid cross reference ends: NotAColumn5""".stripMargin
       }
-    }
+    }*/
 
     "multi columns with same name is valid - TODO NOT CORRECT" in {
       val schema = """@TotalColumns 2
@@ -142,6 +142,6 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
         case Success(schema, _) => schema mustEqual Schema(2, List(ColumnDefinition("Column1", List(InRule(ColumnReference("Column2")))),
                                                                    ColumnDefinition("Column2")))
       }
-    }*/
+    }
   }
 }

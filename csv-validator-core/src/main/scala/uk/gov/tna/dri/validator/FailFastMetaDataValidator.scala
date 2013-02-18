@@ -8,7 +8,6 @@ import scalaz._
 import Scalaz._
 import uk.gov.tna.dri.metadata.{Cell, Row}
 
-
 trait FailFastMetaDataValidator extends MetaDataValidator {
 
   def validate(csv: Reader, schema: Schema) = {
@@ -16,7 +15,7 @@ trait FailFastMetaDataValidator extends MetaDataValidator {
     val rows = csvRows.toList.zipWithIndex.map(r => Row(r._1.toList.map(Cell(_)), r._2 + 1))
 
     def validateRows(rows: List[Row]): MetaDataValidation[Any] = rows match {
-      case r :: tail =>  validateRow(r,schema).fold(e => e.fail[Any], s => validateRows(tail))
+      case r :: tail =>  validateRow(r, schema).fold(e => e.fail[Any], s => validateRows(tail))
       case Nil => true.successNel[String]
     }
 

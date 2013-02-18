@@ -48,7 +48,8 @@ trait SchemaParser extends RegexParsers {
 
   def argProvider: Parser[ArgProvider] = "$" ~> """\w+""".r ^^ { s => ColumnReference(s) } | '\"' ~> """\w+""".r <~ '\"' ^^ {s => Literal(Some(s)) }
 
-  def fileExistsRule = "fileExists(\"" ~> rootFilePath <~ "\")" ^^ { s => FileExistsRule(Literal(Some(s))) } | "fileExists" ^^^ { FileExistsRule(Literal(None)) } | failure("Invalid fileExists rule")
+  def fileExistsRule = "fileExists(\"" ~> rootFilePath <~ "\")" ^^ { s => FileExistsRule(Literal(Some(s))) } |
+                       "fileExists" ^^^ { FileExistsRule(Literal(None)) } | failure("Invalid fileExists rule")
 
   def rootFilePath: Parser[String] = """[a-zA-Z/-_\.\d\\]+""".r
 
@@ -94,8 +95,18 @@ trait SchemaParser extends RegexParsers {
       case _ => None
     }
 
+    def crossReferenceErrors(rules: List[Rule]): String = rules.map {
+      case rule: InRule => s""" ${rule.name}: ${rule.inValue.argVal.getOrElse("")}"""
+      case _ => ""
+    }.mkString(",")
+
     val errors = columnDefinitions.map(columnDef => (columnDef, filterRules(columnDef))).filter(x => x._2.length > 0)
-    lazy val errorMessages = errors.map(e => s"Column: ${e._1.id} has invalid cross reference${e._2}")
-    if (errors.isEmpty) None else Some(errorMessages.mkString("\n"))
+
+    if (errors.isEmpty) {
+      None
+    } else {
+      val errorMessages = errors.map(e => s"Column: ${e._1.id} has invalid cross reference${crossReferenceErrors(e._2)}")
+      Some(errorMessages.mkString("\n"))
+    }
   }
 }

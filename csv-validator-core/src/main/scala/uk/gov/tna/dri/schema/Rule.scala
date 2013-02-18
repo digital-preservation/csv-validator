@@ -3,13 +3,9 @@ package uk.gov.tna.dri.schema
 import scalaz._
 import Scalaz._
 import uk.gov.tna.dri.metadata.Row
-import util.matching.Regex
 import java.io.File
 
-
-abstract class Rule(argProvider: ArgProvider) {
-
-  val name: String
+abstract class Rule(val name: String)(argProvider: ArgProvider) {
 
   def evaluate(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
     val cellValue = row.cells(columnIndex).value
@@ -30,29 +26,21 @@ abstract class Rule(argProvider: ArgProvider) {
   }
 }
 
-case class InRule(inVal: ArgProvider) extends Rule(inVal) {
-  override val name = "in"
-
+case class InRule(inValue: ArgProvider) extends Rule("in")(inValue) {
   def pass(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = {
     val (cellVal, ruleVal) = if (columnDefinition.directives.contains(IgnoreCase())) (cellValue.toLowerCase, ruleValue.get.toLowerCase) else (cellValue, ruleValue.get)
     ruleVal contains cellVal
   }
 }
 
-case class RegexRule(regex: ArgProvider) extends Rule(regex) {
-
-  val name = "regex"
-
+case class RegexRule(regex: ArgProvider) extends Rule("regex")(regex) {
   def pass(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = {
     val regex = if (columnDefinition.directives.contains(IgnoreCase())) "(?i)" + ruleValue.get else ruleValue.get
     cellValue matches regex
   }
 }
 
-case class FileExistsRule(rootPath: ArgProvider) extends Rule(rootPath) {
-
-  override val name = "fileExists"
-
+case class FileExistsRule(rootPath: ArgProvider) extends Rule("fileExists")(rootPath) {
   def pass(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = {
     val filePath = cellValue
 
@@ -64,4 +52,3 @@ case class FileExistsRule(rootPath: ArgProvider) extends Rule(rootPath) {
     fileExists
   }
 }
-

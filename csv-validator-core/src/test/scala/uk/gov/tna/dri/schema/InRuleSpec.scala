@@ -22,7 +22,7 @@ class InRuleSpec extends Specification {
       val inRule = InRule(Literal(Some("hello world")))
 
       inRule.evaluate(0, Row(List(Cell("hello world today")), 1), Schema(1, List(ColumnDefinition("column1")))) must beLike {
-        case Failure(msgs) => msgs.head mustEqual "in: hello world fails for line: 1, column: column1, value: hello world today"
+        case Failure(messages) => messages.head mustEqual "in: hello world fails for line: 1, column: column1, value: hello world today"
       }
     }
 
