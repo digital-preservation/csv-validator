@@ -13,7 +13,8 @@ class SchemaParserSpec extends Specification with ParserMatchers {
   import TestSchemaParser._
 
   "Schema" should {
-
+    val globalDirsTwo = GlobalDirectives(TotalColumnsDirective(2), None, None)
+    val globalDirsThree = GlobalDirectives(TotalColumnsDirective(3), None, None)
     "succeed for valid minimal schema" in {
       val columnDefinitions = List(new ColumnDefinition("column1"),new ColumnDefinition("column2"),new ColumnDefinition("column3"))
 
@@ -22,7 +23,7 @@ class SchemaParserSpec extends Specification with ParserMatchers {
                       column2:
                       column3:"""
 
-      parse(new StringReader(schema)) must beLike { case Success(schema, _) => schema mustEqual Schema(3, columnDefinitions) }
+      parse(new StringReader(schema)) must beLike { case Success(schema, _) => schema mustEqual Schema(globalDirsThree, columnDefinitions) }
     }
 
     "succeed for extra white space around (including tabs) :" in {
@@ -30,7 +31,7 @@ class SchemaParserSpec extends Specification with ParserMatchers {
                       Name :
                       Age   :     """
 
-      parse(new StringReader(schema)) must beLike { case Success(schema, _) => schema mustEqual Schema(2, List(ColumnDefinition("Name"), ColumnDefinition("Age"))) }
+      parse(new StringReader(schema)) must beLike { case Success(schema, _) => schema mustEqual Schema(globalDirsTwo, List(ColumnDefinition("Name"), ColumnDefinition("Age"))) }
     }
 
     "fail if column directives declared before rules" in {

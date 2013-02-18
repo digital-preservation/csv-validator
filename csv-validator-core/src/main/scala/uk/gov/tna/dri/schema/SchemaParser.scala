@@ -22,15 +22,27 @@ trait SchemaParser extends RegexParsers {
 
   def parse(reader: Reader) = parseAll(schema, reader)
 
-  def schema = totalColumns ~ columnDefinitions ^? (createSchema, {
-    case t ~ c if t != c.length => {
+  def schema = globalDirectives ~ columnDefinitions ^? (createSchema, {
+    case t ~ c if t.totalColsDir.numOfColumns != c.length => {
       val cross = crossCheck(c)
-      s"@TotalColumns = ${t} but number of columns defined = ${c.length}" + (if (cross.isEmpty) "" else "\n") + cross.getOrElse("")
+      s"@TotalColumns = ${t.totalColsDir.numOfColumns} but number of columns defined = ${c.length}" + (if (cross.isEmpty) "" else "\n") + cross.getOrElse("")
     }
     case t ~ c => crossCheck(c).getOrElse("")
   })
 
-  def totalColumns = (("@TotalColumns" ~ white) ~> positiveNumber <~ eol ^^ { _.toInt }).withFailureMessage("@TotalColumns invalid")
+  def globalDirectives: Parser[GlobalDirectives] =  ((totalColumns ~ opt(noHeaderDirective | ignoreColumnNameCaseDirective)).withFailureMessage("@TotalColumns invalid") <~ (white ~ eol) ^^ {
+      case tc ~ Some(dir: NoHeaderDirective)  => new GlobalDirectives(tc, Option(dir), None)
+      case tc ~ Some(dir: IgnoreColumnNameCaseDirective) => new GlobalDirectives(tc, None, Option(dir))
+      case tc ~ None => new GlobalDirectives(tc, None, None)
+    }).withFailureMessage("@TotalColumns invalid")
+
+  def directivePrefix: Parser[Any] = "@"
+
+  def totalColumns: Parser[TotalColumnsDirective] = (("@TotalColumns" ~ white) ~> positiveNumber ^^ { posInt => TotalColumnsDirective(posInt.toInt) }).withFailureMessage("@TotalColumns invalid")
+
+  def noHeaderDirective: Parser[NoHeaderDirective] = directivePrefix ~ "NoHeader" ^^^ NoHeaderDirective()
+
+  def ignoreColumnNameCaseDirective: Parser[IgnoreColumnNameCaseDirective] = directivePrefix ~ "IgnoreColumnNameCase" ^^^ IgnoreColumnNameCaseDirective()
 
   def columnDefinitions = rep1(columnDefinition)
 
@@ -57,8 +69,8 @@ trait SchemaParser extends RegexParsers {
 
   def ignoreCase = "@IgnoreCase" ^^^ IgnoreCase()
 
-  private def createSchema: PartialFunction[~[Int, List[ColumnDefinition]], Schema] = {
-    case totalColumns ~ columnDefinitions if totalColumns == columnDefinitions.length && crossCheck(columnDefinitions).isEmpty => Schema(totalColumns, columnDefinitions)
+  private def createSchema: PartialFunction[~[GlobalDirectives, List[ColumnDefinition]], Schema] = {
+    case globalDirectives ~ columnDefinitions if globalDirectives.totalColsDir.numOfColumns == columnDefinitions.length && crossCheck(columnDefinitions).isEmpty => Schema(globalDirectives, columnDefinitions)
   }
 
   private def endOfColumnDefinition: Parser[Any] = whiteSpace ~ (eol | endOfInput | failure("Column definition contains invalid text"))

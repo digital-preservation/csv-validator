@@ -13,7 +13,8 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
   import TestSchemaParser._
 
   "Schema" should {
-
+    val globalDirsOne = GlobalDirectives(TotalColumnsDirective(1), None, None)
+    val globalDirsTwo = GlobalDirectives(TotalColumnsDirective(2), None, None)
     "fail if the total number of columns does not match the number of column definitions" in {
       val schema = """@TotalColumns 2
                       LastName: regex ("[a]")"""
@@ -32,14 +33,14 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
       val schema = """@TotalColumns 1
                       Name:"""
 
-      parse(new StringReader(schema)) must beLike { case Success(schema, _) => schema mustEqual Schema(1, List(ColumnDefinition("Name"))) }
+      parse(new StringReader(schema)) must beLike { case Success(schema, _) => schema mustEqual Schema(globalDirsOne, List(ColumnDefinition("Name"))) }
     }
 
     "succeed for column definition with single regex rule" in {
       val schema = """@TotalColumns 1
                       Age: regex ("[1-9]*")"""
 
-      parse(new StringReader(schema)) must beLike { case Success(Schema(1, List(ColumnDefinition("Age", List(RegexRule(Literal(Some(r)))), _))), _) => r mustEqual "[1-9]*" }
+      parse(new StringReader(schema)) must beLike { case Success(Schema(globalDirsOne, List(ColumnDefinition("Age", List(RegexRule(Literal(Some(r)))), _))), _) => r mustEqual "[1-9]*" }
     }
 
     "fail for more than one column definition on a line" in {
@@ -130,7 +131,7 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
                       Column1:
                       Column1:"""
 
-      parse(new StringReader(schema)) must beLike { case Success(schema, _) => schema mustEqual Schema(2, List(ColumnDefinition("Column1"), ColumnDefinition("Column1"))) }
+      parse(new StringReader(schema)) must beLike { case Success(schema, _) => schema mustEqual Schema(globalDirsTwo, List(ColumnDefinition("Column1"), ColumnDefinition("Column1"))) }
     }
 
     "succeed if Column1 correctly has InRule that points to Column2" in {
@@ -139,7 +140,7 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
                       Column2:"""
 
       parse(new StringReader(schema)) must beLike {
-        case Success(schema, _) => schema mustEqual Schema(2, List(ColumnDefinition("Column1", List(InRule(ColumnReference("Column2")))),
+        case Success(schema, _) => schema mustEqual Schema(globalDirsTwo, List(ColumnDefinition("Column1", List(InRule(ColumnReference("Column2")))),
                                                                    ColumnDefinition("Column2")))
       }
     }

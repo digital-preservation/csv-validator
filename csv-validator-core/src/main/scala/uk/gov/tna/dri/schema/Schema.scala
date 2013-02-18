@@ -2,7 +2,16 @@ package uk.gov.tna.dri.schema
 
 import uk.gov.tna.dri.metadata.Row
 
-case class Schema(totalColumns: Int, columnDefinitions: List[ColumnDefinition])
+case class Schema(globalDirectives: GlobalDirectives, columnDefinitions: List[ColumnDefinition])
+
+case class GlobalDirectives(totalColsDir: TotalColumnsDirective, headerDir: Option[NoHeaderDirective], igColNameCaseDir: Option[IgnoreColumnNameCaseDirective])
+
+trait GlobalDirective
+case class SeparatorDirective(separatorChar: Char) extends GlobalDirective
+case class QuotedDirective() extends GlobalDirective
+case class TotalColumnsDirective(numOfColumns: Int) extends GlobalDirective
+case class NoHeaderDirective() extends GlobalDirective
+case class IgnoreColumnNameCaseDirective() extends GlobalDirective
 
 case class ColumnDefinition(id: String, rules: List[Rule] = Nil, directives: List[ColumnDirective] = Nil)
 
@@ -32,3 +41,5 @@ trait ColumnDirective
 case class Optional() extends ColumnDirective
 
 case class IgnoreCase() extends ColumnDirective
+
+case class NoHeader() extends ColumnDirective
