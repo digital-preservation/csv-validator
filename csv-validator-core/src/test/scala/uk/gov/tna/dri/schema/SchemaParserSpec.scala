@@ -42,5 +42,13 @@ class SchemaParserSpec extends Specification with ParserMatchers {
         case Failure(messages, _) => messages mustEqual "Column definition contains invalid text"
       }
     }
+
+    "succeed if noHeader global directive set :" in {
+      val schema = """@TotalColumns 2 @noHeader
+                      Name :
+                      Age   :     """
+      val globalDirsTwoHeaderSet = GlobalDirectives(TotalColumnsDirective(2), Some(NoHeaderDirective()), None)
+      parse(new StringReader(schema)) must beLike { case Success(schema, _) => schema mustEqual Schema(globalDirsTwoHeaderSet, List(ColumnDefinition("Name"), ColumnDefinition("Age"))) }
+    }
   }
 }
