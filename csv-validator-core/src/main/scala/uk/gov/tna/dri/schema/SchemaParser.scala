@@ -62,12 +62,14 @@ trait SchemaParser extends RegexParsers {
 
   def inRule = "in(" ~> argProvider <~ ")" ^^ { InRule  }
 
-  def argProvider: Parser[ArgProvider] = "$" ~> """\w+""".r ^^ { s => ColumnReference(s) } | '\"' ~> """\w+""".r <~ '\"' ^^ {s => Literal(Some(s)) }
+  def argProvider: Parser[ArgProvider] = "$" ~> columnIdentifier ^^ { s => ColumnReference(s) } | '\"' ~> """\w+""".r <~ '\"' ^^ {s => Literal(Some(s)) }
 
-  def fileExistsRule = "fileExists(\"" ~> rootFilePath <~ "\")" ^^ { s => FileExistsRule(Literal(Some(s))) } |
+  def fileArgProvider: Parser[ArgProvider] = "$" ~> columnIdentifier ^^ { s => ColumnReference(s) } | '\"' ~> rootFilePath <~ '\"' ^^ {s => Literal(Some(s)) }
+
+  def fileExistsRule = ("fileExists(" ~> fileArgProvider <~ ")" ^^ { s => FileExistsRule(s) }).withFailureMessage("Column definition requires a file path") |
     "fileExists" ^^^ { FileExistsRule() } | failure("Invalid fileExists rule")
 
-  def rootFilePath: Parser[String] = """[a-zA-Z/-_\.\d\\]+""".r
+  def rootFilePath: Parser[String] = """[a-zA-Z/-_\.\d\\:]+""".r
 
   def optional = "@Optional" ^^^ Optional()
 

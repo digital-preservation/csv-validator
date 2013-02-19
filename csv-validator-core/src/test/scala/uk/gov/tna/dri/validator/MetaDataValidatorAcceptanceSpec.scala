@@ -116,6 +116,12 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
       }
     }
 
+    "ensure the file exists on the file system" in {
+      validate(basePath + "fileExistsCrossRefPassMetaData.csv", basePath + "fileExistsCrossRefSchema.txt") must beLike {
+        case Success(_) => ok
+      }
+    }
+
     "fail if the file does not exist on the file system" in {
       validate(basePath + "fileExistsPassMetaData.csv", basePath + "fileExistsSchemaWithBadBasePath.txt") must beLike {
         case Failure(errors) => errors.list mustEqual List(

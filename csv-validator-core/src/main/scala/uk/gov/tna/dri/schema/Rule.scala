@@ -51,7 +51,6 @@ case class FileExistsRule(rootPath: ArgProvider = Literal(None)) extends Rule("f
       case Some(rootPath) => new File(rootPath, filePath).exists()
       case None => new File(filePath).exists()
     }
-
     fileExists
   }
 }
