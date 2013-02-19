@@ -3,18 +3,19 @@ package uk.gov.tna.dri.schema
 import uk.gov.tna.dri.metadata.Row
 import util.parsing.input.Positional
 
-case class Schema(globalDirectives: GlobalDirectives, columnDefinitions: List[ColumnDefinition])
-
-case class GlobalDirectives(totalColumnsDirective: TotalColumnsDirective,
-                            noHeaderDirective: Option[NoHeaderDirective] = Some(NoHeaderDirective()),
-                            ignoreColumnNameCaseDirective: Option[IgnoreColumnNameCaseDirective] = None)
+case class Schema(globalDirectives: List[GlobalDirective], columnDefinitions: List[ColumnDefinition])
 
 trait GlobalDirective extends Positional
-case class SeparatorDirective(separatorChar: Char) extends GlobalDirective
-case class QuotedDirective() extends GlobalDirective
-case class TotalColumnsDirective(numOfColumns: Int) extends GlobalDirective
-case class NoHeaderDirective() extends GlobalDirective
-case class IgnoreColumnNameCaseDirective() extends GlobalDirective
+
+case class Separator(separatorChar: Char) extends GlobalDirective
+
+case class Quoted() extends GlobalDirective
+
+case class TotalColumns(numberOfColumns: Int) extends GlobalDirective
+
+case class NoHeader() extends GlobalDirective
+
+case class IgnoreColumnNameCase() extends GlobalDirective
 
 case class ColumnDefinition(id: String, rules: List[Rule] = Nil, directives: List[ColumnDirective] = Nil)
 
@@ -44,5 +45,3 @@ trait ColumnDirective
 case class Optional() extends ColumnDirective
 
 case class IgnoreCase() extends ColumnDirective
-
-case class NoHeader() extends ColumnDirective

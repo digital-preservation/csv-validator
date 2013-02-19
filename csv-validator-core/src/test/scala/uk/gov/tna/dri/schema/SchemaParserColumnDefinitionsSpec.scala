@@ -13,8 +13,9 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
   import TestSchemaParser._
 
   "Schema" should {
-    val globalDirsOne = GlobalDirectives(TotalColumnsDirective(1), None, None)
-    val globalDirsTwo = GlobalDirectives(TotalColumnsDirective(2), None, None)
+    val globalDirsOne = List(TotalColumns(1))
+    val globalDirsTwo = List(TotalColumns(2))
+
     "fail if the total number of columns does not match the number of column definitions" in {
       val schema = """@TotalColumns 2
                       LastName: regex ("[a]")"""

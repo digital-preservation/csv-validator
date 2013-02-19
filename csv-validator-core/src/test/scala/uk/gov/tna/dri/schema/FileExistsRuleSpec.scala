@@ -8,8 +8,8 @@ class FileExistsRuleSpec extends Specification{
 
   "FileExistsRule" should {
 
-    val globalDirsOne = GlobalDirectives(TotalColumnsDirective(1), None, None)
-    val globalDirsTwo = GlobalDirectives(TotalColumnsDirective(2), None, None)
+    val globalDirsOne = List(TotalColumns(1))
+    val globalDirsTwo = List(TotalColumns(2))
 
     "fail for non-existent file" in {
       FileExistsRule(Literal(None)).evaluate(0, Row(List(Cell("some/non/existent/file")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must beLike {

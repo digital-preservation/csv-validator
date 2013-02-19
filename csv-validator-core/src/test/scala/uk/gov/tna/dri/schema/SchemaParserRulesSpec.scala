@@ -12,8 +12,8 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
 
   import TestSchemaParser._
 
-  val globalDirsOne = GlobalDirectives(TotalColumnsDirective(1))
-  val globalDirsTwo = GlobalDirectives(TotalColumnsDirective(2))
+  val globalDirsOne = List(TotalColumns(1))
+  val globalDirsTwo = List(TotalColumns(2))
 
   "Schema" should {
 

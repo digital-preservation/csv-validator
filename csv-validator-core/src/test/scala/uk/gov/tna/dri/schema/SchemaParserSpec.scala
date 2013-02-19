@@ -13,8 +13,9 @@ class SchemaParserSpec extends Specification with ParserMatchers {
   import TestSchemaParser._
 
   "Schema" should {
-    val globalDirsTwo = GlobalDirectives(TotalColumnsDirective(2), None, None)
-    val globalDirsThree = GlobalDirectives(TotalColumnsDirective(3), None, None)
+    val globalDirsTwo = List(TotalColumns(2))
+    val globalDirsThree = List(TotalColumns(3))
+
     "succeed for valid minimal schema" in {
       val columnDefinitions = List(new ColumnDefinition("column1"),new ColumnDefinition("column2"),new ColumnDefinition("column3"))
 
@@ -47,7 +48,7 @@ class SchemaParserSpec extends Specification with ParserMatchers {
       val schema = """@TotalColumns 2 @noHeader
                       Name :
                       Age   :     """
-      val globalDirsTwoHeaderSet = GlobalDirectives(TotalColumnsDirective(2), Some(NoHeaderDirective()), None)
+      val globalDirsTwoHeaderSet = List(TotalColumns(2), NoHeader())
       parse(new StringReader(schema)) must beLike { case Success(schema, _) => schema mustEqual Schema(globalDirsTwoHeaderSet, List(ColumnDefinition("Name"), ColumnDefinition("Age"))) }
     }
   }

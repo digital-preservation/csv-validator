@@ -8,7 +8,7 @@ class OrRuleSpec extends Specification {
 
   "OrRule" should {
     "succeed when left rule validates" in {
-      val globalDirectives = GlobalDirectives(TotalColumnsDirective(1))
+      val globalDirectives = List(TotalColumns(1))
       val schema = Schema(globalDirectives, List(ColumnDefinition("Country")))
 
       val leftInRule = InRule(Literal(Some("Germany")))
@@ -20,7 +20,7 @@ class OrRuleSpec extends Specification {
     }
 
     "succeed when right rule validates" in {
-      val globalDirectives = GlobalDirectives(TotalColumnsDirective(1))
+      val globalDirectives = List(TotalColumns(1))
       val schema = Schema(globalDirectives, List(ColumnDefinition("Country")))
 
       val leftInRule = InRule(Literal(Some("Germany")))
@@ -32,7 +32,7 @@ class OrRuleSpec extends Specification {
     }
 
     "fail when left/right rules are invalid" in {
-      val globalDirectives = GlobalDirectives(TotalColumnsDirective(1))
+      val globalDirectives = List(TotalColumns(1))
       val schema = Schema(globalDirectives, List(ColumnDefinition("ThisOrThat")))
 
       val leftInRule = InRule(Literal(Some("This")))
@@ -46,7 +46,7 @@ class OrRuleSpec extends Specification {
     }
 
     "fail when left cross reference rule is invalid and right rule is invalid" in {
-      val globalDirectives = GlobalDirectives(TotalColumnsDirective(1))
+      val globalDirectives = List(TotalColumns(1))
       val schema = Schema(globalDirectives, List(ColumnDefinition("Country")))
 
       val leftInRule = InRule(ColumnReference("ConfigurableCountry"))
@@ -58,7 +58,7 @@ class OrRuleSpec extends Specification {
     }
 
     "succeed when 3 'or' rules valid for right rule" in {
-      val globalDirectives = GlobalDirectives(TotalColumnsDirective(1))
+      val globalDirectives = List(TotalColumns(1))
       val schema = Schema(globalDirectives, List(ColumnDefinition("Direction")))
 
       val leftInRule = InRule(Literal(Some("left")))
@@ -71,7 +71,7 @@ class OrRuleSpec extends Specification {
     }
 
     "succeed when 3 'or' rules valid for left/middle rule" in {
-      val globalDirectives = GlobalDirectives(TotalColumnsDirective(1))
+      val globalDirectives = List(TotalColumns(1))
       val schema = Schema(globalDirectives, List(ColumnDefinition("Direction")))
 
       val leftInRule = InRule(Literal(Some("left")))
@@ -84,7 +84,7 @@ class OrRuleSpec extends Specification {
     }
 
     "fail when all 3 'or' rules are invalid " in {
-      val globalDirectives = GlobalDirectives(TotalColumnsDirective(1))
+      val globalDirectives = List(TotalColumns(1))
       val schema = Schema(globalDirectives, List(ColumnDefinition("Direction")))
 
       val leftInRule = InRule(Literal(Some("left")))

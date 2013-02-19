@@ -1,8 +1,10 @@
 package uk.gov.tna.dri.schema
 
-import util.parsing.combinator._
+import scala.util.parsing.combinator._
 import java.io.Reader
-import util.Try
+import scala.util.Try
+import scala._
+import scala.Some
 
 trait SchemaParser extends RegexParsers {
 
@@ -22,27 +24,17 @@ trait SchemaParser extends RegexParsers {
 
   def parse(reader: Reader) = parseAll(schema, reader)
 
-  def schema = globalDirectives ~ columnDefinitions ^? (createSchema, {
-    case t ~ c if t.totalColumnsDirective.numOfColumns != c.length => {
-      val cross = crossCheck(c)
-      s"@TotalColumns = ${t.totalColumnsDirective.numOfColumns} but number of columns defined = ${c.length} at line: ${t.totalColumnsDirective.pos.line}, column: ${t.totalColumnsDirective.pos.column}" + (if (cross.isEmpty) "" else "\n") + cross.getOrElse("")
-    }
-    case t ~ c => crossCheck(c).getOrElse("")
-  })
+  def schema = globalDirectives ~ columnDefinitions ^? (createSchema, { case g ~ c => validationErrors(g, c) })
 
-  def globalDirectives: Parser[GlobalDirectives] =  ((positioned(totalColumns) ~ opt(noHeaderDirective | ignoreColumnNameCaseDirective)).withFailureMessage("@TotalColumns invalid") <~ (white ~ eol) ^^ {
-    case tc ~ Some(dir: NoHeaderDirective)  => new GlobalDirectives(tc, Option(dir), None)
-    case tc ~ Some(dir: IgnoreColumnNameCaseDirective) => new GlobalDirectives(tc, None, Option(dir))
-    case tc ~ None => new GlobalDirectives(tc, None, None)
-  }).withFailureMessage("@TotalColumns invalid")
+  def globalDirectives: Parser[List[GlobalDirective]] = rep(positioned(globalDirective)) <~ (whiteSpace ~ (eol | endOfInput | failure("Global directives contains invalid text")))
 
-  def directivePrefix: Parser[Any] = "@"
+  def globalDirective = totalColumns | noHeaderDirective | ignoreColumnNameCaseDirective
 
-  def totalColumns: Parser[TotalColumnsDirective] = (("@TotalColumns" ~ white) ~> positiveNumber ^^ { posInt => TotalColumnsDirective(posInt.toInt) }).withFailureMessage("@TotalColumns invalid")
+  def totalColumns: Parser[TotalColumns] = (("@TotalColumns" ~ white) ~> positiveNumber ^^ { posInt => TotalColumns(posInt.toInt) }).withFailureMessage("@TotalColumns invalid")
 
-  def noHeaderDirective: Parser[NoHeaderDirective] = directivePrefix ~ "noHeader" ^^^ NoHeaderDirective()
+  def noHeaderDirective: Parser[NoHeader] = "@noHeader" ~ white ^^^ NoHeader()
 
-  def ignoreColumnNameCaseDirective: Parser[IgnoreColumnNameCaseDirective] = directivePrefix ~ "IgnoreColumnNameCase" ^^^ IgnoreColumnNameCaseDirective()
+  def ignoreColumnNameCaseDirective: Parser[IgnoreColumnNameCase] = "@ignoreColumnNameCase" ~ white ^^^ IgnoreColumnNameCase()
 
   def columnDefinitions = rep1(columnDefinition)
 
@@ -75,8 +67,8 @@ trait SchemaParser extends RegexParsers {
 
   def ignoreCase = "@IgnoreCase" ^^^ IgnoreCase()
 
-  private def createSchema: PartialFunction[~[GlobalDirectives, List[ColumnDefinition]], Schema] = {
-    case globalDirectives ~ columnDefinitions if globalDirectives.totalColumnsDirective.numOfColumns == columnDefinitions.length && crossCheck(columnDefinitions).isEmpty => Schema(globalDirectives, columnDefinitions)
+  private def createSchema: PartialFunction[~[List[GlobalDirective], List[ColumnDefinition]], Schema] = {
+    case g ~ c if validationErrors(g, c).isEmpty => Schema(g, c)
   }
 
   private def endOfColumnDefinition: Parser[Any] = whiteSpace ~ (eol | endOfInput | failure("Column definition contains invalid text"))
@@ -92,12 +84,25 @@ trait SchemaParser extends RegexParsers {
     case Regex(_, s, _) if Try(s.r).isSuccess => RegexRule(Literal(Some(s)))
   }
 
-  def duplicateColumns(col: List[ColumnDefinition]): Map[ColumnDefinition, List[Int]] = {
+  def validationErrors(g: List[GlobalDirective], c: List[ColumnDefinition]): String = {
+    val tc: Option[TotalColumns] = g.collectFirst { case t@TotalColumns(_) => t }
+
+    val cross = crossColumnErrors(c)
+
+    if (!tc.isEmpty && tc.get.numberOfColumns != c.length) {
+      s"@TotalColumns = ${tc.get.numberOfColumns} but number of columns defined = ${c.length} at line: ${tc.get.pos.line}, column: ${tc.get.pos.column}" +
+                        (if (cross.isEmpty) "" else "\n") + cross.getOrElse("")
+    } else {
+      cross.getOrElse("")
+    }
+  }
+
+  private def duplicateColumnErrors(col: List[ColumnDefinition]): Map[ColumnDefinition, List[Int]] = {
     val columnsByColumnId = col.zipWithIndex.groupBy { case (id, pos) => id }
     columnsByColumnId.filter( _._2.length > 1 ).map { case (id,idAndPos) => (id, idAndPos.map{ case (id, pos) => pos}) }
   }
 
-  private def crossCheck(columnDefinitions: List[ColumnDefinition]): Option[String] = {
+  private def crossColumnErrors(columnDefinitions: List[ColumnDefinition]): Option[String] = {
 
     def filterRules(columnDef:ColumnDefinition ): List[Rule] = { // List of failing rules
       columnDef.rules.filter(rule => {

@@ -18,10 +18,9 @@ trait FailFastMetaDataValidator extends MetaDataValidator {
 
   def validate(csv: Reader, schema: Schema) = {
 
-
     def rowsWithHeadDirective(rows: List[Array[String]]): List[Array[String]] = {
       schema match {
-        case Schema(GlobalDirectives(_, Some(dir),_), _) => rows
+        case Schema(_, _) => rows
         case _ => rows.tail
       }
     }
@@ -43,8 +42,10 @@ trait FailFastMetaDataValidator extends MetaDataValidator {
   }
 
   private def totalColumns(row: Row, schema: Schema) = {
-    if (row.cells.length == schema.globalDirectives.totalColumnsDirective.numOfColumns) true.successNel[String]
-    else s"Expected @TotalColumns of ${schema.globalDirectives.totalColumnsDirective.numOfColumns} and found ${row.cells.length} on line ${row.lineNumber}".failNel[Any]
+    val tc: Option[TotalColumns] = schema.globalDirectives.collectFirst{ case t@TotalColumns(_) => t }
+
+    if (tc.isEmpty || tc.get.numberOfColumns == row.cells.length) true.successNel[String]
+    else s"Expected @TotalColumns of ${tc.get.numberOfColumns} and found ${row.cells.length} on line ${row.lineNumber}".failNel[Any]
   }
 
   private def rules(row: Row, schema: Schema): MetaDataValidation[Any] = {

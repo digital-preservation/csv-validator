@@ -16,10 +16,10 @@ class MetaDataValidatorSpec extends Specification {
   import TestMetaDataValidator._
 
   "Validation" should {
-    val globalDirsOne = GlobalDirectives(TotalColumnsDirective(1), Some(NoHeaderDirective()), None)
-    val globalDirsTwo = GlobalDirectives(TotalColumnsDirective(2), Some(NoHeaderDirective()), None)
-    val globalDirsThree = GlobalDirectives(TotalColumnsDirective(3), Some(NoHeaderDirective()), None)
-    val globalDirsFour = GlobalDirectives(TotalColumnsDirective(4), Some(NoHeaderDirective()), None)
+    val globalDirsOne = List(TotalColumns(1), NoHeader())
+    val globalDirsTwo = List(TotalColumns(2), NoHeader())
+    val globalDirsThree = List(TotalColumns(3), NoHeader())
+    val globalDirsFour = List(TotalColumns(4), NoHeader())
 
     "succeed for correct total columns for multiple lines" in {
       val metaData =
@@ -37,10 +37,9 @@ class MetaDataValidatorSpec extends Specification {
            col1, col2, col3"""
 
       val columnDefinitions = List(new ColumnDefinition("\"column1\""),new ColumnDefinition("\"column2\""),new ColumnDefinition("\"column3\""))
+
       validate(new StringReader(metaData), Schema(globalDirsThree, columnDefinitions)) must beLike {
-        case Failure(messages) => messages.list mustEqual List(
-          "Expected @TotalColumns of 3 and found 2 on line 2",
-          "Missing value at line: 2, column: \"column3\"")
+        case Failure(messages) => messages.list mustEqual List("Expected @TotalColumns of 3 and found 2 on line 2", "Missing value at line: 2, column: \"column3\"")
       }
     }
 
@@ -67,17 +66,6 @@ class MetaDataValidatorSpec extends Specification {
            someMore,12"""
 
       validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
-    }
-
-    "fail for @TotalColumns invalid" in {
-      val m = """c11,c12
-                |c21,c22""".stripMargin
-
-      val schema = Schema(globalDirsOne, List(ColumnDefinition("Col1")))
-
-      validate(new StringReader(m), schema) should beLike {
-        case Failure(messages) => messages.list mustEqual List("Expected @TotalColumns of 1 and found 2 on line 1", "Expected @TotalColumns of 1 and found 2 on line 2")
-      }
     }
 
     "fail for a single rule" in {
@@ -265,11 +253,14 @@ class MetaDataValidatorSpec extends Specification {
     }
 
     "succeed when first line contains invalid data and noHeader directive is missing" in {
-      val columnDefinitions = ColumnDefinition("col1") :: ColumnDefinition("col2WithRule", List(RegexRule(Literal(Some("[0-9a-z]*"))), InRule(Literal(Some("345dog"))))) :: Nil
-      val globalDirsTwoNoheader = GlobalDirectives(TotalColumnsDirective(2), None, None)
+      val columnDefinitions = ColumnDefinition("col1") ::
+                              ColumnDefinition("col2WithRule", List(RegexRule(Literal(Some("[0-9a-z]*"))), InRule(Literal(Some("dog"))))) :: Nil
+
+      val globalDirsTwoNoheader = List(TotalColumns(2))
       val schema = Schema(globalDirsTwoNoheader, columnDefinitions)
+
       val metaData =
-        """someData,thisisrubbish
+        """someData,dog
            someMore,dog"""
 
       validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
@@ -278,7 +269,8 @@ class MetaDataValidatorSpec extends Specification {
     "succeed when either side of or rule passes" in {
       val orRule = OrRule(InRule(Literal(Some("This"))), InRule(Literal(Some("That"))))
       val columnDefinitions = ColumnDefinition("ThisOrThat", List(orRule)) :: Nil
-      val schema = Schema(GlobalDirectives(TotalColumnsDirective(1)), columnDefinitions)
+      val schema = Schema(List(TotalColumns(1)), columnDefinitions)
+
       val metaData = """This
                        |That""".stripMargin
 
@@ -288,7 +280,7 @@ class MetaDataValidatorSpec extends Specification {
     "fail when neither side of or rule passes" in {
       val orRule = OrRule(InRule(Literal(Some("This"))), InRule(Literal(Some("That"))))
       val columnDefinitions = ColumnDefinition("ThisOrThat", List(orRule)) :: Nil
-      val schema = Schema(GlobalDirectives(TotalColumnsDirective(1)), columnDefinitions)
+      val schema = Schema(List(TotalColumns(1)), columnDefinitions)
       val metaData = "SomethingElse"
 
       validate(new StringReader(metaData), schema) must beLike {
@@ -299,14 +291,12 @@ class MetaDataValidatorSpec extends Specification {
     "succeed when one of 3 'or' rules passes" in {
       val orRule = OrRule(RegexRule(Literal(Some("[A-Z]+"))), OrRule(RegexRule(Literal(Some("R.*"))), InRule(Literal(Some("red")))))
       val columnDefinitions = ColumnDefinition("Red", List(orRule)) :: Nil
-      val schema = Schema(GlobalDirectives(TotalColumnsDirective(1)), columnDefinitions)
+      val schema = Schema(List(TotalColumns(1)), columnDefinitions)
+
       val metaData = """Red
                        |red""".stripMargin
 
       validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
     }
-
   }
 }
-
-

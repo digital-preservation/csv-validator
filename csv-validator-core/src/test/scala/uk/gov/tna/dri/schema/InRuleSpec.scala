@@ -7,7 +7,7 @@ import uk.gov.tna.dri.metadata.{Cell, Row}
 class InRuleSpec extends Specification {
 
   "InRule with a string literal behaviour" should  {
-    val globalDirsOne = GlobalDirectives(TotalColumnsDirective(1), None, None)
+    val globalDirsOne = List(TotalColumns(1))
 
     "succeed if inRule is embedded in value" in {
       val inRule = InRule(Literal(Some("myhello world today")))
