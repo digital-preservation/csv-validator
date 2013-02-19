@@ -33,15 +33,15 @@ class OrRuleSpec extends Specification {
 
     "fail when left/right rules are invalid" in {
       val globalDirectives = GlobalDirectives(TotalColumnsDirective(1))
-      val schema = Schema(globalDirectives, List(ColumnDefinition("Country")))
+      val schema = Schema(globalDirectives, List(ColumnDefinition("ThisOrThat")))
 
-      val leftInRule = InRule(Literal(Some("Germany")))
-      val rightInRule = InRule(Literal(Some("France")))
+      val leftInRule = InRule(Literal(Some("This")))
+      val rightInRule = InRule(Literal(Some("That")))
 
       val orRule = OrRule(leftInRule, rightInRule)
 
-      orRule.evaluate(0, Row(List(Cell("UK")), 1), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual List("or: in: Germany in: France: fails for line: 1, column: Country, value: UK")
+      orRule.evaluate(0, Row(List(Cell("SomethingElse")), 1), schema) must beLike {
+        case Failure(messages) => messages.list mustEqual List("or: in: This in: That: fails for line: 1, column: ThisOrThat, value: SomethingElse")
       }
     }
 
@@ -55,6 +55,47 @@ class OrRuleSpec extends Specification {
       val orRule = OrRule(leftInRule, rightInRule)
 
       orRule.evaluate(0, Row(List(Cell("UK")), 1), schema) must throwA[IndexOutOfBoundsException]
+    }
+
+    "succeed when 3 'or' rules valid for right rule" in {
+      val globalDirectives = GlobalDirectives(TotalColumnsDirective(1))
+      val schema = Schema(globalDirectives, List(ColumnDefinition("Direction")))
+
+      val leftInRule = InRule(Literal(Some("left")))
+      val middleInRule = InRule(Literal(Some("middle")))
+      val rightInRule = InRule(Literal(Some("right")))
+
+      val orRule =  OrRule( OrRule(leftInRule, middleInRule), rightInRule )
+
+      orRule.evaluate(0, Row(List(Cell("right")), 1), schema) mustEqual Success(true)
+    }
+
+    "succeed when 3 'or' rules valid for left/middle rule" in {
+      val globalDirectives = GlobalDirectives(TotalColumnsDirective(1))
+      val schema = Schema(globalDirectives, List(ColumnDefinition("Direction")))
+
+      val leftInRule = InRule(Literal(Some("left")))
+      val middleInRule = InRule(Literal(Some("middle")))
+      val rightInRule = InRule(Literal(Some("right")))
+
+      val orRule =  OrRule( OrRule(leftInRule, middleInRule), rightInRule )
+
+      orRule.evaluate(0, Row(List(Cell("middle")), 1), schema) mustEqual Success(true)
+    }
+
+    "fail when all 3 'or' rules are invalid " in {
+      val globalDirectives = GlobalDirectives(TotalColumnsDirective(1))
+      val schema = Schema(globalDirectives, List(ColumnDefinition("Direction")))
+
+      val leftInRule = InRule(Literal(Some("left")))
+      val middleInRule = InRule(Literal(Some("middle")))
+      val rightInRule = InRule(Literal(Some("right")))
+
+      val orRule =  OrRule( OrRule(leftInRule, middleInRule), rightInRule )
+
+      orRule.evaluate(0, Row(List(Cell("up")), 1), schema) must beLike {
+        case Failure(messages) => messages.list mustEqual List("or: or:  in: right: fails for line: 1, column: Direction, value: up")
+      }
     }
   }
 }

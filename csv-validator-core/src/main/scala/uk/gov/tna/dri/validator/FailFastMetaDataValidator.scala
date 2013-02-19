@@ -28,7 +28,7 @@ trait FailFastMetaDataValidator extends MetaDataValidator {
 
     val csvRows = rowsWithHeadDirective(new CSVReader(csv).readAll().toList)
 
-    val rows = csvRows.zipWithIndex.map(r => Row(r._1.toList.map(Cell(_)), r._2 + 1))
+    val rows = csvRows.map(_.toList).zipWithIndex.map(r => Row(r._1.map(Cell(_)), r._2 + 1))
 
     def validateRows(rows: List[Row]): MetaDataValidation[Any] = rows match {
       case r :: tail =>  validateRow(r, schema).fold(e => e.fail[Any], s => validateRows(tail))

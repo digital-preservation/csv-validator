@@ -6,7 +6,7 @@ import util.parsing.input.Positional
 case class Schema(globalDirectives: GlobalDirectives, columnDefinitions: List[ColumnDefinition])
 
 case class GlobalDirectives(totalColumnsDirective: TotalColumnsDirective,
-                            noHeaderDirective: Option[NoHeaderDirective] = None,
+                            noHeaderDirective: Option[NoHeaderDirective] = Some(NoHeaderDirective()),
                             ignoreColumnNameCaseDirective: Option[IgnoreColumnNameCaseDirective] = None)
 
 trait GlobalDirective extends Positional

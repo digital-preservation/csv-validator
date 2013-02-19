@@ -275,6 +275,37 @@ class MetaDataValidatorSpec extends Specification {
       validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
     }
 
+    "succeed when either side of or rule passes" in {
+      val orRule = OrRule(InRule(Literal(Some("This"))), InRule(Literal(Some("That"))))
+      val columnDefinitions = ColumnDefinition("ThisOrThat", List(orRule)) :: Nil
+      val schema = Schema(GlobalDirectives(TotalColumnsDirective(1)), columnDefinitions)
+      val metaData = """This
+                       |That""".stripMargin
+
+      validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
+    }
+
+    "fail when neither side of or rule passes" in {
+      val orRule = OrRule(InRule(Literal(Some("This"))), InRule(Literal(Some("That"))))
+      val columnDefinitions = ColumnDefinition("ThisOrThat", List(orRule)) :: Nil
+      val schema = Schema(GlobalDirectives(TotalColumnsDirective(1)), columnDefinitions)
+      val metaData = "SomethingElse"
+
+      validate(new StringReader(metaData), schema) must beLike {
+        case Failure(messages) => messages.list mustEqual List("or: in: This in: That: fails for line: 1, column: ThisOrThat, value: SomethingElse")
+      }
+    }
+
+    "succeed when one of 3 'or' rules passes" in {
+      val orRule = OrRule(RegexRule(Literal(Some("[A-Z]+"))), OrRule(RegexRule(Literal(Some("R.*"))), InRule(Literal(Some("red")))))
+      val columnDefinitions = ColumnDefinition("Red", List(orRule)) :: Nil
+      val schema = Schema(GlobalDirectives(TotalColumnsDirective(1)), columnDefinitions)
+      val metaData = """Red
+                       |red""".stripMargin
+
+      validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
+    }
+
   }
 }
 
