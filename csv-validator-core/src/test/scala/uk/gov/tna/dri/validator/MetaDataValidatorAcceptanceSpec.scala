@@ -168,4 +168,31 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
       }
     }
   }*/
+
+  "An 'or' rule" should {
+
+    "succeed if either the lhs or rhs succeeds" in {
+      validate(basePath + "orWithTwoRulesPassMetaData.csv", basePath + "orWithTwoRulesSchema.txt") must beLike {
+        case Success(_) => ok
+      }
+    }
+
+    "fail if both the lhs or rhs are fail" in {
+      validate(basePath + "orWithTwoRulesFailMetaData.csv", basePath + "orWithTwoRulesSchema.txt") must beLike {
+        case Failure(errors) => errors.list mustEqual List("""regex("[A-Z][a-z]+") or regex("[0-9]+") fails for line: 4, column: CountryOrCountryCode, value: @@£$%^""")
+      }
+    }
+
+    "succeed for 2 'or' rules with an 'and' rule" in {
+      validate(basePath + "orWithFourRulesPassMetaData.csv", basePath + "orWithFourRulesSchema.txt") must beLike {
+        case Success(_) => ok
+      }
+    }
+
+    "fail if 'or' rules pass and 'and' rule fails" in {
+      validate(basePath + "orWithFourRulesFailMetaData.csv", basePath + "orWithFourRulesSchema.txt") must beLike {
+        case Failure(errors) => errors.list mustEqual List("""regex("[A-Z].+") fails for line: 2, column: Country, value: ngland""")
+      }
+    }
+  }
 }

@@ -46,7 +46,7 @@ trait SchemaParser extends RegexParsers {
 
   def unaryRule = regex | inRule | fileExistsRule | failure("Invalid rule")
 
-  def orRule = unaryRule ~ "or" ~ unaryRule ^^ { case lhs ~ _ ~ rhs => OrRule(lhs, rhs) }
+  def orRule: Parser[OrRule] = unaryRule ~ "or" ~ rule  ^^ { case lhs ~ _ ~ rhs => OrRule(lhs, rhs) }
 
   def columnDirective = positioned(optional | ignoreCase)
 

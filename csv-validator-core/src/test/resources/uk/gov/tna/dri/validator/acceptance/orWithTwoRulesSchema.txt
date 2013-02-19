@@ -1,0 +1,3 @@
+@TotalColumns 2
+Name:
+CountryOrCountryCode: regex("[A-Z][a-z]+") or regex("[0-9]+")

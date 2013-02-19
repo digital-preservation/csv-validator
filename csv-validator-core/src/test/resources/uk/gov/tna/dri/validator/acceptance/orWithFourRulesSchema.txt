@@ -1,0 +1,3 @@
+@TotalColumns 2
+Name:
+Country: in("EnglandUkBritain") or in("France") or in("Germany") regex("[A-Z].+")

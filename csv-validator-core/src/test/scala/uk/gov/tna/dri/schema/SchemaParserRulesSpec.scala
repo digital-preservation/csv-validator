@@ -159,5 +159,18 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
 
       parse(new StringReader(schema)) must beLike { case Failure("Column definition contains invalid text", _) => ok }
     }
+
+    "succeed for two 'or' rules" in {
+      val schema =
+        """@TotalColumns 1
+           Country: in("UK") or in("England") or in("France")"""
+
+      parse(new StringReader(schema)) must beLike {
+        case Success(Schema(globalDirsOne, List(ColumnDefinition("Country",
+        List( OrRule(InRule(Literal(Some("UK"))),
+              OrRule(InRule(Literal(Some("England"))), InRule(Literal(Some("France")))))  ), _))), _) => ok
+      }
+    }
+
   }
 }
