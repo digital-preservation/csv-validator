@@ -43,8 +43,10 @@ case class Literal(value: Option[String]) extends ArgProvider {
   def toError = if (value.isDefined) "(\"" + value.get +"\")" else ""
 }
 
-trait ColumnDirective
+trait ColumnDirective extends Positional
 
 case class Optional() extends ColumnDirective
 
-case class IgnoreCase() extends ColumnDirective
+case class IgnoreCase() extends ColumnDirective  {
+  override def toString(): String = "IgnoreCase"
+}

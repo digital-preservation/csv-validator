@@ -48,7 +48,7 @@ trait SchemaParser extends RegexParsers {
 
   def orRule = unaryRule ~ "or" ~ unaryRule ^^ { case lhs ~ _ ~ rhs => OrRule(lhs, rhs) }
 
-  def columnDirective = optional | ignoreCase
+  def columnDirective = positioned(optional | ignoreCase)
 
   def regex = "regex" ~> regexParser ^? (validateRegex, s => s"regex invalid: ${s}") | failure("Invalid regex rule")
 
@@ -87,19 +87,32 @@ trait SchemaParser extends RegexParsers {
   def validationErrors(g: List[GlobalDirective], c: List[ColumnDefinition]): String = {
     val tc: Option[TotalColumns] = g.collectFirst { case t@TotalColumns(_) => t }
 
+    val columnDirectives = columnDirectiveErrors(c)
     val cross = crossColumnErrors(c)
 
     if (!tc.isEmpty && tc.get.numberOfColumns != c.length) {
       s"@TotalColumns = ${tc.get.numberOfColumns} but number of columns defined = ${c.length} at line: ${tc.get.pos.line}, column: ${tc.get.pos.column}" +
                         (if (cross.isEmpty) "" else "\n") + cross.getOrElse("")
     } else {
-      cross.getOrElse("")
+      columnDirectives.getOrElse("") + cross.getOrElse("")
     }
   }
 
   private def duplicateColumnErrors(col: List[ColumnDefinition]): Map[ColumnDefinition, List[Int]] = {
-    val columnsByColumnId = col.zipWithIndex.groupBy { case (id, pos) => id }
+    val columnsByColumnId = col.zipWithIndex.groupBy { _._1 }
     columnsByColumnId.filter( _._2.length > 1 ).map { case (id,idAndPos) => (id, idAndPos.map{ case (id, pos) => pos}) }
+  }
+
+  private def columnDirectiveErrors(col: List[ColumnDefinition]): Option[String] = {
+    val v = for {
+      colDef <- col
+      if (colDef.directives.distinct.length != colDef.directives.length)
+    } yield {
+      s"${colDef.id}: Duplicated column directives: " +
+       colDef.directives.groupBy(identity).filter(p => p._2.size > 1).map(p => "@" +p._1 + s" at line: ${p._1.pos.line}, column: ${p._1.pos.column}").mkString(",")
+    }
+
+    if (v.isEmpty) None else Some(v.mkString)
   }
 
   private def crossColumnErrors(columnDefinitions: List[ColumnDefinition]): Option[String] = {
