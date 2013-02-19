@@ -41,7 +41,7 @@ class OrRuleSpec extends Specification {
       val orRule = OrRule(leftInRule, rightInRule)
 
       orRule.evaluate(0, Row(List(Cell("SomethingElse")), 1), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual List("or: in: This in: That: fails for line: 1, column: ThisOrThat, value: SomethingElse")
+        case Failure(messages) => messages.list mustEqual List("""in("This") or in("That") fails for line: 1, column: ThisOrThat, value: SomethingElse""")
       }
     }
 
@@ -94,7 +94,7 @@ class OrRuleSpec extends Specification {
       val orRule =  OrRule( OrRule(leftInRule, middleInRule), rightInRule )
 
       orRule.evaluate(0, Row(List(Cell("up")), 1), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual List("or: or:  in: right: fails for line: 1, column: Direction, value: up")
+        case Failure(messages) => messages.list mustEqual List("""in("left") or in("middle") or in("right") fails for line: 1, column: Direction, value: up""")
       }
     }
   }

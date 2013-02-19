@@ -22,11 +22,10 @@ abstract class Rule(val name: String, argProvider: ArgProvider = Literal(None)) 
 
   def fail(ruleValue: Option[String], columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
     val columnDefinition = schema.columnDefinitions(columnIndex)
-    val rv = ruleValue.isEmpty.fold("", " " + ruleValue.get)
-    s"${name}:${rv} fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
+    s"${toError} fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
   }
 
-  def toError = s"""${name}: ${argProvider.argValue.getOrElse("")}"""
+  def toError = s"""${name}${argProvider.toError}"""
 }
 
 case class InRule(inValue: ArgProvider) extends Rule("in", inValue) {
@@ -66,10 +65,7 @@ case class OrRule(left: Rule, right: Rule) extends Rule("or") {
     }
   }
 
-  override def fail(ruleValue: Option[String], columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
-    val columnDefinition = schema.columnDefinitions(columnIndex)
-    s"${name}: ${left.toError} ${right.toError}: fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
-  }
-
   def pass(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = true
+
+  override def toError = s"""${left.toError} ${name} ${right.toError}"""
 }

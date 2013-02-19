@@ -66,7 +66,7 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
                     |Column2:""".stripMargin
 
       parse(new StringReader(schema)) must beLike {
-        case Failure(message, _) => message mustEqual "Column: Column1 has invalid cross reference in: NotAColumn at line: 2, column: 10"
+        case Failure(message, _) => message mustEqual "Column: Column1 has invalid cross reference in($NotAColumn) at line: 2, column: 10"
       }
     }
 
@@ -76,7 +76,7 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
                     |Column2:""".stripMargin
 
       parse(new StringReader(schema)) must beLike {
-        case Failure(message, _) => message mustEqual "Column: Column1 has invalid cross reference in: NotAColumn2 at line: 2, column: 23"
+        case Failure(message, _) => message mustEqual "Column: Column1 has invalid cross reference in($NotAColumn2) at line: 2, column: 23"
       }
     }
 
@@ -86,7 +86,7 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
                      Column2:"""
 
       parse(new StringReader(schema)) must beLike {
-        case Failure(message, _) => message mustEqual "Column: Column1 has invalid cross references in: NotAColumn1 at line: 2, column: 31, in: NotAColumn2 at line: 2, column: 48"
+        case Failure(message, _) => message mustEqual """Column: Column1 has invalid cross references in($NotAColumn1) at line: 2, column: 31, in($NotAColumn2) at line: 2, column: 48"""
       }
     }
 
@@ -97,8 +97,8 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
 
       parse(new StringReader(schema)) must beLike {
         case Failure(message, _) => message mustEqual
-          """Column: Column1 has invalid cross reference in: NotAColumn2 at line: 2, column: 23
-            |Column: Column2 has invalid cross reference in: NotAColumn3 at line: 3, column: 10""".stripMargin
+          """Column: Column1 has invalid cross reference in($NotAColumn2) at line: 2, column: 23
+            |Column: Column2 has invalid cross reference in($NotAColumn3) at line: 3, column: 10""".stripMargin
       }
     }
 
@@ -146,8 +146,8 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
 
       parse(new StringReader(schema)) must beLike {
         case Failure(message, _) => message mustEqual
-          """Column: Age has invalid cross reference in: Blah at line: 2, column: 6
-            |Column: Country has invalid cross reference in: Boo at line: 3, column: 10""".stripMargin
+          """Column: Age has invalid cross reference in($Blah) at line: 2, column: 6
+            |Column: Country has invalid cross reference in($Boo) at line: 3, column: 10""".stripMargin
       }
     }
   }

@@ -35,8 +35,8 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
     "all be reported" in {
       validate(basePath + "multipleErrorsMetaData.csv", basePath + "regexRuleSchemaWithNoHeaderSet.txt") must beLike {
         case Failure(errors) => errors.list mustEqual List(
-          "regex: [0-9]+ fails for line: 1, column: Age, value: twenty",
-          "regex: [0-9]+ fails for line: 2, column: Age, value: thirty")
+          """regex("[0-9]+") fails for line: 1, column: Age, value: twenty""",
+          """regex("[0-9]+") fails for line: 2, column: Age, value: thirty""")
       }
     }
   }
@@ -51,10 +51,10 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
     "fail when rules fail for all permutations" in {
       validate(basePath + "twoRulesFailMetaData.csv", basePath + "twoRuleSchemaFail.txt") must beLike {
         case Failure(errors) => errors.list mustEqual List(
-          "in: ben parker fails for line: 1, column: Name, value: Ben",
-          "regex: [a-z]+ fails for line: 1, column: Name, value: Ben",
-          "in: david ainslie fails for line: 2, column: Name, value: Dave",
-          "regex: [a-z]+ fails for line: 2, column: Name, value: Dave")
+          """in($FullName) fails for line: 1, column: Name, value: Ben""",
+          """regex("[a-z]+") fails for line: 1, column: Name, value: Ben""",
+          """in($FullName) fails for line: 2, column: Name, value: Dave""",
+          """regex("[a-z]+") fails for line: 2, column: Name, value: Dave""")
       }
     }
   }
@@ -69,8 +69,8 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
     "fail if the column value is not in the rule's literal string" in {
       validate(basePath + "inRuleFailMetaData.csv", basePath + "inRuleSchema.txt") must beLike {
         case Failure(errors) => errors.list mustEqual List(
-          "in: thevaluemustbeinthisstring fails for line: 1, column: SomeInRule, value: valuenotinrule",
-          "in: thevaluemustbeinthisstring fails for line: 3, column: SomeInRule, value: thisonewillfailtoo")
+          """in("thevaluemustbeinthisstring") fails for line: 1, column: SomeInRule, value: valuenotinrule""",
+          """in("thevaluemustbeinthisstring") fails for line: 3, column: SomeInRule, value: thisonewillfailtoo""")
       }
     }
 
@@ -82,7 +82,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
 
     "fail if the column value is not in the rule's cross referenced column" in {
       validate(basePath + "inRuleCrossReferenceFailMetaData.csv", basePath + "inRuleCrossReferenceSchema.txt") must beLike {
-        case Failure(errors) => errors.list mustEqual List("in: David Ainslie fails for line: 2, column: FirstName, value: Dave")
+        case Failure(errors) => errors.list mustEqual List("""in($FullName) fails for line: 2, column: FirstName, value: Dave""")
       }
     }
   }
@@ -96,7 +96,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
 
     "fail if a non empty value fails a rule" in {
       validate(basePath + "optionalFailMetaData.csv", basePath + "optionalSchema.txt") must beLike {
-        case Failure(errors) => errors.list mustEqual List("in: Benjamin Parker fails for line: 1, column: Name, value: BP")
+        case Failure(errors) => errors.list mustEqual List("in($FullName) fails for line: 1, column: Name, value: BP")
       }
     }
   }
@@ -125,8 +125,8 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
     "fail if the file does not exist on the file system" in {
       validate(basePath + "fileExistsPassMetaData.csv", basePath + "fileExistsSchemaWithBadBasePath.txt") must beLike {
         case Failure(errors) => errors.list mustEqual List(
-          "fileExists: src/test/resources/uk/gov/tna/dri fails for line: 1, column: PasswordFile, value: benPass.txt",
-          "fileExists: src/test/resources/uk/gov/tna/dri fails for line: 2, column: PasswordFile, value: andyPass.txt")
+          """fileExists("src/test/resources/uk/gov/tna/dri") fails for line: 1, column: PasswordFile, value: benPass.txt""",
+          """fileExists("src/test/resources/uk/gov/tna/dri") fails for line: 2, column: PasswordFile, value: andyPass.txt""")
       }
     }
   }
@@ -142,7 +142,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
 
     "only report first rule fail for multiple rules on a column" in {
       app.validate(basePath + "rulesFailMetaData.csv", basePath + "rulesSchema.txt") must beLike {
-        case Failure(errors) => errors.list mustEqual List("regex: [A-Z][a-z]+ fails for line: 2, column: Name, value: ben")
+        case Failure(errors) => errors.list mustEqual List("""regex("[A-Z][a-z]+") fails for line: 2, column: Name, value: ben""")
       }
     }
 

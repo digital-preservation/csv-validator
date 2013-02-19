@@ -125,11 +125,11 @@ trait SchemaParser extends RegexParsers {
 
     def crossReferenceErrors(rules: List[Rule]): String = {
       val errors = rules.map {
-        case rule: InRule => s""" ${rule.name}: ${rule.inValue.argValue.getOrElse("")} at line: ${rule.pos.line}, column: ${rule.pos.column}"""
+        case rule: InRule => s"""${rule.toError} at line: ${rule.pos.line}, column: ${rule.pos.column}"""
         case _ => ""
       }.filter(!_.isEmpty)
 
-      (if (errors.length == 1) "cross reference" else "cross references") + errors.mkString(",")
+      (if (errors.length == 1) "cross reference " else "cross references ") + errors.mkString(", ")
     }
 
     val errors = columnDefinitions.map(columnDef => (columnDef, filterRules(columnDef))).filter(x => x._2.length > 0)

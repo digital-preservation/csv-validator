@@ -13,13 +13,13 @@ class FileExistsRuleSpec extends Specification{
 
     "fail for non-existent file" in {
       FileExistsRule(Literal(None)).evaluate(0, Row(List(Cell("some/non/existent/file")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must beLike {
-        case Failure(messages) => messages.head mustEqual "fileExists: fails for line: 1, column: column1, value: some/non/existent/file"
+        case Failure(messages) => messages.head mustEqual "fileExists fails for line: 1, column: column1, value: some/non/existent/file"
       }
     }
 
     "fail for empty file path" in {
       FileExistsRule(Literal(None)).evaluate(1, Row(List(Cell("abc"), Cell("")), 2), Schema(globalDirsTwo, List(ColumnDefinition("column1"), ColumnDefinition("column2")))) must beLike {
-        case Failure(messages) => messages.head mustEqual "fileExists: fails for line: 2, column: column2, value: "
+        case Failure(messages) => messages.head mustEqual "fileExists fails for line: 2, column: column2, value: "
       }
     }
 
