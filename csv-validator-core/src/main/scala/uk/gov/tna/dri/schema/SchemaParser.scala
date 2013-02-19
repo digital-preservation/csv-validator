@@ -109,7 +109,7 @@ trait SchemaParser extends RegexParsers {
       if (colDef.directives.distinct.length != colDef.directives.length)
     } yield {
       s"${colDef.id}: Duplicated column directives: " +
-       colDef.directives.groupBy(identity).filter(p => p._2.size > 1).map(p => "@" +p._1 + s" at line: ${p._1.pos.line}, column: ${p._1.pos.column}").mkString(",")
+       colDef.directives.groupBy(identity).filter(p => p._2.size > 1).map(p => "@" + p._1 + s" at line: ${p._1.pos.line}, column: ${p._1.pos.column}").mkString(",")
     }
 
     if (v.isEmpty) None else Some(v.mkString)
