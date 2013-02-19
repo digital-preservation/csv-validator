@@ -25,16 +25,16 @@ trait SchemaParser extends RegexParsers {
   def schema = globalDirectives ~ columnDefinitions ^? (createSchema, {
     case t ~ c if t.totalColumnsDirective.numOfColumns != c.length => {
       val cross = crossCheck(c)
-      s"@TotalColumns = ${t.totalColumnsDirective.numOfColumns} but number of columns defined = ${c.length}" + (if (cross.isEmpty) "" else "\n") + cross.getOrElse("")
+      s"@TotalColumns = ${t.totalColumnsDirective.numOfColumns} but number of columns defined = ${c.length} at line: ${t.totalColumnsDirective.pos.line}, column: ${t.totalColumnsDirective.pos.column}" + (if (cross.isEmpty) "" else "\n") + cross.getOrElse("")
     }
     case t ~ c => crossCheck(c).getOrElse("")
   })
 
-  def globalDirectives: Parser[GlobalDirectives] =  ((totalColumns ~ opt(noHeaderDirective | ignoreColumnNameCaseDirective)).withFailureMessage("@TotalColumns invalid") <~ (white ~ eol) ^^ {
-      case tc ~ Some(dir: NoHeaderDirective)  => new GlobalDirectives(tc, Option(dir), None)
-      case tc ~ Some(dir: IgnoreColumnNameCaseDirective) => new GlobalDirectives(tc, None, Option(dir))
-      case tc ~ None => new GlobalDirectives(tc, None, None)
-    }).withFailureMessage("@TotalColumns invalid")
+  def globalDirectives: Parser[GlobalDirectives] =  ((positioned(totalColumns) ~ opt(noHeaderDirective | ignoreColumnNameCaseDirective)).withFailureMessage("@TotalColumns invalid") <~ (white ~ eol) ^^ {
+    case tc ~ Some(dir: NoHeaderDirective)  => new GlobalDirectives(tc, Option(dir), None)
+    case tc ~ Some(dir: IgnoreColumnNameCaseDirective) => new GlobalDirectives(tc, None, Option(dir))
+    case tc ~ None => new GlobalDirectives(tc, None, None)
+  }).withFailureMessage("@TotalColumns invalid")
 
   def directivePrefix: Parser[Any] = "@"
 
@@ -50,9 +50,9 @@ trait SchemaParser extends RegexParsers {
     case id ~ rules ~ columnDirectives => ColumnDefinition(id, rules, columnDirectives)
   }
 
-  def rule = orRule | unaryRule
+  def rule = positioned(orRule | unaryRule)
 
-  def unaryRule = regex | inRule| fileExistsRule | failure("Invalid rule")
+  def unaryRule = regex | inRule | fileExistsRule | failure("Invalid rule")
 
   def orRule = unaryRule ~ "or" ~ unaryRule ^^ { case lhs ~ _ ~ rhs => OrRule(lhs, rhs) }
 
@@ -65,7 +65,7 @@ trait SchemaParser extends RegexParsers {
   def argProvider: Parser[ArgProvider] = "$" ~> """\w+""".r ^^ { s => ColumnReference(s) } | '\"' ~> """\w+""".r <~ '\"' ^^ {s => Literal(Some(s)) }
 
   def fileExistsRule = "fileExists(\"" ~> rootFilePath <~ "\")" ^^ { s => FileExistsRule(Literal(Some(s))) } |
-                       "fileExists" ^^^ { FileExistsRule() } | failure("Invalid fileExists rule")
+    "fileExists" ^^^ { FileExistsRule() } | failure("Invalid fileExists rule")
 
   def rootFilePath: Parser[String] = """[a-zA-Z/-_\.\d\\]+""".r
 
@@ -88,6 +88,11 @@ trait SchemaParser extends RegexParsers {
 
   private def validateRegex: PartialFunction[String, RegexRule] = {
     case Regex(_, s, _) if Try(s.r).isSuccess => RegexRule(Literal(Some(s)))
+  }
+
+  def duplicateColumns(col: List[ColumnDefinition]): Map[ColumnDefinition, List[Int]] = {
+    val columnsByColumnId = col.zipWithIndex.groupBy { case (id, pos) => id }
+    columnsByColumnId.filter( _._2.length > 1 ).map { case (id,idAndPos) => (id, idAndPos.map{ case (id, pos) => pos}) }
   }
 
   private def crossCheck(columnDefinitions: List[ColumnDefinition]): Option[String] = {
@@ -113,7 +118,7 @@ trait SchemaParser extends RegexParsers {
 
     def crossReferenceErrors(rules: List[Rule]): String = {
       val errors = rules.map {
-        case rule: InRule => s""" ${rule.name}: ${rule.inValue.argValue.getOrElse("")}"""
+        case rule: InRule => s""" ${rule.name}: ${rule.inValue.argValue.getOrElse("")} at line: ${rule.pos.line}, column: ${rule.pos.column}"""
         case _ => ""
       }.filter(!_.isEmpty)
 

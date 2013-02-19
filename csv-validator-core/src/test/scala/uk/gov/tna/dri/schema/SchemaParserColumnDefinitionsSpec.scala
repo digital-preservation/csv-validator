@@ -19,7 +19,7 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
       val schema = """@TotalColumns 2
                       LastName: regex ("[a]")"""
 
-      parse(new StringReader(schema)) must beLike { case Failure(message, _) => message mustEqual "@TotalColumns = 2 but number of columns defined = 1" }
+      parse(new StringReader(schema)) must beLike { case Failure(message, _) => message mustEqual "@TotalColumns = 2 but number of columns defined = 1 at line: 1, column: 1" }
     }
 
     "fail for invalid column identifier" in {
@@ -59,32 +59,23 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
       parse(new StringReader(schema)) must beLike { case Failure(message, _) => message mustEqual "Column definition contains invalid text" }
     }
 
-    "fail for invalid column identifier as 'stripMargin' just to prove that only numbers, letters and underscore are allowed as part of a column identifier" in {
-      val schema = """@TotalColumns 2
-                      |Name :"""
-
-      parse(new StringReader(schema)) must beLike {
-        case Failure(message, _) => message mustEqual "Column identifier invalid"
-      }
-    }
-
     "fail when one invalid column reference" in {
       val schema ="""@TotalColumns 2
-                     Column1: in($NotAColumn)
-                     Column2:"""
+                    |Column1: in($NotAColumn)
+                    |Column2:""".stripMargin
 
       parse(new StringReader(schema)) must beLike {
-        case Failure(message, _) => message mustEqual "Column: Column1 has invalid cross reference in: NotAColumn"
+        case Failure(message, _) => message mustEqual "Column: Column1 has invalid cross reference in: NotAColumn at line: 2, column: 10"
       }
     }
 
     "fail when there are two rules and one is invalid" in {
       val schema ="""@TotalColumns 2
-                     Column1: in($Column2) in($NotAColumn2)
-                     Column2:"""
+                    |Column1: in($Column2) in($NotAColumn2)
+                    |Column2:""".stripMargin
 
       parse(new StringReader(schema)) must beLike {
-        case Failure(message, _) => message mustEqual "Column: Column1 has invalid cross reference in: NotAColumn2"
+        case Failure(message, _) => message mustEqual "Column: Column1 has invalid cross reference in: NotAColumn2 at line: 2, column: 23"
       }
     }
 
@@ -94,17 +85,19 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
                      Column2:"""
 
       parse(new StringReader(schema)) must beLike {
-        case Failure(message, _) => message mustEqual "Column: Column1 has invalid cross references in: NotAColumn1, in: NotAColumn2"
+        case Failure(message, _) => message mustEqual "Column: Column1 has invalid cross references in: NotAColumn1 at line: 2, column: 31, in: NotAColumn2 at line: 2, column: 48"
       }
     }
 
     "fail when two columns have two rules and each has one invalid column" in {
       val schema ="""@TotalColumns 2
-                     Column1: in($Column2) in($NotAColumn2)
-                     Column2: in($NotAColumn3) in($Column2)"""
+                    |Column1: in($Column2) in($NotAColumn2)
+                    |Column2: in($NotAColumn3) in($Column2)""".stripMargin
 
       parse(new StringReader(schema)) must beLike {
-        case Failure(message, _) => message mustEqual "Column: Column1 has invalid cross reference in: NotAColumn2\nColumn: Column2 has invalid cross reference in: NotAColumn3"
+        case Failure(message, _) => message mustEqual
+          """Column: Column1 has invalid cross reference in: NotAColumn2 at line: 2, column: 23
+            |Column: Column2 has invalid cross reference in: NotAColumn3 at line: 3, column: 10""".stripMargin
       }
     }
 
@@ -141,17 +134,19 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
 
       parse(new StringReader(schema)) must beLike {
         case Success(schema, _) => schema mustEqual Schema(globalDirsTwo, List(ColumnDefinition("Column1", List(InRule(ColumnReference("Column2")))),
-                                                                   ColumnDefinition("Column2")))
+                                                                               ColumnDefinition("Column2")))
       }
     }
 
     "fail for invalid column cross references" in {
       val schema ="""@TotalColumns 2
-                     Age: in($Blah) regex ("[0-9]+")
-                     Country: in($Boo)"""
+                    |Age: in($Blah) regex ("[0-9]+")
+                    |Country: in($Boo)""".stripMargin
 
       parse(new StringReader(schema)) must beLike {
-        case Failure(message, _) => message mustEqual "Column: Age has invalid cross reference in: Blah\nColumn: Country has invalid cross reference in: Boo"
+        case Failure(message, _) => message mustEqual
+          """Column: Age has invalid cross reference in: Blah at line: 2, column: 6
+            |Column: Country has invalid cross reference in: Boo at line: 3, column: 10""".stripMargin
       }
     }
   }

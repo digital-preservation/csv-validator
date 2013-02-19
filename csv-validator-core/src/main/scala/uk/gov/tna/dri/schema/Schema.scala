@@ -1,6 +1,7 @@
 package uk.gov.tna.dri.schema
 
 import uk.gov.tna.dri.metadata.Row
+import util.parsing.input.Positional
 
 case class Schema(globalDirectives: GlobalDirectives, columnDefinitions: List[ColumnDefinition])
 
@@ -8,7 +9,7 @@ case class GlobalDirectives(totalColumnsDirective: TotalColumnsDirective,
                             noHeaderDirective: Option[NoHeaderDirective] = None,
                             ignoreColumnNameCaseDirective: Option[IgnoreColumnNameCaseDirective] = None)
 
-trait GlobalDirective
+trait GlobalDirective extends Positional
 case class SeparatorDirective(separatorChar: Char) extends GlobalDirective
 case class QuotedDirective() extends GlobalDirective
 case class TotalColumnsDirective(numOfColumns: Int) extends GlobalDirective

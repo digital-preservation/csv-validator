@@ -45,7 +45,7 @@ class OrRuleSpec extends Specification {
       }
     }
 
-    /*"fail when left cross reference rule is invalid and right rule is invalid" in {
+    "fail when left cross reference rule is invalid and right rule is invalid" in {
       val globalDirectives = GlobalDirectives(TotalColumnsDirective(1))
       val schema = Schema(globalDirectives, List(ColumnDefinition("Country")))
 
@@ -54,9 +54,7 @@ class OrRuleSpec extends Specification {
 
       val orRule = OrRule(leftInRule, rightInRule)
 
-      orRule.evaluate(0, Row(List(Cell("UK")), 1), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual List("or: in: ConfigurableCountry in: France: fails for line: 1, column: Country, value: UK")
-      }
-    }*/
+      orRule.evaluate(0, Row(List(Cell("UK")), 1), schema) must throwA[IndexOutOfBoundsException]
+    }
   }
 }

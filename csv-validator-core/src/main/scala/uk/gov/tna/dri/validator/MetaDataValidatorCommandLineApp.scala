@@ -1,7 +1,7 @@
 package uk.gov.tna.dri.validator
 
 import java.io.{FileReader, File}
-import uk.gov.tna.dri.schema.{SchemaValidator, Schema, SchemaParser}
+import uk.gov.tna.dri.schema.{Schema, SchemaParser}
 import scalaz.{Success => SuccessZ, Failure => FailureZ, _}
 import Scalaz._
 import scala.App
@@ -61,7 +61,7 @@ object MetaDataValidatorCommandLineApp extends App with SchemaParser {
   type AppValidation[S] = ValidationNEL[String, S]
 }
 
-trait MetaDataValidatorApp extends SchemaParser with SchemaValidator {
+trait MetaDataValidatorApp extends SchemaParser {
   this: MetaDataValidator =>
 
   def validate(metaDataFile: String, schemaFile: String): MetaDataValidation[Any] = {
@@ -71,17 +71,11 @@ trait MetaDataValidatorApp extends SchemaParser with SchemaValidator {
     }
   }
 
-  private def parseSchema(schemaFilePath: String): SchemaValidation[Schema] = {
+  private def parseSchema(schemaFilePath: String): ValidationNEL[String, Schema] = {
     parse(new FileReader(schemaFilePath)) match {
-      case Success(schema: Schema, _) =>  validateSchema(schema)
-      case NoSuccess(message, next) => s"Schema Parse Error:\n${message} at line: ${next.pos.line}, column: ${next.pos.column}".failNel[Schema]
-    }
-  }
-
-  private def validateSchema(schema:Schema): SchemaValidation[Schema] = {
-    validate(schema) match {
-      case FailureZ(errors) => errors.fail[Schema]
-      case SuccessZ(_) => schema.successNel[String]
+      case Success(schema: Schema, _) => schema.successNel[String]
+      // case NoSuccess(message, next) => s"Schema Parse Error:\n${message} at line: ${next.pos.line}, column: ${next.pos.column}".failNel[Schema]
+      case NoSuccess(message, next) => s"Schema Parse Error:\n${message}".failNel[Schema]
     }
   }
 }

@@ -1,6 +1,6 @@
 package uk.gov.tna.dri.validator
 
-import uk.gov.tna.dri.schema.{GlobalDirectives, NoHeaderDirective, Optional, Schema}
+import uk.gov.tna.dri.schema.{GlobalDirectives, Optional, Schema}
 import au.com.bytecode.opencsv.CSVReader
 import java.io.Reader
 import scala.collection.JavaConversions._
