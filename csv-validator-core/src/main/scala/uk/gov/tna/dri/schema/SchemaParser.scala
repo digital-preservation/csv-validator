@@ -62,19 +62,19 @@ trait SchemaParser extends RegexParsers {
 
   def inRule = "in(" ~> argProvider <~ ")" ^^ { InRule  }
 
-  def uri: Parser[UriRule] = "uri" ^^ { _ => UriRule() }
+  def uri: Parser[UriRule] = "uri" ^^^ UriRule()
 
-  def xDateTime: Parser[XsdDateTimeRule] = "xDateTime" ^^ { _ => XsdDateTimeRule() }
+  def xDateTime: Parser[XsdDateTimeRule] = "xDateTime" ^^^ XsdDateTimeRule()
 
-  def xDate: Parser[XsdDateRule] = "xDate" ^^ { _ => XsdDateRule() }
+  def xDate: Parser[XsdDateRule] = "xDate" ^^^ XsdDateRule()
 
-  def ukDate: Parser[UkDateRule] = "ukDate" ^^ { _ => UkDateRule() }
+  def ukDate: Parser[UkDateRule] = "ukDate" ^^^ UkDateRule()
 
-  def xTime: Parser[XsdTimeRule] = "xTime" ^^ { _ => XsdTimeRule() }
+  def xTime: Parser[XsdTimeRule] = "xTime" ^^^ XsdTimeRule()
 
-  def uuid4: Parser[Uuid4Rule] = "uuid4" ^^ { _ => Uuid4Rule() }
+  def uuid4: Parser[Uuid4Rule] = "uuid4" ^^^ Uuid4Rule()
 
-  def positiveInteger: Parser[PositiveIntegerRule] = "positiveInteger" ^^ { _ => PositiveIntegerRule() }
+  def positiveInteger: Parser[PositiveIntegerRule] = "positiveInteger" ^^^ PositiveIntegerRule()
 
   def argProvider: Parser[ArgProvider] = "$" ~> columnIdentifier ^^ { s => ColumnReference(s) } | '\"' ~> """\w+""".r <~ '\"' ^^ {s => Literal(Some(s)) }
 

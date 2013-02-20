@@ -8,7 +8,6 @@ import util.parsing.input.Positional
 
 abstract class Rule(val name: String, val argProvider: ArgProvider = Literal(None)) extends Positional {
 
-
   val Uuid4Regex = "[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}"
 
   def evaluate(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
@@ -45,48 +44,48 @@ case class RegexRule(regex: ArgProvider) extends Rule("regex", regex) {
   }
 }
 
-case class UriRule(arg: ArgProvider = Literal(None)) extends Rule("uri", arg) {
+case class UriRule() extends Rule("uri") {
   val uriRegex = "http://datagov.nationalarchives.gov.uk/66/WO/409/[0-9]+/[0-9]+/" + Uuid4Regex
   def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = {
     cellValue matches uriRegex
   }
 }
 
-case class XsdDateTimeRule(arg: ArgProvider = Literal(None)) extends Rule("xDateTime", arg) {
+case class XsdDateTimeRule() extends Rule("xDateTime") {
   val xsdDateTimeRegex = "[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}"
   def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = {
     cellValue matches xsdDateTimeRegex
   }
 }
 
-case class XsdDateRule(arg: ArgProvider = Literal(None)) extends Rule("xDate", arg) {
+case class XsdDateRule() extends Rule("xDate") {
   val xsdDateRegex = "[0-9]{4}-[0-9]{2}-[0-9]{2}"
   def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = {
     cellValue matches xsdDateRegex
   }
 }
 
-case class UkDateRule(arg: ArgProvider = Literal(None)) extends Rule("ukDate", arg) {
+case class UkDateRule() extends Rule("ukDate") {
   val ukDateRegex = "[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}"
   def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = {
     cellValue matches ukDateRegex
   }
 }
 
-case class XsdTimeRule(arg: ArgProvider = Literal(None)) extends Rule("xTime", arg) {
+case class XsdTimeRule() extends Rule("xTime") {
   val xsdTimeRegex = "[0-9]{2}:[0-9]{2}:[0-9]{2}"
   def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = {
     cellValue matches xsdTimeRegex
   }
 }
 
-case class Uuid4Rule(arg: ArgProvider = Literal(None)) extends Rule("uuid4", arg) {
+case class Uuid4Rule() extends Rule("uuid4") {
   def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = {
     cellValue matches Uuid4Regex
   }
 }
 
-case class PositiveIntegerRule(arg: ArgProvider = Literal(None)) extends Rule("positiveInteger", arg) {
+case class PositiveIntegerRule() extends Rule("positiveInteger") {
   val positiveIntegerRegex = "[1-9][0-9]+"
   def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = {
     cellValue matches positiveIntegerRegex
