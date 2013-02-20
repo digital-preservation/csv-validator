@@ -108,7 +108,7 @@ trait SchemaParser extends RegexParsers {
     val duplicates: Map[ColumnDefinition, List[ColumnDefinition]] = groupedColumnDefinitions.filter( _._2.length > 1 )
 
     if (duplicates.isEmpty) None
-    else Some(duplicates.map { case (cd, l) => s"""Column: ${cd.id} has duplicates on lines """ + l.map(cd => cd.pos.line).mkString(", ") }.mkString("\n"))
+    else Some(duplicates.map { case (cd, cds) => s"""Column: ${cd.id} has duplicates on lines """ + cds.map(cd => cd.pos.line).mkString(", ") }.mkString("\n"))
   }
 
   private def columnDirectivesValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
@@ -117,7 +117,7 @@ trait SchemaParser extends RegexParsers {
       if (cd.directives.distinct.length != cd.directives.length)
     } yield {
       s"${cd.id}: Duplicated column directives: " +
-        cd.directives.groupBy(identity).filter { case (_, dups) => dups.size > 1}.map { case (cd, dups) => "@" + cd + s" at line: ${cd.pos.line}, column: ${cd.pos.column}"}.mkString(",")
+        cd.directives.groupBy(identity).filter { case (_, cds) => cds.size > 1}.map { case (cd, _) => "@" + cd + s" at line: ${cd.pos.line}, column: ${cd.pos.column}"}.mkString(",")
     }
 
     if (v.isEmpty) None else Some(v.mkString("\n"))
