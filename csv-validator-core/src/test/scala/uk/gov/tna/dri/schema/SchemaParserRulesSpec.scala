@@ -93,36 +93,39 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
     "succeed for file exists rule" in {
       val schema = """@totalColumns 1
                       Name: fileExists"""
+
       parse(new StringReader(schema)) must beLike { case Success(Schema(globalDirsOne, List(ColumnDefinition("Name", List(FileExistsRule(Literal(None))), _))), _) => ok}
     }
 
     "fail for file exists rule with empty ()" in {
       val schema = """@totalColumns 1
                       Name: fileExists()"""
+
       parse(new StringReader(schema)) must beLike { case f@Failure("Column definition requires a file path", _) => ok}
     }
 
     "succeed for file exists rule with root file path" in {
       val schema = """@totalColumns 1
                       Name: fileExists("some/root/path")"""
-      parse(new StringReader(schema)) must beLike {
 
+      parse(new StringReader(schema)) must beLike {
         case Success(Schema(globalDirsOne, List(ColumnDefinition("Name", List(FileExistsRule(Literal(Some(rootPath)))), _))), _) => {
           rootPath mustEqual "some/root/path"
         }
-
       }
     }
 
     "fail for non quoted root file path" in {
       val schema = """@totalColumns 1
                       Name: fileExists(some/other/root/path)"""
+
       parse(new StringReader(schema)) must beLike { case Failure("Column definition requires a file path", _) => ok}
     }
 
     "fail for non parentheses" in {
       val schema = """@totalColumns 1
                       Name: fileExists /root/path"""
+
       parse(new StringReader(schema)) must beLike { case Failure("Column definition contains invalid text", _) => ok}
     }
 
@@ -167,8 +170,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
 
       parse(new StringReader(schema)) must beLike {
         case Success(Schema(globalDirsOne, List(ColumnDefinition("Country",
-        List( OrRule(InRule(Literal(Some("UK"))),
-              OrRule(InRule(Literal(Some("England"))), InRule(Literal(Some("France")))))  ), _))), _) => ok
+                                                List(OrRule(InRule(Literal(Some("UK"))), OrRule(InRule(Literal(Some("England"))), InRule(Literal(Some("France")))))  ), _))), _) => ok
       }
     }
 
@@ -176,11 +178,29 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
       val schema =
         """@totalColumns 1
            Country: uri xDateTime xDate ukDate xTime uuid4 positiveInteger"""
+
       parse(new StringReader(schema)) must beLike {
         case Success(Schema(globalDirsOne, List(ColumnDefinition("Country",
-        List( UriRule(),XsdDateTimeRule(),XsdDateRule(),UkDateRule(),XsdTimeRule(),Uuid4Rule(),PositiveIntegerRule()), _))), _) => ok
+                                                List( UriRule(),XsdDateTimeRule(),XsdDateRule(),UkDateRule(),XsdTimeRule(),Uuid4Rule(),PositiveIntegerRule()), _))), _) => ok
       }
     }
 
+    "succeed for 'is' rule" in {
+      val schema = """@totalColumns 1
+                      Country: is("UK")"""
+
+      parse(new StringReader(schema)) must beLike {
+        case Success(Schema(List(TotalColumns(1)), List(ColumnDefinition("Country", List(IsRule(Literal(Some("UK")))), _))), _) => ok
+      }
+    }
+
+    "succeed for 2 'is' rule" in {
+      val schema = """@totalColumns 1
+                      Country: is("UK") is("GB")"""
+
+      parse(new StringReader(schema)) must beLike {
+        case Success(Schema(List(TotalColumns(1)), List(ColumnDefinition("Country", List(IsRule(Literal(Some("UK"))), IsRule(Literal(Some("GB")))), _))), _) => ok
+      }
+    }
   }
 }

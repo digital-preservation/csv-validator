@@ -50,17 +50,19 @@ trait SchemaParser extends RegexParsers {
     case id ~ rules ~ columnDirectives => ColumnDefinition(id, rules, columnDirectives)
   }
 
+  def columnDirective = positioned(optional | ignoreCase)
+
   def rule = positioned(orRule | unaryRule)
 
-  def unaryRule = regex | inRule | fileExistsRule | uri | xDateTime | xDate | ukDate | xTime | uuid4 | positiveInteger | failure("Invalid rule")
+  def unaryRule = regex | fileExistsRule | inRule | isRule | uri | xDateTime | xDate | ukDate | xTime | uuid4 | positiveInteger | failure("Invalid rule")
 
   def orRule: Parser[OrRule] = unaryRule ~ "or" ~ rule  ^^ { case lhs ~ _ ~ rhs => OrRule(lhs, rhs) }
-
-  def columnDirective = positioned(optional | ignoreCase)
 
   def regex = "regex" ~> regexParser ^? (validateRegex, s => s"regex invalid: ${s}") | failure("Invalid regex rule")
 
   def inRule = "in(" ~> argProvider <~ ")" ^^ { InRule  }
+
+  def isRule = "is(" ~> argProvider <~ ")" ^^ { IsRule }
 
   def uri: Parser[UriRule] = "uri" ^^^ UriRule()
 

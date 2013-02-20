@@ -30,17 +30,52 @@ abstract class Rule(val name: String, val argProvider: ArgProvider = Literal(Non
   def toError = s"""${name}${argProvider.toError}"""
 }
 
-case class InRule(inValue: ArgProvider) extends Rule("in", inValue) {
-  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = {
-    val (cellVal, ruleVal) = if (columnDefinition.directives.contains(IgnoreCase())) (cellValue.toLowerCase, ruleValue.get.toLowerCase) else (cellValue, ruleValue.get)
-    ruleVal contains cellVal
+case class OrRule(left: Rule, right: Rule) extends Rule("or") {
+  override def evaluate(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
+    left.evaluate(columnIndex, row, schema) match {
+      case s @ Success(_) => s
+      case Failure(_) => right.evaluate(columnIndex, row, schema) match {
+        case s @ Success(_) => s
+        case Failure(_) => fail(None, columnIndex, row, schema)
+      }
+    }
   }
+
+  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = true
+
+  override def toError = s"""${left.toError} ${name} ${right.toError}"""
 }
 
 case class RegexRule(regex: ArgProvider) extends Rule("regex", regex) {
   def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = {
     val regex = if (columnDefinition.directives.contains(IgnoreCase())) "(?i)" + ruleValue.get else ruleValue.get
     cellValue matches regex
+  }
+}
+
+case class FileExistsRule(rootPath: ArgProvider = Literal(None)) extends Rule("fileExists", rootPath) {
+  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = {
+    val filePath = cellValue
+
+    val fileExists = ruleValue match {
+      case Some(rootPath) => new File(rootPath, filePath).exists()
+      case None => new File(filePath).exists()
+    }
+    fileExists
+  }
+}
+
+case class InRule(inValue: ArgProvider) extends Rule("in", inValue) {
+  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = {
+    val (cv, rv) = if (columnDefinition.directives.contains(IgnoreCase())) (cellValue.toLowerCase, ruleValue.get.toLowerCase) else (cellValue, ruleValue.get)
+    rv contains cv
+  }
+}
+
+case class IsRule(isValue: ArgProvider) extends Rule("is", isValue) {
+  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = {
+    val (cv, rv) = if (columnDefinition.directives.contains(IgnoreCase())) (cellValue.toLowerCase, ruleValue.get.toLowerCase) else (cellValue, ruleValue.get)
+    cv == rv
   }
 }
 
@@ -76,32 +111,4 @@ case class Uuid4Rule() extends Rule("uuid4") {
 case class PositiveIntegerRule() extends Rule("positiveInteger") {
   val positiveIntegerRegex = "[1-9][0-9]+"
   def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = cellValue matches positiveIntegerRegex
-}
-
-case class FileExistsRule(rootPath: ArgProvider = Literal(None)) extends Rule("fileExists", rootPath) {
-  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = {
-    val filePath = cellValue
-
-    val fileExists = ruleValue match {
-      case Some(rootPath) => new File(rootPath, filePath).exists()
-      case None => new File(filePath).exists()
-    }
-    fileExists
-  }
-}
-
-case class OrRule(left: Rule, right: Rule) extends Rule("or") {
-  override def evaluate(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
-    left.evaluate(columnIndex, row, schema) match {
-      case s @ Success(_) => s
-      case Failure(_) => right.evaluate(columnIndex, row, schema) match {
-        case s @ Success(_) => s
-        case Failure(_) => fail(None, columnIndex, row, schema)
-      }
-    }
-  }
-
-  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = true
-
-  override def toError = s"""${left.toError} ${name} ${right.toError}"""
 }
