@@ -4,6 +4,7 @@ import scala.util.parsing.combinator._
 import java.io.Reader
 import scala.util.Try
 import scala._
+import collection.mutable
 import scala.Some
 
 trait SchemaParser extends RegexParsers {
@@ -88,15 +89,15 @@ trait SchemaParser extends RegexParsers {
   }
 
   private def valid(g: List[GlobalDirective], c: List[ColumnDefinition]): String = {
-    val tc: Option[TotalColumns] = g.collectFirst { case t@TotalColumns(_) => t }
-
-    (totalColumnsValid(tc, c).getOrElse("") ::
+   (totalColumnsValid(g, c).getOrElse("") ::
     columnDirectivesValid(c).getOrElse("") ::
     duplicateColumnsValid(c).getOrElse("") ::
     crossColumnsValid(c).getOrElse("") :: Nil).filter(!_.isEmpty).mkString("\n")
   }
 
-  private def totalColumnsValid(tc: Option[TotalColumns], c: List[ColumnDefinition]): Option[String] = {
+  private def totalColumnsValid(g: List[GlobalDirective], c: List[ColumnDefinition]): Option[String] = {
+    val tc: Option[TotalColumns] = g.collectFirst { case t@TotalColumns(_) => t }
+
     if (!tc.isEmpty && tc.get.numberOfColumns != c.length)
       Some(s"@totalColumns = ${tc.get.numberOfColumns} but number of columns defined = ${c.length} at line: ${tc.get.pos.line}, column: ${tc.get.pos.column}" )
     else
@@ -105,10 +106,14 @@ trait SchemaParser extends RegexParsers {
 
   private def duplicateColumnsValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
     val groupedColumnDefinitions = columnDefinitions.groupBy(identity)
-    val duplicates: Map[ColumnDefinition, List[ColumnDefinition]] = groupedColumnDefinitions.filter( _._2.length > 1 )
+    val duplicates: Map[ColumnDefinition, List[ColumnDefinition]] = groupedColumnDefinitions.filter( _._2.length > 1)
 
-    if (duplicates.isEmpty) None
-    else Some(duplicates.map { case (cd, cds) => s"""Column: ${cd.id} has duplicates on lines """ + cds.map(cd => cd.pos.line).mkString(", ") }.mkString("\n"))
+    // These nasty 2 lines are to keep presentation of error messages in order of column definitions - TODO Refactor on next iteration
+    var sortedDuplicates = mutable.LinkedHashMap.empty[ColumnDefinition, List[ColumnDefinition]]
+    for (cd <- columnDefinitions; if !sortedDuplicates.contains(cd) && duplicates.contains(cd)) {sortedDuplicates += (cd -> duplicates.get(cd).get)}
+
+    if (sortedDuplicates.isEmpty) None
+    else Some(sortedDuplicates.map { case (cd, cds) => s"""Column: ${cd.id} has duplicates on lines """ + cds.map(cd => cd.pos.line).mkString(", ") }.mkString("\n"))
   }
 
   private def columnDirectivesValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
