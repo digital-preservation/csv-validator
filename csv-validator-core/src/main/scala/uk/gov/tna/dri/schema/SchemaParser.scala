@@ -52,7 +52,7 @@ trait SchemaParser extends RegexParsers {
 
   def rule = positioned(orRule | unaryRule)
 
-  def unaryRule = regex | inRule | fileExistsRule | failure("Invalid rule")
+  def unaryRule = regex | inRule | fileExistsRule | uri | xDateTime | xDate | ukDate | xTime | uuid4 | positiveInteger | failure("Invalid rule")
 
   def orRule: Parser[OrRule] = unaryRule ~ "or" ~ rule  ^^ { case lhs ~ _ ~ rhs => OrRule(lhs, rhs) }
 
@@ -61,6 +61,20 @@ trait SchemaParser extends RegexParsers {
   def regex = "regex" ~> regexParser ^? (validateRegex, s => s"regex invalid: ${s}") | failure("Invalid regex rule")
 
   def inRule = "in(" ~> argProvider <~ ")" ^^ { InRule  }
+
+  def uri: Parser[UriRule] = "uri" ^^ { _ => UriRule() }
+
+  def xDateTime: Parser[XsdDateTimeRule] = "xDateTime" ^^ { _ => XsdDateTimeRule() }
+
+  def xDate: Parser[XsdDateRule] = "xDate" ^^ { _ => XsdDateRule() }
+
+  def ukDate: Parser[UkDateRule] = "ukDate" ^^ { _ => UkDateRule() }
+
+  def xTime: Parser[XsdTimeRule] = "xTime" ^^ { _ => XsdTimeRule() }
+
+  def uuid4: Parser[Uuid4Rule] = "uuid4" ^^ { _ => Uuid4Rule() }
+
+  def positiveInteger: Parser[PositiveIntegerRule] = "positiveInteger" ^^ { _ => PositiveIntegerRule() }
 
   def argProvider: Parser[ArgProvider] = "$" ~> columnIdentifier ^^ { s => ColumnReference(s) } | '\"' ~> """\w+""".r <~ '\"' ^^ {s => Literal(Some(s)) }
 
