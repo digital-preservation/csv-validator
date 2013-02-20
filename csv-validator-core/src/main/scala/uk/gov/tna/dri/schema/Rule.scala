@@ -57,9 +57,9 @@ case class FileExistsRule(rootPath: ArgProvider = Literal(None)) extends Rule("f
 case class OrRule(left: Rule, right: Rule) extends Rule("or") {
   override def evaluate(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
     left.evaluate(columnIndex, row, schema) match {
-      case s@Success(_) => s
+      case s @ Success(_) => s
       case Failure(_) => right.evaluate(columnIndex, row, schema) match {
-        case s@Success(_) => s
+        case s @ Success(_) => s
         case Failure(_) => fail(None, columnIndex, row, schema)
       }
     }
