@@ -103,10 +103,12 @@ trait SchemaParser extends RegexParsers {
       None
   }
 
-  private def duplicateColumnsValid(columnDefinitions: List[ColumnDefinition]): Option[String] /*Map[ColumnDefinition, List[Int]]*/ = {
-    val columnsByColumnId = columnDefinitions.zipWithIndex.groupBy { _._1 }
-    columnsByColumnId.filter( _._2.length > 1 ).map { case (id, idAndPos) => (id, idAndPos.map { case (id, pos) => pos }) }
-    None
+  private def duplicateColumnsValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
+    val groupedColumnDefinitions = columnDefinitions.groupBy(identity)
+    val duplicates: Map[ColumnDefinition, List[ColumnDefinition]] = groupedColumnDefinitions.filter( _._2.length > 1 )
+
+    if (duplicates.isEmpty) None
+    else Some(duplicates.map { case (cd, l) => s"""Column: ${cd.id} has duplicates on lines """ + l.map(cd => cd.pos.line).mkString(", ") }.mkString("\n"))
   }
 
   private def columnDirectivesValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {

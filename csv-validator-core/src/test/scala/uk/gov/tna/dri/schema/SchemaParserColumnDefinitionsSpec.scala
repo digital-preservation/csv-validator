@@ -120,12 +120,14 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
       }
     }*/
 
-    "multi columns with same name is valid - TODO NOT CORRECT" in {
+    "multi columns with same name is valid" in {
       val schema = """@totalColumns 2
                       Column1:
                       Column1:"""
 
-      parse(new StringReader(schema)) must beLike { case Success(schema, _) => schema mustEqual Schema(globalDirsTwo, List(ColumnDefinition("Column1"), ColumnDefinition("Column1"))) }
+      parse(new StringReader(schema)) must beLike {
+        case Failure(errors, _) => errors mustEqual "Column: Column1 has duplicates on lines 2, 3"
+      }
     }
 
     "succeed if Column1 correctly has InRule that points to Column2" in {

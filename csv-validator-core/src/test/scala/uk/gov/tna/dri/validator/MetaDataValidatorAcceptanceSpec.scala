@@ -153,11 +153,13 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
     }
   }
 
-  /*"validate schema" should {
+  "validate schema" should {
 
     "fail with duplicate column ids" in {
       validate(basePath + "duplicateColumnIdsMetaData.csv", basePath + "duplicateColumnIdsFailSchema.txt") must beLike {
-        case Failure(errors) => errors.list mustEqual List("Column: Age has duplicates in columns 1,6", "Column: Country has duplicates in columns 2,3,5")
+        case Failure(errors) => errors.list mustEqual List("""Schema Parse Error:
+                                                             |Column: Country has duplicates on lines 3, 4, 6
+                                                             |Column: Age has duplicates on lines 2, 7""".stripMargin)
       }
     }
 
@@ -166,7 +168,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
         case Success(_) => ok
       }
     }
-  }*/
+  }
 
   "An 'or' rule" should {
 
