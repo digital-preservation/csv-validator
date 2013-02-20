@@ -76,7 +76,7 @@ class MetaDataValidatorAppSpec extends Specification {
       }
     }
 
-    "succeed for valid @TotalColumns in schema and metadata file" in {
+    "succeed for valid @totalColumns in schema and metadata file" in {
       app.validate(basePath + "metaData.csv", basePath + "schema.txt") must beLike {
         case Success(_) => ok
       }

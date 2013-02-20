@@ -39,7 +39,7 @@ class MetaDataValidatorSpec extends Specification {
       val columnDefinitions = List(new ColumnDefinition("\"column1\""),new ColumnDefinition("\"column2\""),new ColumnDefinition("\"column3\""))
 
       validate(new StringReader(metaData), Schema(globalDirsThree, columnDefinitions)) must beLike {
-        case Failure(messages) => messages.list mustEqual List("Expected @TotalColumns of 3 and found 2 on line 2", "Missing value at line: 2, column: \"column3\"")
+        case Failure(messages) => messages.list mustEqual List("Expected @totalColumns of 3 and found 2 on line 2", "Missing value at line: 2, column: \"column3\"")
       }
     }
 
@@ -82,7 +82,7 @@ class MetaDataValidatorSpec extends Specification {
       val schema = Schema(globalDirsTwo, List(ColumnDefinition("Col1"), ColumnDefinition("Col2", List(RegexRule(Literal(Some("[0-9]")))))))
 
       validate(new StringReader(m), schema) should beLike {
-        case Failure(messages) => messages.list mustEqual List("Expected @TotalColumns of 2 and found 1 on line 1", "Missing value at line: 1, column: Col2")
+        case Failure(messages) => messages.list mustEqual List("Expected @totalColumns of 2 and found 1 on line 1", "Missing value at line: 1, column: Col2")
       }
     }
 
@@ -152,7 +152,7 @@ class MetaDataValidatorSpec extends Specification {
       validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
     }
 
-    "succeed when @Optional is given for an empty cell" in {
+    "succeed when @optional is given for an empty cell" in {
 
       val columnDefinitions = ColumnDefinition("Col1") ::  ColumnDefinition("Col2", List(RegexRule(Literal(Some("[0-9]")))), List(Optional())) :: ColumnDefinition("Col3") :: Nil
       val schema = Schema(globalDirsThree, columnDefinitions)
@@ -161,7 +161,7 @@ class MetaDataValidatorSpec extends Specification {
       validate(new StringReader(m), schema) must beLike { case Success(_) => ok }
     }
 
-    "fail when @Optional is given for non empty cell with a failing rule" in {
+    "fail when @optional is given for non empty cell with a failing rule" in {
 
       val columnDefinitions = ColumnDefinition("Col1") ::  ColumnDefinition("Col2", List(RegexRule(Literal(Some("[0-9]")))), List(Optional())) :: ColumnDefinition("Col3") :: Nil
       val schema = Schema(globalDirsThree, columnDefinitions)
@@ -172,7 +172,7 @@ class MetaDataValidatorSpec extends Specification {
       }
     }
 
-    "pass for empty cell with @Optional but fail for empty cell without @Optional for the same rule" in {
+    "pass for empty cell with @optional but fail for empty cell without @optional for the same rule" in {
 
       val columnDefinitions = ColumnDefinition("Col1") :: ColumnDefinition("Col2", List(RegexRule(Literal(Some("[0-9]")))), List(Optional())) :: ColumnDefinition("Col3", List(RegexRule(Literal(Some("[0-9]"))))) :: ColumnDefinition("Col4") :: Nil
       val schema = Schema(globalDirsFour, columnDefinitions)
@@ -204,7 +204,7 @@ class MetaDataValidatorSpec extends Specification {
       validate(new StringReader(meta), schema) must beLike { case Success(_) => ok }
     }
 
-    "fail to ignore case of a given regex when not providing @IgnoreCase" in {
+    "fail to ignore case of a given regex when not providing @ignoreCase" in {
       val columnDefinitions = ColumnDefinition("Col1", List(RegexRule(Literal(Some("[a-z]+"))))) :: Nil
       val schema = Schema(globalDirsOne, columnDefinitions)
       val meta = "SCOOBY"

@@ -27,7 +27,7 @@ class InRuleSpec extends Specification {
       }
     }
 
-    "succeed with @IgnoreCase" in {
+    "succeed with @ignoreCase" in {
       val inRule = InRule(Literal(Some("hello world")))
       inRule.evaluate(0, Row(List(Cell("hello WORLD")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1", Nil, List(IgnoreCase()))))) mustEqual Success(true)
     }

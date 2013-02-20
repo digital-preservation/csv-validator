@@ -35,7 +35,7 @@ trait AllErrorsMetaDataValidator extends MetaDataValidator {
     val tc: Option[TotalColumns] = schema.globalDirectives.collectFirst{ case t@TotalColumns(_) => t }
 
     if (tc.isEmpty || tc.get.numberOfColumns == row.cells.length) true.successNel[String]
-    else s"Expected @TotalColumns of ${tc.get.numberOfColumns} and found ${row.cells.length} on line ${row.lineNumber}".failNel[Any]
+    else s"Expected @totalColumns of ${tc.get.numberOfColumns} and found ${row.cells.length} on line ${row.lineNumber}".failNel[Any]
   }
 
   private def rules(row: Row, schema: Schema) = {

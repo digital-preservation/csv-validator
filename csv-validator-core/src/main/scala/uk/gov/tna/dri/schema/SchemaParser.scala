@@ -37,7 +37,7 @@ trait SchemaParser extends RegexParsers {
 
   def globalDirective = totalColumns | noHeaderDirective | ignoreColumnNameCaseDirective
 
-  def totalColumns: Parser[TotalColumns] = (("@TotalColumns" ~ white) ~> positiveNumber ^^ { posInt => TotalColumns(posInt.toInt) }).withFailureMessage("@TotalColumns invalid")
+  def totalColumns: Parser[TotalColumns] = (("@totalColumns" ~ white) ~> positiveNumber ^^ { posInt => TotalColumns(posInt.toInt) }).withFailureMessage("@totalColumns invalid")
 
   def noHeaderDirective: Parser[NoHeader] = "@noHeader" ~ white ^^^ NoHeader()
 
@@ -70,9 +70,9 @@ trait SchemaParser extends RegexParsers {
 
   def rootFilePath: Parser[String] = """[a-zA-Z/-_\.\d\\:]+""".r
 
-  def optional = "@Optional" ^^^ Optional()
+  def optional = "@optional" ^^^ Optional()
 
-  def ignoreCase = "@IgnoreCase" ^^^ IgnoreCase()
+  def ignoreCase = "@ignoreCase" ^^^ IgnoreCase()
 
   private def endOfColumnDefinition: Parser[Any] = whiteSpace ~ (eol | endOfInput | failure("Column definition contains invalid text"))
 
@@ -94,7 +94,7 @@ trait SchemaParser extends RegexParsers {
     val cross = crossColumnsValid(c)
 
     if (!tc.isEmpty && tc.get.numberOfColumns != c.length) {
-      s"@TotalColumns = ${tc.get.numberOfColumns} but number of columns defined = ${c.length} at line: ${tc.get.pos.line}, column: ${tc.get.pos.column}" +
+      s"@totalColumns = ${tc.get.numberOfColumns} but number of columns defined = ${c.length} at line: ${tc.get.pos.line}, column: ${tc.get.pos.column}" +
                         (if (cross.isEmpty) "" else "\n") + cross.getOrElse("")
     } else {
       columnDirectives.getOrElse("") + cross.getOrElse("")

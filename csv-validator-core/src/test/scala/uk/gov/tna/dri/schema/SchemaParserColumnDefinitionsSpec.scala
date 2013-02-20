@@ -17,42 +17,42 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
     val globalDirsTwo = List(TotalColumns(2))
 
     "fail if the total number of columns does not match the number of column definitions" in {
-      val schema = """@TotalColumns 2
+      val schema = """@totalColumns 2
                       LastName: regex ("[a]")"""
 
-      parse(new StringReader(schema)) must beLike { case Failure(message, _) => message mustEqual "@TotalColumns = 2 but number of columns defined = 1 at line: 1, column: 1" }
+      parse(new StringReader(schema)) must beLike { case Failure(message, _) => message mustEqual "@totalColumns = 2 but number of columns defined = 1 at line: 1, column: 1" }
     }
 
     "fail for invalid column identifier" in {
-      val schema = """@TotalColumns 1
+      val schema = """@totalColumns 1
                       Last Name """
 
       parse(new StringReader(schema)) must beLike { case Failure(message, _) => message mustEqual "`:' expected but `N' found" }
     }
 
     "succeed for column definition with no rules" in {
-      val schema = """@TotalColumns 1
+      val schema = """@totalColumns 1
                       Name:"""
 
       parse(new StringReader(schema)) must beLike { case Success(schema, _) => schema mustEqual Schema(globalDirsOne, List(ColumnDefinition("Name"))) }
     }
 
     "succeed for column definition with single regex rule" in {
-      val schema = """@TotalColumns 1
+      val schema = """@totalColumns 1
                       Age: regex ("[1-9]*")"""
 
       parse(new StringReader(schema)) must beLike { case Success(Schema(globalDirsOne, List(ColumnDefinition("Age", List(RegexRule(Literal(Some(r)))), _))), _) => r mustEqual "[1-9]*" }
     }
 
     "fail for more than one column definition on a line" in {
-      val schema = """@TotalColumns 1
+      val schema = """@totalColumns 1
                       LastName: regex ("[a-z]*") Age"""
 
       parse(new StringReader(schema)) must beLike { case Failure(message, _) => message mustEqual """Column definition contains invalid text""" }
     }
 
     "fail for extra text after column definition on a line" in {
-      val schema = """@TotalColumns 3
+      val schema = """@totalColumns 3
                       LastName: regex ("[a-z]*")
                       FirstName: dfsdfsdfwe
                       Age:"""
@@ -61,7 +61,7 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
     }
 
     "fail when one invalid column reference" in {
-      val schema ="""@TotalColumns 2
+      val schema ="""@totalColumns 2
                     |Column1: in($NotAColumn)
                     |Column2:""".stripMargin
 
@@ -71,7 +71,7 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
     }
 
     "fail when there are two rules and one is invalid" in {
-      val schema ="""@TotalColumns 2
+      val schema ="""@totalColumns 2
                     |Column1: in($Column2) in($NotAColumn2)
                     |Column2:""".stripMargin
 
@@ -81,7 +81,7 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
     }
 
     "fail when two rules are invalid " in {
-      val schema ="""@TotalColumns 2
+      val schema ="""@totalColumns 2
                      Column1: in($NotAColumn1) in($NotAColumn2)
                      Column2:"""
 
@@ -91,7 +91,7 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
     }
 
     "fail when two columns have two rules and each has one invalid column" in {
-      val schema ="""@TotalColumns 2
+      val schema ="""@totalColumns 2
                     |Column1: in($Column2) in($NotAColumn2)
                     |Column2: in($NotAColumn3) in($Column2)""".stripMargin
 
@@ -121,7 +121,7 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
     }*/
 
     "multi columns with same name is valid - TODO NOT CORRECT" in {
-      val schema = """@TotalColumns 2
+      val schema = """@totalColumns 2
                       Column1:
                       Column1:"""
 
@@ -129,7 +129,7 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
     }
 
     "succeed if Column1 correctly has InRule that points to Column2" in {
-      val schema = """@TotalColumns 2
+      val schema = """@totalColumns 2
                       Column1: in($Column2)
                       Column2:"""
 
@@ -140,7 +140,7 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
     }
 
     "fail for invalid column cross references" in {
-      val schema ="""@TotalColumns 2
+      val schema ="""@totalColumns 2
                     |Age: in($Blah) regex ("[0-9]+")
                     |Country: in($Boo)""".stripMargin
 

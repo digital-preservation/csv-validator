@@ -46,9 +46,9 @@ case class Literal(value: Option[String]) extends ArgProvider {
 trait ColumnDirective extends Positional
 
 case class Optional() extends ColumnDirective {
-  override def toString(): String = "Optional"
+  override def toString(): String = "optional"
 }
 
 case class IgnoreCase() extends ColumnDirective  {
-  override def toString = "IgnoreCase"
+  override def toString = "ignoreCase"
 }

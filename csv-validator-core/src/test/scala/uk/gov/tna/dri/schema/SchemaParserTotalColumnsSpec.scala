@@ -15,7 +15,7 @@ class SchemaParserTotalColumnsSpec extends Specification with ParserMatchers {
   "Schema" should {
 
     "fail for TotalColumns with missing value" in {
-      parse(new StringReader("@TotalColumns")) must beLike { case Failure(message, _) => message mustEqual "@TotalColumns invalid" }
+      parse(new StringReader("@totalColumns")) must beLike { case Failure(message, _) => message mustEqual "@totalColumns invalid" }
     }
 
     "fail for incorrect TotalColumns field name" in {
@@ -27,23 +27,23 @@ class SchemaParserTotalColumnsSpec extends Specification with ParserMatchers {
     }
 
     "fail for TotalColumns field name incorrect case" in {
-      parse(new StringReader("@totalColumns 65")) must beLike { case Failure(message, _) => message mustEqual "Global directives contains invalid text" }
+      parse(new StringReader("@TotalColumns 65")) must beLike { case Failure(message, _) => message mustEqual "Global directives contains invalid text" }
     }
 
     "fail for TotalColumns of zero" in {
-      parse(new StringReader("@TotalColumns 0")) must beLike { case Failure(message, _) => message mustEqual "@TotalColumns invalid" }
+      parse(new StringReader("@totalColumns 0")) must beLike { case Failure(message, _) => message mustEqual "@totalColumns invalid" }
     }
 
     "fail for TotalColumns with negative integer" in {
-      parse(new StringReader("@TotalColumns -23")) must beLike { case Failure(message, _) => message mustEqual "@TotalColumns invalid" }
+      parse(new StringReader("@totalColumns -23")) must beLike { case Failure(message, _) => message mustEqual "@totalColumns invalid" }
     }
 
     "fail for TotalColumns with non integer" in {
-      parse(new StringReader("@TotalColumns 132.45")) must beLike { case Failure(message, _) => message mustEqual "Global directives contains invalid text" }
+      parse(new StringReader("@totalColumns 132.45")) must beLike { case Failure(message, _) => message mustEqual "Global directives contains invalid text" }
     }
 
     "fail for TotalColumns with non numeric" in {
-      parse(new StringReader("@TotalColumns blah")) must beLike { case Failure(message, _) => message mustEqual "@TotalColumns invalid" }
+      parse(new StringReader("@totalColumns blah")) must beLike { case Failure(message, _) => message mustEqual "@totalColumns invalid" }
     }
   }
 }

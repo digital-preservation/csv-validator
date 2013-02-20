@@ -87,7 +87,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
     }
   }
 
-  "An @Optional column directive" should {
+  "An @optional column directive" should {
     "allow a column to have an empty value and ignore other rules" in {
       validate(basePath + "optionalPassMetaData.csv", basePath + "optionalSchema.txt") must beLike {
         case Success(_) => ok
@@ -101,7 +101,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
     }
   }
 
-  "An @IgnoreCase column directive" should {
+  "An @ignoreCase column directive" should {
     "pass a rule ignoring case" in {
       validate(basePath + "ignoreCasePassMetaData.csv", basePath + "ignoreCaseSchema.txt") must beLike {
         case Success(_) => ok
@@ -136,7 +136,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
 
     "only report first error for invalid @TotalColumns" in {
       app.validate(basePath + "totalColumnsFailMetaData.csv", basePath + "totalColumnsSchema.txt") must beLike {
-        case Failure(errors) => errors.list mustEqual List("Expected @TotalColumns of 1 and found 2 on line 2")
+        case Failure(errors) => errors.list mustEqual List("Expected @totalColumns of 1 and found 2 on line 2")
       }
     }
 

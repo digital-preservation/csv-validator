@@ -1,4 +1,4 @@
-@TotalColumns 3
+@totalColumns 3
 Name:
 PhotoDir:
 Photo: fileExists($PhotoDir)

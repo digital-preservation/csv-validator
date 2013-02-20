@@ -18,21 +18,21 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
   "Schema" should {
 
     "succeed for valid regex rule" in {
-      val schema = """@TotalColumns 1
+      val schema = """@totalColumns 1
                       LastName: regex("[a]")"""
 
       parse(new StringReader(schema)) must beLike { case Success(Schema(globalDirsOne, List(ColumnDefinition("LastName", List(RegexRule(Literal(Some(r)))), _))), _) => r mustEqual "[a]" }
     }
 
     "fail for an invalid regex" in {
-      val schema = """@TotalColumns 1
+      val schema = """@totalColumns 1
                       Something: regex ("[0-9")"""
 
       parse(new StringReader(schema)) must beLike { case Failure(message, _) => (message mustEqual """regex invalid: ("[0-9")""") }
     }
 
     "fail for missing quotes defining a regex" in {
-      val schema = """@TotalColumns 3
+      val schema = """@totalColumns 3
                       LastName:
                       FirstName: regex ("a)
                       Age:"""
@@ -43,21 +43,21 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
     }
 
     "fail for missing value in regex" in {
-      val schema = """@TotalColumns 1
+      val schema = """@totalColumns 1
                       Something: regex"""
 
       parse(new StringReader(schema)) must beLike { case Failure(message, _) => (message mustEqual "regex not correctly delimited as (\"your regex\")") }
     }
 
     "succeed for more than 1 regex rule" in {
-      val schema = """@TotalColumns 1
+      val schema = """@totalColumns 1
                       LastName: regex("[a]") regex("[0-5]")"""
 
       parse(new StringReader(schema)) must beLike { case Success(_, _) => ok }
     }
 
     "succeed for cross reference in rule" in {
-      val schema = """@TotalColumns 2
+      val schema = """@totalColumns 2
                       Name: in($FullName)
                       FullName:"""
 
@@ -67,7 +67,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
     }
 
     "succeed for regex and inRule rules on a single column" in {
-      val schema = """@TotalColumns 1
+      val schema = """@totalColumns 1
                       Name: regex ("[1-9][a-z]*") in("dog")"""
 
       parse(new StringReader(schema)) must beLike {
@@ -79,7 +79,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
     }
 
     "succeed for inRule regex rules on a single and inRule has column reference and rules have had their order changed" in {
-      val schema = """@TotalColumns 1
+      val schema = """@totalColumns 1
                       Name: in($Name) regex ("[1-9][a-z]*")"""
 
       parse(new StringReader(schema)) must beLike {
@@ -91,19 +91,19 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
     }
 
     "succeed for file exists rule" in {
-      val schema = """@TotalColumns 1
+      val schema = """@totalColumns 1
                       Name: fileExists"""
       parse(new StringReader(schema)) must beLike { case Success(Schema(globalDirsOne, List(ColumnDefinition("Name", List(FileExistsRule(Literal(None))), _))), _) => ok}
     }
 
     "fail for file exists rule with empty ()" in {
-      val schema = """@TotalColumns 1
+      val schema = """@totalColumns 1
                       Name: fileExists()"""
       parse(new StringReader(schema)) must beLike { case f@Failure("Column definition requires a file path", _) => ok}
     }
 
     "succeed for file exists rule with root file path" in {
-      val schema = """@TotalColumns 1
+      val schema = """@totalColumns 1
                       Name: fileExists("some/root/path")"""
       parse(new StringReader(schema)) must beLike {
 
@@ -115,20 +115,20 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
     }
 
     "fail for non quoted root file path" in {
-      val schema = """@TotalColumns 1
+      val schema = """@totalColumns 1
                       Name: fileExists(some/other/root/path)"""
       parse(new StringReader(schema)) must beLike { case Failure("Column definition requires a file path", _) => ok}
     }
 
     "fail for non parentheses" in {
-      val schema = """@TotalColumns 1
+      val schema = """@totalColumns 1
                       Name: fileExists /root/path"""
       parse(new StringReader(schema)) must beLike { case Failure("Column definition contains invalid text", _) => ok}
     }
 
     "succeed for or rule" in {
       val schema =
-        """@TotalColumns 1
+        """@totalColumns 1
            Country: in("UK") or in("England")"""
 
       parse(new StringReader(schema)) must beLike {
@@ -138,7 +138,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
 
     "fail for or rule with no lhs" in {
       val schema =
-        """@TotalColumns 1
+        """@totalColumns 1
            Country: or in("England")"""
 
       parse(new StringReader(schema)) must beLike { case Failure("Column definition contains invalid text", _) => ok }
@@ -146,7 +146,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
 
     "fail for or rule with no rhs" in {
       val schema =
-        """@TotalColumns 1
+        """@totalColumns 1
            Country: in("UK") or"""
 
       parse(new StringReader(schema)) must beLike { case Failure("Invalid rule", _) => ok }
@@ -154,7 +154,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
 
     "fail for or rule with no lhs or rhs" in {
       val schema =
-        """@TotalColumns 1
+        """@totalColumns 1
            Country: or"""
 
       parse(new StringReader(schema)) must beLike { case Failure("Column definition contains invalid text", _) => ok }
@@ -162,7 +162,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
 
     "succeed for two 'or' rules" in {
       val schema =
-        """@TotalColumns 1
+        """@totalColumns 1
            Country: in("UK") or in("England") or in("France")"""
 
       parse(new StringReader(schema)) must beLike {

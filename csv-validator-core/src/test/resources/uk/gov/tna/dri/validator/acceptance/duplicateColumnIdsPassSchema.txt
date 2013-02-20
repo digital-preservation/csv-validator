@@ -1,4 +1,4 @@
-@TotalColumns 6
+@totalColumns 6
 Age:
 Country:
 Address:
