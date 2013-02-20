@@ -172,5 +172,15 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
       }
     }
 
+    "succeed for all no argument rules with hard coded expressions" in {
+      val schema =
+        """@totalColumns 1
+           Country: uri xDateTime xDate ukDate xTime uuid4 positiveInteger"""
+      parse(new StringReader(schema)) must beLike {
+        case Success(Schema(globalDirsOne, List(ColumnDefinition("Country",
+        List( UriRule(),XsdDateTimeRule(),XsdDateRule(),UkDateRule(),XsdTimeRule(),Uuid4Rule(),PositiveIntegerRule()), _))), _) => ok
+      }
+    }
+
   }
 }
