@@ -46,50 +46,36 @@ case class RegexRule(regex: ArgProvider) extends Rule("regex", regex) {
 
 case class UriRule() extends Rule("uri") {
   val uriRegex = "http://datagov.nationalarchives.gov.uk/66/WO/409/[0-9]+/[0-9]+/" + Uuid4Regex
-  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = {
-    cellValue matches uriRegex
-  }
+  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = cellValue matches uriRegex
 }
 
 case class XsdDateTimeRule() extends Rule("xDateTime") {
   val xsdDateTimeRegex = "[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}"
-  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = {
-    cellValue matches xsdDateTimeRegex
-  }
+  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = cellValue matches xsdDateTimeRegex
 }
 
 case class XsdDateRule() extends Rule("xDate") {
   val xsdDateRegex = "[0-9]{4}-[0-9]{2}-[0-9]{2}"
-  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = {
-    cellValue matches xsdDateRegex
-  }
+  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = cellValue matches xsdDateRegex
 }
 
 case class UkDateRule() extends Rule("ukDate") {
   val ukDateRegex = "[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}"
-  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = {
-    cellValue matches ukDateRegex
-  }
+  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = cellValue matches ukDateRegex
 }
 
 case class XsdTimeRule() extends Rule("xTime") {
   val xsdTimeRegex = "[0-9]{2}:[0-9]{2}:[0-9]{2}"
-  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = {
-    cellValue matches xsdTimeRegex
-  }
+  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = cellValue matches xsdTimeRegex
 }
 
 case class Uuid4Rule() extends Rule("uuid4") {
-  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = {
-    cellValue matches Uuid4Regex
-  }
+  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = cellValue matches Uuid4Regex
 }
 
 case class PositiveIntegerRule() extends Rule("positiveInteger") {
   val positiveIntegerRegex = "[1-9][0-9]+"
-  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = {
-    cellValue matches positiveIntegerRegex
-  }
+  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = cellValue matches positiveIntegerRegex
 }
 
 case class FileExistsRule(rootPath: ArgProvider = Literal(None)) extends Rule("fileExists", rootPath) {
