@@ -112,7 +112,7 @@ trait SchemaParser extends RegexParsers {
        colDef.directives.groupBy(identity).filter(p => p._2.size > 1).map(p => "@" + p._1 + s" at line: ${p._1.pos.line}, column: ${p._1.pos.column}").mkString(",")
     }
 
-    if (v.isEmpty) None else Some(v.mkString)
+    if (v.isEmpty) None else Some(v.mkString("\n"))
   }
 
   private def crossColumnErrors(columnDefinitions: List[ColumnDefinition]): Option[String] = {

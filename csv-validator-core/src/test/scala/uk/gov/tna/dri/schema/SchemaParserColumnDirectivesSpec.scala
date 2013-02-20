@@ -34,6 +34,25 @@ class SchemaParserColumnDirectivesSpec extends Specification with ParserMatchers
 
       parse(new StringReader(schema)) must beLike { case Failure(message, _) => (message mustEqual """column1: Duplicated column directives: @IgnoreCase at line: 2, column: 10""") }
     }
+
+    "fail for multiple duplicate column directives" in {
+      val schema = """@TotalColumns 1
+                     |column1: @IgnoreCase @Optional @IgnoreCase @Optional""".stripMargin
+
+      parse(new StringReader(schema)) must beLike { case Failure(message, _) => (message mustEqual """column1: Duplicated column directives: @IgnoreCase at line: 2, column: 10,@Optional at line: 2, column: 22""") }
+    }
+
+    "fail for duplicate column directives on different columns" in {
+      val schema = """@TotalColumns 3
+                     |column1: @IgnoreCase @Optional @IgnoreCase @Optional
+                     |column2: @Optional @IgnoreCase
+                     |column3: @Optional @IgnoreCase @Optional @IgnoreCase""".stripMargin
+
+      parse(new StringReader(schema)) must beLike { case Failure(message, _) => (message mustEqual
+        """column1: Duplicated column directives: @IgnoreCase at line: 2, column: 10,@Optional at line: 2, column: 22
+          |column3: Duplicated column directives: @IgnoreCase at line: 4, column: 20,@Optional at line: 4, column: 10""".stripMargin) }
+    }
+
   }
 
   "Schema ordering" should {
