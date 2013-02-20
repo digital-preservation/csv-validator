@@ -17,7 +17,7 @@ case class NoHeader() extends GlobalDirective
 
 case class IgnoreColumnNameCase() extends GlobalDirective
 
-case class ColumnDefinition(id: String, rules: List[Rule] = Nil, directives: List[ColumnDirective] = Nil)
+case class ColumnDefinition(id: String, rules: List[Rule] = Nil, directives: List[ColumnDirective] = Nil) extends Positional
 
 trait ArgProvider {
 
@@ -46,7 +46,7 @@ case class Literal(value: Option[String]) extends ArgProvider {
 trait ColumnDirective extends Positional
 
 case class Optional() extends ColumnDirective {
-  override def toString(): String = "optional"
+  override def toString = "optional"
 }
 
 case class IgnoreCase() extends ColumnDirective  {

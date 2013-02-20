@@ -43,7 +43,7 @@ trait SchemaParser extends RegexParsers {
 
   def ignoreColumnNameCaseDirective: Parser[IgnoreColumnNameCase] = "@ignoreColumnNameCase" ~ white ^^^ IgnoreColumnNameCase()
 
-  def columnDefinitions = rep1(columnDefinition)
+  def columnDefinitions = rep1(positioned(columnDefinition))
 
   def columnDefinition = (columnIdentifier <~ ":") ~ rep(rule) ~ rep(columnDirective) <~ endOfColumnDefinition ^^ {
     case id ~ rules ~ columnDirectives => ColumnDefinition(id, rules, columnDirectives)
@@ -90,29 +90,32 @@ trait SchemaParser extends RegexParsers {
   private def valid(g: List[GlobalDirective], c: List[ColumnDefinition]): String = {
     val tc: Option[TotalColumns] = g.collectFirst { case t@TotalColumns(_) => t }
 
-    val columnDirectives = columnDirectivesValid(c)
-    val cross = crossColumnsValid(c)
-
-    if (!tc.isEmpty && tc.get.numberOfColumns != c.length) {
-      s"@totalColumns = ${tc.get.numberOfColumns} but number of columns defined = ${c.length} at line: ${tc.get.pos.line}, column: ${tc.get.pos.column}" +
-                        (if (cross.isEmpty) "" else "\n") + cross.getOrElse("")
-    } else {
-      columnDirectives.getOrElse("") + cross.getOrElse("")
-    }
+    (totalColumnsValid(tc, c).getOrElse("") ::
+    columnDirectivesValid(c).getOrElse("") ::
+    duplicateColumnsValid(c).getOrElse("") ::
+    crossColumnsValid(c).getOrElse("") :: Nil).filter(!_.isEmpty).mkString("\n")
   }
 
-  private def duplicateColumnsValid(col: List[ColumnDefinition]): Map[ColumnDefinition, List[Int]] = {
-    val columnsByColumnId = col.zipWithIndex.groupBy { _._1 }
-    columnsByColumnId.filter( _._2.length > 1 ).map { case (id,idAndPos) => (id, idAndPos.map{ case (id, pos) => pos}) }
+  private def totalColumnsValid(tc: Option[TotalColumns], c: List[ColumnDefinition]): Option[String] = {
+    if (!tc.isEmpty && tc.get.numberOfColumns != c.length)
+      Some(s"@totalColumns = ${tc.get.numberOfColumns} but number of columns defined = ${c.length} at line: ${tc.get.pos.line}, column: ${tc.get.pos.column}" )
+    else
+      None
   }
 
-  private def columnDirectivesValid(col: List[ColumnDefinition]): Option[String] = {
+  private def duplicateColumnsValid(columnDefinitions: List[ColumnDefinition]): Option[String] /*Map[ColumnDefinition, List[Int]]*/ = {
+    val columnsByColumnId = columnDefinitions.zipWithIndex.groupBy { _._1 }
+    columnsByColumnId.filter( _._2.length > 1 ).map { case (id, idAndPos) => (id, idAndPos.map { case (id, pos) => pos }) }
+    None
+  }
+
+  private def columnDirectivesValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
     val v = for {
-      colDef <- col
-      if (colDef.directives.distinct.length != colDef.directives.length)
+      cd <- columnDefinitions
+      if (cd.directives.distinct.length != cd.directives.length)
     } yield {
-      s"${colDef.id}: Duplicated column directives: " +
-       colDef.directives.groupBy(identity).filter(p => p._2.size > 1).map(p => "@" + p._1 + s" at line: ${p._1.pos.line}, column: ${p._1.pos.column}").mkString(",")
+      s"${cd.id}: Duplicated column directives: " +
+        cd.directives.groupBy(identity).filter { case (_, dups) => dups.size > 1}.map { case (cd, dups) => "@" + cd + s" at line: ${cd.pos.line}, column: ${cd.pos.column}"}.mkString(",")
     }
 
     if (v.isEmpty) None else Some(v.mkString("\n"))

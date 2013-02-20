@@ -153,8 +153,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
     }
   }
 
-  /* TODO To put back
-  "validate schema" should {
+  /*"validate schema" should {
 
     "fail with duplicate column ids" in {
       validate(basePath + "duplicateColumnIdsMetaData.csv", basePath + "duplicateColumnIdsFailSchema.txt") must beLike {
