@@ -22,9 +22,16 @@ trait SchemaParser extends RegexParsers {
 
   val regexParser: Parser[String] = Regex withFailureMessage("""regex not correctly delimited as ("your regex")""")
 
-  def parse(reader: Reader) = parseAll(schema, reader)
+  def parse(reader: Reader) = parseAll(schema, reader) match {
+    case s @ Success(schema: Schema, next) => {
+      val messages = valid(schema.globalDirectives, schema.columnDefinitions)
+      if (messages.isEmpty) s else Failure(messages, next)
+    }
 
-  def schema = globalDirectives ~ columnDefinitions ^? (createSchema, { case g ~ c => validationErrors(g, c) })
+    case n @ NoSuccess(messages, next) => n
+  }
+
+  def schema = globalDirectives ~ columnDefinitions ^^ { case g ~ c => Schema(g, c)}
 
   def globalDirectives: Parser[List[GlobalDirective]] = rep(positioned(globalDirective)) <~ (whiteSpace ~ (eol | endOfInput | failure("Global directives contains invalid text")))
 
@@ -67,10 +74,6 @@ trait SchemaParser extends RegexParsers {
 
   def ignoreCase = "@IgnoreCase" ^^^ IgnoreCase()
 
-  private def createSchema: PartialFunction[~[List[GlobalDirective], List[ColumnDefinition]], Schema] = {
-    case g ~ c if validationErrors(g, c).isEmpty => Schema(g, c)
-  }
-
   private def endOfColumnDefinition: Parser[Any] = whiteSpace ~ (eol | endOfInput | failure("Column definition contains invalid text"))
 
   private def endOfInput: Parser[Any] = new Parser[Any] {
@@ -84,11 +87,11 @@ trait SchemaParser extends RegexParsers {
     case Regex(_, s, _) if Try(s.r).isSuccess => RegexRule(Literal(Some(s)))
   }
 
-  def validationErrors(g: List[GlobalDirective], c: List[ColumnDefinition]): String = {
+  private def valid(g: List[GlobalDirective], c: List[ColumnDefinition]): String = {
     val tc: Option[TotalColumns] = g.collectFirst { case t@TotalColumns(_) => t }
 
-    val columnDirectives = columnDirectiveErrors(c)
-    val cross = crossColumnErrors(c)
+    val columnDirectives = columnDirectivesValid(c)
+    val cross = crossColumnsValid(c)
 
     if (!tc.isEmpty && tc.get.numberOfColumns != c.length) {
       s"@TotalColumns = ${tc.get.numberOfColumns} but number of columns defined = ${c.length} at line: ${tc.get.pos.line}, column: ${tc.get.pos.column}" +
@@ -98,12 +101,12 @@ trait SchemaParser extends RegexParsers {
     }
   }
 
-  private def duplicateColumnErrors(col: List[ColumnDefinition]): Map[ColumnDefinition, List[Int]] = {
+  private def duplicateColumnsValid(col: List[ColumnDefinition]): Map[ColumnDefinition, List[Int]] = {
     val columnsByColumnId = col.zipWithIndex.groupBy { _._1 }
     columnsByColumnId.filter( _._2.length > 1 ).map { case (id,idAndPos) => (id, idAndPos.map{ case (id, pos) => pos}) }
   }
 
-  private def columnDirectiveErrors(col: List[ColumnDefinition]): Option[String] = {
+  private def columnDirectivesValid(col: List[ColumnDefinition]): Option[String] = {
     val v = for {
       colDef <- col
       if (colDef.directives.distinct.length != colDef.directives.length)
@@ -115,7 +118,7 @@ trait SchemaParser extends RegexParsers {
     if (v.isEmpty) None else Some(v.mkString("\n"))
   }
 
-  private def crossColumnErrors(columnDefinitions: List[ColumnDefinition]): Option[String] = {
+  private def crossColumnsValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
 
     def filterRules(columnDef:ColumnDefinition ): List[Rule] = { // List of failing rules
       columnDef.rules.filter(rule => {

@@ -50,5 +50,5 @@ case class Optional() extends ColumnDirective {
 }
 
 case class IgnoreCase() extends ColumnDirective  {
-  override def toString(): String = "IgnoreCase"
+  override def toString = "IgnoreCase"
 }
