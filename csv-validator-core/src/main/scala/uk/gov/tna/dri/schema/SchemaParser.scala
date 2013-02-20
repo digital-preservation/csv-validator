@@ -124,42 +124,27 @@ trait SchemaParser extends RegexParsers {
   }
 
   private def crossColumnsValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
-
     def filterRules(columnDef:ColumnDefinition ): List[Rule] = { // List of failing rules
       columnDef.rules.filter(rule => {
-        findColumnReference(rule) match {
-          case Some(name) => !columnDefinitions.exists(col => col.id == name)
-          case None => false
+        rule.argProvider match {
+          case ColumnReference(name) => !columnDefinitions.exists(col => col.id == name)
+          case _ => false
         }
       })
     }
 
-    def findColumnReference(rule: Rule): Option[String] = rule match {
-      case InRule(s) => findColumnName(s)
-      case _ => None
-    }
-
-    def findColumnName(s: ArgProvider): Option[String] = s match {
-      case ColumnReference(name) => Some(name)
-      case _ => None
-    }
-
     def crossReferenceErrors(rules: List[Rule]): String = {
       val errors = rules.map {
-        case rule: InRule => s"""${rule.toError} at line: ${rule.pos.line}, column: ${rule.pos.column}"""
+        case rule: Rule => s"""${rule.toError} at line: ${rule.pos.line}, column: ${rule.pos.column}"""
         case _ => ""
       }.filter(!_.isEmpty)
 
       (if (errors.length == 1) "cross reference " else "cross references ") + errors.mkString(", ")
     }
 
-    val errors = columnDefinitions.map(columnDef => (columnDef, filterRules(columnDef))).filter(x => x._2.length > 0)
+    val errors = columnDefinitions.map(cd => (cd, filterRules(cd))).filter(x => x._2.length > 0)
 
-    if (errors.isEmpty) {
-      None
-    } else {
-      val errorMessages = errors.map(e => s"Column: ${e._1.id} has invalid ${crossReferenceErrors(e._2)}")
-      Some(errorMessages.mkString("\n"))
-    }
+    if (errors.isEmpty) None
+    else Some(errors.map { case (cd, rules) => s"Column: ${cd.id} has invalid ${crossReferenceErrors(rules)}" }.mkString("\n"))
   }
 }

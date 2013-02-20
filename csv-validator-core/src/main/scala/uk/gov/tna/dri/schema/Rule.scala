@@ -6,7 +6,7 @@ import uk.gov.tna.dri.metadata.Row
 import java.io.File
 import util.parsing.input.Positional
 
-abstract class Rule(val name: String, argProvider: ArgProvider = Literal(None)) extends Positional {
+abstract class Rule(val name: String, val argProvider: ArgProvider = Literal(None)) extends Positional {
 
   def evaluate(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
     val cellValue = row.cells(columnIndex).value
