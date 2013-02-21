@@ -1,6 +1,6 @@
 package uk.gov.tna.dri.validator
 
-import uk.gov.tna.dri.schema.{TotalColumns, Optional, Schema}
+import uk.gov.tna.dri.schema.{NoHeader, TotalColumns, Optional, Schema}
 import au.com.bytecode.opencsv.CSVReader
 import java.io.Reader
 import scala.collection.JavaConversions._
@@ -14,7 +14,7 @@ trait AllErrorsMetaDataValidator extends MetaDataValidator {
 
     def rowsWithHeadDirective(rows: List[Array[String]]): List[Array[String]] = {
       schema match {
-        case Schema(_, _) => rows
+        case Schema(globalDirectives, _) if globalDirectives.contains(NoHeader()) => rows
         case _ => rows.tail
       }
     }

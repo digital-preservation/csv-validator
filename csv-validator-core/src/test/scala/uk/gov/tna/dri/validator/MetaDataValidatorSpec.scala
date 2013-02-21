@@ -280,7 +280,7 @@ class MetaDataValidatorSpec extends Specification {
     "fail when neither side of or rule passes" in {
       val orRule = OrRule(InRule(Literal(Some("This"))), InRule(Literal(Some("That"))))
       val columnDefinitions = ColumnDefinition("ThisOrThat", List(orRule)) :: Nil
-      val schema = Schema(List(TotalColumns(1)), columnDefinitions)
+      val schema = Schema(List(TotalColumns(1), NoHeader()), columnDefinitions)
       val metaData = "SomethingElse"
 
       validate(new StringReader(metaData), schema) must beLike {

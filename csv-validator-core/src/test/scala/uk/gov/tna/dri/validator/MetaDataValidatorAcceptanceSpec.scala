@@ -25,7 +25,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
     }
 
     "succeed when @noHeader not set" in {
-      validate(basePath + "regexRuleFailMetaData.csv", basePath + "regexRuleSchemaWithNoHeaderSet.txt") must beLike {
+      validate(basePath + "regexRuleFailMetaData.csv", basePath + "regexRuleSchemaWithoutNoHeaderSet.txt") must beLike {
         case Success(_) => ok
       }
     }

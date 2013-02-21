@@ -20,7 +20,7 @@ trait FailFastMetaDataValidator extends MetaDataValidator {
 
     def rowsWithHeadDirective(rows: List[Array[String]]): List[Array[String]] = {
       schema match {
-        case Schema(_, _) => rows
+        case Schema(globalDirectives, _) if globalDirectives.contains(NoHeader()) => rows
         case _ => rows.tail
       }
     }
