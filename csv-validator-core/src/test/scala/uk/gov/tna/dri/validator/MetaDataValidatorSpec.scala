@@ -401,9 +401,61 @@ class MetaDataValidatorSpec extends Specification {
       }
     }
 
+    "succeed for 'ends' rule" in {
+      val schema = Schema(List(TotalColumns(1), NoHeader()),
+                          List(ColumnDefinition("Country", List(EndsRule(Literal(Some("Kingdom")))))))
+
+      val metaData = "United Kingdom"
+
+      validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
+    }
+
+    "succeed for 'ends' cross reference rule" in {
+      val schema = Schema(List(TotalColumns(2), NoHeader()),
+                          List(ColumnDefinition("Country", List(EndsRule(ColumnReference("MyCountry")))),
+                               ColumnDefinition("MyCountry")))
+
+      val metaData = "United Kingdom,Kingdom"
+
+      validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
+    }
+
+    "succeed for 2 'ends' rule" in {
+      val schema = Schema(List(TotalColumns(1), NoHeader()),
+                          List(ColumnDefinition("Country", List(EndsRule(Literal(Some("Kingdom"))), EndsRule(Literal(Some("KINGDOM")))), List(IgnoreCase()))))
+
+      val metaData = "United Kingdom"
+
+      validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
+    }
+
+    "fail for 'ends' rule that is not matched" in {
+      val schema = Schema(List(TotalColumns(1), NoHeader()),
+                          List(ColumnDefinition("Country", List(EndsRule(Literal(Some("kingdom")))))))
+
+      val metaData = "United Kingdom"
+
+      validate(new StringReader(metaData), schema) must beLike {
+        case Failure(messages) => messages.list mustEqual List("""ends("kingdom") fails for line: 1, column: Country, value: United Kingdom""")
+      }
+    }
+
+    "fail for 'ends' cross reference rule that is not matched" in {
+      val schema = Schema(List(TotalColumns(2), NoHeader()),
+                          List(ColumnDefinition("Country", List(EndsRule(ColumnReference("MyCountry")))),
+                               ColumnDefinition("MyCountry")))
+
+      val metaData = "United Kingdom,States"
+
+      validate(new StringReader(metaData), schema) must beLike {
+        case Failure(messages) => messages.list mustEqual List("""ends($MyCountry) fails for line: 1, column: Country, value: United Kingdom""")
+      }
+    }
+
     "fail for multiple duplicates for unique rule" in {
 
       val schema = Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition("Name", UniqueRule() :: Nil)))
+
       val metaData =
         """Jim
           |Ben
