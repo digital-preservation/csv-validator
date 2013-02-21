@@ -1,0 +1,3 @@
+@totalColumns 2
+AlphaNumeric:
+Numeric: regex("[0-9]+")
