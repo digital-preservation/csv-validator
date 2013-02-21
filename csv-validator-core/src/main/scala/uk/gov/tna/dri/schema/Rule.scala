@@ -80,6 +80,13 @@ case class IsRule(isValue: ArgProvider) extends Rule("is", isValue) {
   }
 }
 
+case class StartsRule(isValue: ArgProvider) extends Rule("starts", isValue) {
+  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = {
+    val (rv, cv) = if (columnDefinition.directives.contains(IgnoreCase())) (ruleValue.get.toLowerCase, cellValue.toLowerCase) else (ruleValue.get, cellValue)
+    cv startsWith rv
+  }
+}
+
 case class UriRule() extends Rule("uri") {
   val uriRegex = "http://datagov.nationalarchives.gov.uk/66/WO/409/[0-9]+/[0-9]+/" + Uuid4Regex
   def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = cellValue matches uriRegex

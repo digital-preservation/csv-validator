@@ -319,7 +319,7 @@ class MetaDataValidatorSpec extends Specification {
       validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
     }
 
-    "faile for 'is' rule that is not matched" in {
+    "fail for 'is' rule that is not matched" in {
       val schema = Schema(List(TotalColumns(1), NoHeader()),
         List(ColumnDefinition("Country", List(IsRule(Literal(Some("France")))))))
 

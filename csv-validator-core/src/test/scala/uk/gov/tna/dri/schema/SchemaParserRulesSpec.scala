@@ -190,7 +190,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
                       Country: is("UK")"""
 
       parse(new StringReader(schema)) must beLike {
-        case Success(Schema(List(TotalColumns(1)), List(ColumnDefinition("Country", List(IsRule(Literal(Some("UK")))), _))), _) => ok
+        case Success(Schema(_, List(ColumnDefinition("Country", List(IsRule(Literal(Some("UK")))), _))), _) => ok
       }
     }
 
@@ -213,6 +213,37 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
                      |MyCountry:""".stripMargin
 
       parse(new StringReader(schema)) must beLike { case Failure("Column: Country has invalid cross reference is($MyMissingCountry) at line: 2, column: 10", _) => ok }
+
+    }
+
+    "succeed for 'starts' text rule" in {
+      val schema = """@totalColumns 1
+                      Country: starts("United")"""
+
+      parse(new StringReader(schema)) must beLike {
+        case Success(Schema(_, List(ColumnDefinition("Country", List(StartsRule(Literal(Some("United")))), _))), _) => ok
+      }
+    }
+
+    "succeed for 'starts' cross reference rule" in {
+      val schema = """@totalColumns 2
+                      Country: starts($MyCountry)
+                      MyCountry:"""
+
+      parse(new StringReader(schema)) must beLike {
+        case Success(Schema(_,
+        List(ColumnDefinition("Country", List(StartsRule(ColumnReference("MyCountry"))), _),
+        ColumnDefinition("MyCountry", _, _))),
+        _) => ok
+      }
+    }
+
+    "fail for invalid 'starts' cross reference rule" in {
+      val schema = """@totalColumns 2
+                     |Country: starts($MyMissingCountry)
+                     |MyCountry:""".stripMargin
+
+      parse(new StringReader(schema)) must beLike { case Failure("Column: Country has invalid cross reference starts($MyMissingCountry) at line: 2, column: 10", _) => ok }
 
     }
   }
