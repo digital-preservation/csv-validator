@@ -318,5 +318,16 @@ class MetaDataValidatorSpec extends Specification {
 
       validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
     }
+
+    "faile for 'is' rule that is not matched" in {
+      val schema = Schema(List(TotalColumns(1), NoHeader()),
+        List(ColumnDefinition("Country", List(IsRule(Literal(Some("France")))))))
+
+      val metaData = "UK"
+
+      validate(new StringReader(metaData), schema) must beLike {
+        case Failure(messages) => messages.list mustEqual List("""is("France") fails for line: 1, column: Country, value: UK""")
+      }
+    }
   }
 }

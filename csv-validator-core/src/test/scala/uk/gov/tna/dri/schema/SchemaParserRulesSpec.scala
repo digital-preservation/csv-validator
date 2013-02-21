@@ -185,7 +185,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
       }
     }
 
-    "succeed for 'is' rule" in {
+    "succeed for 'is' text rule" in {
       val schema = """@totalColumns 1
                       Country: is("UK")"""
 
@@ -194,13 +194,26 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
       }
     }
 
-    "succeed for 2 'is' rule" in {
-      val schema = """@totalColumns 1
-                      Country: is("UK") is("GB")"""
+    "succeed for 'is' cross reference rule" in {
+      val schema = """@totalColumns 2
+                      Country: is($MyCountry)
+                      MyCountry:"""
 
       parse(new StringReader(schema)) must beLike {
-        case Success(Schema(List(TotalColumns(1)), List(ColumnDefinition("Country", List(IsRule(Literal(Some("UK"))), IsRule(Literal(Some("GB")))), _))), _) => ok
+        case Success(Schema(_,
+                            List(ColumnDefinition("Country", List(IsRule(ColumnReference("MyCountry"))), _),
+                                 ColumnDefinition("MyCountry", _, _))),
+                     _) => ok
       }
+    }
+
+    "fail for invalid 'is' cross reference rule" in {
+      val schema = """@totalColumns 2
+                     |Country: is($MyMissingCountry)
+                     |MyCountry:""".stripMargin
+
+      parse(new StringReader(schema)) must beLike { case Failure("Column: Country has invalid cross reference is($MyMissingCountry) at line: 2, column: 10", _) => ok }
+
     }
   }
 }
