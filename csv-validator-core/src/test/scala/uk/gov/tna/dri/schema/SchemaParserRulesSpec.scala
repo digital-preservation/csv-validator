@@ -150,5 +150,15 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
                                                 List( UriRule(),XsdDateTimeRule(),XsdDateRule(),UkDateRule(),XsdTimeRule(),Uuid4Rule(),PositiveIntegerRule()), _))), _) => ok
       }
     }
+
+    "succeed for unique rule" in {
+      val schema =
+        """@totalColumns 1
+           Country: unique"""
+      parse(new StringReader(schema)) must beLike {
+        case Success(Schema(globalDirsOne, List(ColumnDefinition("Country",
+        List(UniqueRule()), _))), _) => ok
+      }
+    }
   }
 }
