@@ -11,6 +11,8 @@ import uk.gov.tna.dri.schema.Schema
 
 class MetaDataValidatorSpec extends Specification {
 
+  val schemaParser = new SchemaParser {}
+
   object TestMetaDataValidator extends AllErrorsMetaDataValidator
 
   import TestMetaDataValidator._
@@ -492,13 +494,15 @@ class MetaDataValidatorSpec extends Specification {
     }
 
     "fail for 'ends' cross reference rule that is not matched" in {
-      val schema = Schema(List(TotalColumns(2), NoHeader()),
-                          List(ColumnDefinition("Country", List(EndsRule(ColumnReference("MyCountry")))),
-                               ColumnDefinition("MyCountry")))
+      val schema =
+        """@totalColumns 2 @noHeader
+           Country: ends($MyCountry)
+           MyCountry:
+        """
 
       val metaData = "United Kingdom,States"
 
-      validate(new StringReader(metaData), schema) must beLike {
+      validate(new StringReader(metaData), schemaParser.parse(new StringReader(schema)).get) must beLike {
         case Failure(messages) => messages.list mustEqual List("""ends($MyCountry) fails for line: 1, column: Country, value: United Kingdom""")
       }
     }
