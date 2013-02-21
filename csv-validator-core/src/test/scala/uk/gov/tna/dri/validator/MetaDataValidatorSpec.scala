@@ -509,8 +509,10 @@ class MetaDataValidatorSpec extends Specification {
 
     "fail for multiple duplicates for unique rule" in {
 
-      val schema = Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition("Name", UniqueRule() :: Nil)))
-
+      val schema =
+        """@totalColumns 1 @noHeader
+           Name: unique
+        """
       val metaData =
         """Jim
           |Ben
@@ -518,7 +520,7 @@ class MetaDataValidatorSpec extends Specification {
           |Jim
         """.stripMargin
 
-      validate(new StringReader(metaData), schema) must beLike {
+      validate(new StringReader(metaData), schemaParser.parse(new StringReader(schema)).get) must beLike {
         case Failure(messages) => messages.list mustEqual List("unique fails for line: 3, column: Name, value: Jim","unique fails for line: 4, column: Name, value: Jim")
       }
     }
