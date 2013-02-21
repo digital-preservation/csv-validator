@@ -66,18 +66,19 @@ case class FileExistsRule(rootPath: ArgProvider = Literal(None)) extends Rule("f
   }
 }
 
-abstract class TextMatcherRule(override val name: String, inValue: ArgProvider, matcher: (String, String) => Boolean) extends Rule(name, inValue) {
-  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = valid(cellValue, ruleValue, columnDefinition, matcher)
-
-  private def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition, matcher: (String, String) => Boolean) = {
+case class InRule(inValue: ArgProvider) extends Rule("in", inValue) {
+  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = {
     val (rv, cv) = if (columnDefinition.directives.contains(IgnoreCase())) (ruleValue.get.toLowerCase, cellValue.toLowerCase) else (ruleValue.get, cellValue)
-    matcher(rv, cv)
+    rv contains cv
   }
 }
 
-case class InRule(inValue: ArgProvider) extends TextMatcherRule("in", inValue, _ contains _)
-
-case class IsRule(isValue: ArgProvider) extends TextMatcherRule("is", isValue, _ == _)
+case class IsRule(isValue: ArgProvider) extends Rule("is", isValue) {
+  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = {
+    val (rv, cv) = if (columnDefinition.directives.contains(IgnoreCase())) (ruleValue.get.toLowerCase, cellValue.toLowerCase) else (ruleValue.get, cellValue)
+    cv == rv
+  }
+}
 
 case class UriRule() extends Rule("uri") {
   val uriRegex = "http://datagov.nationalarchives.gov.uk/66/WO/409/[0-9]+/[0-9]+/" + Uuid4Regex
