@@ -308,11 +308,19 @@ class MetaDataValidatorSpec extends Specification {
       validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
     }
 
+    "succeed for 'is' cross reference rule" in {
+      val schema = Schema(List(TotalColumns(2), NoHeader()),
+                          List(ColumnDefinition("Country", List(IsRule(ColumnReference("MyCountry")))),
+                               ColumnDefinition("MyCountry")))
+
+      val metaData = "United Kingdom,United Kingdom"
+
+      validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
+    }
+
     "succeed for 2 'is' rule" in {
       val schema = Schema(List(TotalColumns(1), NoHeader()),
-                          List(ColumnDefinition("Country",
-                                                List(IsRule(Literal(Some("UK"))), IsRule(Literal(Some("uk")))),
-                                                List(IgnoreCase()))))
+                          List(ColumnDefinition("Country", List(IsRule(Literal(Some("UK"))), IsRule(Literal(Some("uk")))), List(IgnoreCase()))))
 
       val metaData = "UK"
 
@@ -321,12 +329,75 @@ class MetaDataValidatorSpec extends Specification {
 
     "fail for 'is' rule that is not matched" in {
       val schema = Schema(List(TotalColumns(1), NoHeader()),
-        List(ColumnDefinition("Country", List(IsRule(Literal(Some("France")))))))
+                          List(ColumnDefinition("Country", List(IsRule(Literal(Some("France")))))))
 
       val metaData = "UK"
 
       validate(new StringReader(metaData), schema) must beLike {
         case Failure(messages) => messages.list mustEqual List("""is("France") fails for line: 1, column: Country, value: UK""")
+      }
+    }
+
+    "fail for 'is' cross reference rule that is not matched" in {
+      val schema = Schema(List(TotalColumns(2), NoHeader()),
+        List(ColumnDefinition("Country", List(IsRule(ColumnReference("MyCountry")))),
+             ColumnDefinition("MyCountry")))
+
+      val metaData = "United,United Kingdom"
+
+      validate(new StringReader(metaData), schema) must beLike {
+        case Failure(messages) => messages.list mustEqual List("""is($MyCountry) fails for line: 1, column: Country, value: United""")
+      }
+    }
+
+    "succeed for 'starts' rule" in {
+      val schema = Schema(List(TotalColumns(1), NoHeader()),
+                          List(ColumnDefinition("Country", List(StartsRule(Literal(Some("United")))))))
+
+      val metaData = "United Kingdom"
+
+      validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
+    }
+
+    "succeed for 'starts' cross reference rule" in {
+      val schema = Schema(List(TotalColumns(2), NoHeader()),
+                          List(ColumnDefinition("Country", List(StartsRule(ColumnReference("MyCountry")))),
+                               ColumnDefinition("MyCountry")))
+
+      val metaData = "United Kingdom,United"
+
+      validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
+    }
+
+    "succeed for 2 'starts' rule" in {
+      val schema = Schema(List(TotalColumns(1), NoHeader()),
+                          List(ColumnDefinition("Country", List(StartsRule(Literal(Some("United"))), StartsRule(Literal(Some("UNITED")))), List(IgnoreCase()))))
+
+      val metaData = "United Kingdom"
+
+      validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
+    }
+
+    "fail for 'starts' rule that is not matched" in {
+      val schema = Schema(List(TotalColumns(1), NoHeader()),
+        List(ColumnDefinition("Country", List(StartsRule(Literal(Some("united")))))))
+
+      val metaData = "United Kingdom"
+
+      validate(new StringReader(metaData), schema) must beLike {
+        case Failure(messages) => messages.list mustEqual List("""starts("united") fails for line: 1, column: Country, value: United Kingdom""")
+      }
+    }
+
+    "fail for 'starts' cross reference rule that is not matched" in {
+      val schema = Schema(List(TotalColumns(2), NoHeader()),
+                          List(ColumnDefinition("Country", List(StartsRule(ColumnReference("MyCountry")))),
+                               ColumnDefinition("MyCountry")))
+
+      val metaData = "United,United Kingdom"
+
+      validate(new StringReader(metaData), schema) must beLike {
+        case Failure(messages) => messages.list mustEqual List("""starts($MyCountry) fails for line: 1, column: Country, value: United""")
       }
     }
   }
