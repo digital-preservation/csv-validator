@@ -13,6 +13,7 @@ import uk.gov.tna.dri.schema.ColumnDefinition
 import uk.gov.tna.dri.schema.Schema
 import scala.Some
 import uk.gov.tna.dri.schema.Optional
+import annotation.tailrec
 
 trait FailFastMetaDataValidator extends MetaDataValidator {
 
@@ -27,11 +28,15 @@ trait FailFastMetaDataValidator extends MetaDataValidator {
 
     val csvRows = rowsWithHeadDirective(new CSVReader(csv).readAll().toList)
 
-    val rows = csvRows.map(_.toList).zipWithIndex.map(r => Row(r._1.map(Cell(_)), r._2 + 1))
+    val rows: List[Row] = csvRows.map(_.toList).zipWithIndex.map(r => Row(r._1.map(Cell(_)), r._2 + 1))
 
+    @tailrec
     def validateRows(rows: List[Row]): MetaDataValidation[Any] = rows match {
-      case r :: tail =>  validateRow(r, schema).fold(e => e.fail[Any], s => validateRows(tail))
       case Nil => true.successNel[String]
+      case r :: tail =>  validateRow(r, schema) match {
+        case e@ Failure(_) => e
+        case s => validateRows(tail)
+      }
     }
 
     validateRows(rows)
