@@ -10,7 +10,7 @@ import uk.gov.tna.dri.metadata.{Cell, Row}
 
 trait AllErrorsMetaDataValidator extends MetaDataValidator {
 
-  def validate(csv: Reader, schema: Schema) = {
+  def validate(csv: Reader, schema: Schema): MetaDataValidation[Any] = {
 
     def rowsWithHeadDirective(rows: List[Array[String]]): List[Array[String]] = {
       schema match {
@@ -24,35 +24,34 @@ trait AllErrorsMetaDataValidator extends MetaDataValidator {
     v.sequence[MetaDataValidation, Any]
   }
 
-  private def validateRow(row: Row, schema: Schema) = {
+  private def validateRow(row: Row, schema: Schema): MetaDataValidation[Any] = {
     val totalColumnsV = totalColumns(row, schema)
 
     val rulesV = rules(row, schema)
     (totalColumnsV |@| rulesV) { _ :: _ }
   }
 
-  private def totalColumns(row: Row, schema: Schema) = {
+  private def totalColumns(row: Row, schema: Schema): MetaDataValidation[Any] = {
     val tc: Option[TotalColumns] = schema.globalDirectives.collectFirst{ case t@TotalColumns(_) => t }
 
     if (tc.isEmpty || tc.get.numberOfColumns == row.cells.length) true.successNel[String]
     else s"Expected @totalColumns of ${tc.get.numberOfColumns} and found ${row.cells.length} on line ${row.lineNumber}".failNel[Any]
   }
 
-  private def rules(row: Row, schema: Schema) = {
-    val v = for { (columnDefinition, columnIndex) <- schema.columnDefinitions.zipWithIndex } yield validateCell(columnIndex, row, schema)
+  private def rules(row: Row, schema: Schema): MetaDataValidation[List[Any]] = {
+    val cells: (Int) => Option[Cell] = row.cells.lift
+    val v = for { (columnDefinition, columnIndex) <- schema.columnDefinitions.zipWithIndex } yield validateCell(columnIndex, cells, row, schema)
     v.sequence[MetaDataValidation, Any]
   }
 
-  private def validateCell(columnIndex: Int, row: Row, schema: Schema) = {
-    val cells = row.cells.lift
-
+  private def validateCell(columnIndex: Int, cells: (Int) => Option[Cell], row: Row, schema: Schema): MetaDataValidation[Any] = {
     cells(columnIndex) match {
       case Some(c) => rulesForCell(columnIndex, row, schema)
       case _ => s"Missing value at line: ${row.lineNumber}, column: ${schema.columnDefinitions(columnIndex).id}".failNel[Any]
     }
   }
 
-  private def rulesForCell(columnIndex: Int, row: Row, schema: Schema) = {
+  private def rulesForCell(columnIndex: Int, row: Row, schema: Schema): MetaDataValidation[Any] = {
     val columnDefinition = schema.columnDefinitions(columnIndex)
 
     if (row.cells(columnIndex).value.trim.isEmpty && columnDefinition.directives.contains(Optional())) true.successNel

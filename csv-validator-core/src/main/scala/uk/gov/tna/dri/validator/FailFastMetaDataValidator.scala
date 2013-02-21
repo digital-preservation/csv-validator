@@ -16,7 +16,7 @@ import uk.gov.tna.dri.schema.Optional
 
 trait FailFastMetaDataValidator extends MetaDataValidator {
 
-  def validate(csv: Reader, schema: Schema) = {
+  def validate(csv: Reader, schema: Schema): MetaDataValidation[Any] = {
 
     def rowsWithHeadDirective(rows: List[Array[String]]): List[Array[String]] = {
       schema match {
@@ -41,7 +41,7 @@ trait FailFastMetaDataValidator extends MetaDataValidator {
     totalColumns(row, schema).fold(e => e.fail[Any], s => rules(row, schema))
   }
 
-  private def totalColumns(row: Row, schema: Schema) = {
+  private def totalColumns(row: Row, schema: Schema): MetaDataValidation[Any] = {
     val tc: Option[TotalColumns] = schema.globalDirectives.collectFirst{ case t@TotalColumns(_) => t }
 
     if (tc.isEmpty || tc.get.numberOfColumns == row.cells.length) true.successNel[String]
@@ -49,23 +49,22 @@ trait FailFastMetaDataValidator extends MetaDataValidator {
   }
 
   private def rules(row: Row, schema: Schema): MetaDataValidation[Any] = {
+    val cells: (Int) => Option[Cell] = row.cells.lift
     def rulesRecur(columnDefinitions:List[(ColumnDefinition,Int)]): MetaDataValidation[Any] = columnDefinitions match {
       case Nil => true.successNel[String]
-      case (columnDef, columnIndex) :: tail => validateCell(columnIndex, row, schema).fold(e => e.fail[Any], s => rulesRecur(tail) )
+      case (columnDef, columnIndex) :: tail => validateCell(columnIndex, cells, row, schema).fold(e => e.fail[Any], s => rulesRecur(tail) )
     }
     rulesRecur(schema.columnDefinitions.zipWithIndex)
   }
 
-  private def validateCell(columnIndex: Int, row: Row, schema: Schema) = {
-    val cells = row.cells.lift
-
+  private def validateCell(columnIndex: Int, cells: (Int) => Option[Cell], row: Row, schema: Schema): MetaDataValidation[Any] = {
     cells(columnIndex) match {
       case Some(c) => rulesForCell(columnIndex, row, schema)
       case _ => s"Missing value at line: ${row.lineNumber}, column: ${schema.columnDefinitions(columnIndex).id}".failNel[Any]
     }
   }
 
-  private def rulesForCell(columnIndex: Int, row: Row, schema: Schema) = {
+  private def rulesForCell(columnIndex: Int, row: Row, schema: Schema): MetaDataValidation[Any] = {
     val columnDefinition = schema.columnDefinitions(columnIndex)
 
     def rulesForCellRecur(rules:List[Rule]): MetaDataValidation[Any] = rules match {
