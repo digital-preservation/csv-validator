@@ -34,8 +34,8 @@ trait FailFastMetaDataValidator extends MetaDataValidator {
     def validateRows(rows: List[Row]): MetaDataValidation[Any] = rows match {
       case Nil => true.successNel[String]
       case r :: tail =>  validateRow(r, schema) match {
-        case e@ Failure(_) => e
-        case s => validateRows(tail)
+        case e@Failure(_) => e
+        case _ => validateRows(tail)
       }
     }
 
@@ -55,11 +55,16 @@ trait FailFastMetaDataValidator extends MetaDataValidator {
 
   private def rules(row: Row, schema: Schema): MetaDataValidation[Any] = {
     val cells: (Int) => Option[Cell] = row.cells.lift
-    def rulesRecur(columnDefinitions:List[(ColumnDefinition,Int)]): MetaDataValidation[Any] = columnDefinitions match {
+
+    @tailrec
+    def validateRules(columnDefinitions:List[(ColumnDefinition,Int)]): MetaDataValidation[Any] = columnDefinitions match {
       case Nil => true.successNel[String]
-      case (columnDef, columnIndex) :: tail => validateCell(columnIndex, cells, row, schema).fold(e => e.fail[Any], s => rulesRecur(tail) )
+      case (columnDef, columnIndex) :: tail => validateCell(columnIndex, cells, row, schema) match {
+        case e@Failure(_) => e
+        case _ => validateRules(tail)
+      }
     }
-    rulesRecur(schema.columnDefinitions.zipWithIndex)
+    validateRules(schema.columnDefinitions.zipWithIndex)
   }
 
   private def validateCell(columnIndex: Int, cells: (Int) => Option[Cell], row: Row, schema: Schema): MetaDataValidation[Any] = {
@@ -72,12 +77,16 @@ trait FailFastMetaDataValidator extends MetaDataValidator {
   private def rulesForCell(columnIndex: Int, row: Row, schema: Schema): MetaDataValidation[Any] = {
     val columnDefinition = schema.columnDefinitions(columnIndex)
 
-    def rulesForCellRecur(rules:List[Rule]): MetaDataValidation[Any] = rules match {
+    @tailrec
+    def validateRulesForCell(rules:List[Rule]): MetaDataValidation[Any] = rules match {
       case Nil => true.successNel[String]
-      case rule :: tail => rule.evaluate(columnIndex, row, schema).fold(e => e.fail[Any], s => rulesForCellRecur(tail) )
+      case rule :: tail => rule.evaluate(columnIndex, row, schema) match {
+        case e@Failure(_) => e
+        case _ => validateRulesForCell(tail)
+      }
     }
 
     if (row.cells(columnIndex).value.trim.isEmpty && columnDefinition.directives.contains(Optional())) true.successNel
-    else rulesForCellRecur(columnDefinition.rules)
+    else validateRulesForCell(columnDefinition.rules)
   }
 }
