@@ -89,6 +89,13 @@ case class StartsRule(isValue: ArgProvider) extends Rule("starts", isValue) {
   }
 }
 
+case class EndsRule(isValue: ArgProvider) extends Rule("ends", isValue) {
+  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = {
+    val (rv, cv) = if (columnDefinition.directives.contains(IgnoreCase())) (ruleValue.get.toLowerCase, cellValue.toLowerCase) else (ruleValue.get, cellValue)
+    cv endsWith rv
+  }
+}
+
 case class UriRule() extends Rule("uri") {
   val uriRegex = "http://datagov.nationalarchives.gov.uk/66/WO/409/[0-9]+/[0-9]+/" + Uuid4Regex
   def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = cellValue matches uriRegex
@@ -127,7 +134,7 @@ case class UniqueRule() extends Rule("unique") {
   val distinctValues: mutable.HashSet[String] = mutable.HashSet[String]()
 
   def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = {
-    if (columnDefinition.directives contains IgnoreCase() ) distinctValues add cellValue.toLowerCase
+    if (columnDefinition.directives contains IgnoreCase()) distinctValues add cellValue.toLowerCase
     else distinctValues add cellValue
   }
 }

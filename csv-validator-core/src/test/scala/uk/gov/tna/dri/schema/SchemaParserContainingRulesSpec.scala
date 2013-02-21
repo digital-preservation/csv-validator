@@ -95,9 +95,9 @@ class SchemaParserContainingRulesSpec extends Specification with ParserMatchers 
 
       parse(new StringReader(schema)) must beLike {
         case Success(Schema(_,
-        List(ColumnDefinition("Country", List(StartsRule(ColumnReference("MyCountry"))), _),
-        ColumnDefinition("MyCountry", _, _))),
-        _) => ok
+                            List(ColumnDefinition("Country", List(StartsRule(ColumnReference("MyCountry"))), _),
+                                 ColumnDefinition("MyCountry", _, _))),
+                     _) => ok
       }
     }
 
@@ -107,6 +107,37 @@ class SchemaParserContainingRulesSpec extends Specification with ParserMatchers 
                      |MyCountry:""".stripMargin
 
       parse(new StringReader(schema)) must beLike { case Failure("Column: Country has invalid cross reference starts($MyMissingCountry) at line: 2, column: 10", _) => ok }
+
+    }
+
+    "succeed for 'ends' text rule" in {
+      val schema = """@totalColumns 1
+                      Country: ends("Kingdom")"""
+
+      parse(new StringReader(schema)) must beLike {
+        case Success(Schema(_, List(ColumnDefinition("Country", List(EndsRule(Literal(Some("Kingdom")))), _))), _) => ok
+      }
+    }
+
+    "succeed for 'ends' cross reference rule" in {
+      val schema = """@totalColumns 2
+                      Country: ends($MyCountry)
+                      MyCountry:"""
+
+      parse(new StringReader(schema)) must beLike {
+        case Success(Schema(_,
+                            List(ColumnDefinition("Country", List(EndsRule(ColumnReference("MyCountry"))), _),
+                                 ColumnDefinition("MyCountry", _, _))),
+                     _) => ok
+      }
+    }
+
+    "fail for invalid 'ends' cross reference rule" in {
+      val schema = """@totalColumns 2
+                     |Country: ends($MyMissingCountry)
+                     |MyCountry:""".stripMargin
+
+      parse(new StringReader(schema)) must beLike { case Failure("Column: Country has invalid cross reference ends($MyMissingCountry) at line: 2, column: 10", _) => ok }
 
     }
   }

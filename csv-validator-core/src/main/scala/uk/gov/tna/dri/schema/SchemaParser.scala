@@ -52,19 +52,21 @@ trait SchemaParser extends RegexParsers {
 
   def columnDirective = positioned(optional | ignoreCase)
 
-  def rule = positioned(orRule | unaryRule)
+  def rule = positioned(or | unaryRule)
 
-  def unaryRule = regex | fileExistsRule | inRule | isRule | startsRule | uri | xDateTime | xDate | ukDate | xTime | uuid4 | positiveInteger | failure("Invalid rule")
+  def unaryRule = regex | fileExists | in | is | starts | ends | uri | xDateTime | xDate | ukDate | xTime | uuid4 | positiveInteger | failure("Invalid rule")
 
-  def orRule: Parser[OrRule] = unaryRule ~ "or" ~ rule  ^^ { case lhs ~ _ ~ rhs => OrRule(lhs, rhs) }
+  def or: Parser[OrRule] = unaryRule ~ "or" ~ rule  ^^ { case lhs ~ _ ~ rhs => OrRule(lhs, rhs) }
 
   def regex = "regex" ~> regexParser ^? (validateRegex, s => s"regex invalid: ${s}") | failure("Invalid regex rule")
 
-  def inRule = "in(" ~> argProvider <~ ")" ^^ { InRule  }
+  def in = "in(" ~> argProvider <~ ")" ^^ { InRule  }
 
-  def isRule = "is(" ~> argProvider <~ ")" ^^ { IsRule }
+  def is = "is(" ~> argProvider <~ ")" ^^ { IsRule }
 
-  def startsRule = "starts(" ~> argProvider <~ ")" ^^ { StartsRule }
+  def starts = "starts(" ~> argProvider <~ ")" ^^ { StartsRule }
+
+  def ends = "ends(" ~> argProvider <~ ")" ^^ { EndsRule }
 
   def uri: Parser[UriRule] = "uri" ^^^ UriRule()
 
@@ -84,7 +86,7 @@ trait SchemaParser extends RegexParsers {
 
   def fileArgProvider: Parser[ArgProvider] = "$" ~> columnIdentifier ^^ { s => ColumnReference(s) } | '\"' ~> rootFilePath <~ '\"' ^^ {s => Literal(Some(s)) }
 
-  def fileExistsRule = ("fileExists(" ~> fileArgProvider <~ ")" ^^ { s => FileExistsRule(s) }).withFailureMessage("Column definition requires a file path") |
+  def fileExists = ("fileExists(" ~> fileArgProvider <~ ")" ^^ { s => FileExistsRule(s) }).withFailureMessage("Column definition requires a file path") |
     "fileExists" ^^^ { FileExistsRule() } | failure("Invalid fileExists rule")
 
   def rootFilePath: Parser[String] = """[a-zA-Z/-_\.\d\\:]+""".r
