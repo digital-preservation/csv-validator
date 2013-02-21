@@ -215,7 +215,7 @@ class MetaDataValidatorSpec extends Specification {
     }
 
     "succeed with valid file path" in {
-      val columnDefinitions = ColumnDefinition("1", List(FileExistsRule(Literal(None)))) :: Nil
+      val columnDefinitions = ColumnDefinition("1", List(FileExistsRule())) :: Nil
       val schema = Schema(globalDirsOne, columnDefinitions)
       val meta = "src/test/resources/uk/gov/tna/dri/schema/mustExistForRule.txt"
 
@@ -231,7 +231,7 @@ class MetaDataValidatorSpec extends Specification {
     }
 
     "fail for non existent file path" in {
-      val columnDefinitions = ColumnDefinition("First Column", List(FileExistsRule(Literal(None)))) :: Nil
+      val columnDefinitions = ColumnDefinition("First Column", List(FileExistsRule())) :: Nil
       val schema = Schema(globalDirsOne, columnDefinitions)
       val meta = "some/non/existent/file"
 
@@ -295,6 +295,26 @@ class MetaDataValidatorSpec extends Specification {
 
       val metaData = """Red
                        |red""".stripMargin
+
+      validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
+    }
+
+    "succeed for 'is' rule" in {
+      val schema = Schema(List(TotalColumns(1), NoHeader()),
+                          List(ColumnDefinition("Country", List(IsRule(Literal(Some("UK")))))))
+
+      val metaData = "UK"
+
+      validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
+    }
+
+    "succeed for 2 'is' rule" in {
+      val schema = Schema(List(TotalColumns(1), NoHeader()),
+                          List(ColumnDefinition("Country",
+                                                List(IsRule(Literal(Some("UK"))), IsRule(Literal(Some("uk")))),
+                                                List(IgnoreCase()))))
+
+      val metaData = "UK"
 
       validate(new StringReader(metaData), schema) must beLike { case Success(_) => ok }
     }

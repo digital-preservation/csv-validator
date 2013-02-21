@@ -41,26 +41,27 @@ case class OrRule(left: Rule, right: Rule) extends Rule("or") {
     }
   }
 
-  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = true
+  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = true
 
   override def toError = s"""${left.toError} ${name} ${right.toError}"""
 }
 
 case class RegexRule(regex: ArgProvider) extends Rule("regex", regex) {
-  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = {
+  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = {
     val regex = if (columnDefinition.directives.contains(IgnoreCase())) "(?i)" + ruleValue.get else ruleValue.get
     cellValue matches regex
   }
 }
 
 case class FileExistsRule(rootPath: ArgProvider = Literal(None)) extends Rule("fileExists", rootPath) {
-  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = {
+  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = {
     val filePath = cellValue
 
     val fileExists = ruleValue match {
       case Some(rootPath) => new File(rootPath, filePath).exists()
       case None => new File(filePath).exists()
     }
+
     fileExists
   }
 }
