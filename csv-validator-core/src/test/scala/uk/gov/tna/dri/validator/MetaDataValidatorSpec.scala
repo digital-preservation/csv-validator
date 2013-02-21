@@ -400,5 +400,21 @@ class MetaDataValidatorSpec extends Specification {
         case Failure(messages) => messages.list mustEqual List("""starts($MyCountry) fails for line: 1, column: Country, value: United""")
       }
     }
+
+    "fail for multiple duplicates for unique rule" in {
+
+      val schema = Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition("Name", UniqueRule() :: Nil)))
+      val metaData =
+        """Jim
+          |Ben
+          |Jim
+          |Jim
+        """.stripMargin
+
+      validate(new StringReader(metaData), schema) must beLike {
+        case Failure(messages) => messages.list mustEqual List("unique fails for line: 3, column: Name, value: Jim","unique fails for line: 4, column: Name, value: Jim")
+      }
+
+    }
   }
 }

@@ -5,6 +5,8 @@ import Scalaz._
 import uk.gov.tna.dri.metadata.Row
 import java.io.File
 import util.parsing.input.Positional
+import collection.mutable
+import uk.gov.tna.dri.schema
 
 abstract class Rule(val name: String, val argProvider: ArgProvider = Literal(None)) extends Positional {
 
@@ -119,4 +121,13 @@ case class Uuid4Rule() extends Rule("uuid4") {
 case class PositiveIntegerRule() extends Rule("positiveInteger") {
   val positiveIntegerRegex = "[1-9][0-9]+"
   def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = cellValue matches positiveIntegerRegex
+}
+
+case class UniqueRule() extends Rule("unique") {
+  val distinctValues: mutable.HashSet[String] = mutable.HashSet[String]()
+
+  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = {
+    if (columnDefinition.directives contains IgnoreCase() ) distinctValues add cellValue.toLowerCase
+    else distinctValues add cellValue
+  }
 }
