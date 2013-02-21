@@ -256,7 +256,7 @@ class MetaDataValidatorSpec extends Specification {
       val columnDefinitions = ColumnDefinition("col1") ::
                               ColumnDefinition("col2WithRule", List(RegexRule(Literal(Some("[0-9a-z]*"))), InRule(Literal(Some("dog"))))) :: Nil
 
-      val globalDirsTwoNoheader = List(TotalColumns(2))
+      val globalDirsTwoNoheader = List(TotalColumns(2), NoHeader())
       val schema = Schema(globalDirsTwoNoheader, columnDefinitions)
 
       val metaData =
@@ -269,7 +269,7 @@ class MetaDataValidatorSpec extends Specification {
     "succeed when either side of or rule passes" in {
       val orRule = OrRule(InRule(Literal(Some("This"))), InRule(Literal(Some("That"))))
       val columnDefinitions = ColumnDefinition("ThisOrThat", List(orRule)) :: Nil
-      val schema = Schema(List(TotalColumns(1)), columnDefinitions)
+      val schema = Schema(List(TotalColumns(1), NoHeader()), columnDefinitions)
 
       val metaData = """This
                        |That""".stripMargin
@@ -291,7 +291,7 @@ class MetaDataValidatorSpec extends Specification {
     "succeed when one of 3 'or' rules passes" in {
       val orRule = OrRule(RegexRule(Literal(Some("[A-Z]+"))), OrRule(RegexRule(Literal(Some("R.*"))), InRule(Literal(Some("red")))))
       val columnDefinitions = ColumnDefinition("Red", List(orRule)) :: Nil
-      val schema = Schema(List(TotalColumns(1)), columnDefinitions)
+      val schema = Schema(List(TotalColumns(1), NoHeader()), columnDefinitions)
 
       val metaData = """Red
                        |red""".stripMargin
