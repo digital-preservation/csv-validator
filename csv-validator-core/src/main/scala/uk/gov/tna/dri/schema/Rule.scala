@@ -65,18 +65,20 @@ case class FileExistsRule(rootPath: ArgProvider = Literal(None)) extends Rule("f
   }
 }
 
-case class InRule(inValue: ArgProvider) extends Rule("in", inValue) {
-  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = {
+trait RuleHelper {
+  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition, matcher: (String, String) => Boolean): Boolean = {
     val (cv, rv) = if (columnDefinition.directives.contains(IgnoreCase())) (cellValue.toLowerCase, ruleValue.get.toLowerCase) else (cellValue, ruleValue.get)
-    rv contains cv
+    matcher(rv, cv)
   }
 }
 
-case class IsRule(isValue: ArgProvider) extends Rule("is", isValue) {
-  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = {
-    val (cv, rv) = if (columnDefinition.directives.contains(IgnoreCase())) (cellValue.toLowerCase, ruleValue.get.toLowerCase) else (cellValue, ruleValue.get)
-    cv == rv
-  }
+
+case class InRule(inValue: ArgProvider) extends Rule("in", inValue) with RuleHelper {
+  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = valid(cellValue,ruleValue,columnDefinition, _ contains _)
+}
+
+case class IsRule(isValue: ArgProvider) extends Rule("is", isValue) with RuleHelper {
+  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = valid(cellValue,ruleValue,columnDefinition, _ ==  _)
 }
 
 case class UriRule() extends Rule("uri") {
