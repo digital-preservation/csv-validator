@@ -54,7 +54,7 @@ trait SchemaParser extends RegexParsers {
 
   def rule = positioned(or | unaryRule)
 
-  def unaryRule = regex | fileExists | in | is | starts | ends | uri | xDateTime | xDate | ukDate | xTime | uuid4 | positiveInteger | failure("Invalid rule")
+  def unaryRule = regex | fileExists | in | is | isNot | starts | ends | uri | xDateTime | xDate | ukDate | xTime | uuid4 | positiveInteger | failure("Invalid rule")
 
   def or: Parser[OrRule] = unaryRule ~ "or" ~ rule  ^^ { case lhs ~ _ ~ rhs => OrRule(lhs, rhs) }
 
@@ -63,6 +63,8 @@ trait SchemaParser extends RegexParsers {
   def in = "in(" ~> argProvider <~ ")" ^^ { InRule  }
 
   def is = "is(" ~> argProvider <~ ")" ^^ { IsRule }
+
+  def isNot = "isNot(" ~> argProvider <~ ")" ^^ { IsNotRule }
 
   def starts = "starts(" ~> argProvider <~ ")" ^^ { StartsRule }
 

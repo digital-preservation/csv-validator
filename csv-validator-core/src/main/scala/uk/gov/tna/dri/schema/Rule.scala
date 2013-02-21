@@ -82,6 +82,13 @@ case class IsRule(isValue: ArgProvider) extends Rule("is", isValue) {
   }
 }
 
+case class IsNotRule(isValue: ArgProvider) extends Rule("isNot", isValue) {
+  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = {
+    val (rv, cv) = if (columnDefinition.directives.contains(IgnoreCase())) (ruleValue.get.toLowerCase, cellValue.toLowerCase) else (ruleValue.get, cellValue)
+    cv != rv
+  }
+}
+
 case class StartsRule(isValue: ArgProvider) extends Rule("starts", isValue) {
   def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = {
     val (rv, cv) = if (columnDefinition.directives.contains(IgnoreCase())) (ruleValue.get.toLowerCase, cellValue.toLowerCase) else (ruleValue.get, cellValue)

@@ -140,5 +140,36 @@ class SchemaParserContainingRulesSpec extends Specification with ParserMatchers 
       parse(new StringReader(schema)) must beLike { case Failure("Column: Country has invalid cross reference ends($MyMissingCountry) at line: 2, column: 10", _) => ok }
 
     }
+
+    "succeed for 'isNot' text rule" in {
+      val schema = """@totalColumns 1
+                      Country: isNot("USA")"""
+
+      parse(new StringReader(schema)) must beLike {
+        case Success(Schema(_, List(ColumnDefinition("Country", List(IsNotRule(Literal(Some("USA")))), _))), _) => ok
+      }
+    }
+
+    "succeed for 'isNot' cross reference rule" in {
+      val schema = """@totalColumns 2
+                      Country: isNot($MyCountry)
+                      MyCountry:"""
+
+      parse(new StringReader(schema)) must beLike {
+        case Success(Schema(_,
+                            List(ColumnDefinition("Country", List(IsNotRule(ColumnReference("MyCountry"))), _),
+                                 ColumnDefinition("MyCountry", _, _))),
+                     _) => ok
+      }
+    }
+
+    "fail for invalid 'isNot' cross reference rule" in {
+      val schema = """@totalColumns 2
+                     |Country: isNot($MyMissingCountry)
+                     |MyCountry:""".stripMargin
+
+      parse(new StringReader(schema)) must beLike { case Failure("Column: Country has invalid cross reference isNot($MyMissingCountry) at line: 2, column: 10", _) => ok }
+
+    }
   }
 }
