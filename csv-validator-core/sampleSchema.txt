@@ -1,3 +1,2 @@
-@totalColumns 3
-Name: in($Missing) @optional @optional
-Age: regex("[0-9]+") in($Missing1) in($Missing2)
+@totalColumns 1 @noHeader
+Country: isNot("United Kingdom")
