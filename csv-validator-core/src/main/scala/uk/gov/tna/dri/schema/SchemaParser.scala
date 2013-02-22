@@ -4,6 +4,7 @@ import scala.util.parsing.combinator._
 import java.io.Reader
 import scala.util.Try
 import scala._
+import collection.immutable.TreeMap
 import collection.mutable
 import scala.Some
 
@@ -136,15 +137,10 @@ trait SchemaParser extends RegexParsers {
   }
 
   private def duplicateColumnsValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
-    val groupedColumnDefinitions = columnDefinitions.groupBy(_.id)
-    val duplicates: Map[String, List[ColumnDefinition]] = groupedColumnDefinitions.filter( _._2.length > 1)
+    val duplicates = TreeMap(columnDefinitions.groupBy(_.id).toSeq:_*).filter(_._2.length > 1)
 
-    // These nasty 2 lines are to keep presentation of error messages in order of column definitions - TODO Refactor on next iteration
-    val sortedDuplicates = mutable.LinkedHashMap[String, List[ColumnDefinition]]()
-    for (cd <- columnDefinitions; if !sortedDuplicates.contains(cd.id) && duplicates.contains(cd.id)) {sortedDuplicates += (cd.id -> duplicates.get(cd.id).get)}
-
-    if (sortedDuplicates.isEmpty) None
-    else Some(sortedDuplicates.map { case (id, cds) => s"""Column: ${id} has duplicates on lines """ + cds.map(cd => cd.pos.line).mkString(", ") }.mkString("\n"))
+    if (duplicates.isEmpty) None
+    else Some(duplicates.map { case (id, cds) => s"""Column: ${id} has duplicates on lines """ + cds.map(cd => cd.pos.line).mkString(", ") }.mkString("\n"))
   }
 
   private def columnDirectivesValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {

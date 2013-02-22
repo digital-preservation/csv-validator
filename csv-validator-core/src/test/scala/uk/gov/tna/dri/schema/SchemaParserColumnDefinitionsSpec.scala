@@ -111,12 +111,15 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
     }
 
     "fail for multiple columns with same name" in {
-      val schema = """@totalColumns 2
+      val schema = """@totalColumns 4
                       Column1:
-                      Column1: regex("A")"""
+                      Column2:
+                      Column1: regex("A")
+                      Column2:"""
 
       parse(new StringReader(schema)) must beLike {
-        case Failure(errors, _) => errors mustEqual "Column: Column1 has duplicates on lines 2, 3"
+        case Failure(errors, _) => errors mustEqual """Column: Column1 has duplicates on lines 2, 4
+                                                      |Column: Column2 has duplicates on lines 3, 5""".stripMargin
       }
     }
 
