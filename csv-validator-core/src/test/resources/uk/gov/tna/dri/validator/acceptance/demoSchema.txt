@@ -1,0 +1,7 @@
+@totalColumns 6
+Name: unique  @ignoreCase
+Age: positiveInteger
+Address: regex("[0-9][0-9].*") or starts("M")
+Occupation: starts("All")
+DOB: ukDate
+Town: in($Address) @ignoreCase @optional
