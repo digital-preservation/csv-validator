@@ -138,21 +138,22 @@ case class UniqueRule() extends Rule("unique") {
 
   override def evaluate(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
     val cellValue = row.cells(columnIndex).value
-    val colDef = schema.columnDefinitions(columnIndex)
+    val columnDefinition = schema.columnDefinitions(columnIndex)
 
-    def originalValue(): Option[String] = {
-      val cellVal: String = cellValueCorrectCase()
+    def originalValue: Option[String] = {
+      val cellVal: String = cellValueCorrectCase
       if (distinctValues contains cellVal) Some(cellVal) else None
     }
 
-    def cellValueCorrectCase() = if (colDef.directives contains IgnoreCase()) cellValue.toLowerCase else cellValue
+    def cellValueCorrectCase = if (columnDefinition.directives contains IgnoreCase()) cellValue.toLowerCase else cellValue
 
     def failMessage(originalVal: String): ValidationNEL[String, Any] = {
-      s"${toError} fails for line: ${row.lineNumber}, column: ${colDef.id}, value: ${row.cells(columnIndex).value} (original at line: ${distinctValues(originalVal)})".failNel[Any]
+      s"${toError} fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value} (original at line: ${distinctValues(originalVal)})".failNel[Any]
     }
-    originalValue() match {
+
+    originalValue match {
       case Some(original) => failMessage(original)
-      case None => distinctValues.put(cellValueCorrectCase(), row.lineNumber); true.successNel
+      case None => distinctValues.put(cellValueCorrectCase, row.lineNumber); true.successNel
     }
   }
 
