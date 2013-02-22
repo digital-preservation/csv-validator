@@ -28,8 +28,8 @@ trait SchemaParser extends RegexParsers {
 
   def parse(reader: Reader) = parseAll(schema, reader) match {
     case s @ Success(schema: Schema, next) => {
-      val messages = valid(schema.globalDirectives, schema.columnDefinitions)
-      if (messages.isEmpty) s else Failure(messages, next)
+      val errors = validate(schema.globalDirectives, schema.columnDefinitions)
+      if (errors.isEmpty) s else Failure(errors, next)
     }
 
     case n @ NoSuccess(messages, next) => n
@@ -120,7 +120,7 @@ trait SchemaParser extends RegexParsers {
     case Regex(_, s, _) if Try(s.r).isSuccess => RegexRule(Literal(Some(s)))
   }
 
-  private def valid(g: List[GlobalDirective], c: List[ColumnDefinition]): String = {
+  private def validate(g: List[GlobalDirective], c: List[ColumnDefinition]): String = {
    (totalColumnsValid(g, c).getOrElse("") ::
     columnDirectivesValid(c).getOrElse("") ::
     duplicateColumnsValid(c).getOrElse("") ::
