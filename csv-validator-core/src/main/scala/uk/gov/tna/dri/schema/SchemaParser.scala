@@ -15,13 +15,13 @@ trait SchemaParser extends RegexParsers {
 
   val eol = sys.props("line.separator")
 
-  val columnIdentifier: Parser[String] = ("""\w+\b"""r) withFailureMessage("Column identifier invalid")
+  val columnIdentifier: Parser[String] = ("""\w+\b""".r) withFailureMessage("Column identifier invalid")
 
-  val positiveNumber: Parser[String] = """[1-9][0-9]*"""r
+  val positiveNumber: Parser[String] = """[1-9][0-9]*""".r
 
-  val stringRegex = """([^"\p{Cntrl}\\]|\\[\\'"bfnrt]|\\u[a-fA-F0-9]{4})*"""r
+  val stringRegex = """([^"\p{Cntrl}\\]|\\[\\'"bfnrt]|\\u[a-fA-F0-9]{4})*""".r
 
-  val Regex = """([(]")(.*?)("[)])"""r
+  val Regex = """([(]")(.*?)("[)])""".r
 
   val regexParser: Parser[String] = Regex withFailureMessage("""regex not correctly delimited as ("your regex")""")
 
@@ -56,7 +56,7 @@ trait SchemaParser extends RegexParsers {
 
   def rule = positioned(or | unaryRule)
 
-  def unaryRule = regex | fileExists | in | is | isNot | starts | ends | unique | uri | xDateTime | xDate | ukDate | xTime | uuid4 | positiveInteger | failure("Invalid rule")
+  def unaryRule = regex | fileExists | in | is | isNot | starts | ends | unique | uri | xDateTime | xDate | ukDate | xTime | uuid4 | positiveInteger | checksum | failure("Invalid rule")
 
   def or: Parser[OrRule] = unaryRule ~ "or" ~ rule  ^^ { case lhs ~ _ ~ rhs => OrRule(lhs, rhs) }
 
@@ -71,6 +71,7 @@ trait SchemaParser extends RegexParsers {
   def starts = "starts(" ~> argProvider <~ ")" ^^ { StartsRule }
 
   def ends = "ends(" ~> argProvider <~ ")" ^^ { EndsRule }
+
 
   def unique: Parser[UniqueRule] = "unique" ^^^ UniqueRule()
 
@@ -96,6 +97,10 @@ trait SchemaParser extends RegexParsers {
     "fileExists" ^^^ { FileExistsRule() } | failure("Invalid fileExists rule")
 
   def rootFilePath: Parser[String] = """[a-zA-Z/-_\.\d\\:]+""".r
+
+  def checksum = "checksum(" ~> argProvider ~ "," ~ algorithm <~ ")" ^^ { case filename ~ _ ~ algo => ChecksumRule(filename, algo) }
+
+  def algorithm: Parser[String] = '\"' ~> stringRegex <~ '\"'
 
   def optional = "@optional" ^^^ Optional()
 

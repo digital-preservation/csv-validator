@@ -146,8 +146,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
            Country: uri xDateTime xDate ukDate xTime uuid4 positiveInteger"""
 
       parse(new StringReader(schema)) must beLike {
-        case Success(Schema(globalDirsOne, List(ColumnDefinition("Country",
-                                                List( UriRule(),XsdDateTimeRule(),XsdDateRule(),UkDateRule(),XsdTimeRule(),Uuid4Rule(),PositiveIntegerRule()), _))), _) => ok
+        case Success(Schema(globalDirsOne, List(ColumnDefinition("Country", List( UriRule(),XsdDateTimeRule(),XsdDateRule(),UkDateRule(),XsdTimeRule(),Uuid4Rule(),PositiveIntegerRule()), _))), _) => ok
       }
     }
 
@@ -155,9 +154,19 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
       val schema =
         """@totalColumns 1
            Country: unique"""
+
       parse(new StringReader(schema)) must beLike {
-        case Success(Schema(globalDirsOne, List(ColumnDefinition("Country",
-        List(UniqueRule()), _))), _) => ok
+        case Success(Schema(_, List(ColumnDefinition("Country", List(UniqueRule()), _))), _) => ok
+      }
+    }
+
+    "succeed for checksum rule" in {
+      val schema =
+        """@totalColumns 1
+           FileChecksum: checksum("myFile.txt","MD5")"""
+
+      parse(new StringReader(schema)) must beLike {
+        case Success(Schema(_, List(ColumnDefinition("FileChecksum", List(ChecksumRule(Literal(Some("myFile.txt")), "MD5")), _))), _) => ok
       }
     }
   }

@@ -157,3 +157,7 @@ case class UniqueRule() extends Rule("unique") {
 
   def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = true
 }
+
+case class ChecksumRule(filename: ArgProvider, algorithm: String) extends Rule("checksum") {
+  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = ???
+}
