@@ -134,7 +134,7 @@ case class PositiveIntegerRule() extends Rule("positiveInteger") {
 }
 
 case class UniqueRule() extends Rule("unique") {
-  val distinctValues: mutable.HashMap[String, Int] = mutable.HashMap[String, Int]()
+  val distinctValues = mutable.HashMap[String, Int]()
 
   override def evaluate(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
     val cellValue = row.cells(columnIndex).value
