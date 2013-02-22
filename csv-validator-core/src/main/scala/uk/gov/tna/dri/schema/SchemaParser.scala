@@ -19,6 +19,8 @@ trait SchemaParser extends RegexParsers {
 
   val positiveNumber: Parser[String] = """[1-9][0-9]*"""r
 
+  val stringRegex = """([^"\p{Cntrl}\\]|\\[\\'"bfnrt]|\\u[a-fA-F0-9]{4})*"""r
+
   val Regex = """([(]")(.*?)("[)])"""r
 
   val regexParser: Parser[String] = Regex withFailureMessage("""regex not correctly delimited as ("your regex")""")
@@ -86,7 +88,7 @@ trait SchemaParser extends RegexParsers {
 
   def positiveInteger: Parser[PositiveIntegerRule] = "positiveInteger" ^^^ PositiveIntegerRule()
 
-  def argProvider: Parser[ArgProvider] = "$" ~> columnIdentifier ^^ { s => ColumnReference(s) } | '\"' ~> """\w+""".r <~ '\"' ^^ {s => Literal(Some(s)) }
+  def argProvider: Parser[ArgProvider] = "$" ~> columnIdentifier ^^ { s => ColumnReference(s) } | '\"' ~> stringRegex <~ '\"' ^^ {s => Literal(Some(s)) }
 
   def fileArgProvider: Parser[ArgProvider] = "$" ~> columnIdentifier ^^ { s => ColumnReference(s) } | '\"' ~> rootFilePath <~ '\"' ^^ {s => Literal(Some(s)) }
 
@@ -133,7 +135,7 @@ trait SchemaParser extends RegexParsers {
     val duplicates: Map[ColumnDefinition, List[ColumnDefinition]] = groupedColumnDefinitions.filter( _._2.length > 1)
 
     // These nasty 2 lines are to keep presentation of error messages in order of column definitions - TODO Refactor on next iteration
-    var sortedDuplicates = mutable.LinkedHashMap.empty[ColumnDefinition, List[ColumnDefinition]]
+    val sortedDuplicates = mutable.LinkedHashMap[ColumnDefinition, List[ColumnDefinition]]()
     for (cd <- columnDefinitions; if !sortedDuplicates.contains(cd) && duplicates.contains(cd)) {sortedDuplicates += (cd -> duplicates.get(cd).get)}
 
     if (sortedDuplicates.isEmpty) None
