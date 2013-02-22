@@ -521,7 +521,7 @@ class MetaDataValidatorSpec extends Specification {
         """.stripMargin
 
       validate(new StringReader(metaData), schemaParser.parse(new StringReader(schema)).get) must beLike {
-        case Failure(messages) => messages.list mustEqual List("unique fails for line: 3, column: Name, value: Jim","unique fails for line: 4, column: Name, value: Jim")
+        case Failure(messages) => messages.list mustEqual List("unique fails for line: 3, column: Name, value: Jim (original at line: 1)","unique fails for line: 4, column: Name, value: Jim (original at line: 1)")
       }
     }
   }

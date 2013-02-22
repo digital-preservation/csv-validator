@@ -144,20 +144,31 @@ case class UniqueRule() extends Rule("unique") {
     val cellValue = row.cells(columnIndex).value
     val ruleValue = argProvider.referenceValue(columnIndex, row, schema)
 
-    containsAt(cellValue, ruleValue, schema.columnDefinitions(columnIndex)) match {
-      case Some(originalPosition) => fail(ruleValue, columnIndex, row, schema)
+    containsAt(cellValue, schema.columnDefinitions(columnIndex)) match {
+      case Some(original) => fail(ruleValue, columnIndex, row, schema)
       case None => addDistinctValue(cellValue, row.lineNumber, schema.columnDefinitions(columnIndex)); true.successNel
     }
   }
 
   def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = true
 
-  def containsAt(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Option[Int] = {
-    if (columnDefinition.directives contains IgnoreCase()) distinctValues.get(cellValue.toLowerCase)
-    else distinctValues.get(cellValue)
+  override def fail(ruleValue: Option[String], columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
+    val columnDefinition = schema.columnDefinitions(columnIndex)
+    val cellValue = row.cells(columnIndex).value
+    s"${toError} fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${cellValue} (${original(cellValue, columnDefinition)})".failNel[Any]
   }
 
-  def addDistinctValue(cellValue: String, lineNumber: Int, columnDefinition: ColumnDefinition) = {
+  private def original(original: String, columnDefinition: ColumnDefinition) = s"original at line: ${distinctValues(getCellValue(original, columnDefinition))}"
+
+  private def containsAt(cellValue: String, columnDefinition: ColumnDefinition): Option[Int] = {
+     distinctValues.get(getCellValue(cellValue, columnDefinition))
+  }
+
+  private def getCellValue(cellValue: String, columnDefinition: ColumnDefinition): String = {
+    if (columnDefinition.directives contains IgnoreCase()) cellValue.toLowerCase else cellValue
+  }
+
+  private def addDistinctValue(cellValue: String, lineNumber: Int, columnDefinition: ColumnDefinition) = {
     if (columnDefinition.directives contains IgnoreCase()) distinctValues.put(cellValue.toLowerCase, lineNumber)
     else distinctValues.put(cellValue, lineNumber)
   }
