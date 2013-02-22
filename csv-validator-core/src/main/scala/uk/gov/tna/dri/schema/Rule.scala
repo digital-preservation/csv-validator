@@ -15,16 +15,12 @@ abstract class Rule(val name: String, val argProvider: ArgProvider = Literal(Non
   def evaluate(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
     val cellValue = row.cells(columnIndex).value
     val ruleValue = argProvider.referenceValue(columnIndex, row, schema)
-    if (valid(cellValue, ruleValue, schema.columnDefinitions(columnIndex))) true.successNel[String] else fail(ruleValue, columnIndex, row, schema)
+    if (valid(cellValue, ruleValue, schema.columnDefinitions(columnIndex))) true.successNel[String] else fail(columnIndex, row, schema)
   }
 
   def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean
 
   def fail(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
-    fail(None, columnIndex, row, schema)
-  }
-
-  def fail(ruleValue: Option[String], columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
     val columnDefinition = schema.columnDefinitions(columnIndex)
     s"${toError} fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
   }
@@ -38,7 +34,7 @@ case class OrRule(left: Rule, right: Rule) extends Rule("or") {
       case s @ Success(_) => s
       case Failure(_) => right.evaluate(columnIndex, row, schema) match {
         case s @ Success(_) => s
-        case Failure(_) => fail(None, columnIndex, row, schema)
+        case Failure(_) => fail(columnIndex, row, schema)
       }
     }
   }
