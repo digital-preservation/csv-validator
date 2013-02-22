@@ -138,10 +138,27 @@ case class PositiveIntegerRule() extends Rule("positiveInteger") {
 }
 
 case class UniqueRule() extends Rule("unique") {
-  val distinctValues: mutable.HashSet[String] = mutable.HashSet[String]()
+  val distinctValues: mutable.HashMap[String, Int] = mutable.HashMap[String, Int]()
 
-  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = {
-    if (columnDefinition.directives contains IgnoreCase()) distinctValues add cellValue.toLowerCase
-    else distinctValues add cellValue
+  override def evaluate(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
+    val cellValue = row.cells(columnIndex).value
+    val ruleValue = argProvider.referenceValue(columnIndex, row, schema)
+
+    containsAt(cellValue, ruleValue, schema.columnDefinitions(columnIndex)) match {
+      case Some(originalPosition) => fail(ruleValue, columnIndex, row, schema)
+      case None => addDistinctValue(cellValue, row.lineNumber, schema.columnDefinitions(columnIndex)); true.successNel
+    }
+  }
+
+  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = true
+
+  def containsAt(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Option[Int] = {
+    if (columnDefinition.directives contains IgnoreCase()) distinctValues.get(cellValue.toLowerCase)
+    else distinctValues.get(cellValue)
+  }
+
+  def addDistinctValue(cellValue: String, lineNumber: Int, columnDefinition: ColumnDefinition) = {
+    if (columnDefinition.directives contains IgnoreCase()) distinctValues.put(cellValue.toLowerCase, lineNumber)
+    else distinctValues.put(cellValue, lineNumber)
   }
 }
