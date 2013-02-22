@@ -141,19 +141,18 @@ case class UniqueRule() extends Rule("unique") {
     val columnDefinition = schema.columnDefinitions(columnIndex)
 
     def originalValue: Option[String] = {
-      val cellVal: String = cellValueCorrectCase
-      if (distinctValues contains cellVal) Some(cellVal) else None
+      val cellValue = cellValueCorrectCase
+      if (distinctValues contains cellValue) Some(cellValue) else None
     }
 
     def cellValueCorrectCase = if (columnDefinition.directives contains IgnoreCase()) cellValue.toLowerCase else cellValue
 
-    def failMessage(originalVal: String): ValidationNEL[String, Any] = {
-      s"${toError} fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value} (original at line: ${distinctValues(originalVal)})".failNel[Any]
-    }
-
     originalValue match {
-      case Some(original) => failMessage(original)
       case None => distinctValues.put(cellValueCorrectCase, row.lineNumber); true.successNel
+      case Some(o) => {
+        s"${toError} fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value} (original at line: ${distinctValues(o)})".failNel[Any]
+      }
+
     }
   }
 
