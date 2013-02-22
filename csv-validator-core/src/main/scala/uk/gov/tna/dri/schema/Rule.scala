@@ -144,31 +144,26 @@ case class UniqueRule() extends Rule("unique") {
     val cellValue = row.cells(columnIndex).value
     val ruleValue = argProvider.referenceValue(columnIndex, row, schema)
 
-    containsAt(cellValue, schema.columnDefinitions(columnIndex)) match {
-      case Some(original) => fail(ruleValue, columnIndex, row, schema)
+    originalValue(cellValue, ruleValue, schema.columnDefinitions(columnIndex)) match {
+      case Some(original) => failMessage(columnIndex, row, schema, original)
       case None => addDistinctValue(cellValue, row.lineNumber, schema.columnDefinitions(columnIndex)); true.successNel
     }
   }
 
   def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = true
 
-  override def fail(ruleValue: Option[String], columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
+  private def failMessage(columnIndex: Int, row: Row, schema: Schema, original: String): ValidationNEL[String, Any] = {
     val columnDefinition = schema.columnDefinitions(columnIndex)
-    val cellValue = row.cells(columnIndex).value
-    s"${toError} fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${cellValue} (${original(cellValue, columnDefinition)})".failNel[Any]
+    s"${toError} fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value} (original at line: ${distinctValues(original)})".failNel[Any]
   }
 
-  private def original(original: String, columnDefinition: ColumnDefinition) = s"original at line: ${distinctValues(getCellValue(original, columnDefinition))}"
-
-  private def containsAt(cellValue: String, columnDefinition: ColumnDefinition): Option[Int] = {
-     distinctValues.get(getCellValue(cellValue, columnDefinition))
+  def originalValue(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Option[String] = {
+    if ((columnDefinition.directives contains IgnoreCase()) && (distinctValues contains cellValue.toLowerCase)) Some(cellValue.toLowerCase)
+    else if (distinctValues contains cellValue) Some(cellValue)
+    else None
   }
 
-  private def getCellValue(cellValue: String, columnDefinition: ColumnDefinition): String = {
-    if (columnDefinition.directives contains IgnoreCase()) cellValue.toLowerCase else cellValue
-  }
-
-  private def addDistinctValue(cellValue: String, lineNumber: Int, columnDefinition: ColumnDefinition) = {
+  def addDistinctValue(cellValue: String, lineNumber: Int, columnDefinition: ColumnDefinition) = {
     if (columnDefinition.directives contains IgnoreCase()) distinctValues.put(cellValue.toLowerCase, lineNumber)
     else distinctValues.put(cellValue, lineNumber)
   }
