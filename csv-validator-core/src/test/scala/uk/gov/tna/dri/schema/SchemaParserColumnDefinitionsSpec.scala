@@ -80,16 +80,6 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
       }
     }
 
-    "fail when two rules are invalid " in {
-      val schema ="""@totalColumns 2
-                     Column1: in($NotAColumn1) in($NotAColumn2)
-                     Column2:"""
-
-      parse(new StringReader(schema)) must beLike {
-        case Failure(message, _) => message mustEqual """Column: Column1 has invalid cross references in($NotAColumn1) at line: 2, column: 31, in($NotAColumn2) at line: 2, column: 48"""
-      }
-    }
-
     "fail when two columns have two rules and each has one invalid column" in {
       val schema ="""@totalColumns 2
                     |Column1: in($Column2) in($NotAColumn2)
@@ -102,23 +92,23 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
       }
     }
 
-    /*"fail when two columns have two rules and each has one invalid column with diffferent rules" in {
-      val schema ="""@TotalColumns 2
-                     Column1: is($Column1) is($NotAColumn1)
-                     Column2: not($Column2) not($NotAColumn2)
-                     Column3: in($Column3) in($NotAColumn3)
-                     Column4: starts($Column4) starts($NotAColumn4)
-                     Column5: ends($Column5) ends($NotAColumn5)"""
+    "fail when two columns have two rules and each has one invalid column with different rules" in {
+      val schema ="""@totalColumns 2
+                     |Column1: is($Column1) is($NotAColumn1)
+                     |Column2: isNot($Column2) isNot($NotAColumn2)
+                     |Column3: in($Column3) in($NotAColumn3)
+                     |Column4: starts($Column4) starts($NotAColumn4)
+                     |Column5: ends($Column5) ends($NotAColumn5)""".stripMargin
 
       parse(new StringReader(schema)) must beLike {
-        case Failure(message, _) => message mustEqual """@TotalColumns = 2 but number of columns defined = 5
-                                                        |Column: Column1 has invalid cross reference is: NotAColumn1
-                                                        |Column: Column2 has invalid cross reference not: NotAColumn2
-                                                        |Column: Column3 has invalid cross reference in: NotAColumn3
-                                                        |Column: Column4 has invalid cross reference starts: NotAColumn4
-                                                        |Column: Column5 has invalid cross reference ends: NotAColumn5""".stripMargin
+        case Failure(message, _) => message mustEqual """@totalColumns = 2 but number of columns defined = 5 at line: 1, column: 1
+                                                        |Column: Column1 has invalid cross reference is($NotAColumn1) at line: 2, column: 23
+                                                        |Column: Column2 has invalid cross reference isNot($NotAColumn2) at line: 3, column: 26
+                                                        |Column: Column3 has invalid cross reference in($NotAColumn3) at line: 4, column: 23
+                                                        |Column: Column4 has invalid cross reference starts($NotAColumn4) at line: 5, column: 27
+                                                        |Column: Column5 has invalid cross reference ends($NotAColumn5) at line: 6, column: 25""".stripMargin
       }
-    }*/
+    }
 
     "multi columns with same name is valid" in {
       val schema = """@totalColumns 2
