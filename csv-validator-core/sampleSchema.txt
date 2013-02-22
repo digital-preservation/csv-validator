@@ -1,2 +1,0 @@
-@totalColumns 1 @noHeader
-Country: isNot("United Kingdom")

@@ -1,3 +1,0 @@
-@totalColumns 2
-Name:
-Age: regex("[0-9]+") @optional @optional
