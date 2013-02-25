@@ -120,12 +120,8 @@ trait SchemaParser extends RegexParsers {
     case Regex(_, s, _) if Try(s.r).isSuccess => RegexRule(Literal(Some(s)))
   }
 
-  private def validate(g: List[GlobalDirective], c: List[ColumnDefinition]): String = {
-   (totalColumnsValid(g, c).getOrElse("") ::
-    columnDirectivesValid(c).getOrElse("") ::
-    duplicateColumnsValid(c).getOrElse("") ::
-    crossColumnsValid(c).getOrElse("") :: Nil).filter(!_.isEmpty).mkString("\n")
-  }
+  private def validate(g: List[GlobalDirective], c: List[ColumnDefinition]): String =
+    totalColumnsValid(g, c) :: columnDirectivesValid(c) :: duplicateColumnsValid(c) :: crossColumnsValid(c) :: Nil collect  { case Some(s: String) => s } mkString("\n")
 
   private def totalColumnsValid(g: List[GlobalDirective], c: List[ColumnDefinition]): Option[String] = {
     val tc: Option[TotalColumns] = g.collectFirst { case t @ TotalColumns(_) => t }
