@@ -2,6 +2,7 @@ package uk.gov.tna.dri.validator
 
 import org.specs2.mutable.Specification
 import scalaz._
+import uk.gov.tna.dri.schema.Schema
 
 class MetaDataValidatorAppSpec extends Specification {
 
@@ -67,17 +68,22 @@ class MetaDataValidatorAppSpec extends Specification {
   }
 
   "Validation" should {
-
     val app = new MetaDataValidatorApp with AllErrorsMetaDataValidator
 
+    def getSchema(filePath: String): Schema = {
+      app.parseSchema(filePath) match {
+        case Success(s) => s
+      }
+    }
+
     "succeed for valid schema and metadata file" in {
-      app.validate(basePath + "metaData.csv", basePath + "schema.txt") must beLike {
+      app.validate(basePath + "metaData.csv", getSchema(basePath + "schema.txt")) must beLike {
         case Success(_) => ok
       }
     }
 
     "succeed for valid @totalColumns in schema and metadata file" in {
-      app.validate(basePath + "metaData.csv", basePath + "schema.txt") must beLike {
+      app.validate(basePath + "metaData.csv", getSchema(basePath + "schema.txt")) must beLike {
         case Success(_) => ok
       }
     }

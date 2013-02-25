@@ -21,9 +21,12 @@ object MetaDataValidatorCommandLineApp extends App with SchemaParser {
 
       val validator = if (failFast) new MetaDataValidatorApp with FailFastMetaDataValidator else new MetaDataValidatorApp with AllErrorsMetaDataValidator
 
-      validator.validate(metaDataFile, schemaFile) match {
+      validator.parseSchema(schemaFile) match {
         case FailureZ(errors) => println(prettyPrint(errors)); System.exit(2)
-        case SuccessZ(_) => println("PASS")
+        case SuccessZ(schema) => validator.validate(metaDataFile,schema) match {
+          case FailureZ(errors) => println(prettyPrint(errors)); System.exit(3)
+          case SuccessZ(_) => println("PASS")
+        }
       }
     }
   }
@@ -63,14 +66,11 @@ object MetaDataValidatorCommandLineApp extends App with SchemaParser {
 trait MetaDataValidatorApp extends SchemaParser {
   this: MetaDataValidator =>
 
-  def validate(metaDataFile: String, schemaFile: String): MetaDataValidation[Any] = {
-    parseSchema(schemaFile) match {
-      case FailureZ(errors) => errors.fail[Any]
-      case SuccessZ(schema) => validate(new FileReader(metaDataFile), schema)
-    }
+  def validate(metaDataFile: String, schema: Schema): MetaDataValidation[Any] = {
+     validate(new FileReader(metaDataFile), schema)
   }
 
-  private def parseSchema(schemaFilePath: String): ValidationNEL[String, Schema] = {
+  def parseSchema(schemaFilePath: String): ValidationNEL[String, Schema] = {
     parse(new FileReader(schemaFilePath)) match {
       case Success(schema: Schema, _) => schema.successNel[String]
       case NoSuccess(message, next) => s"Schema Parse Error:\n${message}".failNel[Schema]
