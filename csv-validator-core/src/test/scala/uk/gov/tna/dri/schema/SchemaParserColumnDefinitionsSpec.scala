@@ -3,6 +3,7 @@ package uk.gov.tna.dri.schema
 import org.specs2.mutable._
 import org.specs2.matcher.ParserMatchers
 import java.io.StringReader
+import scala.Some
 
 class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatchers {
 
@@ -16,6 +17,30 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
     val globalDirsOne = List(TotalColumns(1))
     val globalDirsTwo = List(TotalColumns(2))
 
+    "succeed for valid schema with all possible column definitions" in {
+      val columnDefinitions = List(new ColumnDefinition("column1"),new ColumnDefinition("column2"),new ColumnDefinition("column3"),
+        new ColumnDefinition(".Q"),new ColumnDefinition("_-co.l"),new ColumnDefinition("0.a-B-z_Z"),new ColumnDefinition("-abc.txt"))
+
+      val schema = """@totalColumns 7
+                      column1:
+                      column2:
+                      column3:
+                      .Q:
+                      _-co.l:
+                      0.a-B-z_Z:
+                      -abc.txt:"""
+
+      parse(new StringReader(schema)) must beLike { case Success(schema, _) => schema mustEqual Schema(List(TotalColumns(7)), columnDefinitions) }
+    }
+
+    "fail if colunm ident contains an in valid char ie not 0-9 a-z A-Z . - _" in {
+      val schema = """@totalColumns 1
+      column1':"""
+      parse(new StringReader(schema)) must beLike {
+        case Failure(messages, _) => messages mustEqual "Column definition contains invalid text"
+      }
+    }
+
     "fail if the total number of columns does not match the number of column definitions" in {
       val schema = """@totalColumns 2
                       LastName: regex ("[a]")"""
@@ -27,7 +52,7 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
       val schema = """@totalColumns 1
                       Last Name """
 
-      parse(new StringReader(schema)) must beLike { case Failure(message, _) => message mustEqual "`:' expected but `N' found" }
+      parse(new StringReader(schema)) must beLike { case Failure(message, _) => message mustEqual "Column definition contains invalid text" }
     }
 
     "succeed for column definition with no rules" in {

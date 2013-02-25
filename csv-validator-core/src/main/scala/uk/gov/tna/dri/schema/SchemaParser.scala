@@ -15,7 +15,7 @@ trait SchemaParser extends RegexParsers {
 
   val eol = sys.props("line.separator")
 
-  val columnIdentifier: Parser[String] = ("""\w+\b""".r) withFailureMessage("Column identifier invalid")
+  val columnIdentifier: Parser[String] = """\s*[0-9a-zA-Z_\-.]+\b""".r withFailureMessage("Column identifier invalid")
 
   val positiveNumber: Parser[String] = """[1-9][0-9]*""".r
 
@@ -48,9 +48,9 @@ trait SchemaParser extends RegexParsers {
 
   def columnDefinitions = rep1(positioned(columnDefinition))
 
-  def columnDefinition = (columnIdentifier <~ ":") ~ rep(rule) ~ rep(columnDirective) <~ endOfColumnDefinition ^^ {
+  def columnDefinition = ((columnIdentifier <~ ":") ~ rep(rule) ~ rep(columnDirective) <~ endOfColumnDefinition ^^ {
     case id ~ rules ~ columnDirectives => ColumnDefinition(id, rules, columnDirectives)
-  }
+  }).withFailureMessage("Column definition contains invalid text")
 
   def columnDirective = positioned(optional | ignoreCase)
 
