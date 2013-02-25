@@ -128,7 +128,7 @@ trait SchemaParser extends RegexParsers {
   }
 
   private def totalColumnsValid(g: List[GlobalDirective], c: List[ColumnDefinition]): Option[String] = {
-    val tc: Option[TotalColumns] = g.collectFirst { case t@TotalColumns(_) => t }
+    val tc: Option[TotalColumns] = g.collectFirst { case t @ TotalColumns(_) => t }
 
     if (!tc.isEmpty && tc.get.numberOfColumns != c.length)
       Some(s"@totalColumns = ${tc.get.numberOfColumns} but number of columns defined = ${c.length} at line: ${tc.get.pos.line}, column: ${tc.get.pos.column}" )
@@ -149,15 +149,15 @@ trait SchemaParser extends RegexParsers {
       if (cd.directives.distinct.length != cd.directives.length)
     } yield {
       s"${cd.id}: Duplicated column directives: " +
-        cd.directives.groupBy(identity).filter { case (_, cds) => cds.size > 1}.map { case (cd, _) => "@" + cd + s" at line: ${cd.pos.line}, column: ${cd.pos.column}"}.mkString(",")
+      cd.directives.groupBy(identity).filter { case (_, cds) => cds.size > 1}.map { case (cd, _) => "@" + cd + s" at line: ${cd.pos.line}, column: ${cd.pos.column}"}.mkString(",")
     }
 
     if (v.isEmpty) None else Some(v.mkString("\n"))
   }
 
   private def crossColumnsValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
-    def filterRules(columnDef:ColumnDefinition ): List[Rule] = { // List of failing rules
-      columnDef.rules.filter(rule => {
+    def filterRules(cds: ColumnDefinition ): List[Rule] = { // List of failing rules
+      cds.rules.filter(rule => {
         rule.argProvider match {
           case ColumnReference(name) => !columnDefinitions.exists(col => col.id == name)
           case _ => false
@@ -166,15 +166,12 @@ trait SchemaParser extends RegexParsers {
     }
 
     def crossReferenceErrors(rules: List[Rule]): String = {
-      val errors = rules.map {
-        case rule: Rule => s"""${rule.toError} at line: ${rule.pos.line}, column: ${rule.pos.column}"""
-        case _ => ""
-      }.filter(!_.isEmpty)
+      val errors = rules collect { case rule: Rule => s"""${rule.toError} at line: ${rule.pos.line}, column: ${rule.pos.column}""" }
 
       (if (errors.length == 1) "cross reference " else "cross references ") + errors.mkString(", ")
     }
 
-    val errors = columnDefinitions.map(cd => (cd, filterRules(cd))).filter(x => x._2.length > 0)
+    val errors = columnDefinitions.map(cd => (cd, filterRules(cd))).filter(_._2.length > 0)
 
     if (errors.isEmpty) None
     else Some(errors.map { case (cd, rules) => s"Column: ${cd.id} has invalid ${crossReferenceErrors(rules)}" }.mkString("\n"))
