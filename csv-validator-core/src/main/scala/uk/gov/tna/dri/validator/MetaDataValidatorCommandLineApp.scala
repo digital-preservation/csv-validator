@@ -7,6 +7,7 @@ import Scalaz._
 import scala.App
 
 object MetaDataValidatorCommandLineApp extends App with SchemaParser {
+  type AppValidation[S] = ValidationNEL[String, S]
 
   val (failFast, fileArgs) = failFastAndFileArgs(args.toList)
 
@@ -27,7 +28,7 @@ object MetaDataValidatorCommandLineApp extends App with SchemaParser {
     }
   }
 
-  def checkFileArguments(fileArgs: List[String]): ValidationNEL[String, List[String]] = {
+  def checkFileArguments(fileArgs: List[String]): AppValidation[List[String]] = {
     checkFileArgumentCount(fileArgs) match {
       case SuccessZ(fileArgs) => checkFilesReadable(fileArgs)
       case fail => fail
@@ -52,13 +53,11 @@ object MetaDataValidatorCommandLineApp extends App with SchemaParser {
 
   private def checkFilesReadable(fileArgs: List[String]) = fileArgs.map(fileReadable).sequence[AppValidation, String]
 
-  private def fileReadable(filePath: String): ValidationNEL[String, String] = if (new File(filePath).canRead) filePath.successNel[String] else fileNotReadableMessage(filePath).failNel[String]
+  private def fileReadable(filePath: String): AppValidation[String] = if (new File(filePath).canRead) filePath.successNel[String] else fileNotReadableMessage(filePath).failNel[String]
 
   private def fileNotReadableMessage(filePath: String) = "Unable to read file : " + filePath
 
   private def prettyPrint(l: NonEmptyList[String]) = l.list.mkString(eol)
-
-  type AppValidation[S] = ValidationNEL[String, S]
 }
 
 trait MetaDataValidatorApp extends SchemaParser {

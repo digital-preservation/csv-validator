@@ -5,7 +5,6 @@ import java.io.Reader
 import scala.util.Try
 import scala._
 import collection.immutable.TreeMap
-import collection.mutable
 import scala.Some
 
 trait SchemaParser extends RegexParsers {
@@ -72,7 +71,6 @@ trait SchemaParser extends RegexParsers {
   def starts = "starts(" ~> argProvider <~ ")" ^^ { StartsRule }
 
   def ends = "ends(" ~> argProvider <~ ")" ^^ { EndsRule }
-
 
   def unique: Parser[UniqueRule] = "unique" ^^^ UniqueRule()
 
