@@ -17,18 +17,7 @@ import annotation.tailrec
 
 trait FailFastMetaDataValidator extends MetaDataValidator {
 
-  def validate(csv: Reader, schema: Schema): MetaDataValidation[Any] = {
-
-    def rowsWithHeadDirective(rows: List[Array[String]]): List[Array[String]] = {
-      schema match {
-        case Schema(globalDirectives, _) if globalDirectives.contains(NoHeader()) => rows
-        case _ => rows.tail
-      }
-    }
-
-    val csvRows = rowsWithHeadDirective(new CSVReader(csv).readAll().toList)
-
-    val rows: List[Row] = csvRows.map(_.toList).zipWithIndex.map(r => Row(r._1.map(Cell(_)), r._2 + 1))
+  def validateRows(rows: List[Row], schema: Schema): MetaDataValidation[Any] = {
 
     @tailrec
     def validateRows(rows: List[Row]): MetaDataValidation[Any] = rows match {
