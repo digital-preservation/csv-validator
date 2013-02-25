@@ -106,7 +106,12 @@ class NoArgRulesSpec extends Specification {
 
     "succeed if cell has a positive integer" in {
       val posIntRule = PositiveIntegerRule()
-      posIntRule.evaluate(0, Row(List(Cell("120912459")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(true)
+      posIntRule.evaluate(0, Row(List(Cell("120912459")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must beLike { case Success(_) => ok }
+    }
+
+    "succeed if cell has a single digit positive integer" in {
+      val posIntRule = PositiveIntegerRule()
+      posIntRule.evaluate(0, Row(List(Cell("3")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must beLike { case Success(_) => ok }
     }
 
     "fail if cell has a negative integer" in {
@@ -116,17 +121,29 @@ class NoArgRulesSpec extends Specification {
       }
     }
 
-    "fail if cell has an integer with a leading zero" in {
+    "fail if cell has a non integer" in {
       val posIntRule = PositiveIntegerRule()
-      posIntRule.evaluate(0, Row(List(Cell("0123")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must beLike {
-        case Failure(messages) => messages.head mustEqual """positiveInteger fails for line: 1, column: column1, value: 0123"""
+      posIntRule.evaluate(0, Row(List(Cell("123.45")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must beLike {
+        case Failure(messages) => messages.head mustEqual """positiveInteger fails for line: 1, column: column1, value: 123.45"""
       }
     }
 
-    "fail if cell has a non digit character" in {
+    "succeed for cell with a leading zero" in {
+      val posIntRule = PositiveIntegerRule()
+      posIntRule.evaluate(0, Row(List(Cell("0123")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must beLike { case Success(_) => ok }
+    }
+
+    "fail if cell has a minus sign midway through" in {
       val posIntRule = PositiveIntegerRule()
       posIntRule.evaluate(0, Row(List(Cell("123-4456")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must beLike {
         case Failure(messages) => messages.head mustEqual """positiveInteger fails for line: 1, column: column1, value: 123-4456"""
+      }
+    }
+
+    "fail if cell has a non numeric character" in {
+      val posIntRule = PositiveIntegerRule()
+      posIntRule.evaluate(0, Row(List(Cell("12abc45")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must beLike {
+        case Failure(messages) => messages.head mustEqual """positiveInteger fails for line: 1, column: column1, value: 12abc45"""
       }
     }
   }

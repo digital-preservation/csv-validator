@@ -128,7 +128,7 @@ case class Uuid4Rule() extends Rule("uuid4") {
 }
 
 case class PositiveIntegerRule() extends Rule("positiveInteger") {
-  val positiveIntegerRegex = "[1-9][0-9]+"
+  val positiveIntegerRegex = "[0-9]+"
   def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = cellValue matches positiveIntegerRegex
 }
 
