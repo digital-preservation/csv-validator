@@ -1,11 +1,12 @@
 package uk.gov.tna.dri.schema
 
 import scala.util.parsing.combinator._
-import java.io.Reader
+import java.io.{File, Reader}
 import scala.util.Try
 import scala._
 import collection.immutable.TreeMap
 import scala.Some
+import java.security.MessageDigest
 
 trait SchemaParser extends RegexParsers {
 
@@ -97,9 +98,11 @@ trait SchemaParser extends RegexParsers {
 
   def rootFilePath: Parser[String] = """[a-zA-Z/-_\.\d\\:]+""".r
 
-  def checksum = "checksum(" ~> argProvider ~ "," ~ algorithm <~ ")" ^^ { case filename ~ _ ~ algo => ChecksumRule(filename, algo) }
+  def checksum = "checksum(" ~> fileExpr ~ "," ~ algorithm <~ ")" ^^ { case a ~ _ ~ algo => ChecksumRule(a, algo) }
 
-  def algorithm: Parser[String] = '\"' ~> stringRegex <~ '\"'
+  def fileExpr = "file(" ~> argProvider <~ ")" ^? (validateFile, a => s"file${a.toError} not found")
+
+  def algorithm: Parser[String] = "\"" ~> stringRegex <~ "\"" ^? (validateAlgorithm, s => "Invalid Algorithm")
 
   def optional = "@optional" ^^^ Optional()
 
@@ -116,6 +119,14 @@ trait SchemaParser extends RegexParsers {
 
   private def validateRegex: PartialFunction[String, RegexRule] = {
     case Regex(_, s, _) if Try(s.r).isSuccess => RegexRule(Literal(Some(s)))
+  }
+
+  private def validateFile: PartialFunction[ArgProvider, ArgProvider] = {
+    case a @ Literal(Some(fileName)) if new File(fileName).exists() => a
+  }
+
+  private def validateAlgorithm: PartialFunction[String, String] = {
+    case s: String if Try(MessageDigest.getInstance(s)).isSuccess => s
   }
 
   private def validate(g: List[GlobalDirective], c: List[ColumnDefinition]): String =

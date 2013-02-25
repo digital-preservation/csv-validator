@@ -3,9 +3,10 @@ package uk.gov.tna.dri.schema
 import scalaz._
 import Scalaz._
 import uk.gov.tna.dri.metadata.Row
-import java.io.File
+import java.io.{BufferedInputStream, FileInputStream, File}
 import util.parsing.input.Positional
 import collection.mutable
+import java.security.MessageDigest
 
 abstract class Rule(val name: String, val argProvider: ArgProvider = Literal(None)) extends Positional {
 
@@ -158,6 +159,32 @@ case class UniqueRule() extends Rule("unique") {
   def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = true
 }
 
-case class ChecksumRule(filename: ArgProvider, algorithm: String) extends Rule("checksum") {
-  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = ???
+case class ChecksumRule(filename: ArgProvider, algorithm: String) extends Rule("checksum", filename) {
+  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = {
+    val digest = MessageDigest.getInstance(algorithm)
+    val file = new BufferedInputStream(new FileInputStream(ruleValue.get))
+    Stream.continually(file.read).takeWhile(-1 !=).map(_.toByte).foreach( digest.update(_))
+    val hexStr = hexEncode(digest.digest)
+    hexStr == cellValue
+  }
+
+  private def hexEncode(in: Array[Byte]): String = {
+    val sb = new StringBuilder
+    val len = in.length
+
+    def addDigit(in: Array[Byte], pos: Int, len: Int, sb: StringBuilder) {
+      if (pos < len) {
+        val b: Int = in(pos)
+        val msb = (b & 0xf0) >> 4
+        val lsb = (b & 0x0f)
+        sb.append((if (msb < 10) ('0' + msb).asInstanceOf[Char] else ('a' + (msb - 10)).asInstanceOf[Char]))
+        sb.append((if (lsb < 10) ('0' + lsb).asInstanceOf[Char] else ('a' + (lsb - 10)).asInstanceOf[Char]))
+
+        addDigit(in, pos + 1, len, sb)
+      }
+    }
+
+    addDigit(in, 0, len, sb)
+    sb.toString
+  }
 }

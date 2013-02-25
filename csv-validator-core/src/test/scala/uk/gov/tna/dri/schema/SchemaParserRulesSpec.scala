@@ -160,14 +160,30 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
       }
     }
 
-    "succeed for checksum rule" in {
+    "fail for checksum non existent file" in {
       val schema =
         """@totalColumns 1
-           FileChecksum: checksum("myFile.txt","MD5")"""
+           FileChecksum: checksum(file("myFile.txt"), "MD5")"""
+
+      parse(new StringReader(schema)) must beLike { case Failure("""file("myFile.txt") not found""", _) => ok}
+    }
+
+    "succeed for checksum with supported algorithm" in {
+      val schema =
+        """@totalColumns 1
+           FileChecksum: checksum(file("build.sbt"), "MD5")"""
 
       parse(new StringReader(schema)) must beLike {
-        case Success(Schema(_, List(ColumnDefinition("FileChecksum", List(ChecksumRule(Literal(Some("myFile.txt")), "MD5")), _))), _) => ok
+        case Success(Schema(_, _), _) => ok
       }
+    }
+
+    "fail for checksum not supported algorithm" in {
+      val schema =
+        """@totalColumns 1
+           FileChecksum: checksum(file("build.sbt"), "ERROR")"""
+
+      parse(new StringReader(schema)) must beLike { case Failure("Invalid Algorithm", _) => ok}
     }
   }
 }
