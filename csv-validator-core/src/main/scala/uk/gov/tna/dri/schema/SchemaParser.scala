@@ -98,9 +98,9 @@ trait SchemaParser extends RegexParsers {
 
   def rootFilePath: Parser[String] = """[a-zA-Z/-_\.\d\\:]+""".r
 
-  def checksum = "checksum(" ~> fileExpr ~ "," ~ algorithm <~ ")" ^^ { case a ~ _ ~ algo => ChecksumRule(a, algo) }
+  def checksum = "checksum(" ~> fileExpr ~ "," ~ algorithm <~ ")" ^^ { case a ~ _ ~ algo => ChecksumRule(algo, a._1, a._2) }
 
-  def fileExpr = "file(" ~> argProvider <~ ")" ^? (validateFile, a => s"file${a.toError} not found")
+  def fileExpr = "file(" ~> opt(argProvider <~ ",") ~ argProvider <~ ")" ^^ { a => a }
 
   def algorithm: Parser[String] = "\"" ~> stringRegex <~ "\"" ^? (validateAlgorithm, s => "Invalid Algorithm")
 
@@ -119,10 +119,6 @@ trait SchemaParser extends RegexParsers {
 
   private def validateRegex: PartialFunction[String, RegexRule] = {
     case Regex(_, s, _) if Try(s.r).isSuccess => RegexRule(Literal(Some(s)))
-  }
-
-  private def validateFile: PartialFunction[ArgProvider, ArgProvider] = {
-    case a @ Literal(Some(fileName)) if new File(fileName).exists() => a
   }
 
   private def validateAlgorithm: PartialFunction[String, String] = {

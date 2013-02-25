@@ -159,13 +159,36 @@ case class UniqueRule() extends Rule("unique") {
   def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = true
 }
 
-case class ChecksumRule(filename: ArgProvider, algorithm: String) extends Rule("checksum", filename) {
-  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = {
+case class ChecksumRule(algorithm: String, rootPath: Option[ArgProvider], file: ArgProvider) extends Rule("checksum") {
+  override def evaluate(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
+    val cellValue = row.cells(columnIndex).value
+    val columnDefinition = schema.columnDefinitions(columnIndex)
+
+    if (checksum(filename(columnIndex, row, schema)) == cellValue) true.successNel
+    else s"${toError} fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value} )".failNel[Any]
+  }
+
+  def filename(columnIndex: Int, row: Row, schema: Schema): String = {
+    val f = file.referenceValue(columnIndex, row, schema).get
+
+    if (rootPath.isEmpty) f
+    else
+      rootPath.get.referenceValue(columnIndex, row, schema) match {
+        case None => f
+        case Some(r: String) if r.endsWith("/") => r + f
+        case Some(r) => r + "/" + f
+      }
+  }
+
+  override def toError = s"""${name}(file${rootPath.fold("")(_.toError + ",")}${file.toError})"""
+
+  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = true
+
+  private def checksum(filename: String ): String = {
     val digest = MessageDigest.getInstance(algorithm)
-    val file = new BufferedInputStream(new FileInputStream(ruleValue.get))
-    Stream.continually(file.read).takeWhile(-1 !=).map(_.toByte).foreach( digest.update(_))
-    val hexStr = hexEncode(digest.digest)
-    hexStr == cellValue
+    val fileBuffer = new BufferedInputStream(new FileInputStream(filename))
+    Stream.continually(fileBuffer.read).takeWhile(-1 !=).map(_.toByte).foreach( digest.update(_))
+    hexEncode(digest.digest)
   }
 
   private def hexEncode(in: Array[Byte]): String = {

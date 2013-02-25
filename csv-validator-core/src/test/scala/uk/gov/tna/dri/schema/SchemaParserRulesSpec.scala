@@ -160,14 +160,6 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
       }
     }
 
-    "fail for checksum non existent file" in {
-      val schema =
-        """@totalColumns 1
-           FileChecksum: checksum(file("myFile.txt"), "MD5")"""
-
-      parse(new StringReader(schema)) must beLike { case Failure("""file("myFile.txt") not found""", _) => ok}
-    }
-
     "succeed for checksum with supported algorithm" in {
       val schema =
         """@totalColumns 1
