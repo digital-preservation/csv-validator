@@ -67,7 +67,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
       val schema = """@totalColumns 1
                       Name: fileExists()"""
 
-      parse(new StringReader(schema)) must beLike { case f@Failure("Column definition requires a file path", _) => ok}
+      parse(new StringReader(schema)) must beLike { case f@Failure("fileExists rule has an invalid file path", _) => ok}
     }
 
     "succeed for file exists rule with root file path" in {
@@ -85,7 +85,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
       val schema = """@totalColumns 1
                       Name: fileExists(some/other/root/path)"""
 
-      parse(new StringReader(schema)) must beLike { case Failure("Column definition requires a file path", _) => ok}
+      parse(new StringReader(schema)) must beLike { case Failure("fileExists rule has an invalid file path", _) => ok}
     }
 
     "fail for non parentheses" in {
