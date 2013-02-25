@@ -154,7 +154,7 @@ trait SchemaParser extends RegexParsers {
       if (cd.directives.distinct.length != cd.directives.length)
     } yield {
       s"${cd.id}: Duplicated column directives: " +
-      cd.directives.groupBy(identity).filter { case (_, cds) => cds.size > 1}.map { case (cd, _) => "@" + cd + s" at line: ${cd.pos.line}, column: ${cd.pos.column}"}.mkString(",")
+      cd.directives.groupBy(identity).filter { case (_, cds) => cds.size > 1}.map { case (cd, _) => "@" + cd + s" at line: ${cd.pos.line}, column: ${cd.pos.column}"}.mkString(", ")
     }
 
     if (v.isEmpty) None else Some(v.mkString("\n"))
