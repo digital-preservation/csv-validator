@@ -19,13 +19,13 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
 
     "succeed for valid schema with all possible column definitions" in {
       val columnDefinitions = List(new ColumnDefinition("column1"),new ColumnDefinition("column2"),new ColumnDefinition("column3"),
-        new ColumnDefinition(".Q"),new ColumnDefinition("_-co.l"),new ColumnDefinition("0.a-B-z_Z"),new ColumnDefinition("-abc.txt"))
+        new ColumnDefinition("."),new ColumnDefinition("_-co.l"),new ColumnDefinition("0.a-B-z_Z"),new ColumnDefinition("-abc.txt"))
 
       val schema = """@totalColumns 7
                       column1:
                       column2:
                       column3:
-                      .Q:
+                      .:
                       _-co.l:
                       0.a-B-z_Z:
                       -abc.txt:"""
