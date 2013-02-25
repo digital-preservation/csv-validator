@@ -3,7 +3,6 @@ package uk.gov.tna.dri.validator
 import scalaz.Scalaz._
 import java.io.Reader
 import uk.gov.tna.dri.schema.{NoHeader, Schema}
-import scalaz.{Applicative, Traverse, CanBuildAnySelf}
 import uk.gov.tna.dri.metadata.{Cell, Row}
 import scala.collection.JavaConversions._
 
