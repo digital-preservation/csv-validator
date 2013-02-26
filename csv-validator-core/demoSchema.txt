@@ -1,5 +1,5 @@
 @totalColumns 6
-Name: unique  @ignoreCase
+Name: unique  checksum(file("myFile.txt"), "MD5")
 Age: positiveInteger
 Address: regex("[0-9][0-9].*") or starts("M")
 Occupation: starts("All")

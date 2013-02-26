@@ -12,7 +12,7 @@ class ChecksumRuleSpec extends Specification {
       val checksumRule = ChecksumRule("MD5", None, Literal(Some("build.sbt")))
 
       checksumRule.evaluate(0, Row(List(Cell("699d61aff25f16a5560372e610da91ab")), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition("column1")))) must beLike {
-        case Failure(m) => m.list mustEqual List("""checksum(file("build.sbt")) fails for line: 1, column: column1, value: 699d61aff25f16a5560372e610da91ab )""")
+        case Failure(m) => m.list mustEqual List("""checksum(file("build.sbt")) fails for line: 1, column: column1, value: 699d61aff25f16a5560372e610da91ab""")
       }
     }
 

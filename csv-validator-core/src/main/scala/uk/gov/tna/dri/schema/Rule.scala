@@ -165,7 +165,7 @@ case class ChecksumRule(algorithm: String, rootPath: Option[ArgProvider], file: 
     val columnDefinition = schema.columnDefinitions(columnIndex)
 
     if (checksum(filename(columnIndex, row, schema)) == cellValue) true.successNel
-    else s"${toError} fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value} )".failNel[Any]
+    else s"${toError} fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
   }
 
   def filename(columnIndex: Int, row: Row, schema: Schema): String = {
