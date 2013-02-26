@@ -1,16 +1,13 @@
 package uk.gov.tna.dri.schema
 
 import org.specs2.mutable._
-import org.specs2.matcher.ParserMatchers
 import java.io.StringReader
 
 import scalaz.{Success => SuccessZ, Failure => FailureZ}
 
-class SchemaParserRulesSpec extends Specification with ParserMatchers {
+class SchemaParserRulesSpec extends Specification {
 
   object TestSchemaParser extends SchemaParser
-
-  override val parsers = TestSchemaParser
 
   import TestSchemaParser._
 
@@ -68,7 +65,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
                       @totalColumns 1
                       Name: fileExists"""
 
-      parse(new StringReader(schema)) must beLike { case Success(Schema(globalDirsOne, List(ColumnDefinition("Name", List(FileExistsRule(Literal(None))), _))), _) => ok}
+      parse(new StringReader(schema)) must beLike { case Success(Schema(globalDirsOne, List(ColumnDefinition("Name", List(FileExistsRule(Literal(None))), _))), _) => ok }
     }
 
     "fail for file exists rule with empty ()" in {
@@ -76,7 +73,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
                       @totalColumns 1
                       Name: fileExists()"""
 
-      parse(new StringReader(schema)) must beLike { case f@Failure("fileExists rule has an invalid file path", _) => ok}
+      parse(new StringReader(schema)) must beLike { case f@Failure("fileExists rule has an invalid file path", _) => ok }
     }
 
     "succeed for file exists rule with root file path" in {
@@ -96,7 +93,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
                       @totalColumns 1
                       Name: fileExists(some/other/root/path)"""
 
-      parse(new StringReader(schema)) must beLike { case Failure("fileExists rule has an invalid file path", _) => ok}
+      parse(new StringReader(schema)) must beLike { case Failure("fileExists rule has an invalid file path", _) => ok }
     }
 
     "fail for non parentheses" in {
@@ -104,7 +101,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
                       @totalColumns 1
                       Name: fileExists /root/path"""
 
-      parse(new StringReader(schema)) must beLike { case Failure("Column definition contains invalid text", _) => ok}
+      parse(new StringReader(schema)) must beLike { case Failure("Column definition contains invalid text", _) => ok }
     }
 
     "succeed for or rule" in {
@@ -196,7 +193,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
            @totalColumns 1
            FileChecksum: checksum(file("build.sbt"), "ERROR")"""
 
-      parse(new StringReader(schema)) must beLike { case Failure("Invalid Algorithm", _) => ok}
+      parse(new StringReader(schema)) must beLike { case Failure("Invalid Algorithm", _) => ok }
     }
   }
 
@@ -266,7 +263,6 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
                    |MyCountry:""".stripMargin
 
     parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual List("Column: Country has invalid cross reference is($MyMissingCountry) at line: 3, column: 10") }
-
   }
 
   "succeed for 'isNot' text rule" in {
@@ -297,7 +293,6 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
                    |MyCountry:""".stripMargin
 
     parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual List("Column: Country has invalid cross reference isNot($MyMissingCountry) at line: 3, column: 10") }
-
   }
 
   "succeed for 'starts' text rule" in {
@@ -330,7 +325,6 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
                    |MyCountry:""".stripMargin
 
     parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual List("Column: Country has invalid cross reference starts($MyMissingCountry) at line: 3, column: 10") }
-
   }
 
   "succeed for 'ends' text rule" in {
@@ -361,6 +355,5 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
                    |MyCountry:""".stripMargin
 
     parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual List("Column: Country has invalid cross reference ends($MyMissingCountry) at line: 3, column: 10") }
-
   }
 }
