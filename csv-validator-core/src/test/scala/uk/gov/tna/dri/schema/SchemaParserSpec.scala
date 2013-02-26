@@ -28,6 +28,16 @@ class SchemaParserSpec extends Specification with ParserMatchers {
       parse(new StringReader(schema)) must beLike { case Success(schema, _) => schema mustEqual Schema(globalDirsThree, columnDefinitions) }
     }
 
+    "fail if the schema version is wrong" in {
+      val schema = """version 1
+                      @totalColumns 1
+                      LastName: @IgnoreCase regex ("[a]")"""
+
+      parse(new StringReader(schema)) must beLike {
+        case Failure(messages, _) => messages mustEqual s"version ${Schema.SchemaVersion} missing or incorrect"
+      }
+    }
+
     "succeed for extra white space around (including tabs) :" in {
       val schema = s"""version ${Schema.SchemaVersion}
                       @totalColumns 2
