@@ -159,7 +159,9 @@ case class UniqueRule() extends Rule("unique") {
   def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = true
 }
 
-case class ChecksumRule(algorithm: String, rootPath: Option[ArgProvider], file: ArgProvider) extends Rule("checksum") {
+case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: String) extends Rule("checksum") {
+  def this(file: ArgProvider, algorithm: String) = this(Literal(None), file, algorithm)
+
   override def evaluate(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
     val cellValue = row.cells(columnIndex).value
     val columnDefinition = schema.columnDefinitions(columnIndex)
@@ -171,16 +173,17 @@ case class ChecksumRule(algorithm: String, rootPath: Option[ArgProvider], file: 
   def filename(columnIndex: Int, row: Row, schema: Schema): String = {
     val f = file.referenceValue(columnIndex, row, schema).get
 
-    if (rootPath.isEmpty) f
-    else
-      rootPath.get.referenceValue(columnIndex, row, schema) match {
-        case None => f
-        case Some(r: String) if r.endsWith("/") => r + f
-        case Some(r) => r + "/" + f
-      }
+    rootPath.referenceValue(columnIndex, row, schema) match {
+      case None => f
+      case Some(r: String) if r.endsWith("/") => r + f
+      case Some(r) => r + "/" + f
+    }
   }
 
-  override def toError = s"""${name}(file${rootPath.fold("")(_.toError + ",")}${file.toError})"""
+  override def toError = {
+    val rootPathError = if (rootPath.toError.isEmpty) "" else rootPath.toError + ", "
+    s"""${name}(file${rootPathError}${file.toError})"""
+  }
 
   def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = true
 

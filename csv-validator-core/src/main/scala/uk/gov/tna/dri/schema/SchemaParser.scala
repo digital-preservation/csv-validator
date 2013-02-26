@@ -98,7 +98,7 @@ trait SchemaParser extends RegexParsers {
 
   def rootFilePath: Parser[String] = """[a-zA-Z/-_\.\d\\:]+""".r
 
-  def checksum = "checksum(" ~> fileExpr ~ "," ~ algorithm <~ ")" ^^ { case a ~ _ ~ algo => ChecksumRule(algo, a._1, a._2) }
+  def checksum = "checksum(" ~> fileExpr ~ "," ~ algorithm <~ ")" ^^ { case a ~ _ ~ algo => ChecksumRule(a._1.getOrElse(Literal(None)), a._2, algo) }
 
   def fileExpr = "file(" ~> opt(argProvider <~ ",") ~ argProvider <~ ")" ^^ { a => a }
 
