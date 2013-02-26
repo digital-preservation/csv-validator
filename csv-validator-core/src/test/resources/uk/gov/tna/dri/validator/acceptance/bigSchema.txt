@@ -1,3 +1,4 @@
+version 1.0
 @totalColumns 2
 AlphaNumeric:
 Numeric: regex("[0-9]+")

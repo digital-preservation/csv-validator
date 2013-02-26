@@ -19,7 +19,8 @@ class SchemaParserSpec extends Specification with ParserMatchers {
     "succeed for valid minimal schema" in {
       val columnDefinitions = List(new ColumnDefinition("column1"),new ColumnDefinition("column2"),new ColumnDefinition("column3"))
 
-      val schema = """@totalColumns 3
+      val schema = s"""version ${Schema.SchemaVersion}
+                      @totalColumns 3
                       column1:
                       column2:
                       column3:"""
@@ -28,7 +29,8 @@ class SchemaParserSpec extends Specification with ParserMatchers {
     }
 
     "succeed for extra white space around (including tabs) :" in {
-      val schema = """@totalColumns 2
+      val schema = s"""version ${Schema.SchemaVersion}
+                      @totalColumns 2
                       Name :
                       Age   :     """
 
@@ -36,7 +38,8 @@ class SchemaParserSpec extends Specification with ParserMatchers {
     }
 
     "fail if column directives declared before rules" in {
-      val schema = """@totalColumns 1
+      val schema = s"""version ${Schema.SchemaVersion}
+                      @totalColumns 1
                       LastName: @IgnoreCase regex ("[a]")"""
 
       parse(new StringReader(schema)) must beLike {
@@ -45,7 +48,8 @@ class SchemaParserSpec extends Specification with ParserMatchers {
     }
 
     "succeed if noHeader global directive set :" in {
-      val schema = """@totalColumns 2 @noHeader
+      val schema = s"""version ${Schema.SchemaVersion}
+                      @totalColumns 2 @noHeader
                       Name :
                       Age   :     """
       val globalDirsTwoHeaderSet = List(TotalColumns(2), NoHeader())

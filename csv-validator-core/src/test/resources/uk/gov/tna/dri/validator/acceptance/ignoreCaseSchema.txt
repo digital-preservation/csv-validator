@@ -1,3 +1,4 @@
+version 1.0
 @totalColumns 2
 Name: in($FullName) @ignoreCase
 FullName:

@@ -15,35 +15,35 @@ class SchemaParserTotalColumnsSpec extends Specification with ParserMatchers {
   "Schema" should {
 
     "fail for TotalColumns with missing value" in {
-      parse(new StringReader("@totalColumns")) must beLike { case Failure(message, _) => message mustEqual "@totalColumns invalid" }
+      parse(new StringReader(s"version 1.0\n@totalColumns")) must beLike { case Failure(message, _) => message mustEqual "@totalColumns invalid" }
     }
 
     "fail for incorrect TotalColumns field name" in {
-      parse(new StringReader("@ToalColumns 23")) must beLike { case Failure(message, _) => message mustEqual "Global directives contains invalid text" }
+      parse(new StringReader(s"version ${Schema.SchemaVersion}\n@ToalColumns 23")) must beLike { case Failure(message, _) => message mustEqual "Global directives contains invalid text" }
     }
 
     "fail for incorrect TotalColumns field name with no value" in {
-      parse(new StringReader("@TtalColumns")) must beLike { case Failure(message, _) => message mustEqual "Global directives contains invalid text" }
+      parse(new StringReader(s"version ${Schema.SchemaVersion}\n@TtalColumns")) must beLike { case Failure(message, _) => message mustEqual "Global directives contains invalid text" }
     }
 
     "fail for TotalColumns field name incorrect case" in {
-      parse(new StringReader("@TotalColumns 65")) must beLike { case Failure(message, _) => message mustEqual "Global directives contains invalid text" }
+      parse(new StringReader(s"version ${Schema.SchemaVersion}\n@TotalColumns 65")) must beLike { case Failure(message, _) => message mustEqual "Global directives contains invalid text" }
     }
 
     "fail for TotalColumns of zero" in {
-      parse(new StringReader("@totalColumns 0")) must beLike { case Failure(message, _) => message mustEqual "@totalColumns invalid" }
+      parse(new StringReader(s"version ${Schema.SchemaVersion}\n@totalColumns 0")) must beLike { case Failure(message, _) => message mustEqual "@totalColumns invalid" }
     }
 
     "fail for TotalColumns with negative integer" in {
-      parse(new StringReader("@totalColumns -23")) must beLike { case Failure(message, _) => message mustEqual "@totalColumns invalid" }
+      parse(new StringReader(s"version ${Schema.SchemaVersion}\n@totalColumns -23")) must beLike { case Failure(message, _) => message mustEqual "@totalColumns invalid" }
     }
 
     "fail for TotalColumns with non integer" in {
-      parse(new StringReader("@totalColumns 132.45")) must beLike { case Failure(message, _) => message mustEqual "Global directives contains invalid text" }
+      parse(new StringReader(s"version ${Schema.SchemaVersion}\n@totalColumns 132.45")) must beLike { case Failure(message, _) => message mustEqual "Global directives contains invalid text" }
     }
 
     "fail for TotalColumns with non numeric" in {
-      parse(new StringReader("@totalColumns blah")) must beLike { case Failure(message, _) => message mustEqual "@totalColumns invalid" }
+      parse(new StringReader(s"version ${Schema.SchemaVersion}\n@totalColumns blah")) must beLike { case Failure(message, _) => message mustEqual "@totalColumns invalid" }
     }
   }
 }

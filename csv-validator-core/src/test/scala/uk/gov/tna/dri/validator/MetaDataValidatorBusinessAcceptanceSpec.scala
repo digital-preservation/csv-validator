@@ -13,6 +13,7 @@ class MetaDataValidatorBusinessAcceptanceSpec extends Specification {
   def getSchema(filePath: String): Schema = {
     parseSchema(filePath) match {
       case Success(s) => s
+      case _  => throw new RuntimeException("Unable to parse schema")
     }
   }
   "Regex rule" should {

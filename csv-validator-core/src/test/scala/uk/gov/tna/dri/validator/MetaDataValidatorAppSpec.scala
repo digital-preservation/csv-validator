@@ -73,6 +73,7 @@ class MetaDataValidatorAppSpec extends Specification {
     def getSchema(filePath: String): Schema = {
       app.parseSchema(filePath) match {
         case Success(s) => s
+        case _  => throw new RuntimeException("Unable to parse schema")
       }
     }
 

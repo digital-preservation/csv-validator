@@ -15,6 +15,7 @@ class MetaDataValidatorBigFileSpec extends Specification {
       def getSchema(filePath: String): Schema = {
         v.parseSchema(filePath) match {
           case Success(s) => s
+          case _  => throw new RuntimeException("Unable to parse schema")
         }
       }
       v.validate(basePath + "bigMetaData.csv", getSchema(basePath + "bigSchema.txt")) must beLike {
@@ -27,6 +28,7 @@ class MetaDataValidatorBigFileSpec extends Specification {
       def getSchema(filePath: String): Schema = {
         v.parseSchema(filePath) match {
           case Success(s) => s
+          case _  => throw new RuntimeException("Unable to parse schema")
         }
       }
       v.validate(basePath + "bigMetaData.csv", getSchema(basePath + "bigSchema.txt")) must beLike {

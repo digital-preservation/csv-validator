@@ -1,3 +1,4 @@
+version 1.0
 @totalColumns 2 @noHeader
 Name:
 CountryOrCountryCode: regex("[A-Z][a-z]+") or regex("[0-9]+")

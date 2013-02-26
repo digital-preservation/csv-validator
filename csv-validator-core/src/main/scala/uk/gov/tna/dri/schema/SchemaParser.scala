@@ -35,7 +35,9 @@ trait SchemaParser extends RegexParsers {
     case n @ NoSuccess(messages, next) => n
   }
 
-  def schema = globalDirectives ~ columnDefinitions ^^ { case g ~ c => Schema(g, c)}
+  def version: Parser[String] = ("version " ~> Schema.SchemaVersion <~ eol).withFailureMessage(s"version ${Schema.SchemaVersion} missing or incorrect")
+
+  def schema = version ~ globalDirectives ~ columnDefinitions ^^ { case v ~ g ~ c => Schema(g, c)}
 
   def globalDirectives: Parser[List[GlobalDirective]] = rep(positioned(globalDirective)) <~ (whiteSpace ~ (eol | endOfInput | failure("Global directives contains invalid text")))
 
