@@ -8,24 +8,23 @@ import util.parsing.input.Positional
 import collection.mutable
 import java.security.MessageDigest
 
-abstract class Rule(val name: String, val argProvider: ArgProvider = Literal(None)) extends Positional {
+abstract class Rule(val name: String, val argProviders: ArgProvider*) extends Positional {
 
   val Uuid4Regex = "[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}"
 
   def evaluate(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
     val cellValue = row.cells(columnIndex).value
-    val ruleValue = argProvider.referenceValue(columnIndex, row, schema)
-    if (valid(cellValue, ruleValue, schema.columnDefinitions(columnIndex))) true.successNel[String] else fail(columnIndex, row, schema)
+    if (valid(cellValue, schema.columnDefinitions(columnIndex), columnIndex, row, schema)) true.successNel[String] else fail(columnIndex, row, schema)
   }
 
-  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean
 
   def fail(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
     val columnDefinition = schema.columnDefinitions(columnIndex)
     s"${toError} fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
   }
 
-  def toError = s"""${name}${argProvider.toError}"""
+  def toError = s"""${name}""" + argProviders.foldLeft("")(_ + _.toError)
 }
 
 case class OrRule(left: Rule, right: Rule) extends Rule("or") {
@@ -39,20 +38,23 @@ case class OrRule(left: Rule, right: Rule) extends Rule("or") {
     }
   }
 
-  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = true
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = true
 
   override def toError = s"""${left.toError} ${name} ${right.toError}"""
 }
 
 case class RegexRule(regex: ArgProvider) extends Rule("regex", regex) {
-  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = {
-    val regex = if (columnDefinition.directives.contains(IgnoreCase())) "(?i)" + ruleValue.get else ruleValue.get
-    cellValue matches regex
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = {
+    val ruleValue = regex.referenceValue(columnIndex, row, schema)
+
+    val regexp = if (columnDefinition.directives.contains(IgnoreCase())) "(?i)" + ruleValue.get else ruleValue.get
+    cellValue matches regexp
   }
 }
 
 case class FileExistsRule(rootPath: ArgProvider = Literal(None)) extends Rule("fileExists", rootPath) {
-  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = {
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = {
+    val ruleValue = rootPath.referenceValue(columnIndex, row, schema)
     val filePath = cellValue
 
     val fileExists = ruleValue match {
@@ -65,35 +67,45 @@ case class FileExistsRule(rootPath: ArgProvider = Literal(None)) extends Rule("f
 }
 
 case class InRule(inValue: ArgProvider) extends Rule("in", inValue) {
-  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition): Boolean = {
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
+    val ruleValue = inValue.referenceValue(columnIndex, row, schema)
+
     val (rv, cv) = if (columnDefinition.directives.contains(IgnoreCase())) (ruleValue.get.toLowerCase, cellValue.toLowerCase) else (ruleValue.get, cellValue)
     rv contains cv
   }
 }
 
 case class IsRule(isValue: ArgProvider) extends Rule("is", isValue) {
-  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = {
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = {
+    val ruleValue = isValue.referenceValue(columnIndex, row, schema)
+
     val (rv, cv) = if (columnDefinition.directives.contains(IgnoreCase())) (ruleValue.get.toLowerCase, cellValue.toLowerCase) else (ruleValue.get, cellValue)
     cv == rv
   }
 }
 
-case class IsNotRule(isValue: ArgProvider) extends Rule("isNot", isValue) {
-  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = {
+case class IsNotRule(isNotValue: ArgProvider) extends Rule("isNot", isNotValue) {
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = {
+    val ruleValue = isNotValue.referenceValue(columnIndex, row, schema)
+
     val (rv, cv) = if (columnDefinition.directives.contains(IgnoreCase())) (ruleValue.get.toLowerCase, cellValue.toLowerCase) else (ruleValue.get, cellValue)
     cv != rv
   }
 }
 
-case class StartsRule(isValue: ArgProvider) extends Rule("starts", isValue) {
-  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = {
+case class StartsRule(startsValue: ArgProvider) extends Rule("starts", startsValue) {
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = {
+    val ruleValue = startsValue.referenceValue(columnIndex, row, schema)
+
     val (rv, cv) = if (columnDefinition.directives.contains(IgnoreCase())) (ruleValue.get.toLowerCase, cellValue.toLowerCase) else (ruleValue.get, cellValue)
     cv startsWith rv
   }
 }
 
-case class EndsRule(isValue: ArgProvider) extends Rule("ends", isValue) {
-  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = {
+case class EndsRule(endsValue: ArgProvider) extends Rule("ends", endsValue) {
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = {
+    val ruleValue = endsValue.referenceValue(columnIndex, row, schema)
+
     val (rv, cv) = if (columnDefinition.directives.contains(IgnoreCase())) (ruleValue.get.toLowerCase, cellValue.toLowerCase) else (ruleValue.get, cellValue)
     cv endsWith rv
   }
@@ -101,36 +113,36 @@ case class EndsRule(isValue: ArgProvider) extends Rule("ends", isValue) {
 
 case class UriRule() extends Rule("uri") {
   val uriRegex = "http://datagov.nationalarchives.gov.uk/66/WO/409/[0-9]+/[0-9]+/" + Uuid4Regex
-  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = cellValue matches uriRegex
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = cellValue matches uriRegex
 }
 
 case class XsdDateTimeRule() extends Rule("xDateTime") {
   val xsdDateTimeRegex = "[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}"
-  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = cellValue matches xsdDateTimeRegex
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = cellValue matches xsdDateTimeRegex
 }
 
 case class XsdDateRule() extends Rule("xDate") {
   val xsdDateRegex = "[0-9]{4}-[0-9]{2}-[0-9]{2}"
-  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = cellValue matches xsdDateRegex
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = cellValue matches xsdDateRegex
 }
 
 case class UkDateRule() extends Rule("ukDate") {
   val ukDateRegex = "[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}"
-  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = cellValue matches ukDateRegex
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = cellValue matches ukDateRegex
 }
 
 case class XsdTimeRule() extends Rule("xTime") {
   val xsdTimeRegex = "[0-9]{2}:[0-9]{2}:[0-9]{2}"
-  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = cellValue matches xsdTimeRegex
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = cellValue matches xsdTimeRegex
 }
 
 case class Uuid4Rule() extends Rule("uuid4") {
-  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = cellValue matches Uuid4Regex
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = cellValue matches Uuid4Regex
 }
 
 case class PositiveIntegerRule() extends Rule("positiveInteger") {
   val positiveIntegerRegex = "[0-9]+"
-  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = cellValue matches positiveIntegerRegex
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = cellValue matches positiveIntegerRegex
 }
 
 case class UniqueRule() extends Rule("unique") {
@@ -155,21 +167,20 @@ case class UniqueRule() extends Rule("unique") {
     }
   }
 
-  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = true
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = true
 }
 
-case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: String) extends Rule("checksum") {
+case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: String) extends Rule("checksum", rootPath, file) {
   def this(file: ArgProvider, algorithm: String) = this(Literal(None), file, algorithm)
 
-  override def evaluate(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
-    val cellValue = row.cells(columnIndex).value
-    val columnDefinition = schema.columnDefinitions(columnIndex)
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = checksum(filename(columnIndex, row, schema)) == cellValue
 
-    if (checksum(filename(columnIndex, row, schema)) == cellValue) true.successNel
-    else s"$toError fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
+  override def toError = {
+    if(rootPath.toError.isEmpty ) s"""$name(file${file.toError})"""
+    else s"""$name(file${rootPath.toError.dropRight(1)}, ${file.toError.tail}, "${algorithm}")"""
   }
 
-  def filename(columnIndex: Int, row: Row, schema: Schema): String = {
+  private def filename(columnIndex: Int, row: Row, schema: Schema): String = {
     val f = file.referenceValue(columnIndex, row, schema).get
 
     rootPath.referenceValue(columnIndex, row, schema) match {
@@ -178,13 +189,6 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
       case Some(r) => r + "/" + f
     }
   }
-
-  override def toError = {
-    if(rootPath.toError.isEmpty ) s"""$name(file${file.toError})"""
-    else s"""$name(file${rootPath.toError.dropRight(1)}, ${file.toError.tail})"""
-  }
-
-  def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = true
 
   private def checksum(filename: String ): String = {
     val digest = MessageDigest.getInstance(algorithm)

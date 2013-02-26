@@ -86,7 +86,7 @@ class MetaDataValidatorChecksumSpec extends Specification {
       val metaData = """ABC,wrong"""
 
       validate(metaData, schema) must beLike {
-        case Failure(messages) => messages.list mustEqual List("""checksum(file("src/test/resources/uk/gov/tna/dri/schema", "checksum.txt")) fails for line: 1, column: MD5, value: wrong""")
+        case Failure(messages) => messages.list mustEqual List("""checksum(file("src/test/resources/uk/gov/tna/dri/schema", "checksum.txt"), "MD5") fails for line: 1, column: MD5, value: wrong""")
       }
     }
 
@@ -164,7 +164,7 @@ class MetaDataValidatorChecksumSpec extends Specification {
       val metaData = """checksum.txt,rubbish"""
 
       validate(metaData, schema) must beLike {
-        case Failure(messages) => messages.list mustEqual List("""checksum(file("src/test/resources/uk/gov/tna/dri/schema", $File)) fails for line: 1, column: MD5, value: rubbish""")
+        case Failure(messages) => messages.list mustEqual List("""checksum(file("src/test/resources/uk/gov/tna/dri/schema", $File), "MD5") fails for line: 1, column: MD5, value: rubbish""")
       }
     }
   }

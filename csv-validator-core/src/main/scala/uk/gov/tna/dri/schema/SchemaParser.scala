@@ -164,10 +164,12 @@ trait SchemaParser extends RegexParsers {
   private def crossColumnsValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
     def filterRules(cds: ColumnDefinition ): List[Rule] = { // List of failing rules
       cds.rules.filter(rule => {
-        rule.argProvider match {
+        def undefinedCross(a: ArgProvider) = a match {
           case ColumnReference(name) => !columnDefinitions.exists(col => col.id == name)
           case _ => false
         }
+
+        rule.argProviders.foldLeft(false)((acc, arg) => acc || undefinedCross(arg))
       })
     }
 
