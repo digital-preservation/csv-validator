@@ -72,7 +72,7 @@ ConditionalExpr         ::=     IfExpr
 IfExpr                  ::=     "if(" NonConditionalExpr ")" "{" ColumnValidationExpr "}" ("else" "{" ColumnValidatorExpr "}")?        /* if with optional else */
 
 /* Column Directives modify the behaviour of ColumnValidatonExpr(s) */
-ColumnDirectives        ::=     IgnoreCaseDirective? MatchIsFalseDirective? NotEmpty? Unique?
+ColumnDirectives        ::=     IgnoreCaseDirective? MatchIsFalseDirective? OptionalDirective?
 IgnoreCaseDirective     ::=     DirectivePrefix "IgnoreCase"
 MatchIsFalseDirective   ::=     DirectivePrefix "MatchIsFalse"
 OptionalDirective       ::=     DirectivePrefix "Optional"
