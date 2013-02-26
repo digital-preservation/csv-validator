@@ -173,10 +173,21 @@ case class UniqueRule() extends Rule("unique") {
 case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: String) extends Rule("checksum", rootPath, file) {
   def this(file: ArgProvider, algorithm: String) = this(Literal(None), file, algorithm)
 
-  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = checksum(filename(columnIndex, row, schema)) == cellValue
+  override def evaluate(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
+    val cellValue = row.cells(columnIndex).value
+    val columnDefinition = schema.columnDefinitions(columnIndex)
+
+    checksum(filename(columnIndex, row, schema)) match {
+      case Right(hexValue) if hexValue == cellValue => true.successNel[String]
+      case Right(hexValue) => s"${toError} checksum match fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
+      case Left(errMsg) => s"${toError} ${errMsg} for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
+    }
+  }
+
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = true
 
   override def toError = {
-    if(rootPath.toError.isEmpty ) s"""$name(file${file.toError})"""
+    if(rootPath.toError.isEmpty ) s"""$name(file${file.toError}, "${algorithm}")"""
     else s"""$name(file${rootPath.toError.dropRight(1)}, ${file.toError.tail}, "${algorithm}")"""
   }
 
@@ -190,11 +201,14 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
     }
   }
 
-  private def checksum(filename: String ): String = {
-    val digest = MessageDigest.getInstance(algorithm)
-    val fileBuffer = new BufferedInputStream(new FileInputStream(filename))
-    Stream.continually(fileBuffer.read).takeWhile(-1 !=).map(_.toByte).foreach( digest.update(_))
-    hexEncode(digest.digest)
+  private def checksum(filename: String ): Either[String, String] = {
+    if ( !(new File(filename)).exists) Left(s"""file "${filename}" not found""")
+    else {
+      val digest = MessageDigest.getInstance(algorithm)
+      val fileBuffer = new BufferedInputStream(new FileInputStream(filename))
+      Stream.continually(fileBuffer.read).takeWhile(-1 !=).map(_.toByte).foreach( digest.update(_))
+      Right(hexEncode(digest.digest))
+    }
   }
 
   private def hexEncode(in: Array[Byte]): String = {

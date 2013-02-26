@@ -26,7 +26,6 @@ class MetaDataValidatorChecksumSpec extends Specification {
 
   import TestMetaDataValidator._
 
-
   "Checksum with path/filename in schema" should {
     "succeed when calculated algorithm does match given value" in {
       val schema =
@@ -52,7 +51,7 @@ class MetaDataValidatorChecksumSpec extends Specification {
       val metaData = """src/test/resources/uk/gov/tna/dri/schema/checksum.txt,wrong"""
 
       validate(metaData, schema) must beLike {
-        case Failure(messages) => messages.list mustEqual List("""checksum(file("src/test/resources/uk/gov/tna/dri/schema/checksum.txt")) fails for line: 1, column: MD5, value: wrong""")
+        case Failure(messages) => messages.list mustEqual List("""checksum(file("src/test/resources/uk/gov/tna/dri/schema/checksum.txt"), "MD5") checksum match fails for line: 1, column: MD5, value: wrong""")
       }
     }
 
@@ -84,7 +83,7 @@ class MetaDataValidatorChecksumSpec extends Specification {
       val metaData = """ABC,wrong"""
 
       validate(metaData, schema) must beLike {
-        case Failure(messages) => messages.list mustEqual List("""checksum(file("src/test/resources/uk/gov/tna/dri/schema", "checksum.txt"), "MD5") fails for line: 1, column: MD5, value: wrong""")
+        case Failure(messages) => messages.list mustEqual List("""checksum(file("src/test/resources/uk/gov/tna/dri/schema", "checksum.txt"), "MD5") checksum match fails for line: 1, column: MD5, value: wrong""")
       }
     }
 
@@ -105,19 +104,20 @@ class MetaDataValidatorChecksumSpec extends Specification {
       validate(metaData, schema) must beLike { case Success(_) => ok }
     }
 
-    //    "fail when incorrect root given in schema for root" in {
-    //      val schema =
-    //        """@totalColumns 2 @noHeader
-    //           File:
-    //           MD5: checksum(file("invalid/path/to/root",$File), "MD5")
-    //        """
-    //
-    //      val metaData = """checksum.txt,232762380299115da6995e4c4ac22fa2"""
-    //
-    //      validate(metaData, schema) must beLike {
-    //        case Failure(messages) => messages.list mustEqual List("""checksum(file("invalid/path/to/root", $File)) fails for line: 1, column: MD5, value: rubbish""")
-    //      }
-    //    }
+    "fail when incorrect root given in schema for root" in {
+      val schema =
+        """version 1.0
+           @totalColumns 2 @noHeader
+           File:
+           MD5: checksum(file("invalid/path/to/root",$File), "MD5")
+        """
+
+      val metaData = """checksum.txt,232762380299115da6995e4c4ac22fa2"""
+
+      validate(metaData, schema) must beLike {
+        case Failure(messages) => messages.list mustEqual List("""checksum(file("invalid/path/to/root", $File), "MD5") file "invalid/path/to/root/checksum.txt" not found for line: 1, column: MD5, value: 232762380299115da6995e4c4ac22fa2""")
+      }
+    }
 
 
   "Checksum with fullpath in metedata" should {
@@ -146,7 +146,7 @@ class MetaDataValidatorChecksumSpec extends Specification {
       val metaData = """src/test/resources/uk/gov/tna/dri/schema/checksum.txt,rubbish"""
 
       validate(metaData, schema) must beLike {
-        case Failure(messages) => messages.list mustEqual List("checksum(file($File)) fails for line: 1, column: MD5, value: rubbish")
+        case Failure(messages) => messages.list mustEqual List("""checksum(file($File), "MD5") checksum match fails for line: 1, column: MD5, value: rubbish""")
       }
     }
   }
@@ -162,7 +162,7 @@ class MetaDataValidatorChecksumSpec extends Specification {
       val metaData = """checksum.txt,rubbish"""
 
       validate(metaData, schema) must beLike {
-        case Failure(messages) => messages.list mustEqual List("""checksum(file("src/test/resources/uk/gov/tna/dri/schema", $File), "MD5") fails for line: 1, column: MD5, value: rubbish""")
+        case Failure(messages) => messages.list mustEqual List("""checksum(file("src/test/resources/uk/gov/tna/dri/schema", $File), "MD5") checksum match fails for line: 1, column: MD5, value: rubbish""")
       }
     }
   }
@@ -230,20 +230,5 @@ class MetaDataValidatorChecksumSpec extends Specification {
 
       validate(metaData, schema) must beLike { case Success(_) => ok }
     }
-
-//    "fail when algorithm is invalid/unknown" in {
-//      val schema =
-//        """@totalColumns 2 @noHeader
-//             File:
-//             MD5: checksum(file($File), "INVALID")
-//        """
-//
-//      val metaData = """src/test/resources/uk/gov/tna/dri/schema/checksum.txt,232762380299115da6995e4c4ac22fa2"""
-//
-//      validate(metaData, schema) must beLike {
-//        case Failure(messages) => messages.list mustEqual List("checksum(file($File)) fails for line: 1, column: MD5, value: rubbish")
-//      }
-//    }
   }
-
 }

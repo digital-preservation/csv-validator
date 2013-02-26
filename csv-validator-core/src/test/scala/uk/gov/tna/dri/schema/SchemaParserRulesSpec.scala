@@ -184,16 +184,19 @@ class SchemaParserRulesSpec extends Specification {
       }
     }
 
-    "fail for checksum not supported algorithm" in {
+    "fail when algorithm is invalid/unknown" in {
       val schema =
         """version 1.0
-           @totalColumns 1
-           FileChecksum: checksum(file("build.sbt"), "ERROR")"""
+           @totalColumns 2 @noHeader
+           File:
+           MD5: checksum(file($File), "INVALID")
+        """
 
-      parse(new StringReader(schema)) must beLike { case Failure("Invalid Algorithm", _) => ok }
+      parse(new StringReader(schema)) must beLike {
+        case Failure(messages, _) => messages mustEqual "Invalid Algorithm INVALID"
+      }
     }
   }
-
 
   "succeed for cross reference in rule" in {
     val schema = """version 1.0

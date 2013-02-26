@@ -107,7 +107,7 @@ trait SchemaParser extends RegexParsers {
 
   def fileExpr = "file(" ~> opt(argProvider <~ ",") ~ argProvider <~ ")" ^^ { a => a }
 
-  def algorithm: Parser[String] = "\"" ~> stringRegex <~ "\"" ^? (validateAlgorithm, s => "Invalid Algorithm")
+  def algorithm: Parser[String] = "\"" ~> stringRegex <~ "\"" ^? (validateAlgorithm, s => "Invalid Algorithm " + s)
 
   def optional = "@optional" ^^^ Optional()
 
