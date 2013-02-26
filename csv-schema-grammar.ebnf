@@ -31,7 +31,8 @@ IgnoreColumnNameCase    ::=     DirectivePrefix "ignoreColumnNameCase"
 TABExpr                 ::=     "TAB" ("(" IntegerLiteral ")")?
 SeparatorChar           ::=     CharacterLiteral
 
-Body                    ::=     Comment* | ColumnDefinition+
+Body                    ::=     BodyPart+
+BodyPart                ::=     ((Comment* ColumnDefinition) | (ColumnDefinition Comment*))
 
 Comment                 ::=     SingleLineComment | MultiLineComment
 SingleLineComment       ::=     "//" NonBreakingChar*
