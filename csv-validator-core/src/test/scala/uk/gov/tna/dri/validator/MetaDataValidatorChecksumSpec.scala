@@ -117,9 +117,7 @@ class MetaDataValidatorChecksumSpec extends Specification {
     //    }
 
 
-
-
-    "Checksum with fullpath in metedata" should {
+  "Checksum with fullpath in metedata" should {
 
     "succeed when calculated algorithm does match given cross referenced string value" in {
       val schema =
@@ -161,7 +159,6 @@ class MetaDataValidatorChecksumSpec extends Specification {
         case Failure(messages) => messages.list mustEqual List("""checksum(file("src/test/resources/uk/gov/tna/dri/schema"), ($File)) fails for line: 1, column: MD5, value: rubbish""")
       }
     }
-
   }
 
 
@@ -196,6 +193,20 @@ class MetaDataValidatorChecksumSpec extends Specification {
 //    }
   }
 
+  //  "Checksum with multi files matches" should {
+  //    "succeed with 3 files" in {
+  //      val schema =
+  //        """@totalColumns 2 @noHeader
+  //           File:
+  //           MD5: checksum(file("src/test/resources/uk/gov/tna/dri/schema", $File), "MD5")
+  //        """
+  //
+  //      val metaData = """*.txt,"232762380299115da6995e4c4ac22fa2,232762380299115da6995e4c4ac22fa2,232762380299115da6995e4c4ac22fa2""""
+  //
+  //      validate(metaData, schema) must beLike { case Success(_) => ok }
+  //
+  //    }
+  //  }
 
 
   "Checksum with an algorithm" should {
@@ -226,21 +237,5 @@ class MetaDataValidatorChecksumSpec extends Specification {
 //      }
 //    }
   }
-
-
-//  "Checksum with multi files matches" should {
-//    "succeed with 3 files" in {
-//      val schema =
-//        """@totalColumns 2 @noHeader
-//           File:
-//           MD5: checksum(file("src/test/resources/uk/gov/tna/dri/schema", $File), "MD5")
-//        """
-//
-//      val metaData = """*.txt,"232762380299115da6995e4c4ac22fa2,232762380299115da6995e4c4ac22fa2,232762380299115da6995e4c4ac22fa2""""
-//
-//      validate(metaData, schema) must beLike { case Success(_) => ok }
-//
-//    }
-//  }
 
 }
