@@ -4,7 +4,21 @@ Prolog                  ::=     VersionDecl GlobalDirectives
 
 VersionDecl             ::=     "version 1.0"
 
-GlobalDirectives        ::=     SeparatorDirective? QuotedDirective? TotalColumnsExpr? (NoHeaderDirective | IgnoreColumnNameCaseDirective)?
+/* There are only five global directives (see the first line below), but they can appear in any of four orders, the following complexity deals with that */
+GlobalDirectives        ::= (
+    (SeparatorDirective? QuotedDirective? TotalColumnsDirective? (NoHeaderDirective | IgnoreColumnNameCaseDirective)?)
+    | (QuotedDirective? SeparatorDirective? TotalColumnsDirective? (NoHeaderDirective | IgnoreColumnNameCaseDirective)?)
+    | (TotalColumnsDirective? SeparatorDirective? QuotedDirective? (NoHeaderDirective | IgnoreColumnNameCaseDirective)?)
+    | ((NoHeaderDirective | IgnoreColumnNameCaseDirective)? SeparatorDirective? QuotedDirective? TotalColumnsDirective)
+    | (SeparatorDirective? (NoHeaderDirective | IgnoreColumnNameCaseDirective)? QuotedDirective? TotalColumnsDirective?)
+    | (QuotedDirective? (NoHeaderDirective | IgnoreColumnNameCaseDirective)? SeparatorDirective? TotalColumnsDirective?)
+    | (QuotedDirective? TotalColumnsDirective? (NoHeaderDirective | IgnoreColumnNameCaseDirective)? SeparatorDirective?)
+    | (TotalColumnsDirective? QuotedDirective? (NoHeaderDirective | IgnoreColumnNameCaseDirective)? SeparatorDirective?)
+    | ((NoHeaderDirective | IgnoreColumnNameCaseDirective)? QuotedDirective? TotalColumnsDirective? SeparatorDirective?)
+    | (TotalColumnsDirective? (NoHeaderDirective | IgnoreColumnNameCaseDirective)? SeparatorDirective? QuotedDirective?)
+    | ((NoHeaderDirective | IgnoreColumnNameCaseDirective)? TotalColumnsDirective? SeparatorDirective? QuotedDirective?)
+    | (SeparatorDirective? TotalColumnsDirective? (NoHeaderDirective | IgnoreColumnNameCaseDirective)? QuotedDirective?) 
+)
 
 DirectivePrefix         ::=     "@"
 
