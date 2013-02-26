@@ -8,11 +8,11 @@ GlobalDirectives        ::=     SeparatorDirective? QuotedDirective? TotalColumn
 
 DirectivePrefix         ::=     "@"
 
-SeparatorDirective      ::=     DirectivePrefix "Separator" (TABExpr | SeparatorChar)
-QuotedDirective         ::=     DirectivePrefix "Quoted"
-TotalColumnsDirective   ::=     DirectivePrefix "TotalColumns" PositiveNonZeroIntegerLiteral
-NoHeaderDirective       ::=     DirectivePrefix "NoHeader"
-IgnoreColumnNameCase    ::=     DirectivePrefix "IgnoreColumnNameCase"
+SeparatorDirective      ::=     DirectivePrefix "separator" (TABExpr | SeparatorChar)
+QuotedDirective         ::=     DirectivePrefix "quoted"
+TotalColumnsDirective   ::=     DirectivePrefix "totalColumns" PositiveNonZeroIntegerLiteral
+NoHeaderDirective       ::=     DirectivePrefix "noHeader"
+IgnoreColumnNameCase    ::=     DirectivePrefix "ignoreColumnNameCase"
 
 TABExpr                 ::=     "TAB" ("(" IntegerLiteral ")")?
 SeparatorChar           ::=     CharacterLiteral
@@ -73,9 +73,9 @@ IfExpr                  ::=     "if(" NonConditionalExpr ")" "{" ColumnValidatio
 
 /* Column Directives modify the behaviour of ColumnValidatonExpr(s) */
 ColumnDirectives        ::=     IgnoreCaseDirective? MatchIsFalseDirective? OptionalDirective?
-IgnoreCaseDirective     ::=     DirectivePrefix "IgnoreCase"
-MatchIsFalseDirective   ::=     DirectivePrefix "MatchIsFalse"
-OptionalDirective       ::=     DirectivePrefix "Optional"
+IgnoreCaseDirective     ::=     DirectivePrefix "ignoreCase"
+MatchIsFalseDirective   ::=     DirectivePrefix "matchIsFalse"
+OptionalDirective       ::=     DirectivePrefix "optional"
 
 
 /* Lexical */
