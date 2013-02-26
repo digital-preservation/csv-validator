@@ -1,15 +1,13 @@
 package uk.gov.tna.dri.schema
 
 import org.specs2.mutable._
-import org.specs2.matcher.ParserMatchers
 import java.io.StringReader
-import scala.Some
+import scalaz.{Success => SuccessZ, Failure => FailureZ, _}
+import Scalaz._
 
-class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatchers {
+class SchemaParserColumnDefinitionsSpec extends Specification {
 
   object TestSchemaParser extends SchemaParser
-
-  override val parsers = TestSchemaParser
 
   import TestSchemaParser._
 
@@ -48,7 +46,7 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
                       |@totalColumns 2
                       |LastName: regex ("[a]")""".stripMargin
 
-      parse(new StringReader(schema)) must beLike { case Failure(message, _) => message mustEqual "@totalColumns = 2 but number of columns defined = 1 at line: 2, column: 1" }
+      parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual List("@totalColumns = 2 but number of columns defined = 1 at line: 2, column: 1") }
     }
 
     "fail for invalid column identifier" in {
@@ -99,8 +97,8 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
                     |Column1: in($NotAColumn)
                     |Column2:""".stripMargin
 
-      parse(new StringReader(schema)) must beLike {
-        case Failure(message, _) => message mustEqual "Column: Column1 has invalid cross reference in($NotAColumn) at line: 3, column: 10"
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case FailureZ(msgs) => msgs.list mustEqual List("Column: Column1 has invalid cross reference in($NotAColumn) at line: 3, column: 10")
       }
     }
 
@@ -110,8 +108,8 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
                     |Column1: in($Column2) in($NotAColumn2)
                     |Column2:""".stripMargin
 
-      parse(new StringReader(schema)) must beLike {
-        case Failure(message, _) => message mustEqual "Column: Column1 has invalid cross reference in($NotAColumn2) at line: 3, column: 23"
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case FailureZ(msgs) => msgs.list mustEqual List("Column: Column1 has invalid cross reference in($NotAColumn2) at line: 3, column: 23")
       }
     }
 
@@ -121,10 +119,10 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
                     |Column1: in($Column2) in($NotAColumn2)
                     |Column2: in($NotAColumn3) in($Column2)""".stripMargin
 
-      parse(new StringReader(schema)) must beLike {
-        case Failure(message, _) => message mustEqual
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case FailureZ(msgs) => msgs.list mustEqual List(
           """Column: Column1 has invalid cross reference in($NotAColumn2) at line: 3, column: 23
-            |Column: Column2 has invalid cross reference in($NotAColumn3) at line: 4, column: 10""".stripMargin
+            |Column: Column2 has invalid cross reference in($NotAColumn3) at line: 4, column: 10""".stripMargin)
       }
     }
 
@@ -137,13 +135,13 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
                     |Column4: starts($Column4) starts($NotAColumn4)
                     |Column5: ends($Column5) ends($NotAColumn5)""".stripMargin
 
-      parse(new StringReader(schema)) must beLike {
-        case Failure(message, _) => message mustEqual """@totalColumns = 2 but number of columns defined = 5 at line: 2, column: 1
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case FailureZ(msgs) => msgs.list mustEqual List("""@totalColumns = 2 but number of columns defined = 5 at line: 2, column: 1
                                                         |Column: Column1 has invalid cross reference is($NotAColumn1) at line: 3, column: 23
                                                         |Column: Column2 has invalid cross reference isNot($NotAColumn2) at line: 4, column: 26
                                                         |Column: Column3 has invalid cross reference in($NotAColumn3) at line: 5, column: 23
                                                         |Column: Column4 has invalid cross reference starts($NotAColumn4) at line: 6, column: 27
-                                                        |Column: Column5 has invalid cross reference ends($NotAColumn5) at line: 7, column: 25""".stripMargin
+                                                        |Column: Column5 has invalid cross reference ends($NotAColumn5) at line: 7, column: 25""".stripMargin)
       }
     }
 
@@ -155,9 +153,9 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
                       Column1: regex("A")
                       Column2:"""
 
-      parse(new StringReader(schema)) must beLike {
-        case Failure(errors, _) => errors mustEqual """Column: Column1 has duplicates on lines 3, 5
-                                                      |Column: Column2 has duplicates on lines 4, 6""".stripMargin
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case FailureZ(msgs) => msgs.list mustEqual List("""Column: Column1 has duplicates on lines 3, 5
+                                                          |Column: Column2 has duplicates on lines 4, 6""".stripMargin)
       }
     }
 
@@ -167,22 +165,9 @@ class SchemaParserColumnDefinitionsSpec extends Specification with ParserMatcher
                       Column1: in($Column2)
                       Column2:"""
 
-      parse(new StringReader(schema)) must beLike {
-        case Success(schema, _) => schema mustEqual Schema(globalDirsTwo, List(ColumnDefinition("Column1", List(InRule(ColumnReference("Column2")))),
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case SuccessZ(schema) => schema mustEqual Schema(globalDirsTwo, List(ColumnDefinition("Column1", List(InRule(ColumnReference("Column2")))),
                                                                                ColumnDefinition("Column2")))
-      }
-    }
-
-    "fail for invalid column cross references" in {
-      val schema ="""version 1.0
-                     @totalColumns 2
-                    |Age: in($Blah) regex ("[0-9]+")
-                    |Country: in($Boo)""".stripMargin
-
-      parse(new StringReader(schema)) must beLike {
-        case Failure(message, _) => message mustEqual
-          """Column: Age has invalid cross reference in($Blah) at line: 3, column: 6
-            |Column: Country has invalid cross reference in($Boo) at line: 4, column: 10""".stripMargin
       }
     }
   }

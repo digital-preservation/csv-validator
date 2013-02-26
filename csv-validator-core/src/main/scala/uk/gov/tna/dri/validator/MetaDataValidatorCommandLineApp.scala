@@ -70,10 +70,5 @@ trait MetaDataValidatorApp extends SchemaParser {
      validate(new FileReader(metaDataFile), schema)
   }
 
-  def parseSchema(schemaFilePath: String): ValidationNEL[String, Schema] = {
-    parse(new FileReader(schemaFilePath)) match {
-      case Success(schema: Schema, _) => schema.successNel[String]
-      case parseError@NoSuccess(_, _) => s"Schema Parse Error:\n${parseError}".failNel[Schema]
-    }
-  }
+  def parseSchema(schemaFilePath: String): ValidationNEL[String, Schema] = parseAndValidate(new FileReader(schemaFilePath))
 }

@@ -1,14 +1,14 @@
 package uk.gov.tna.dri.schema
 
 import org.specs2.mutable._
-import org.specs2.matcher.ParserMatchers
 import java.io.StringReader
+import scalaz.{Success => SuccessZ, Failure => FailureZ}
+import scala._
+import scala.Some
 
-class SchemaParserContainingRulesSpec extends Specification with ParserMatchers {
+class SchemaParserContainingRulesSpec extends Specification {
 
   object TestSchemaParser extends SchemaParser
-
-  override val parsers = TestSchemaParser
 
   import TestSchemaParser._
 
@@ -20,8 +20,8 @@ class SchemaParserContainingRulesSpec extends Specification with ParserMatchers 
                       Name: in($FullName)
                       FullName:"""
 
-      parse(new StringReader(schema)) must beLike {
-        case Success(Schema(globalDirsOne, List(ColumnDefinition("Name", List(InRule(ColumnReference("FullName"))), _), _)), _)  => ok
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case SuccessZ(Schema(globalDirsOne, List(ColumnDefinition("Name", List(InRule(ColumnReference("FullName"))), _), _)))  => ok
       }
     }
 
@@ -43,8 +43,8 @@ class SchemaParserContainingRulesSpec extends Specification with ParserMatchers 
                       @totalColumns 1
                       Name: in($Name) regex ("[1-9][a-z]*")"""
 
-      parse(new StringReader(schema)) must beLike {
-        case Success(Schema(globalDirsOne, List(ColumnDefinition("Name", List(InRule(ColumnReference(ir)), RegexRule(Literal(Some(r)))), _))), _) => {
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case SuccessZ(Schema(globalDirsOne, List(ColumnDefinition("Name", List(InRule(ColumnReference(ir)), RegexRule(Literal(Some(r)))), _)))) => {
           r mustEqual "[1-9][a-z]*"
           ir mustEqual "Name"
         }
@@ -67,11 +67,8 @@ class SchemaParserContainingRulesSpec extends Specification with ParserMatchers 
                       Country: is($MyCountry)
                       MyCountry:"""
 
-      parse(new StringReader(schema)) must beLike {
-        case Success(Schema(_,
-                            List(ColumnDefinition("Country", List(IsRule(ColumnReference("MyCountry"))), _),
-                                 ColumnDefinition("MyCountry", _, _))),
-                     _) => ok
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case SuccessZ(Schema(_, List(ColumnDefinition("Country", List(IsRule(ColumnReference("MyCountry"))), _), ColumnDefinition("MyCountry", _, _)))) => ok
       }
     }
 
@@ -81,7 +78,7 @@ class SchemaParserContainingRulesSpec extends Specification with ParserMatchers 
                       |Country: is($MyMissingCountry)
                       |MyCountry:""".stripMargin
 
-      parse(new StringReader(schema)) must beLike { case Failure("Column: Country has invalid cross reference is($MyMissingCountry) at line: 3, column: 10", _) => ok }
+      parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual List("Column: Country has invalid cross reference is($MyMissingCountry) at line: 3, column: 10") }
 
     }
 
@@ -101,11 +98,8 @@ class SchemaParserContainingRulesSpec extends Specification with ParserMatchers 
                       Country: isNot($MyCountry)
                       MyCountry:"""
 
-      parse(new StringReader(schema)) must beLike {
-        case Success(Schema(_,
-        List(ColumnDefinition("Country", List(IsNotRule(ColumnReference("MyCountry"))), _),
-        ColumnDefinition("MyCountry", _, _))),
-        _) => ok
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case SuccessZ(Schema(_, List(ColumnDefinition("Country", List(IsNotRule(ColumnReference("MyCountry"))), _), ColumnDefinition("MyCountry", _, _)))) => ok
       }
     }
 
@@ -115,7 +109,7 @@ class SchemaParserContainingRulesSpec extends Specification with ParserMatchers 
                      |Country: isNot($MyMissingCountry)
                      |MyCountry:""".stripMargin
 
-      parse(new StringReader(schema)) must beLike { case Failure("Column: Country has invalid cross reference isNot($MyMissingCountry) at line: 3, column: 10", _) => ok }
+      parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual List("Column: Country has invalid cross reference isNot($MyMissingCountry) at line: 3, column: 10") }
 
     }
 
@@ -135,11 +129,10 @@ class SchemaParserContainingRulesSpec extends Specification with ParserMatchers 
                       Country: starts($MyCountry)
                       MyCountry:"""
 
-      parse(new StringReader(schema)) must beLike {
-        case Success(Schema(_,
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case SuccessZ(Schema(_,
                             List(ColumnDefinition("Country", List(StartsRule(ColumnReference("MyCountry"))), _),
-                                 ColumnDefinition("MyCountry", _, _))),
-                     _) => ok
+                                 ColumnDefinition("MyCountry", _, _)))) => ok
       }
     }
 
@@ -149,7 +142,7 @@ class SchemaParserContainingRulesSpec extends Specification with ParserMatchers 
                      |Country: starts($MyMissingCountry)
                      |MyCountry:""".stripMargin
 
-      parse(new StringReader(schema)) must beLike { case Failure("Column: Country has invalid cross reference starts($MyMissingCountry) at line: 3, column: 10", _) => ok }
+      parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual List("Column: Country has invalid cross reference starts($MyMissingCountry) at line: 3, column: 10") }
 
     }
 
@@ -169,11 +162,8 @@ class SchemaParserContainingRulesSpec extends Specification with ParserMatchers 
                       Country: ends($MyCountry)
                       MyCountry:"""
 
-      parse(new StringReader(schema)) must beLike {
-        case Success(Schema(_,
-                            List(ColumnDefinition("Country", List(EndsRule(ColumnReference("MyCountry"))), _),
-                                 ColumnDefinition("MyCountry", _, _))),
-                     _) => ok
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case SuccessZ(Schema(_,  List(ColumnDefinition("Country", List(EndsRule(ColumnReference("MyCountry"))), _), ColumnDefinition("MyCountry", _, _)))) => ok
       }
     }
 
@@ -183,7 +173,7 @@ class SchemaParserContainingRulesSpec extends Specification with ParserMatchers 
                      |Country: ends($MyMissingCountry)
                      |MyCountry:""".stripMargin
 
-      parse(new StringReader(schema)) must beLike { case Failure("Column: Country has invalid cross reference ends($MyMissingCountry) at line: 3, column: 10", _) => ok }
+      parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual List("Column: Country has invalid cross reference ends($MyMissingCountry) at line: 3, column: 10") }
 
     }
   }

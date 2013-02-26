@@ -167,12 +167,8 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
 
     "fail with duplicate column ids" in {
       parseSchema(basePath + "duplicateColumnIdsFailSchema.txt" ) must beLike {
-        case Failure(errors) => errors.list mustEqual List("""Schema Parse Error:
-                                                             |[9.1] failure: Column: Age has duplicates on lines 3, 8
-                                                             |Column: Country has duplicates on lines 4, 5, 7
-                                                             |
-                                                             |
-                                                             |^""".stripMargin)
+        case Failure(errors) => errors.list mustEqual List("""Column: Age has duplicates on lines 3, 8
+                                                             |Column: Country has duplicates on lines 4, 5, 7""".stripMargin)
       }
     }
 

@@ -3,10 +3,10 @@ package uk.gov.tna.dri.schema
 import scala.util.parsing.combinator._
 import java.io.{File, Reader}
 import scala.util.Try
-import scala._
 import collection.immutable.TreeMap
-import scala.Some
 import java.security.MessageDigest
+import scalaz._
+import Scalaz._
 
 trait SchemaParser extends RegexParsers {
 
@@ -26,14 +26,17 @@ trait SchemaParser extends RegexParsers {
 
   val regexParser: Parser[String] = Regex withFailureMessage("""regex not correctly delimited as ("your regex")""")
 
-  def parse(reader: Reader) = parseAll(schema, reader) match {
-    case s @ Success(schema: Schema, next) => {
-      val errors = validate(schema.globalDirectives, schema.columnDefinitions)
-      if (errors.isEmpty) s else Failure(errors, next)
+  def parseAndValidate(reader: Reader): ValidationNEL[String, Schema] = {
+    parse(reader) match {
+      case s @ Success(schema: Schema, next) => {
+        val errors = validate(schema.globalDirectives, schema.columnDefinitions)
+        if (errors.isEmpty) schema.successNel[String] else errors.failNel[Schema]
+      }
+      case n : NoSuccess => n.toString.failNel[Schema]
     }
-
-    case n @ NoSuccess(messages, next) => n
   }
+
+  def parse(reader: Reader) = parseAll(schema, reader)
 
   def version: Parser[String] = ("version " ~> Schema.version <~ eol).withFailureMessage(s"version ${Schema.version} missing or incorrect")
 
