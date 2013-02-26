@@ -3,6 +3,7 @@ package uk.gov.tna.dri.validator
 import org.specs2.mutable.Specification
 import scalaz._
 import uk.gov.tna.dri.schema.Schema
+import java.io.StringReader
 
 class MetaDataValidatorAppSpec extends Specification {
 
@@ -64,6 +65,28 @@ class MetaDataValidatorAppSpec extends Specification {
 
     "return false and the file names for no fail fast" in {
       MetaDataValidatorCommandLineApp.failFastAndFileArgs(List("someMetaData.csv", "someSchema.txt")) mustEqual (false, List("someMetaData.csv", "someSchema.txt"))
+    }
+  }
+
+  "Parsing schema" should {
+    val app = new MetaDataValidatorApp with AllErrorsMetaDataValidator
+
+    "report position on parse fail" in {
+
+      val schema =
+        """version 1.0
+          |@totalColumns 1
+          |Name: regox("A")
+        """.stripMargin
+
+      app.parseAndValidate(new StringReader(schema)) must beLike {
+        case Failure(msgs) => msgs.list mustEqual List(
+          """[3.7] failure: Column definition contains invalid text
+            |
+            |Name: regox("A")
+            |
+            |      ^""".stripMargin)
+      }
     }
   }
 

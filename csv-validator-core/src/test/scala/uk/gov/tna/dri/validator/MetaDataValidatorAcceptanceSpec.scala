@@ -167,12 +167,6 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
       }
     }
 
-    "fail with position of error on parse fail" in {
-
-    }
-
-
-
     "succeed with unique column ids" in {
       validate(basePath + "duplicateColumnIdsMetaData.csv", parse(basePath + "duplicateColumnIdsPassSchema.txt")) must beLike {
         case Success(_) => ok
