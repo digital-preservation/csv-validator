@@ -10,8 +10,6 @@ class SchemaParserSpec extends Specification {
   import TestSchemaParser._
 
   "Schema" should {
-    val globalDirsTwo = List(TotalColumns(2))
-    val globalDirsThree = List(TotalColumns(3))
 
     "succeed for valid minimal schema" in {
       val columnDefinitions = List(new ColumnDefinition("column1"),new ColumnDefinition("column2"),new ColumnDefinition("column3"))
@@ -22,7 +20,7 @@ class SchemaParserSpec extends Specification {
                       column2:
                       column3:"""
 
-      parse(new StringReader(schema)) must beLike { case Success(schema, _) => schema mustEqual Schema(globalDirsThree, columnDefinitions) }
+      parse(new StringReader(schema)) must beLike { case Success(schema, _) => schema mustEqual Schema(List(TotalColumns(3)), columnDefinitions) }
     }
 
     "fail if the schema version is wrong" in {
@@ -41,7 +39,7 @@ class SchemaParserSpec extends Specification {
                       Name :
                       Age   :     """
 
-      parse(new StringReader(schema)) must beLike { case Success(schema, _) => schema mustEqual Schema(globalDirsTwo, List(ColumnDefinition("Name"), ColumnDefinition("Age"))) }
+      parse(new StringReader(schema)) must beLike { case Success(schema, _) => schema mustEqual Schema(List(TotalColumns(2)), List(ColumnDefinition("Name"), ColumnDefinition("Age"))) }
     }
 
     "fail if column directives declared before rules" in {
@@ -59,8 +57,7 @@ class SchemaParserSpec extends Specification {
                       @totalColumns 2 @noHeader
                       Name :
                       Age   :     """
-      val globalDirsTwoHeaderSet = List(TotalColumns(2), NoHeader())
-      parse(new StringReader(schema)) must beLike { case Success(schema, _) => schema mustEqual Schema(globalDirsTwoHeaderSet, List(ColumnDefinition("Name"), ColumnDefinition("Age"))) }
+      parse(new StringReader(schema)) must beLike { case Success(schema, _) => schema mustEqual Schema(List(TotalColumns(2), NoHeader()), List(ColumnDefinition("Name"), ColumnDefinition("Age"))) }
     }
   }
 }

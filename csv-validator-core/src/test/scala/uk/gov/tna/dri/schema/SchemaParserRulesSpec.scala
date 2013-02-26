@@ -3,16 +3,13 @@ package uk.gov.tna.dri.schema
 import org.specs2.mutable._
 import java.io.StringReader
 
-import scalaz.{Success => SuccessZ, Failure => FailureZ}
+import scalaz.{Success => SuccessZ, Failure => FailureZ, _}
 
 class SchemaParserRulesSpec extends Specification {
 
   object TestSchemaParser extends SchemaParser
 
   import TestSchemaParser._
-
-  val globalDirsOne = List(TotalColumns(1))
-  val globalDirsTwo = List(TotalColumns(2))
 
   "Schema" should {
 
@@ -21,7 +18,7 @@ class SchemaParserRulesSpec extends Specification {
                       @totalColumns 1
                       LastName: regex("[a]")"""
 
-      parse(new StringReader(schema)) must beLike { case Success(Schema(globalDirsOne, List(ColumnDefinition("LastName", List(RegexRule(Literal(Some(r)))), _))), _) => r mustEqual "[a]" }
+      parse(new StringReader(schema)) must beLike { case Success(Schema(_, List(ColumnDefinition("LastName", List(RegexRule(Literal(Some(r)))), _))), _) => r mustEqual "[a]" }
     }
 
     "fail for an invalid regex" in {
@@ -65,7 +62,7 @@ class SchemaParserRulesSpec extends Specification {
                       @totalColumns 1
                       Name: fileExists"""
 
-      parse(new StringReader(schema)) must beLike { case Success(Schema(globalDirsOne, List(ColumnDefinition("Name", List(FileExistsRule(Literal(None))), _))), _) => ok }
+      parse(new StringReader(schema)) must beLike { case Success(Schema(_, List(ColumnDefinition("Name", List(FileExistsRule(Literal(None))), _))), _) => ok }
     }
 
     "fail for file exists rule with empty ()" in {
@@ -73,7 +70,7 @@ class SchemaParserRulesSpec extends Specification {
                       @totalColumns 1
                       Name: fileExists()"""
 
-      parse(new StringReader(schema)) must beLike { case f@Failure("fileExists rule has an invalid file path", _) => ok }
+      parse(new StringReader(schema)) must beLike { case Failure("fileExists rule has an invalid file path", _) => ok }
     }
 
     "succeed for file exists rule with root file path" in {
@@ -82,7 +79,7 @@ class SchemaParserRulesSpec extends Specification {
                       Name: fileExists("some/root/path")"""
 
       parse(new StringReader(schema)) must beLike {
-        case Success(Schema(globalDirsOne, List(ColumnDefinition("Name", List(FileExistsRule(Literal(Some(rootPath)))), _))), _) => {
+        case Success(Schema(_, List(ColumnDefinition("Name", List(FileExistsRule(Literal(Some(rootPath)))), _))), _) => {
           rootPath mustEqual "some/root/path"
         }
       }
@@ -111,7 +108,7 @@ class SchemaParserRulesSpec extends Specification {
            Country: in("UK") or in("England")"""
 
       parse(new StringReader(schema)) must beLike {
-        case Success(Schema(globalDirsOne, List(ColumnDefinition("Country", List( OrRule( InRule(Literal(Some("UK"))), InRule(Literal(Some("England"))))), _))), _) => ok
+        case Success(Schema(_, List(ColumnDefinition("Country", List( OrRule( InRule(Literal(Some("UK"))), InRule(Literal(Some("England"))))), _))), _) => ok
       }
     }
 
@@ -149,8 +146,8 @@ class SchemaParserRulesSpec extends Specification {
            Country: in("UK") or in("England") or in("France")"""
 
       parse(new StringReader(schema)) must beLike {
-        case Success(Schema(globalDirsOne, List(ColumnDefinition("Country",
-                                                List(OrRule(InRule(Literal(Some("UK"))), OrRule(InRule(Literal(Some("England"))), InRule(Literal(Some("France")))))  ), _))), _) => ok
+        case Success(Schema(_, List(ColumnDefinition("Country",
+                               List(OrRule(InRule(Literal(Some("UK"))), OrRule(InRule(Literal(Some("England"))), InRule(Literal(Some("France")))))  ), _))), _) => ok
       }
     }
 
@@ -161,7 +158,7 @@ class SchemaParserRulesSpec extends Specification {
            Country: uri xDateTime xDate ukDate xTime uuid4 positiveInteger"""
 
       parse(new StringReader(schema)) must beLike {
-        case Success(Schema(globalDirsOne, List(ColumnDefinition("Country", List( UriRule(),XsdDateTimeRule(),XsdDateRule(),UkDateRule(),XsdTimeRule(),Uuid4Rule(),PositiveIntegerRule()), _))), _) => ok
+        case Success(Schema(_, List(ColumnDefinition("Country", List( UriRule(),XsdDateTimeRule(),XsdDateRule(),UkDateRule(),XsdTimeRule(),Uuid4Rule(),PositiveIntegerRule()), _))), _) => ok
       }
     }
 
@@ -205,7 +202,7 @@ class SchemaParserRulesSpec extends Specification {
                       FullName:"""
 
     parseAndValidate(new StringReader(schema)) must beLike {
-      case SuccessZ(Schema(globalDirsOne, List(ColumnDefinition("Name", List(InRule(ColumnReference("FullName"))), _), _)))  => ok
+      case SuccessZ(Schema(_, List(ColumnDefinition("Name", List(InRule(ColumnReference("FullName"))), _), _)))  => ok
     }
   }
 
@@ -215,7 +212,7 @@ class SchemaParserRulesSpec extends Specification {
                       Name: regex ("[1-9][a-z]*") in("dog")"""
 
     parse(new StringReader(schema)) must beLike {
-      case Success(Schema(globalDirsOne, List(ColumnDefinition("Name", List(RegexRule(Literal(Some(r))), InRule(Literal(Some(ir)))), _))), _) => {
+      case Success(Schema(_, List(ColumnDefinition("Name", List(RegexRule(Literal(Some(r))), InRule(Literal(Some(ir)))), _))), _) => {
         r mustEqual "[1-9][a-z]*"
         ir mustEqual "dog"
       }
@@ -228,7 +225,7 @@ class SchemaParserRulesSpec extends Specification {
                       Name: in($Name) regex ("[1-9][a-z]*")"""
 
     parseAndValidate(new StringReader(schema)) must beLike {
-      case SuccessZ(Schema(globalDirsOne, List(ColumnDefinition("Name", List(InRule(ColumnReference(ir)), RegexRule(Literal(Some(r)))), _)))) => {
+      case SuccessZ(Schema(_, List(ColumnDefinition("Name", List(InRule(ColumnReference(ir)), RegexRule(Literal(Some(r)))), _)))) => {
         r mustEqual "[1-9][a-z]*"
         ir mustEqual "Name"
       }
