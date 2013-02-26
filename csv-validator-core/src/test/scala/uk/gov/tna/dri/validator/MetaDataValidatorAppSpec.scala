@@ -1,9 +1,10 @@
 package uk.gov.tna.dri.validator
 
-import org.specs2.mutable.Specification
+import org.specs2.mutable.{BeforeAfter, Specification}
 import scalaz._
 import uk.gov.tna.dri.schema.Schema
 import java.io.StringReader
+import java.security.Permission
 
 class MetaDataValidatorAppSpec extends Specification {
 
@@ -106,5 +107,36 @@ class MetaDataValidatorAppSpec extends Specification {
         case Success(_) => ok
       }
     }
+  }
+}
+
+class ExitStatus extends Specification {
+  "exit status should equal 1 when the command line arguments are wrong" in new WithSecurity {
+    MetaDataValidatorCommandLineApp.main(Array("")) must throwA[RuntimeException] (message = "1")
+  }
+}
+
+trait WithSecurity extends BeforeAfter {
+  def after: Any = {
+    System.setSecurityManager( null )
+  }
+  def before: Any = {
+    System.setSecurityManager(new TestSecurityManager)
+  }
+}
+
+private class TestSecurityManager extends SecurityManager {
+
+  override def checkExit(status: Int) {
+    throw new RuntimeException(status.toString)
+  }
+
+
+  override def checkPermission(perm: Permission ) {
+    //allow everything
+  }
+
+  override def checkPermission(perm: Permission , context: AnyRef ) {
+    //allow everything
   }
 }

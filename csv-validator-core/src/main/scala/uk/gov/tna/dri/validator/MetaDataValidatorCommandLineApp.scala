@@ -6,26 +6,29 @@ import scalaz.{Success => SuccessZ, Failure => FailureZ, _}
 import Scalaz._
 import scala.App
 
-object MetaDataValidatorCommandLineApp extends App with SchemaParser {
+object MetaDataValidatorCommandLineApp extends SchemaParser {
   type AppValidation[S] = ValidationNEL[String, S]
 
-  val (failFast, fileArgs) = failFastAndFileArgs(args.toList)
+  def main(args: Array[String]) {
 
-  checkFileArguments(fileArgs) match {
+    val (failFast, fileArgs) = failFastAndFileArgs(args.toList)
 
-    case FailureZ(errors) => println(prettyPrint(errors)); System.exit(1)
+    checkFileArguments(fileArgs) match {
 
-    case SuccessZ(_) => {
-      val (metaDataFile, schemaFile) = inputFilePaths(fileArgs)
-      println("Validating...")
+      case FailureZ(errors) => println(prettyPrint(errors)); System.exit(1)
 
-      val validator = if (failFast) new MetaDataValidatorApp with FailFastMetaDataValidator else new MetaDataValidatorApp with AllErrorsMetaDataValidator
+      case SuccessZ(_) => {
+        val (metaDataFile, schemaFile) = inputFilePaths(fileArgs)
+        println("Validating...")
 
-      validator.parseSchema(schemaFile) match {
-        case FailureZ(errors) => println(prettyPrint(errors)); System.exit(2)
-        case SuccessZ(schema) => validator.validate(metaDataFile,schema) match {
-          case FailureZ(errors) => println(prettyPrint(errors)); System.exit(3)
-          case SuccessZ(_) => println("PASS")
+        val validator = if (failFast) new MetaDataValidatorApp with FailFastMetaDataValidator else new MetaDataValidatorApp with AllErrorsMetaDataValidator
+
+        validator.parseSchema(schemaFile) match {
+          case FailureZ(errors) => println(prettyPrint(errors)); System.exit(2)
+          case SuccessZ(schema) => validator.validate(metaDataFile, schema) match {
+            case FailureZ(errors) => println(prettyPrint(errors)); System.exit(3)
+            case SuccessZ(_) => println("PASS")
+          }
         }
       }
     }
