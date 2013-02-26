@@ -10,22 +10,19 @@ class MetaDataValidatorBusinessAcceptanceSpec extends Specification {
 
   val v: MetaDataValidatorApp = new MetaDataValidatorApp with AllErrorsMetaDataValidator
   import v.{validate, parseSchema}
-  def getSchema(filePath: String): Schema = {
-    parseSchema(filePath) match {
-      case Success(s) => s
-      case _  => throw new RuntimeException("Unable to parse schema")
-    }
-  }
+
+  def parse(filePath: String): Schema = parseSchema(filePath) fold (f => throw new IllegalArgumentException(f.toString), s => s)
+
   "Regex rule" should {
 
     "succeed" in {
-      validate(basePath + "regexRulePassMetaData.csv", getSchema(basePath + "regexRuleSchema.txt")) must beLike {
+      validate(basePath + "regexRulePassMetaData.csv", parse(basePath + "regexRuleSchema.txt")) must beLike {
         case Success(_) => ok
       }
     }
 
     "fail" in {
-      validate(basePath + "regexRuleFailMetaData.csv", getSchema(basePath + "regexRuleSchema.txt")) must beLike {
+      validate(basePath + "regexRuleFailMetaData.csv", parse(basePath + "regexRuleSchema.txt")) must beLike {
         case Failure(_) => ok
       }
     }

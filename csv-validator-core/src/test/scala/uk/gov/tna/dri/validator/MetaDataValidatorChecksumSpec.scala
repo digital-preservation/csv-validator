@@ -13,11 +13,9 @@ class MetaDataValidatorChecksumSpec extends Specification {
 
   implicit def stringToSchema(s: String): Schema = {
     val schemaParser = new SchemaParser() {
-      override def parse(reader: Reader): ParseResult[Schema] = {
-        super.parse(reader) match {
-          case s @ Success(schema: Schema, _) => s
-          case NoSuccess(message, next) => throw new RuntimeException(message)
-        }
+      override def parse(reader: Reader): ParseResult[Schema] = super.parse(reader) match {
+        case s@Success(schema: Schema, _) => s
+        case NoSuccess(message, next) => throw new RuntimeException(message)
       }
     }
 

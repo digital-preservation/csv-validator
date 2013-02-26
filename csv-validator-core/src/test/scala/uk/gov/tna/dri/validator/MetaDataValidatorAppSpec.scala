@@ -70,21 +70,16 @@ class MetaDataValidatorAppSpec extends Specification {
   "Validation" should {
     val app = new MetaDataValidatorApp with AllErrorsMetaDataValidator
 
-    def getSchema(filePath: String): Schema = {
-      app.parseSchema(filePath) match {
-        case Success(s) => s
-        case _  => throw new RuntimeException("Unable to parse schema")
-      }
-    }
+    def parse(filePath: String): Schema = app.parseSchema(filePath) fold (f => throw new IllegalArgumentException(f.toString), s => s)
 
     "succeed for valid schema and metadata file" in {
-      app.validate(basePath + "metaData.csv", getSchema(basePath + "schema.txt")) must beLike {
+      app.validate(basePath + "metaData.csv", parse(basePath + "schema.txt")) must beLike {
         case Success(_) => ok
       }
     }
 
     "succeed for valid @totalColumns in schema and metadata file" in {
-      app.validate(basePath + "metaData.csv", getSchema(basePath + "schema.txt")) must beLike {
+      app.validate(basePath + "metaData.csv", parse(basePath + "schema.txt")) must beLike {
         case Success(_) => ok
       }
     }
