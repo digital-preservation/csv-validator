@@ -19,7 +19,7 @@ class SchemaParserSpec extends Specification with ParserMatchers {
     "succeed for valid minimal schema" in {
       val columnDefinitions = List(new ColumnDefinition("column1"),new ColumnDefinition("column2"),new ColumnDefinition("column3"))
 
-      val schema = s"""version ${Schema.SchemaVersion}
+      val schema = """version 1.0
                       @totalColumns 3
                       column1:
                       column2:
@@ -34,12 +34,12 @@ class SchemaParserSpec extends Specification with ParserMatchers {
                       LastName: @IgnoreCase regex ("[a]")"""
 
       parse(new StringReader(schema)) must beLike {
-        case Failure(messages, _) => messages mustEqual s"version ${Schema.SchemaVersion} missing or incorrect"
+        case Failure(messages, _) => messages mustEqual s"version 1.0 missing or incorrect"
       }
     }
 
     "succeed for extra white space around (including tabs) :" in {
-      val schema = s"""version ${Schema.SchemaVersion}
+      val schema = """version 1.0
                       @totalColumns 2
                       Name :
                       Age   :     """
@@ -48,7 +48,7 @@ class SchemaParserSpec extends Specification with ParserMatchers {
     }
 
     "fail if column directives declared before rules" in {
-      val schema = s"""version ${Schema.SchemaVersion}
+      val schema = """version 1.0
                       @totalColumns 1
                       LastName: @IgnoreCase regex ("[a]")"""
 
@@ -58,7 +58,7 @@ class SchemaParserSpec extends Specification with ParserMatchers {
     }
 
     "succeed if noHeader global directive set :" in {
-      val schema = s"""version ${Schema.SchemaVersion}
+      val schema = """version 1.0
                       @totalColumns 2 @noHeader
                       Name :
                       Age   :     """

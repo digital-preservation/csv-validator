@@ -6,7 +6,7 @@ import util.parsing.input.Positional
 case class Schema(globalDirectives: List[GlobalDirective], columnDefinitions: List[ColumnDefinition])
 
 object Schema {
-  val SchemaVersion = "1.0"
+  val version = "1.0"
 }
 
 trait GlobalDirective extends Positional

@@ -32,7 +32,7 @@ class MetaDataValidatorSpec extends Specification {
 
     "succeed for correct total columns for multiple lines" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 2 @noHeader
            column1:
            column2:
@@ -48,7 +48,7 @@ class MetaDataValidatorSpec extends Specification {
 
     "fail for incorrect number of total columns for multiple lines" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 3 @noHeader
            column1:
            column2:
@@ -68,7 +68,7 @@ class MetaDataValidatorSpec extends Specification {
 
     "fail if columns on multiple rows do not pass" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 2 @noHeader
            first: regex("[3-8]*")
            second: regex("[a-c]*")
@@ -89,7 +89,7 @@ class MetaDataValidatorSpec extends Specification {
 
     "succeed for multiple rows" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 2 @noHeader
            col1:
            col2WithRule: regex("[0-9]*")
@@ -105,7 +105,7 @@ class MetaDataValidatorSpec extends Specification {
 
     "fail for a single rule" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 2 @noHeader
            Col1: regex("C11")
            Col2:
@@ -120,7 +120,7 @@ class MetaDataValidatorSpec extends Specification {
 
     "fail for rule when cell missing" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 2 @noHeader
            Col1:
            Col2: regex("[0-9]")
@@ -135,9 +135,9 @@ class MetaDataValidatorSpec extends Specification {
 
     "succeed for more than one regex" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 1 @noHeader
-           c1: regex("\\w+") regex("^S.+")
+           c1: regex("\w+") regex("^S.+")
         """
 
       val metaData = """Scooby"""
@@ -147,9 +147,9 @@ class MetaDataValidatorSpec extends Specification {
 
     "fail when at least one regex fails for multiple regex provided in a column definition" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 1 @noHeader
-           c1: regex("\\w+") regex("^T.+") regex("^X.+")
+           c1: regex("\w+") regex("^T.+") regex("^X.+")
         """
 
       val metaData = """Scooby"""
@@ -161,7 +161,7 @@ class MetaDataValidatorSpec extends Specification {
 
     "succeed for multiple rows with InRule as string literal" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 2 @noHeader
            col1:
            col2WithRule: regex("[0-9a-z]*") in("345dog")
@@ -177,25 +177,24 @@ class MetaDataValidatorSpec extends Specification {
 
     "succeed for InRule as column reference" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 2 @noHeader
            col1:
-           col2WithRule: regex("\\w*") in($$col1)
+           col2WithRule: regex("\w*") in($col1)
         """
 
       val metaData =
         """blah_mustBeIn_blah,mustBeIn
            blah_andMustBeIn,andMustBeIn"""
-      println("jimbo " + schema)
       validate(metaData, schema) must beLike { case Success(_) => ok }
     }
 
     "fail for InRule as column reference where case does not match" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 2 @noHeader
            col1:
-           col2WithRule: regex("\\w*") in($$col1)
+           col2WithRule: regex("\w*") in($col1)
         """
 
       val metaData =
@@ -209,10 +208,10 @@ class MetaDataValidatorSpec extends Specification {
 
     "succeed for InRule as column reference where case is ignored" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 2 @noHeader
            col1:
-           col2WithRule: regex("\\w*") in($$col1) @ignoreCase
+           col2WithRule: regex("\w*") in($col1) @ignoreCase
         """
 
       val metaData =
@@ -224,7 +223,7 @@ class MetaDataValidatorSpec extends Specification {
 
     "succeed when @optional is given for an empty cell" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 3 @noHeader
            Col1:
            Col2: regex("[0-9]") @optional
@@ -238,7 +237,7 @@ class MetaDataValidatorSpec extends Specification {
 
     "fail when @optional is given for non empty cell with a failing rule" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 3 @noHeader
            Col1:
            Col2: regex("[0-9]") @optional
@@ -254,7 +253,7 @@ class MetaDataValidatorSpec extends Specification {
 
     "pass for empty cell with @optional but fail for empty cell without @optional for the same rule" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 4 @noHeader
            Col1:
            Col2: regex("[0-9]") @optional
@@ -277,7 +276,7 @@ class MetaDataValidatorSpec extends Specification {
 
     "ignore case of a given regex" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 1 @noHeader
            1: regex("[a-z]+") @ignoreCase
         """
@@ -289,7 +288,7 @@ class MetaDataValidatorSpec extends Specification {
 
     "ignore case with in rule succeeds if value contains regex characters" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 1 @noHeader
            1: in("[abc]") @ignoreCase
         """
@@ -301,7 +300,7 @@ class MetaDataValidatorSpec extends Specification {
 
     "fail to ignore case of a given regex when not providing @ignoreCase" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 1 @noHeader
            Col1: regex("[a-z]+")
         """
@@ -315,7 +314,7 @@ class MetaDataValidatorSpec extends Specification {
 
     "succeed with valid file path" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 1 @noHeader
            1: fileExists
         """
@@ -327,7 +326,7 @@ class MetaDataValidatorSpec extends Specification {
 
     "succeed with valid file path where fileExists rule prepends root path to the filename" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 1 @noHeader
            1: fileExists("src/test/resources/uk/gov/")
         """
@@ -339,7 +338,7 @@ class MetaDataValidatorSpec extends Specification {
 
     "fail for non existent file path" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 1 @noHeader
            FirstColumn: fileExists
         """
@@ -353,7 +352,7 @@ class MetaDataValidatorSpec extends Specification {
 
     "fail when first line contains invalid data and noHeader directive is set" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 2 @noHeader
            col1:
            col2WithRule: regex("[0-9a-z]*") in("dog")
@@ -371,7 +370,7 @@ class MetaDataValidatorSpec extends Specification {
 
     "fail when first line contains invalid data and noHeader directive is not set" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 2
            col1:
            col2WithRule: regex("[0-9a-z]*") in("dog")
@@ -389,7 +388,7 @@ class MetaDataValidatorSpec extends Specification {
 
     "fail for empty metaData file when expecting header" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 1
            Col1:
         """
@@ -404,7 +403,7 @@ class MetaDataValidatorSpec extends Specification {
 
     "fail for metaData file with only a header line" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 1
            Col1:
         """
@@ -418,7 +417,7 @@ class MetaDataValidatorSpec extends Specification {
 
     "succeed when either side of or rule passes" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 1 @noHeader
            ThisOrThat: in("This") or in("That")
         """
@@ -433,7 +432,7 @@ class MetaDataValidatorSpec extends Specification {
 
     "fail when neither side of or rule passes" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 1 @noHeader
            ThisOrThat: in("This") or in("That")
         """
@@ -447,7 +446,7 @@ class MetaDataValidatorSpec extends Specification {
 
     "succeed when one of 3 'or' rules passes" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 1 @noHeader
            Red: regex("\\d+") or regex("R.*") or in("red")
         """
@@ -462,7 +461,7 @@ class MetaDataValidatorSpec extends Specification {
 
     "succeed for 'is' rule" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 1 @noHeader
            Country: is("UK")
         """
@@ -474,9 +473,9 @@ class MetaDataValidatorSpec extends Specification {
 
     "succeed for 'is' cross reference rule" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 2 @noHeader
-           Country: is($$MyCountry)
+           Country: is($MyCountry)
            MyCountry:
         """
 
@@ -487,7 +486,7 @@ class MetaDataValidatorSpec extends Specification {
 
     "succeed for 2 'is' rule" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 1 @noHeader
            Country: is("UK") is("uk") @ignoreCase
         """
@@ -499,7 +498,7 @@ class MetaDataValidatorSpec extends Specification {
 
     "fail for 'is' rule that is not matched" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 1 @noHeader
            Country: is("France")
         """
@@ -513,9 +512,9 @@ class MetaDataValidatorSpec extends Specification {
 
     "fail for 'is' cross reference rule that is not matched" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 2 @noHeader
-           Country: is($$MyCountry)
+           Country: is($MyCountry)
            MyCountry:
         """
 
@@ -528,7 +527,7 @@ class MetaDataValidatorSpec extends Specification {
 
     "succeed for 'isNot' rule" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 1 @noHeader
            Country: isNot("United States")
         """
@@ -540,9 +539,9 @@ class MetaDataValidatorSpec extends Specification {
 
     "succeed for 'isNot' cross reference rule" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 2 @noHeader
-           Country: isNot($$MyCountry)
+           Country: isNot($MyCountry)
            MyCountry:
         """
 
@@ -553,7 +552,7 @@ class MetaDataValidatorSpec extends Specification {
 
     "succeed for 2 'isNot' rule" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 1 @noHeader
            Country: isNot("United States") isNot("Kingdom") @ignoreCase
         """
@@ -565,7 +564,7 @@ class MetaDataValidatorSpec extends Specification {
 
     "fail for 'isNot' rule that is not matched" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 1 @noHeader
            Country: isNot("United Kingdom")
         """
@@ -579,9 +578,9 @@ class MetaDataValidatorSpec extends Specification {
 
     "fail for 'isNot' cross reference rule that is not matched" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 2 @noHeader
-           Country: isNot($$MyCountry)
+           Country: isNot($MyCountry)
            MyCountry:
         """
 
@@ -594,7 +593,7 @@ class MetaDataValidatorSpec extends Specification {
 
     "succeed for 'starts' rule" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 1 @noHeader
            Country: starts("United")
         """
@@ -606,9 +605,9 @@ class MetaDataValidatorSpec extends Specification {
 
     "succeed for 'starts' cross reference rule" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 2 @noHeader
-           Country: starts($$MyCountry)
+           Country: starts($MyCountry)
            MyCountry:
         """
 
@@ -619,7 +618,7 @@ class MetaDataValidatorSpec extends Specification {
 
     "succeed for 2 'starts' rule" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 1 @noHeader
            Country: starts("United") starts("UNITED") @ignoreCase
         """
@@ -631,7 +630,7 @@ class MetaDataValidatorSpec extends Specification {
 
     "fail for 'starts' rule that is not matched" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 1 @noHeader
            Country: starts("united")
         """
@@ -645,9 +644,9 @@ class MetaDataValidatorSpec extends Specification {
 
     "fail for 'starts' cross reference rule that is not matched" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 2 @noHeader
-           Country: starts($$MyCountry)
+           Country: starts($MyCountry)
            MyCountry:
         """
 
@@ -660,7 +659,7 @@ class MetaDataValidatorSpec extends Specification {
 
     "succeed for 'ends' rule" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 1 @noHeader
            Country: ends("Kingdom")
         """
@@ -672,9 +671,9 @@ class MetaDataValidatorSpec extends Specification {
 
     "succeed for 'ends' cross reference rule" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 2 @noHeader
-           Country: ends($$MyCountry)
+           Country: ends($MyCountry)
            MyCountry:
         """
 
@@ -685,7 +684,7 @@ class MetaDataValidatorSpec extends Specification {
 
     "succeed for 2 'ends' rule" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 1 @noHeader
            Country: ends("Kingdom") ends("KINGDOM") @ignoreCase
         """
@@ -697,7 +696,7 @@ class MetaDataValidatorSpec extends Specification {
 
     "fail for 'ends' rule that is not matched" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 1 @noHeader
            Country: ends("kingdom")"""
 
@@ -710,9 +709,9 @@ class MetaDataValidatorSpec extends Specification {
 
     "fail for 'ends' cross reference rule that is not matched" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 2 @noHeader
-           Country: ends($$MyCountry)
+           Country: ends($MyCountry)
            MyCountry:
         """
 
@@ -726,7 +725,7 @@ class MetaDataValidatorSpec extends Specification {
     "fail for multiple duplicates for unique rule" in {
 
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 1 @noHeader
            Name: unique
         """

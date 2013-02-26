@@ -18,7 +18,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
   "Schema" should {
 
     "succeed for valid regex rule" in {
-      val schema = s"""version ${Schema.SchemaVersion}
+      val schema = """version 1.0
                       @totalColumns 1
                       LastName: regex("[a]")"""
 
@@ -26,7 +26,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
     }
 
     "fail for an invalid regex" in {
-      val schema = s"""version ${Schema.SchemaVersion}
+      val schema = """version 1.0
                       @totalColumns 1
                       Something: regex ("[0-9")"""
 
@@ -34,7 +34,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
     }
 
     "fail for missing quotes defining a regex" in {
-      val schema = s"""version ${Schema.SchemaVersion}
+      val schema = """version 1.0
                       @totalColumns 3
                       LastName:
                       FirstName: regex ("a)
@@ -46,7 +46,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
     }
 
     "fail for missing value in regex" in {
-      val schema = s"""version ${Schema.SchemaVersion}
+      val schema = """version 1.0
                       @totalColumns 1
                       Something: regex"""
 
@@ -54,7 +54,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
     }
 
     "succeed for more than 1 regex rule" in {
-      val schema = s"""version ${Schema.SchemaVersion}
+      val schema = """version 1.0
                       @totalColumns 1
                       LastName: regex("[a]") regex("[0-5]")"""
 
@@ -62,7 +62,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
     }
 
     "succeed for file exists rule" in {
-      val schema = s"""version ${Schema.SchemaVersion}
+      val schema = """version 1.0
                       @totalColumns 1
                       Name: fileExists"""
 
@@ -70,7 +70,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
     }
 
     "fail for file exists rule with empty ()" in {
-      val schema = s"""version ${Schema.SchemaVersion}
+      val schema = """version 1.0
                       @totalColumns 1
                       Name: fileExists()"""
 
@@ -78,7 +78,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
     }
 
     "succeed for file exists rule with root file path" in {
-      val schema = s"""version ${Schema.SchemaVersion}
+      val schema = """version 1.0
                       @totalColumns 1
                       Name: fileExists("some/root/path")"""
 
@@ -90,7 +90,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
     }
 
     "fail for non quoted root file path" in {
-      val schema = s"""version ${Schema.SchemaVersion}
+      val schema = """version 1.0
                       @totalColumns 1
                       Name: fileExists(some/other/root/path)"""
 
@@ -98,7 +98,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
     }
 
     "fail for non parentheses" in {
-      val schema = s"""version ${Schema.SchemaVersion}
+      val schema = """version 1.0
                       @totalColumns 1
                       Name: fileExists /root/path"""
 
@@ -107,7 +107,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
 
     "succeed for or rule" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 1
            Country: in("UK") or in("England")"""
 
@@ -118,7 +118,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
 
     "fail for or rule with no lhs" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 1
            Country: or in("England")"""
 
@@ -127,7 +127,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
 
     "fail for or rule with no rhs" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 1
            Country: in("UK") or"""
 
@@ -136,7 +136,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
 
     "fail for or rule with no lhs or rhs" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 1
            Country: or"""
 
@@ -145,7 +145,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
 
     "succeed for two 'or' rules" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 1
            Country: in("UK") or in("England") or in("France")"""
 
@@ -157,7 +157,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
 
     "succeed for all no argument rules with hard coded expressions" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 1
            Country: uri xDateTime xDate ukDate xTime uuid4 positiveInteger"""
 
@@ -168,7 +168,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
 
     "succeed for unique rule" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 1
            Country: unique"""
 
@@ -179,7 +179,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
 
     "succeed for checksum with supported algorithm" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 1
            FileChecksum: checksum(file("build.sbt"), "MD5")"""
 
@@ -190,7 +190,7 @@ class SchemaParserRulesSpec extends Specification with ParserMatchers {
 
     "fail for checksum not supported algorithm" in {
       val schema =
-        s"""version ${Schema.SchemaVersion}
+        """version 1.0
            @totalColumns 1
            FileChecksum: checksum(file("build.sbt"), "ERROR")"""
 

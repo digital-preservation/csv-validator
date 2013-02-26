@@ -15,9 +15,9 @@ class SchemaParserContainingRulesSpec extends Specification with ParserMatchers 
   "Schema" should {
 
     "succeed for cross reference in rule" in {
-      val schema = s"""version ${Schema.SchemaVersion}
+      val schema = """version 1.0
                       @totalColumns 2
-                      Name: in($$FullName)
+                      Name: in($FullName)
                       FullName:"""
 
       parse(new StringReader(schema)) must beLike {
@@ -26,7 +26,7 @@ class SchemaParserContainingRulesSpec extends Specification with ParserMatchers 
     }
 
     "succeed for regex and inRule rules on a single column" in {
-      val schema = s"""version ${Schema.SchemaVersion}
+      val schema = """version 1.0
                       @totalColumns 1
                       Name: regex ("[1-9][a-z]*") in("dog")"""
 
@@ -39,9 +39,9 @@ class SchemaParserContainingRulesSpec extends Specification with ParserMatchers 
     }
 
     "succeed for inRule regex rules on a single and inRule has column reference and rules have had their order changed" in {
-      val schema = s"""version ${Schema.SchemaVersion}
+      val schema = """version 1.0
                       @totalColumns 1
-                      Name: in($$Name) regex ("[1-9][a-z]*")"""
+                      Name: in($Name) regex ("[1-9][a-z]*")"""
 
       parse(new StringReader(schema)) must beLike {
         case Success(Schema(globalDirsOne, List(ColumnDefinition("Name", List(InRule(ColumnReference(ir)), RegexRule(Literal(Some(r)))), _))), _) => {
@@ -52,7 +52,7 @@ class SchemaParserContainingRulesSpec extends Specification with ParserMatchers 
     }
 
     "succeed for 'is' text rule" in {
-      val schema = s"""version ${Schema.SchemaVersion}
+      val schema = """version 1.0
                       @totalColumns 1
                       Country: is("UK")"""
 
@@ -62,9 +62,9 @@ class SchemaParserContainingRulesSpec extends Specification with ParserMatchers 
     }
 
     "succeed for 'is' cross reference rule" in {
-      val schema = s"""version ${Schema.SchemaVersion}
+      val schema = """version 1.0
                       @totalColumns 2
-                      Country: is($$MyCountry)
+                      Country: is($MyCountry)
                       MyCountry:"""
 
       parse(new StringReader(schema)) must beLike {
@@ -76,9 +76,9 @@ class SchemaParserContainingRulesSpec extends Specification with ParserMatchers 
     }
 
     "fail for invalid 'is' cross reference rule" in {
-      val schema = s"""version ${Schema.SchemaVersion}
+      val schema = """version 1.0
                       |@totalColumns 2
-                      |Country: is($$MyMissingCountry)
+                      |Country: is($MyMissingCountry)
                       |MyCountry:""".stripMargin
 
       parse(new StringReader(schema)) must beLike { case Failure("Column: Country has invalid cross reference is($MyMissingCountry) at line: 3, column: 10", _) => ok }
@@ -86,7 +86,7 @@ class SchemaParserContainingRulesSpec extends Specification with ParserMatchers 
     }
 
     "succeed for 'isNot' text rule" in {
-      val schema = s"""version ${Schema.SchemaVersion}
+      val schema = """version 1.0
                       @totalColumns 1
                       Country: isNot("USA")"""
 
@@ -96,9 +96,9 @@ class SchemaParserContainingRulesSpec extends Specification with ParserMatchers 
     }
 
     "succeed for 'isNot' cross reference rule" in {
-      val schema = s"""version ${Schema.SchemaVersion}
+      val schema = """version 1.0
                       @totalColumns 2
-                      Country: isNot($$MyCountry)
+                      Country: isNot($MyCountry)
                       MyCountry:"""
 
       parse(new StringReader(schema)) must beLike {
@@ -110,9 +110,9 @@ class SchemaParserContainingRulesSpec extends Specification with ParserMatchers 
     }
 
     "fail for invalid 'isNot' cross reference rule" in {
-      val schema = s"""version ${Schema.SchemaVersion}
+      val schema = """version 1.0
                      |@totalColumns 2
-                     |Country: isNot($$MyMissingCountry)
+                     |Country: isNot($MyMissingCountry)
                      |MyCountry:""".stripMargin
 
       parse(new StringReader(schema)) must beLike { case Failure("Column: Country has invalid cross reference isNot($MyMissingCountry) at line: 3, column: 10", _) => ok }
@@ -120,7 +120,7 @@ class SchemaParserContainingRulesSpec extends Specification with ParserMatchers 
     }
 
     "succeed for 'starts' text rule" in {
-      val schema = s"""version ${Schema.SchemaVersion}
+      val schema = """version 1.0
                       @totalColumns 1
                       Country: starts("United")"""
 
@@ -130,9 +130,9 @@ class SchemaParserContainingRulesSpec extends Specification with ParserMatchers 
     }
 
     "succeed for 'starts' cross reference rule" in {
-      val schema = s"""version ${Schema.SchemaVersion}
+      val schema = """version 1.0
                       @totalColumns 2
-                      Country: starts($$MyCountry)
+                      Country: starts($MyCountry)
                       MyCountry:"""
 
       parse(new StringReader(schema)) must beLike {
@@ -144,9 +144,9 @@ class SchemaParserContainingRulesSpec extends Specification with ParserMatchers 
     }
 
     "fail for invalid 'starts' cross reference rule" in {
-      val schema = s"""version ${Schema.SchemaVersion}
+      val schema = """version 1.0
                      |@totalColumns 2
-                     |Country: starts($$MyMissingCountry)
+                     |Country: starts($MyMissingCountry)
                      |MyCountry:""".stripMargin
 
       parse(new StringReader(schema)) must beLike { case Failure("Column: Country has invalid cross reference starts($MyMissingCountry) at line: 3, column: 10", _) => ok }
@@ -154,7 +154,7 @@ class SchemaParserContainingRulesSpec extends Specification with ParserMatchers 
     }
 
     "succeed for 'ends' text rule" in {
-      val schema = s"""version ${Schema.SchemaVersion}
+      val schema = """version 1.0
                       @totalColumns 1
                       Country: ends("Kingdom")"""
 
@@ -164,9 +164,9 @@ class SchemaParserContainingRulesSpec extends Specification with ParserMatchers 
     }
 
     "succeed for 'ends' cross reference rule" in {
-      val schema = s"""version ${Schema.SchemaVersion}
+      val schema = """version 1.0
                       @totalColumns 2
-                      Country: ends($$MyCountry)
+                      Country: ends($MyCountry)
                       MyCountry:"""
 
       parse(new StringReader(schema)) must beLike {
@@ -178,9 +178,9 @@ class SchemaParserContainingRulesSpec extends Specification with ParserMatchers 
     }
 
     "fail for invalid 'ends' cross reference rule" in {
-      val schema = s"""version ${Schema.SchemaVersion}
+      val schema = """version 1.0
                      |@totalColumns 2
-                     |Country: ends($$MyMissingCountry)
+                     |Country: ends($MyMissingCountry)
                      |MyCountry:""".stripMargin
 
       parse(new StringReader(schema)) must beLike { case Failure("Column: Country has invalid cross reference ends($MyMissingCountry) at line: 3, column: 10", _) => ok }

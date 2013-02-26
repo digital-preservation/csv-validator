@@ -35,7 +35,7 @@ trait SchemaParser extends RegexParsers {
     case n @ NoSuccess(messages, next) => n
   }
 
-  def version: Parser[String] = ("version " ~> Schema.SchemaVersion <~ eol).withFailureMessage(s"version ${Schema.SchemaVersion} missing or incorrect")
+  def version: Parser[String] = ("version " ~> Schema.version <~ eol).withFailureMessage(s"version ${Schema.version} missing or incorrect")
 
   def schema = version ~ globalDirectives ~ columnDefinitions ^^ { case v ~ g ~ c => Schema(g, c)}
 

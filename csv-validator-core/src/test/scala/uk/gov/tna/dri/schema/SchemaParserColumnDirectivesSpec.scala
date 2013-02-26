@@ -15,7 +15,7 @@ class SchemaParserColumnDirectivesSpec extends Specification with ParserMatchers
   "Schema" should {
 
     "succeed for a @optional column directive" in {
-      val schema = s"""version ${Schema.SchemaVersion}
+      val schema = """version 1.0
                       |@totalColumns 1
                       |column1: @optional""".stripMargin
 
@@ -23,7 +23,7 @@ class SchemaParserColumnDirectivesSpec extends Specification with ParserMatchers
     }
 
     "succeed for a @ignoreCase column directive" in {
-      val schema = s"""version ${Schema.SchemaVersion}
+      val schema = """version 1.0
                       @totalColumns 1
                       column1: @ignoreCase""".stripMargin
 
@@ -31,7 +31,7 @@ class SchemaParserColumnDirectivesSpec extends Specification with ParserMatchers
     }
 
     "fail for duplicate column directives" in {
-      val schema = s"""version ${Schema.SchemaVersion}
+      val schema = """version 1.0
                      |@totalColumns 1
                      |column1: @ignoreCase @ignoreCase""".stripMargin
 
@@ -39,7 +39,7 @@ class SchemaParserColumnDirectivesSpec extends Specification with ParserMatchers
     }
 
     "fail for multiple duplicate column directives" in {
-      val schema = s"""version ${Schema.SchemaVersion}
+      val schema = """version 1.0
                      |@totalColumns 1
                      |column1: @ignoreCase @optional @ignoreCase @optional""".stripMargin
 
@@ -47,7 +47,7 @@ class SchemaParserColumnDirectivesSpec extends Specification with ParserMatchers
     }
 
     "fail for duplicate column directives on different columns" in {
-      val schema = s"""version ${Schema.SchemaVersion}
+      val schema = """version 1.0
                      |@totalColumns 3
                      |column1: @ignoreCase @optional @ignoreCase @optional
                      |column2: @optional @ignoreCase
@@ -62,7 +62,7 @@ class SchemaParserColumnDirectivesSpec extends Specification with ParserMatchers
 
   "Schema ordering" should {
     "allow any ordering of column directives - optional before ignore case" in {
-      val schema = s"""version ${Schema.SchemaVersion}
+      val schema = """version 1.0
                       |@totalColumns 1
                       |column1: @optional @ignoreCase""".stripMargin
 
@@ -70,7 +70,7 @@ class SchemaParserColumnDirectivesSpec extends Specification with ParserMatchers
     }
 
     "allow any ordering of column directives - ignore case before optional" in {
-      val schema = s"""version ${Schema.SchemaVersion}
+      val schema = """version 1.0
                       @totalColumns 1
                       column1: @ignoreCase @optional""".stripMargin
 
