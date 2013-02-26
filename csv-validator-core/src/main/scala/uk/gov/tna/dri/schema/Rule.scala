@@ -181,7 +181,7 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
 
   override def toError = {
     if(rootPath.toError.isEmpty ) s"""$name(file${file.toError})"""
-    else s"""$name(file${rootPath.toError.reverse.tail.reverse}, ${file.toError.tail})"""
+    else s"""$name(file${rootPath.toError.dropRight(1)}, ${file.toError.tail})"""
   }
 
   def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = true
