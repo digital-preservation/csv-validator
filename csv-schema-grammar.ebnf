@@ -4,6 +4,7 @@ Prolog                  ::=     VersionDecl GlobalDirectives
 
 VersionDecl             ::=     "version 1.0"
 
+/* Global Directives modify the global behaviour of CSV parsing and validation */
 /* There are only five global directives (see the first line below), but they can appear in any of four orders, the following complexity deals with that */
 GlobalDirectives        ::= (
     (SeparatorDirective? QuotedDirective? TotalColumnsDirective? (NoHeaderDirective | IgnoreColumnNameCaseDirective)?)
@@ -87,7 +88,17 @@ ConditionalExpr         ::=     IfExpr
 IfExpr                  ::=     "if(" NonConditionalExpr ")" "{" ColumnValidationExpr "}" ("else" "{" ColumnValidatorExpr "}")?        /* if with optional else */
 
 /* Column Directives modify the behaviour of ColumnValidatonExpr(s) */
-ColumnDirectives        ::=     IgnoreCaseDirective? MatchIsFalseDirective? OptionalDirective?
+/* There are only three global directives (see the first line below), but they can appear in any of three orders, the following complexity deals with that */
+ColumnDirectives        ::=     (
+    (IgnoreCaseDirective? MatchIsFalseDirective? OptionalDirective?)
+    | (MatchIsFalseDirective? IgnoreCaseDirective? OptionalDirective?)
+    | (OptionalDirective? IgnoreCaseDirective? MatchIsFalseDirective?)
+    | (IgnoreCaseDirective? OptionalDirective? MatchIsFalseDirective?)
+    | (MatchIsFalseDirective? OptionalDirective? IgnoreCaseDirective?)
+    | (OptionalDirective? MatchIsFalseDirective? IgnoreCaseDirective?)
+)
+
+
 IgnoreCaseDirective     ::=     DirectivePrefix "ignoreCase"
 MatchIsFalseDirective   ::=     DirectivePrefix "matchIsFalse"
 OptionalDirective       ::=     DirectivePrefix "optional"
