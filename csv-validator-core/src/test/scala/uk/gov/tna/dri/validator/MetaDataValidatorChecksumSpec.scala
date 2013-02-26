@@ -75,19 +75,20 @@ class MetaDataValidatorChecksumSpec extends Specification {
       validate(metaData, schema) must beLike { case Success(_) => ok }
     }
 
-//    "fail when calculated algorithm does match given cross referenced string value" in {
-//      val schema =
-//        """@totalColumns 2 @noHeader
-//           File:
-//           MD5: checksum(file("src/test/resources/uk/gov/tna/dri/schema","checksum.txt"),"MD5")
-//        """
-//
-//      val metaData = """ABC,wrong"""
-//
-//      validate(metaData, schema) must beLike {
-//        case Failure(messages) => messages.list mustEqual List("""checksum(file("src/test/resources/uk/gov/tna/dri/schema", "checksum.txt")) fails for line: 1, column: MD5, value: wrong""")
-//      }
-//    }
+    "fail when calculated algorithm does match given cross referenced string value" in {
+      val schema =
+        s"""version ${Schema.SchemaVersion}
+           @totalColumns 2 @noHeader
+           File:
+           MD5: checksum(file("src/test/resources/uk/gov/tna/dri/schema","checksum.txt"),"MD5")
+        """
+
+      val metaData = """ABC,wrong"""
+
+      validate(metaData, schema) must beLike {
+        case Failure(messages) => messages.list mustEqual List("""checksum(file("src/test/resources/uk/gov/tna/dri/schema", "checksum.txt")) fails for line: 1, column: MD5, value: wrong""")
+      }
+    }
 
   }
 
@@ -163,7 +164,7 @@ class MetaDataValidatorChecksumSpec extends Specification {
       val metaData = """checksum.txt,rubbish"""
 
       validate(metaData, schema) must beLike {
-        case Failure(messages) => messages.list mustEqual List("""checksum(file("src/test/resources/uk/gov/tna/dri/schema"), ($File)) fails for line: 1, column: MD5, value: rubbish""")
+        case Failure(messages) => messages.list mustEqual List("""checksum(file("src/test/resources/uk/gov/tna/dri/schema", $File)) fails for line: 1, column: MD5, value: rubbish""")
       }
     }
   }

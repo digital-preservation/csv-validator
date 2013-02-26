@@ -166,7 +166,7 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
     val columnDefinition = schema.columnDefinitions(columnIndex)
 
     if (checksum(filename(columnIndex, row, schema)) == cellValue) true.successNel
-    else s"${toError} fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
+    else s"$toError fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
   }
 
   def filename(columnIndex: Int, row: Row, schema: Schema): String = {
@@ -180,8 +180,8 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
   }
 
   override def toError = {
-    val rootPathError = if (rootPath.toError.isEmpty) "" else rootPath.toError + ", "
-    s"""${name}(file${rootPathError}${file.toError})"""
+    if(rootPath.toError.isEmpty ) s"""$name(file${file.toError})"""
+    else s"""$name(file${rootPath.toError.reverse.tail.reverse}, ${file.toError.tail})"""
   }
 
   def valid(cellValue: String, ruleValue: Option[String], columnDefinition: ColumnDefinition) = true
