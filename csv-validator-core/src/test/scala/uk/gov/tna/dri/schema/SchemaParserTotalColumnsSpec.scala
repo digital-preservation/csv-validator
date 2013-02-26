@@ -1,14 +1,11 @@
 package uk.gov.tna.dri.schema
 
 import org.specs2.mutable._
-import org.specs2.matcher.ParserMatchers
 import java.io.StringReader
 
-class SchemaParserTotalColumnsSpec extends Specification with ParserMatchers {
+class SchemaParserTotalColumnsSpec extends Specification {
 
   object TestSchemaParser extends SchemaParser
-
-  override val parsers = TestSchemaParser
 
   import TestSchemaParser._
 
