@@ -24,7 +24,7 @@ abstract class Rule(val name: String, val argProviders: ArgProvider*) extends Po
     s"$toError fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
   }
 
-  def toError = s"""$name""" + (if (argProviders.isEmpty) "" else "(" + argProviders.foldLeft("")(_ + _.toError) + ")")
+  def toError = s"""$name""" + (if (argProviders.isEmpty) "" else "(" + argProviders.foldLeft("")((a, b) => (if (a.isEmpty) "" else a + ", ") + b.toError) + ")")
 }
 
 case class OrRule(left: Rule, right: Rule) extends Rule("or") {
