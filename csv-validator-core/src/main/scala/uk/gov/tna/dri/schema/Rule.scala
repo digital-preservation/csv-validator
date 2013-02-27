@@ -207,6 +207,7 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
       val digest = MessageDigest.getInstance(algorithm)
       val fileBuffer = new BufferedInputStream(new FileInputStream(filename))
       Stream.continually(fileBuffer.read).takeWhile(-1 !=).map(_.toByte).foreach( digest.update(_))
+      fileBuffer.close()
       Right(hexEncode(digest.digest))
     }
   }
