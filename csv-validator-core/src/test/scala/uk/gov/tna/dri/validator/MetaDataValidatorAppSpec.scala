@@ -69,6 +69,25 @@ class MetaDataValidatorAppSpec extends Specification {
     }
   }
 
+  "Command line app" should {
+
+    "have exit code 0 when validation successful" in {
+      MetaDataValidatorCommandLineApp.run(Array(basePath + "metaData.csv", basePath + "schema.txt")) mustEqual 0
+    }
+
+    "have exit code 1 when the command line arguments are wrong" in {
+      MetaDataValidatorCommandLineApp.run(Array("")) mustEqual 1
+    }
+
+    "have exit code 2 when the schema is invalid" in {
+      MetaDataValidatorCommandLineApp.run(Array(basePath + "metaData.csv", basePath + "badSchema.txt")) mustEqual 2
+    }
+
+    "have exit code 3 when the metadata is invalid" in {
+      MetaDataValidatorCommandLineApp.run(Array(basePath + "acceptance/standardRulesFailMetaData.csv", basePath + "acceptance/standardRulesSchema.txt")) mustEqual 3
+    }
+  }
+
   "Parsing schema" should {
     val app = new MetaDataValidatorApp with AllErrorsMetaDataValidator
 
@@ -110,44 +129,3 @@ class MetaDataValidatorAppSpec extends Specification {
   }
 }
 
-class ExitStatus extends Specification {
-  "exit status should equal 1 when the command line arguments are wrong" in new WithSecurity with Before{
-    MetaDataValidatorCommandLineApp.main(Array("")) must throwA[RuntimeException] (message = "1")
-  }
-
-  "exit status should equal 2 when the schema is invalid" in new WithSecurity with Before {
-    MetaDataValidatorCommandLineApp.main(Array("src/test/resources/uk/gov/tna/dri/validator/metaData.csv",
-      "src/test/resources/uk/gov/tna/dri/validator/badSchema.txt")) must throwA[RuntimeException] (message = "2")
-  }
-
-  "exit status should equal 3 when the csv is invalid" in new WithSecurity with BeforeAfter {
-    MetaDataValidatorCommandLineApp.main(Array("src/test/resources/uk/gov/tna/dri/validator/acceptance/standardRulesFailMetaData.csv",
-      "src/test/resources/uk/gov/tna/dri/validator/acceptance/standardRulesSchema.txt")) must throwA[RuntimeException] (message = "3")
-  }
-}
-
-trait WithSecurity {
-  def after: Any = {
-    System.setSecurityManager( null )
-  }
-  def before: Any = {
-    println(System.getSecurityManager)
-    System.setSecurityManager(new TestSecurityManager)
-  }
-}
-
-private class TestSecurityManager extends SecurityManager {
-
-  override def checkExit(status: Int) {
-    throw new RuntimeException(status.toString)
-  }
-
-
-  override def checkPermission(perm: Permission ) {
-    //allow everything
-  }
-
-  override def checkPermission(perm: Permission , context: AnyRef ) {
-    //allow everything
-  }
-}

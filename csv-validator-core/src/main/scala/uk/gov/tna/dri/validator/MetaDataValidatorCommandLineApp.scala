@@ -6,16 +6,19 @@ import scalaz.{Success => SuccessZ, Failure => FailureZ, _}
 import Scalaz._
 import scala.App
 
-object MetaDataValidatorCommandLineApp extends SchemaParser {
+object MetaDataValidatorCommandLineApp extends App {
   type AppValidation[S] = ValidationNEL[String, S]
 
-  def main(args: Array[String]) {
+  val exitCode = run(args)
+  System.exit(exitCode)
+
+  def run(args: Array[String]): Int = {
 
     val (failFast, fileArgs) = failFastAndFileArgs(args.toList)
 
     checkFileArguments(fileArgs) match {
 
-      case FailureZ(errors) => println(prettyPrint(errors)); System.exit(1)
+      case FailureZ(errors) => println(prettyPrint(errors)); return 1
 
       case SuccessZ(_) => {
         val (metaDataFile, schemaFile) = inputFilePaths(fileArgs)
@@ -24,14 +27,15 @@ object MetaDataValidatorCommandLineApp extends SchemaParser {
         val validator = if (failFast) new MetaDataValidatorApp with FailFastMetaDataValidator else new MetaDataValidatorApp with AllErrorsMetaDataValidator
 
         validator.parseSchema(schemaFile) match {
-          case FailureZ(errors) => println(prettyPrint(errors)); System.exit(2)
+          case FailureZ(errors) => println(prettyPrint(errors)); return 2
           case SuccessZ(schema) => validator.validate(metaDataFile, schema) match {
-            case FailureZ(errors) => println(prettyPrint(errors)); System.exit(3)
+            case FailureZ(errors) => println(prettyPrint(errors)); return 3
             case SuccessZ(_) => println("PASS")
           }
         }
       }
     }
+    return 0
   }
 
   def checkFileArguments(fileArgs: List[String]): AppValidation[List[String]] = {
@@ -63,7 +67,7 @@ object MetaDataValidatorCommandLineApp extends SchemaParser {
 
   private def fileNotReadableMessage(filePath: String) = "Unable to read file : " + filePath
 
-  private def prettyPrint(l: NonEmptyList[String]) = l.list.mkString(eol)
+  private def prettyPrint(l: NonEmptyList[String]) = l.list.mkString(sys.props("line.separator"))
 }
 
 trait MetaDataValidatorApp extends SchemaParser {
