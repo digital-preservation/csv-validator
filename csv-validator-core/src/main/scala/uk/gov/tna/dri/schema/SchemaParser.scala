@@ -1,7 +1,7 @@
 package uk.gov.tna.dri.schema
 
 import scala.util.parsing.combinator._
-import java.io.{File, Reader}
+import java.io.Reader
 import scala.util.Try
 import collection.immutable.TreeMap
 import java.security.MessageDigest
@@ -66,7 +66,7 @@ trait SchemaParser extends RegexParsers {
 
   def or: Parser[OrRule] = unaryRule ~ "or" ~ rule  ^^ { case lhs ~ _ ~ rhs => OrRule(lhs, rhs) }
 
-  def regex = "regex" ~> regexParser ^? (validateRegex, s => s"regex invalid: ${s}") | failure("Invalid regex rule")
+  def regex = "regex" ~> regexParser ^? (validateRegex, s => s"regex invalid: $s") | failure("Invalid regex rule")
 
   def in = "in(" ~> argProvider <~ ")" ^^ { InRule  }
 
@@ -146,7 +146,7 @@ trait SchemaParser extends RegexParsers {
     val duplicates = TreeMap(columnDefinitions.groupBy(_.id).toSeq:_*).filter(_._2.length > 1)
 
     if (duplicates.isEmpty) None
-    else Some(duplicates.map { case (id, cds) => s"""Column: ${id} has duplicates on lines """ + cds.map(cd => cd.pos.line).mkString(", ") }.mkString("\n"))
+    else Some(duplicates.map { case (id, cds) => s"""Column: $id has duplicates on lines """ + cds.map(cd => cd.pos.line).mkString(", ") }.mkString("\n"))
   }
 
   private def columnDirectivesValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
@@ -155,7 +155,7 @@ trait SchemaParser extends RegexParsers {
       if (cd.directives.distinct.length != cd.directives.length)
     } yield {
       s"${cd.id}: Duplicated column directives: " +
-      cd.directives.groupBy(identity).filter { case (_, cds) => cds.size > 1}.map { case (cd, _) => "@" + cd + s" at line: ${cd.pos.line}, column: ${cd.pos.column}"}.mkString(", ")
+      cd.directives.groupBy(identity).filter { case (_, cds) => cds.size > 1}.map { case (cdId, _) => "@" + cdId + s" at line: ${cdId.pos.line}, column: ${cdId.pos.column}"}.mkString(", ")
     }
 
     if (v.isEmpty) None else Some(v.mkString("\n"))
