@@ -1,6 +1,6 @@
 package uk.gov.tna.dri.validator
 
-import org.specs2.mutable.{BeforeAfter, Specification}
+import org.specs2.mutable.{Before, BeforeAfter, Specification}
 import scalaz._
 import uk.gov.tna.dri.schema.Schema
 import java.io.StringReader
@@ -111,16 +111,27 @@ class MetaDataValidatorAppSpec extends Specification {
 }
 
 class ExitStatus extends Specification {
-  "exit status should equal 1 when the command line arguments are wrong" in new WithSecurity {
+  "exit status should equal 1 when the command line arguments are wrong" in new WithSecurity with Before{
     MetaDataValidatorCommandLineApp.main(Array("")) must throwA[RuntimeException] (message = "1")
+  }
+
+  "exit status should equal 2 when the schema is invalid" in new WithSecurity with Before {
+    MetaDataValidatorCommandLineApp.main(Array("src/test/resources/uk/gov/tna/dri/validator/metaData.csv",
+      "src/test/resources/uk/gov/tna/dri/validator/badSchema.txt")) must throwA[RuntimeException] (message = "2")
+  }
+
+  "exit status should equal 3 when the csv is invalid" in new WithSecurity with BeforeAfter {
+    MetaDataValidatorCommandLineApp.main(Array("src/test/resources/uk/gov/tna/dri/validator/acceptance/standardRulesFailMetaData.csv",
+      "src/test/resources/uk/gov/tna/dri/validator/acceptance/standardRulesSchema.txt")) must throwA[RuntimeException] (message = "3")
   }
 }
 
-trait WithSecurity extends BeforeAfter {
+trait WithSecurity {
   def after: Any = {
     System.setSecurityManager( null )
   }
   def before: Any = {
+    println(System.getSecurityManager)
     System.setSecurityManager(new TestSecurityManager)
   }
 }
