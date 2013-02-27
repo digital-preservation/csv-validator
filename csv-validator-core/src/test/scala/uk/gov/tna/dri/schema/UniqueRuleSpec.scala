@@ -3,8 +3,6 @@ package uk.gov.tna.dri.schema
 import org.specs2.mutable.Specification
 import uk.gov.tna.dri.metadata.{Cell, Row}
 import scalaz.{Failure, Success}
-import uk.gov.tna.dri.metadata.Cell
-import uk.gov.tna.dri.metadata.Row
 
 class UniqueRuleSpec extends Specification {
 

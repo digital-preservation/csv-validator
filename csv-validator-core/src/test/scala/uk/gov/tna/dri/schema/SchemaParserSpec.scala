@@ -20,7 +20,7 @@ class SchemaParserSpec extends Specification {
                       column2:
                       column3:"""
 
-      parse(new StringReader(schema)) must beLike { case Success(schema, _) => schema mustEqual Schema(List(TotalColumns(3)), columnDefinitions) }
+      parse(new StringReader(schema)) must beLike { case Success(parsedSchema, _) => parsedSchema mustEqual Schema(List(TotalColumns(3)), columnDefinitions) }
     }
 
     "fail if the schema version is wrong" in {
@@ -39,7 +39,7 @@ class SchemaParserSpec extends Specification {
                       Name :
                       Age   :     """
 
-      parse(new StringReader(schema)) must beLike { case Success(schema, _) => schema mustEqual Schema(List(TotalColumns(2)), List(ColumnDefinition("Name"), ColumnDefinition("Age"))) }
+      parse(new StringReader(schema)) must beLike { case Success(parsedSchema, _) => parsedSchema mustEqual Schema(List(TotalColumns(2)), List(ColumnDefinition("Name"), ColumnDefinition("Age"))) }
     }
 
     "fail if column directives declared before rules" in {
@@ -57,7 +57,7 @@ class SchemaParserSpec extends Specification {
                       @totalColumns 2 @noHeader
                       Name :
                       Age   :     """
-      parse(new StringReader(schema)) must beLike { case Success(schema, _) => schema mustEqual Schema(List(TotalColumns(2), NoHeader()), List(ColumnDefinition("Name"), ColumnDefinition("Age"))) }
+      parse(new StringReader(schema)) must beLike { case Success(parsedSchema, _) => parsedSchema mustEqual Schema(List(TotalColumns(2), NoHeader()), List(ColumnDefinition("Name"), ColumnDefinition("Age"))) }
     }
   }
 }

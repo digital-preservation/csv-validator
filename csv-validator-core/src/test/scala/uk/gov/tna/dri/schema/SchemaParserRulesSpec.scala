@@ -3,7 +3,7 @@ package uk.gov.tna.dri.schema
 import org.specs2.mutable._
 import java.io.StringReader
 
-import scalaz.{Success => SuccessZ, Failure => FailureZ, _}
+import scalaz.{Success => SuccessZ, Failure => FailureZ}
 
 class SchemaParserRulesSpec extends Specification {
 
