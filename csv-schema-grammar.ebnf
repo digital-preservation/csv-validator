@@ -46,7 +46,7 @@ ColumnValidationExpr    ::=     NonConditionalExpr | ConditionalExpr
 
 NonConditionalExpr      ::=     SingleExpr | ExternalSingleExpr | CombinatorialExpr | ParenthesizedExpr
 
-SingleExpr              ::=     IsExpr | NotExpr | InExpr | StarstWithExpr | EndsWithExpr | RegExpExpr | NotEmptyExpr | UniqueExpr | UriExpr | XsdDateTimeExpr | XsdDateExpr | UkDateExpr | XsdTimeExpr | Uuid4Expr | PositiveIntegerExpr
+SingleExpr              ::=     IsExpr | NotExpr | InExpr | StarstWithExpr | EndsWithExpr | RegExpExpr | RangeExpr | LengthExpr | NotEmptyExpr | UniqueExpr | UriExpr | XsdDateTimeExpr | XsdDateExpr | UkDateExpr | XsdTimeExpr | Uuid4Expr | PositiveIntegerExpr
 
 IsExpr                  ::=     "is(" StringProvider ")"
 NotExpr                 ::=     "not(" StringProvider ")"
@@ -54,6 +54,16 @@ InExpr                  ::=     "in(" StringProvider ")"
 StartsWithExpr          ::=     "starts(" StringProvider ")"
 EndsWithExpr            ::=     "ends(" StringProvider ")"
 RegExpExpr              ::=     "regex(" StringLiteral ")"
+RangeExpr               ::=     "range(" NumericLiteral "," NumericLiteral ")"                                     /* range is inclusive */
+
+/* length has 4 forms. 
+    1) length(n) ensures the value is: the exact length n (absolute length)
+    2) length(n, *) ensures the value is: longer than or equal to n (minimum length)
+    3) length(*, n) ensures the value is: shorter than or equal to n (maximum length)
+    4) length(n1, n2) ensures the value is: longer than or equal to n1 AND shorter than or equal to n2 (minumum and maximum lengths)
+*/
+
+LengthExpr              ::=     "length(" (PositiveIntegerLiteral | WildcardLiteral ",")? PositiveIntegerLiteral | WildcardLiteral ")"                 
 NotEmptyExpr            ::=     "notEmpty"
 UniqueExpr	            ::=     "unique"
 UriExpr                 ::=     "uri"
@@ -105,12 +115,16 @@ OptionalDirective       ::=     DirectivePrefix "optional"
 
 
 /* Lexical */
-PositiveNonZeroIntegerLiteral           //IntegerLiteral constrained by [1-9]{1}[0-9]+
+PositiveNonZeroIntegerLiteral           /* A Natural Number - i.e. IntegerLiteral constrained by [1-9]{1}[0-9]+ */
+PositiveIntegerLiteral                  /* A Natural Number or Zero - i.e. IntegerLiteral constrained by [0-9]{1}[0-9]+ */
+NumericLiteral                          ::= Number
 IntegerLiteral                          ::= Integer
 CharacterLiteral                        ::= "'" NonBreakingChar "'"
-StringLiteral                           ::= "\"" NonBreakingChar+ "\"" 
-Ident                                   // [A-Za-z0-9\-_\.]+
+StringLiteral                           ::= "\"" NonBreakingChar+ "\""
+WildcardLiteral                         ::= "*" 
+Ident                                   /* [A-Za-z0-9\-_\.]+ */
 
-Integer          
-NonBreakingChar                         //same class as char but without \n or \r
+Number                                  /* Any Real Number expressed as an Integer or Decimal */
+Integer                                 /* Any Non-Fractional and Non-Decimal Number */
+NonBreakingChar                         /* same class as char but without \n or \r */
 Char
