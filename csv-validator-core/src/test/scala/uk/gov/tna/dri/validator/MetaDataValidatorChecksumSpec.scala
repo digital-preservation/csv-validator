@@ -32,7 +32,7 @@ class MetaDataValidatorChecksumSpec extends Specification {
         """version 1.0
            @totalColumns 2 @noHeader
            File:
-           MD5: checksum(file("src/test/resources/uk/gov/tna/dri/schema/checksum.txt"),"MD5")
+           MD5: checksum(file("src/test/resources/uk/gov/tna/dri/schema/checksum.txt"), "MD5")
         """
 
       val metaData = """src/test/resources/uk/gov/tna/dri/schema/checksum.txt,232762380299115da6995e4c4ac22fa2"""
@@ -45,7 +45,7 @@ class MetaDataValidatorChecksumSpec extends Specification {
         """version 1.0
            @totalColumns 2 @noHeader
            File:
-           MD5: checksum(file("src/test/resources/uk/gov/tna/dri/schema/checksum.txt"),"MD5")
+           MD5: checksum(file("src/test/resources/uk/gov/tna/dri/schema/checksum.txt"), "MD5")
         """
 
       val metaData = """src/test/resources/uk/gov/tna/dri/schema/checksum.txt,wrong"""
@@ -54,9 +54,7 @@ class MetaDataValidatorChecksumSpec extends Specification {
         case Failure(messages) => messages.list mustEqual List("""checksum(file("src/test/resources/uk/gov/tna/dri/schema/checksum.txt"), "MD5") checksum match fails for line: 1, column: MD5, value: wrong""")
       }
     }
-
   }
-
 
   "Checksum with rootpath and filename in schema" should {
     "succeed when calculated algorithm does match given cross referenced string value" in {
@@ -64,7 +62,7 @@ class MetaDataValidatorChecksumSpec extends Specification {
         """version 1.0
            @totalColumns 2 @noHeader
            File:
-           MD5: checksum(file("src/test/resources/uk/gov/tna/dri/schema","checksum.txt"),"MD5")
+           MD5: checksum(file("src/test/resources/uk/gov/tna/dri/schema", "checksum.txt"), "MD5")
         """
 
       val metaData = """ABC,232762380299115da6995e4c4ac22fa2"""
@@ -77,7 +75,7 @@ class MetaDataValidatorChecksumSpec extends Specification {
         """version 1.0
            @totalColumns 2 @noHeader
            File:
-           MD5: checksum(file("src/test/resources/uk/gov/tna/dri/schema","checksum.txt"),"MD5")
+           MD5: checksum(file("src/test/resources/uk/gov/tna/dri/schema", "checksum.txt"), "MD5")
         """
 
       val metaData = """ABC,wrong"""
@@ -96,7 +94,7 @@ class MetaDataValidatorChecksumSpec extends Specification {
         """version 1.0
            @totalColumns 2 @noHeader
            File:
-           MD5: checksum(file("src/test/resources/uk/gov/tna/dri/schema",$File),"MD5")
+           MD5: checksum(file("src/test/resources/uk/gov/tna/dri/schema", $File), "MD5")
         """
 
       val metaData = """checksum.txt,232762380299115da6995e4c4ac22fa2"""
@@ -109,7 +107,7 @@ class MetaDataValidatorChecksumSpec extends Specification {
         """version 1.0
            @totalColumns 2 @noHeader
            File:
-           MD5: checksum(file("invalid/path/to/root",$File), "MD5")
+           MD5: checksum(file("invalid/path/to/root", $File), "MD5")
         """
 
       val metaData = """checksum.txt,232762380299115da6995e4c4ac22fa2"""
@@ -127,7 +125,7 @@ class MetaDataValidatorChecksumSpec extends Specification {
         """version 1.0
            @totalColumns 2 @noHeader
            File:
-           MD5: checksum(file($File),"MD5")
+           MD5: checksum(file($File), "MD5")
         """
 
       val metaData = """src/test/resources/uk/gov/tna/dri/schema/checksum.txt,232762380299115da6995e4c4ac22fa2"""
@@ -140,7 +138,7 @@ class MetaDataValidatorChecksumSpec extends Specification {
         """version 1.0
            @totalColumns 2 @noHeader
            File:
-           MD5: checksum(file($File),"MD5")
+           MD5: checksum(file($File), "MD5")
         """
 
       val metaData = """src/test/resources/uk/gov/tna/dri/schema/checksum.txt,rubbish"""
@@ -156,7 +154,7 @@ class MetaDataValidatorChecksumSpec extends Specification {
         """version 1.0
            @totalColumns 2 @noHeader
            File:
-           MD5: checksum(file("src/test/resources/uk/gov/tna/dri/schema",$File),"MD5")
+           MD5: checksum(file("src/test/resources/uk/gov/tna/dri/schema", $File), "MD5")
         """
 
       val metaData = """checksum.txt,rubbish"""
@@ -176,7 +174,7 @@ class MetaDataValidatorChecksumSpec extends Specification {
            @totalColumns 3 @noHeader
            Root:
            File:
-           MD5: checksum(file($Root,$File),"MD5")
+           MD5: checksum(file($Root, $File), "MD5")
         """
 
       val metaData = """src/test/resources/uk/gov/tna/dri/schema,checksum.txt,232762380299115da6995e4c4ac22fa2"""
@@ -223,7 +221,7 @@ class MetaDataValidatorChecksumSpec extends Specification {
         """version 1.0
            @totalColumns 2 @noHeader
            File:
-           MD5: checksum(file($File),"MD5")
+           MD5: checksum(file($File), "MD5")
         """
 
       val metaData = """src/test/resources/uk/gov/tna/dri/schema/checksum.txt,232762380299115da6995e4c4ac22fa2"""
