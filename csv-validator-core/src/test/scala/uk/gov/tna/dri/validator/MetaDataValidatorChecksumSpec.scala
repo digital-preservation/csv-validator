@@ -84,7 +84,6 @@ class MetaDataValidatorChecksumSpec extends Specification {
         case Failure(messages) => messages.list mustEqual List("""checksum(file("src/test/resources/uk/gov/tna/dri/schema", "checksum.txt"), "MD5") checksum match fails for line: 1, column: MD5, value: wrong""")
       }
     }
-
   }
 
   "Checksum with root in schema and file in metadata" should {
@@ -164,7 +163,6 @@ class MetaDataValidatorChecksumSpec extends Specification {
       }
     }
   }
-
 
   "Checksum with cross reference on both root and file" should {
 

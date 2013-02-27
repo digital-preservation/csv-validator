@@ -203,8 +203,9 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
   }
 
   private def checksum(filename: String ): Either[String, String] = {
-    if ( !(new File(filename)).exists) Left(s"""file "$filename" not found""")
-    else {
+    if (!(new File(filename)).exists) {
+      Left(s"""file "$filename" not found""")
+    } else {
       val digest = MessageDigest.getInstance(algorithm)
       val fileBuffer = new BufferedInputStream(new FileInputStream(filename))
       Stream.continually(fileBuffer.read).takeWhile(-1 !=).map(_.toByte).foreach( digest.update(_))
