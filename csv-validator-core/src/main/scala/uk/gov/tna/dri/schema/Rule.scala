@@ -21,10 +21,10 @@ abstract class Rule(val name: String, val argProviders: ArgProvider*) extends Po
 
   def fail(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
     val columnDefinition = schema.columnDefinitions(columnIndex)
-    s"${toError} fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
+    s"$toError fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
   }
 
-  def toError = s"""${name}""" + argProviders.foldLeft("")(_ + _.toError)
+  def toError = s"""$name""" + argProviders.foldLeft("")(_ + _.toError)
 }
 
 case class OrRule(left: Rule, right: Rule) extends Rule("or") {
@@ -40,7 +40,7 @@ case class OrRule(left: Rule, right: Rule) extends Rule("or") {
 
   def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = true
 
-  override def toError = s"""${left.toError} ${name} ${right.toError}"""
+  override def toError = s"""${left.toError} $name ${right.toError}"""
 }
 
 case class RegexRule(regex: ArgProvider) extends Rule("regex", regex) {
@@ -53,12 +53,11 @@ case class RegexRule(regex: ArgProvider) extends Rule("regex", regex) {
 }
 
 case class FileExistsRule(rootPath: ArgProvider = Literal(None)) extends Rule("fileExists", rootPath) {
-  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = {
+  def valid(filePath: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = {
     val ruleValue = rootPath.referenceValue(columnIndex, row, schema)
-    val filePath = cellValue
 
     val fileExists = ruleValue match {
-      case Some(rootPath) => new File(rootPath, filePath).exists()
+      case Some(rp) => new File(rp, filePath).exists()
       case None => new File(filePath).exists()
     }
 
@@ -162,7 +161,7 @@ case class UniqueRule() extends Rule("unique") {
     originalValue match {
       case None => distinctValues.put(cellValueCorrectCase, row.lineNumber); true.successNel
       case Some(o) => {
-        s"${toError} fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value} (original at line: ${distinctValues(o)})".failNel[Any]
+        s"$toError fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value} (original at line: ${distinctValues(o)})".failNel[Any]
       }
     }
   }
@@ -179,16 +178,16 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
 
     checksum(filename(columnIndex, row, schema)) match {
       case Right(hexValue) if hexValue == cellValue => true.successNel[String]
-      case Right(hexValue) => s"${toError} checksum match fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
-      case Left(errMsg) => s"${toError} ${errMsg} for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
+      case Right(hexValue) => s"$toError checksum match fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
+      case Left(errMsg) => s"$toError $errMsg for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
     }
   }
 
   def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = true
 
   override def toError = {
-    if(rootPath.toError.isEmpty ) s"""$name(file${file.toError}, "${algorithm}")"""
-    else s"""$name(file${rootPath.toError.dropRight(1)}, ${file.toError.tail}, "${algorithm}")"""
+    if(rootPath.toError.isEmpty ) s"""$name(file${file.toError}, "$algorithm")"""
+    else s"""$name(file${rootPath.toError.dropRight(1)}, ${file.toError.tail}, "$algorithm")"""
   }
 
   private def filename(columnIndex: Int, row: Row, schema: Schema): String = {
@@ -202,7 +201,7 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
   }
 
   private def checksum(filename: String ): Either[String, String] = {
-    if ( !(new File(filename)).exists) Left(s"""file "${filename}" not found""")
+    if ( !(new File(filename)).exists) Left(s"""file "$filename" not found""")
     else {
       val digest = MessageDigest.getInstance(algorithm)
       val fileBuffer = new BufferedInputStream(new FileInputStream(filename))
@@ -229,6 +228,6 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
     }
 
     addDigit(in, 0, len, sb)
-    sb.toString
+    sb.toString()
   }
 }
