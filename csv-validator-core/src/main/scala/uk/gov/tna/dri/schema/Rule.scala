@@ -24,7 +24,7 @@ abstract class Rule(val name: String, val argProviders: ArgProvider*) extends Po
     s"$toError fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
   }
 
-  def toError = s"""$name""" + argProviders.foldLeft("")(_ + _.toError)
+  def toError = s"""$name""" + (if (argProviders.isEmpty) "" else "(" + argProviders.foldLeft("")(_ + _.toError) + ")")
 }
 
 case class OrRule(left: Rule, right: Rule) extends Rule("or") {
@@ -63,6 +63,8 @@ case class FileExistsRule(rootPath: ArgProvider = Literal(None)) extends Rule("f
 
     fileExists
   }
+
+  override def toError = s"""$name""" + (if (rootPath == Literal(None)) "" else s"""(${rootPath.toError})""")
 }
 
 case class InRule(inValue: ArgProvider) extends Rule("in", inValue) {
@@ -186,8 +188,8 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
   def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = true
 
   override def toError = {
-    if(rootPath.toError.isEmpty ) s"""$name(file${file.toError}, "$algorithm")"""
-    else s"""$name(file${rootPath.toError.dropRight(1)}, ${file.toError.tail}, "$algorithm")"""
+    if (rootPath.toError.isEmpty) s"""$name(file(${file.toError}), "$algorithm")"""
+    else s"""$name(file(${rootPath.toError}, ${file.toError}), "$algorithm")"""
   }
 
   private def filename(columnIndex: Int, row: Row, schema: Schema): String = {

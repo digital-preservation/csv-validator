@@ -27,7 +27,7 @@ trait ArgProvider {
 
   def referenceValue(columnIndex: Int, row: Row, schema: Schema): Option[String]
 
-  def toError:String
+  def toError: String
 }
 
 case class ColumnReference(value: String) extends ArgProvider {
@@ -37,14 +37,14 @@ case class ColumnReference(value: String) extends ArgProvider {
     Some(row.cells(referencedIndex).value)
   }
 
-  def toError ="($" + value + ")"
+  def toError ="$" + value
 }
 
 case class Literal(value: Option[String]) extends ArgProvider {
 
   def referenceValue(columnIndex: Int, row: Row, schema: Schema): Option[String] = value
 
-  def toError = if (value.isDefined) "(\"" + value.get + "\")" else ""
+  def toError = if (value.isDefined) "\"" + value.get + "\"" else ""
 }
 
 trait ColumnDirective extends Positional
