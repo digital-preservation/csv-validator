@@ -1,5 +1,6 @@
 package uk.gov.tna.dri.schema
 
+import scalax.file.{PathSet, Path}
 import scalaz._
 import Scalaz._
 import uk.gov.tna.dri.metadata.Row
@@ -192,27 +193,57 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
     else s"""$name(file(${rootPath.toError}, ${file.toError}), "$algorithm")"""
   }
 
-  private def filename(columnIndex: Int, row: Row, schema: Schema): String = {
+  private def filename(columnIndex: Int, row: Row, schema: Schema): (String,String) = {
     val f = file.referenceValue(columnIndex, row, schema).get
 
     rootPath.referenceValue(columnIndex, row, schema) match {
-      case None => f
-      case Some(r: String) if r.endsWith("/") => r + f
-      case Some(r) => r + "/" + f
+      case None => ("",f)
+      case Some(r: String) if r.endsWith("/") => (r, f)
+      case Some(r) => (r + "/", f)
     }
   }
 
-  private def checksum(filename: String ): Either[String, String] = {
-    if (!(new File(filename)).exists) {
-      Left(s"""file "$filename" not found""")
-    } else {
+  private def checksum(filename: (String,String) ): Either[String, String] = {
+
+    def calcChecksum(file:String): String = {
       val digest = MessageDigest.getInstance(algorithm)
-      val fileBuffer = new BufferedInputStream(new FileInputStream(filename))
+      val fileBuffer = new BufferedInputStream(new FileInputStream(file))
       Stream.continually(fileBuffer.read).takeWhile(-1 !=).map(_.toByte).foreach( digest.update(_))
       fileBuffer.close()
-      Right(hexEncode(digest.digest))
+      hexEncode(digest.digest)
     }
+
+    val fullPath = filename._1 + filename._2
+
+    def rootPath:Either[String,Path] = {
+      val rootPath:Path = scalax.file.Path.fromString(filename._1)
+      if ( !rootPath.exists) Left(s"""incorrect root ${filename._1} found""") else Right(rootPath)
+    }
+
+    def matchPaths(matchList:PathSet[Path]):Either[String, String] = matchList.size match {
+        case 1 => Right(calcChecksum(matchList.head.path))
+        case 0 => Left(s"""no files for $fullPath found""")
+        case _ => Left(s"""multiple files for $fullPath found""")
+      }
+
+    def wildcardPath: Either[String, String] = rootPath match {
+        case Right(rPath) => matchPaths( rPath.descendants( rPath.matcher( filename._2)) )
+        case Left(err) => Left(err)
+      }
+
+    def wildcardFile: Either[String, String] = rootPath match {
+        case Right(rPath) => matchPaths( rPath.children(rPath.matcher("**/" + filename._2)) )
+        case Left(err) => Left(err)
+      }
+
+    if (filename._1.contains("*") ) Left(s"""root ${filename._1} should not contain '*'s""")
+    else if ( fullPath.contains("**"))  wildcardPath
+    else if ( fullPath.contains("*"))  wildcardFile
+    else if (!(new File(fullPath)).exists)  Left(s"""file "$fullPath" not found""")
+    else Right(calcChecksum(fullPath))
+
   }
+
 
   private def hexEncode(in: Array[Byte]): String = {
     val sb = new StringBuilder

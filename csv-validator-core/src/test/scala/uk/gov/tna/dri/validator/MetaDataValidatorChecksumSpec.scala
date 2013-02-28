@@ -197,20 +197,83 @@ class MetaDataValidatorChecksumSpec extends Specification {
     }
   }
 
-  //  "Checksum with multi files matches" should {
-  //    "succeed with 3 files" in {
-  //      val schema =
-  //        """@totalColumns 2 @noHeader
-  //           File:
-  //           MD5: checksum(file("src/test/resources/uk/gov/tna/dri/schema", $File), "MD5")
-  //        """
-  //
-  //      val metaData = """*.txt,"232762380299115da6995e4c4ac22fa2,232762380299115da6995e4c4ac22fa2,232762380299115da6995e4c4ac22fa2""""
-  //
-  //      validate(metaData, schema) must beLike { case Success(_) => ok }
-  //
-  //    }
-  //  }
+  "Checksum with multi files matches" should {
+
+    "succeed when only 1 file is found using a '**' wildcard" in {
+      val schema =
+        """version 1.0
+           @totalColumns 3 @noHeader
+           Root:
+           File:
+           MD5: checksum(file($Root, $File), "MD5")
+        """
+
+      val metaData = """src/test/resources/uk/gov/tna/dri/schema,**/checksum.txt,232762380299115da6995e4c4ac22fa2"""
+
+      validate(metaData, schema) must beLike { case Success(_) => ok }
+    }
+
+    "succeed when only 1 file is found using a '*' wildcard" in {
+      val schema =
+        """version 1.0
+           @totalColumns 3 @noHeader
+           Root:
+           File:
+           MD5: checksum(file($Root, $File), "MD5")
+        """
+
+      val metaData = """src/test/resources/uk/gov/tna/dri/schema,checksum.*,232762380299115da6995e4c4ac22fa2"""
+
+      validate(metaData, schema) must beLike { case Success(_) => ok }
+    }
+
+    "fail if the optional root contains wildcards" in {
+      val schema =
+        """version 1.0
+           @totalColumns 3 @noHeader
+           Root:
+           File:
+           MD5: checksum(file($Root, $File), "MD5")
+        """
+
+      val metaData = """src/test/resources/uk/gov/tna/dri/**,checksum.*,232762380299115da6995e4c4ac22fa2"""
+
+      validate(metaData, schema) must beLike {
+        case Failure(messages) => messages.list mustEqual List("""checksum(file($Root, $File), "MD5") root src/test/resources/uk/gov/tna/dri/**/ should not contain '*'s for line: 1, column: MD5, value: 232762380299115da6995e4c4ac22fa2""")
+      }
+    }
+
+
+    "fail with more than 1 files" in {
+      val schema =
+        """version 1.0
+           @totalColumns 2 @noHeader
+           File:
+           MD5: checksum(file("src/test/resources/uk/gov/tna/dri/fileCountTestFiles/threeFiles/", $File), "MD5")
+        """
+
+      val metaData = """**/*.jp2,"232762380299115da6995e4c4ac22fa2""""
+
+      validate(metaData, schema) must beLike {
+        case Failure(messages) => messages.list mustEqual List("""checksum(file("src/test/resources/uk/gov/tna/dri/fileCountTestFiles/threeFiles/", $File), "MD5") multiple files for src/test/resources/uk/gov/tna/dri/fileCountTestFiles/threeFiles/**/*.jp2 found for line: 1, column: MD5, value: 232762380299115da6995e4c4ac22fa2""")
+      }
+    }
+
+    "fail when no files found" in {
+      val schema =
+        """version 1.0
+           @totalColumns 2 @noHeader
+           File:
+           MD5: checksum(file("src/test/resources/this/is/incorrect", $File), "MD5")
+        """
+
+      val metaData = """**/*.jp2,"232762380299115da6995e4c4ac22fa2""""
+
+      validate(metaData, schema) must beLike {
+        case Failure(messages) => messages.list mustEqual List("""checksum(file("src/test/resources/this/is/incorrect", $File), "MD5") incorrect root src/test/resources/this/is/incorrect/ found for line: 1, column: MD5, value: 232762380299115da6995e4c4ac22fa2""")
+      }
+    }
+  }
 
 
   "Checksum with an algorithm" should {
