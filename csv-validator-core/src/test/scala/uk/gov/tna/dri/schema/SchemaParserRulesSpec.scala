@@ -356,4 +356,32 @@ class SchemaParserRulesSpec extends Specification {
 
     parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual List("Column: Country has invalid cross reference ends($MyMissingCountry) at line: 3, column: 10") }
   }
+
+
+  "Checksum crossreferences " should {
+    "fail if column for filename is missing" in {
+      val schema =
+        """version 1.0
+           @totalColumns 3 @noHeader
+           Root:
+           File:
+           MD5: checksum(file($Root, $WRONG), "MD5")
+        """
+
+      parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual List("""Column: MD5 has invalid cross reference checksum(file($Root, $WRONG), "MD5") at line: 5, column: 17""") }
+    }
+
+    "fail if column for basePath is missing" in {
+      val schema =
+        """version 1.0
+           @totalColumns 3 @noHeader
+           Root:
+           File:
+           MD5: checksum(file($Hello, $File), "MD5")
+        """
+
+      parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual List("""Column: MD5 has invalid cross reference checksum(file($Hello, $File), "MD5") at line: 5, column: 17""") }
+    }
+
+  }
 }
