@@ -1,13 +1,16 @@
 package uk.gov.tna.dri.schema
 
 import scalax.file.{PathSet, Path}
-import scalaz._
-import Scalaz._
-import uk.gov.tna.dri.metadata.Row
+import scalaz.Scalaz._
 import java.io.{BufferedInputStream, FileInputStream, File}
 import util.parsing.input.Positional
 import collection.mutable
 import java.security.MessageDigest
+import scala.Predef._
+import scalaz.Failure
+import scala.Some
+import scalaz.Success
+import uk.gov.tna.dri.metadata.Row
 
 abstract class Rule(val name: String, val argProviders: ArgProvider*) extends Positional {
 
@@ -180,9 +183,9 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
     val columnDefinition = schema.columnDefinitions(columnIndex)
 
     checksum(filename(columnIndex, row, schema)) match {
-      case Right(hexValue) if hexValue == cellValue => true.successNel[String]
-      case Right(hexValue) => s"$toError checksum match fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
-      case Left(errMsg) => s"$toError $errMsg for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
+      case Success(hexValue:String) if hexValue == cellValue => true.successNel[String]
+      case Success(hexValue:String) => s"$toError checksum match fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
+      case Failure(errMsg) => s"$toError ${errMsg.head} for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
     }
   }
 
@@ -203,7 +206,7 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
     }
   }
 
-  private def checksum(filename: (String,String) ): Either[String, String] = {
+  private def checksum(filename: (String,String) ): ValidationNEL[String, String] = {
 
     def calcChecksum(file:String): String = {
       val digest = MessageDigest.getInstance(algorithm)
@@ -215,30 +218,31 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
 
     val fullPath = filename._1 + filename._2
 
-    def rootPath:Either[String,Path] = {
+    def rootPath:ValidationNEL[String,Path] = {
       val rootPath:Path = scalax.file.Path.fromString(filename._1)
-      if ( !rootPath.exists) Left(s"""incorrect root ${filename._1} found""") else Right(rootPath)
+      if ( !rootPath.exists) s"""incorrect root ${filename._1} found""".failNel[Path]
+      else rootPath.successNel[String]
     }
 
-    def matchPaths(matchList:PathSet[Path]):Either[String, String] = matchList.size match {
-        case 1 => Right(calcChecksum(matchList.head.path))
-        case 0 => Left(s"""no files for $fullPath found""")
-        case _ => Left(s"""multiple files for $fullPath found""")
+    def matchPaths(matchList:PathSet[Path]): ValidationNEL[String, String] = matchList.size match {
+        case 1 => calcChecksum(matchList.head.path).successNel[String]
+        case 0 => s"""no files for $fullPath found""".failNel[String]
+        case _ => s"""multiple files for $fullPath found""".failNel[String]
       }
 
     val wcPath = (p:Path) => p.descendants( p.matcher( filename._2))
     val wcFile = (p:Path) => p.children( p.matcher( "**/" +filename._2))
 
-    def findMatches( wc:(Path) => PathSet[Path]  ) = rootPath match {
-      case Right(rPath) => matchPaths( wc(rPath) )
-      case Left(err) => Left(err)
+    def findMatches( wc:(Path) => PathSet[Path] ): ValidationNEL[String, String] = rootPath match {
+      case Success(rPath) => matchPaths( wc(rPath) )
+      case Failure(err) =>  err.head.failNel[String]
     }
 
-    if (filename._1.contains("*") ) Left(s"""root ${filename._1} should not contain '*'s""")
+    if (filename._1.contains("*") ) s"""root ${filename._1} should not contain '*'s""".failNel[String]
     else if ( fullPath.contains("**"))  findMatches(wcPath)
     else if ( fullPath.contains("*"))  findMatches(wcFile)
-    else if (!(new File(fullPath)).exists)  Left(s"""file "$fullPath" not found""")
-    else Right(calcChecksum(fullPath))
+    else if (!(new File(fullPath)).exists)  s"""file "$fullPath" not found""".failNel[String]
+    else calcChecksum(fullPath).successNel[String]
   }
 
 
