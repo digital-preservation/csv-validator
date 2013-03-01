@@ -6,10 +6,7 @@ import java.io.{BufferedInputStream, FileInputStream, File}
 import util.parsing.input.Positional
 import collection.mutable
 import java.security.MessageDigest
-import scala.Predef._
-import scalaz.Failure
-import scala.Some
-import scalaz.Success
+import scalaz.{Failure,Success}
 import uk.gov.tna.dri.metadata.Row
 import util.Try
 
