@@ -116,7 +116,6 @@ class MetaDataValidatorChecksumSpec extends Specification {
       }
     }
 
-
   "Checksum with fullpath in metedata" should {
 
     "succeed when calculated algorithm does match given cross referenced string value" in {

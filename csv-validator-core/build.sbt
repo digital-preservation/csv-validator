@@ -24,14 +24,14 @@ jarName in assembly := "meta-data-validator.jar"
 
 libraryDependencies ++= Seq(
   "org.specs2" %% "specs2" % "1.12.3" % "test",
-  "org.scalatest" %% "scalatest" % "1.9.1" % "test",
-  "com.github.scala-incubator.io" % "scala-io-core_2.10" % "0.4.2",
-  "com.github.scala-incubator.io" % "scala-io-file_2.10" % "0.4.2"
+  "org.scalatest" %% "scalatest" % "1.9.1" % "test"
 )
 
 libraryDependencies ++= Seq(
   "net.sf.opencsv" % "opencsv" % "2.3",
-  "org.scalaz" %% "scalaz-core" % "6.0.4"
+  "org.scalaz" %% "scalaz-core" % "6.0.4",
+  "com.github.scala-incubator.io" % "scala-io-core_2.10" % "0.4.2",
+  "com.github.scala-incubator.io" % "scala-io-file_2.10" % "0.4.2"
 )
 
 
