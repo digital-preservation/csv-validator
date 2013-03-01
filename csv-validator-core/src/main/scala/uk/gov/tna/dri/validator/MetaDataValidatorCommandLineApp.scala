@@ -6,6 +6,12 @@ import scalaz.{Success => SuccessZ, Failure => FailureZ, _}
 import Scalaz._
 import scala.App
 
+object  SystemExits {
+  val ValidCsv = 0
+  val IncorrectArguments = 1
+  val InvalidSchema = 2
+  val InvalidCsv = 3
+}
 object MetaDataValidatorCommandLineApp extends App {
   type AppValidation[S] = ValidationNEL[String, S]
 
@@ -18,7 +24,7 @@ object MetaDataValidatorCommandLineApp extends App {
 
     checkFileArguments(fileArgs) match {
 
-      case FailureZ(errors) => println(prettyPrint(errors)); return 1
+      case FailureZ(errors) => println(prettyPrint(errors)); SystemExits.IncorrectArguments
 
       case SuccessZ(_) => {
         val (metaDataFile, schemaFile) = inputFilePaths(fileArgs)
@@ -27,21 +33,19 @@ object MetaDataValidatorCommandLineApp extends App {
         val validator = if (failFast) new MetaDataValidatorApp with FailFastMetaDataValidator else new MetaDataValidatorApp with AllErrorsMetaDataValidator
 
         validator.parseSchema(schemaFile) match {
-          case FailureZ(errors) => println(prettyPrint(errors)); return 2
+          case FailureZ(errors) => println(prettyPrint(errors)); SystemExits.InvalidSchema
           case SuccessZ(schema) => validator.validate(metaDataFile, schema) match {
-            case FailureZ(errors) => println(prettyPrint(errors)); return 3
-            case SuccessZ(_) => println("PASS")
+            case FailureZ(errors) => println(prettyPrint(errors)); SystemExits.InvalidCsv
+            case SuccessZ(_) => println("PASS"); SystemExits.ValidCsv
           }
         }
       }
     }
-
-    return 0
   }
 
   def checkFileArguments(fileArgs: List[String]): AppValidation[List[String]] = {
     checkFileArgumentCount(fileArgs) match {
-      case SuccessZ(fileArgs) => checkFilesReadable(fileArgs)
+      case SuccessZ(fargs) => checkFilesReadable(fargs)
       case fail => fail
     }
   }
