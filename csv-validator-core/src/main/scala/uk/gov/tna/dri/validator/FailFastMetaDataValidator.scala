@@ -1,12 +1,8 @@
 package uk.gov.tna.dri.validator
 
 import uk.gov.tna.dri.schema._
-import au.com.bytecode.opencsv.CSVReader
-import java.io.Reader
-import scala.collection.JavaConversions._
 import scalaz._
 import Scalaz._
-import uk.gov.tna.dri.metadata.{Cell, Row}
 import uk.gov.tna.dri.metadata.Cell
 import uk.gov.tna.dri.metadata.Row
 import uk.gov.tna.dri.schema.ColumnDefinition
