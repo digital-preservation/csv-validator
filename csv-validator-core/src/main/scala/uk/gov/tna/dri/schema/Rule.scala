@@ -11,6 +11,7 @@ import scalaz.Failure
 import scala.Some
 import scalaz.Success
 import uk.gov.tna.dri.metadata.Row
+import util.Try
 
 abstract class Rule(val name: String, val argProviders: ArgProvider*) extends Positional {
 
@@ -183,8 +184,8 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
     val columnDefinition = schema.columnDefinitions(columnIndex)
 
     checksum(filename(columnIndex, row, schema)) match {
-      case Success(hexValue: String) if hexValue == cellValue => true.successNel[String]
-      case Success(hexValue: String) => s"$toError checksum match fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
+      case Success(hexValue:String) if hexValue == cellValue => true.successNel[String]
+      case Success(hexValue:String) => s"$toError checksum match fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
       case Failure(errMsg) => s"$toError ${errMsg.head} for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
     }
   }
@@ -196,54 +197,56 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
     else s"""$name(file(${rootPath.toError}, ${file.toError}), "$algorithm")"""
   }
 
-  private def filename(columnIndex: Int, row: Row, schema: Schema): (String, String) = {
+  private def filename(columnIndex: Int, row: Row, schema: Schema): (String,String) = {
     val f = file.referenceValue(columnIndex, row, schema).get
 
     rootPath.referenceValue(columnIndex, row, schema) match {
-      case None => ("", f)
+      case None => ("",f)
       case Some(r: String) if r.endsWith("/") => (r, f)
       case Some(r) => (r + "/", f)
     }
   }
 
-  private def checksum(filename: (String, String)): ValidationNEL[String, String] = {
+  private def checksum(filePaths: (String,String) ): ValidationNEL[String, String] = {
+    val (basePath, matchPath) = filePaths
+    val fullPath = basePath + matchPath
 
-    def calcChecksum(file: String): String = {
+    def calcChecksum(file:String): String = {
       val digest = MessageDigest.getInstance(algorithm)
       val fileBuffer = new BufferedInputStream(new FileInputStream(file))
-      Stream.continually(fileBuffer.read).takeWhile(-1 !=).map(_.toByte).foreach(digest.update(_))
+      Stream.continually(fileBuffer.read).takeWhile(-1 !=).map(_.toByte).foreach( digest.update(_))
       fileBuffer.close()
       hexEncode(digest.digest)
     }
 
-    val fullPath = filename._1 + filename._2
 
-    def rootPath: ValidationNEL[String, Path] = {
-      val rootPath: Path = Path.fromString(filename._1)
-      if (!rootPath.exists) s"""incorrect root ${filename._1} found""".failNel[Path]
+    def rootPath:ValidationNEL[String,Path] = {
+      val rootPath:Path = scalax.file.Path.fromString(basePath)
+      if ( !rootPath.exists) s"""incorrect root $basePath found""".failNel[Path]
       else rootPath.successNel[String]
     }
 
-    def matchPaths(matchList: PathSet[Path]): ValidationNEL[String, String] = matchList.size match {
+    def matchPaths(matchList:PathSet[Path]): ValidationNEL[String, String] = matchList.size match {
       case 1 => calcChecksum(matchList.head.path).successNel[String]
       case 0 => s"""no files for $fullPath found""".failNel[String]
       case _ => s"""multiple files for $fullPath found""".failNel[String]
     }
 
-    val wcPath = (p: Path) => p.descendants(p.matcher( filename._2))
-    val wcFile = (p: Path) => p.children(p.matcher( "**/" +filename._2))
+    val wildcardPath = (p:Path) => p.descendants( p.matcher( matchPath))
+    val wildcardFile = (p:Path) => p.children( p.matcher( "**/" +matchPath))
 
-    def findMatches(wc: (Path) => PathSet[Path]): ValidationNEL[String, String] = rootPath match {
-      case Success(rPath) => matchPaths(wc(rPath))
-      case Failure(err) => err.head.failNel[String]
+    def findMatches( wc:(Path) => PathSet[Path] ): ValidationNEL[String, String] = rootPath match {
+      case Success(rPath) => matchPaths( wc(rPath) )
+      case Failure(err) =>  err.head.failNel[String]
     }
 
-    if (filename._1.contains("*")) s"""root ${filename._1} should not contain '*'s""".failNel[String]
-    else if (fullPath.contains("**")) findMatches(wcPath)
-    else if (fullPath.contains("*")) findMatches(wcFile)
+    if (basePath.contains("*") ) s"""root $basePath should not contain '*'s""".failNel[String]
+    else if ( matchPath.contains("**"))  findMatches(wildcardPath)
+    else if ( matchPath.contains("*"))  findMatches(wildcardFile)
     else if (!(new File(fullPath)).exists)  s"""file "$fullPath" not found""".failNel[String]
     else calcChecksum(fullPath).successNel[String]
   }
+
 
   private def hexEncode(in: Array[Byte]): String = {
     val sb = new StringBuilder
@@ -263,5 +266,72 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
 
     addDigit(in, 0, len, sb)
     sb.toString()
+  }
+}
+
+
+
+case class FileCountRule(rootPath: ArgProvider, file: ArgProvider) extends Rule("fileCount", rootPath, file) {
+  def this(file: ArgProvider, algorithm: String) = this(Literal(None), file)
+
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = true
+
+  override def evaluate(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
+    val cellValue = row.cells(columnIndex).value
+    val columnDefinition = schema.columnDefinitions(columnIndex)
+
+    Try(cellValue.toInt) match {
+      case scala.util.Success(cellCount) =>
+        fileCount(filename(columnIndex, row, schema)) match {
+          case Success(count:Int) if count == cellCount => true.successNel[String]
+          case Success(count:Int) => s"$toError found $count file(s) for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
+          case Failure(errMsg) => s"$toError ${errMsg.head} for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
+        }
+      case scala.util.Failure(_) =>  s"$toError '$cellValue' is not a number for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
+    }
+  }
+
+  override def toError = {
+    if (rootPath.toError.isEmpty) s"""$name(file(${file.toError}))"""
+    else s"""$name(file(${rootPath.toError}, ${file.toError}))"""
+  }
+
+
+  private def filename(columnIndex: Int, row: Row, schema: Schema): (String,String) = {  // return (base,path)
+    val f = file.referenceValue(columnIndex, row, schema).get
+
+    rootPath.referenceValue(columnIndex, row, schema) match {
+      case None => ("",f)
+      case Some(r: String) if r.endsWith("/") => (r, f)
+      case Some(r) => (r + "/", f)
+    }
+  }
+
+
+  private def fileCount( filePaths:(String,String) ):ValidationNEL[String, Int] = {
+    val (basePath, matchPath) = filePaths
+    val fullPath = basePath + matchPath
+
+    def rootPath:ValidationNEL[String,Path] = {
+      val rootPath:Path = scalax.file.Path.fromString(basePath)
+      if ( !rootPath.exists) s"""incorrect root $basePath found""".failNel[Path]
+      else rootPath.successNel[String]
+    }
+
+    def matchPaths(matchList:PathSet[Path]): ValidationNEL[String, Int] = matchList.size.successNel[String]
+
+    val wildcardPath = (p:Path) => p.descendants( p.matcher( matchPath))
+    val wildcardFile = (p:Path) => p.children( p.matcher( "**/" +matchPath))
+
+    def findMatches( wc:(Path) => PathSet[Path] ): ValidationNEL[String, Int] = rootPath match {
+      case Success(rPath) => matchPaths( wc(rPath) )
+      case Failure(err) =>  err.head.failNel[Int]
+    }
+
+    if (basePath.contains("*") ) s"""root $basePath should not contain wildcards""".failNel[Int]
+    else if ( matchPath.contains("**")) findMatches(wildcardPath)
+    else if ( matchPath.contains("*"))  findMatches(wildcardFile)
+    else if (!(new File(fullPath)).exists)  s"""file "$fullPath" not found""".failNel[Int]
+    else 1.successNel[String]  // file found so ok
   }
 }

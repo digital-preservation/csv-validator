@@ -62,7 +62,7 @@ trait SchemaParser extends RegexParsers {
 
   def rule = positioned(or | unaryRule)
 
-  def unaryRule = regex | fileExists | in | is | isNot | starts | ends | unique | uri | xDateTime | xDate | ukDate | xTime | uuid4 | positiveInteger | checksum | failure("Invalid rule")
+  def unaryRule = regex | fileExists | in | is | isNot | starts | ends | unique | uri | xDateTime | xDate | ukDate | xTime | uuid4 | positiveInteger | checksum | fileCountExpr | failure("Invalid rule")
 
   def or: Parser[OrRule] = unaryRule ~ "or" ~ rule  ^^ { case lhs ~ _ ~ rhs => OrRule(lhs, rhs) }
 
@@ -103,9 +103,12 @@ trait SchemaParser extends RegexParsers {
 
   def rootFilePath: Parser[String] = """[a-zA-Z/-_\.\d\\:]+""".r
 
-  def checksum = "checksum(" ~> fileExpr ~ (white ~ "," ~ white) ~ algorithm <~ ")" ^^ { case a ~ _ ~ algo => ChecksumRule(a._1.getOrElse(Literal(None)), a._2, algo) }
+  def checksum = "checksum(" ~> fileExpr ~ ("," ~ white) ~ algorithm <~ ")" ^^ { case a ~ _ ~ algo => ChecksumRule(a._1.getOrElse(Literal(None)), a._2, algo) }
 
-  def fileExpr = "file(" ~> opt(argProvider <~ (white ~ "," ~ white)) ~ argProvider <~ ")" ^^ { a => a }
+  def fileCountExpr = "fileCount(" ~> fileExpr <~ ")" ^^ { case a  => FileCountRule(a._1.getOrElse(Literal(None)), a._2) }
+
+
+  def fileExpr = "file(" ~> opt(argProvider <~ ("," ~ white)) ~ argProvider <~ ")" ^^ { a => a }
 
   def algorithm: Parser[String] = "\"" ~> stringRegex <~ "\"" ^? (validateAlgorithm, s => "Invalid Algorithm " + s)
 
