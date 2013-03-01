@@ -226,22 +226,19 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
         case _ => Left(s"""multiple files for $fullPath found""")
       }
 
-    def wildcardPath: Either[String, String] = rootPath match {
-        case Right(rPath) => matchPaths( rPath.descendants( rPath.matcher( filename._2)) )
-        case Left(err) => Left(err)
-      }
+    val wcPath = (p:Path) => p.descendants( p.matcher( filename._2))
+    val wcFile = (p:Path) => p.children( p.matcher( "**/" +filename._2))
 
-    def wildcardFile: Either[String, String] = rootPath match {
-        case Right(rPath) => matchPaths( rPath.children(rPath.matcher("**/" + filename._2)) )
-        case Left(err) => Left(err)
-      }
+    def findMatches( wc:(Path) => PathSet[Path]  ) = rootPath match {
+      case Right(rPath) => matchPaths( wc(rPath) )
+      case Left(err) => Left(err)
+    }
 
     if (filename._1.contains("*") ) Left(s"""root ${filename._1} should not contain '*'s""")
-    else if ( fullPath.contains("**"))  wildcardPath
-    else if ( fullPath.contains("*"))  wildcardFile
+    else if ( fullPath.contains("**"))  findMatches(wcPath)
+    else if ( fullPath.contains("*"))  findMatches(wcFile)
     else if (!(new File(fullPath)).exists)  Left(s"""file "$fullPath" not found""")
     else Right(calcChecksum(fullPath))
-
   }
 
 
