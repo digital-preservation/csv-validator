@@ -35,6 +35,7 @@ object MetaDataValidatorCommandLineApp extends App {
         }
       }
     }
+
     return 0
   }
 
