@@ -238,7 +238,7 @@ class MetaDataValidatorChecksumSpec extends Specification {
       val metaData = """src/test/resources/uk/gov/tna/dri/**,checksum.*,232762380299115da6995e4c4ac22fa2"""
 
       validate(metaData, schema) must beLike {
-        case Failure(messages) => messages.list mustEqual List("""checksum(file($Root, $File), "MD5") root src/test/resources/uk/gov/tna/dri/**/ should not contain '*'s for line: 1, column: MD5, value: 232762380299115da6995e4c4ac22fa2""")
+        case Failure(messages) => messages.list mustEqual List("""checksum(file($Root, $File), "MD5") root src/test/resources/uk/gov/tna/dri/**/ should not contain wildcards for line: 1, column: MD5, value: 232762380299115da6995e4c4ac22fa2""")
       }
     }
 
