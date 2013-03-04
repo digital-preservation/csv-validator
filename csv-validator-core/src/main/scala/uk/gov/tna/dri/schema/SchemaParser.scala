@@ -42,7 +42,7 @@ trait SchemaParser extends RegexParsers {
 
   def schema = version ~ globalDirectives ~ columnDefinitions ^^ { case v ~ g ~ c => Schema(g, c)}
 
-  def globalDirectives: Parser[List[GlobalDirective]] = rep(positioned(globalDirective)) <~ (whiteSpace ~ (eol | endOfInput | failure("Global directives contains invalid text")))
+  def globalDirectives: Parser[List[GlobalDirective]] = rep(positioned(globalDirective <~ (whiteSpace ~ opt(eol | endOfInput))))
 
   def globalDirective = totalColumns | noHeaderDirective | ignoreColumnNameCaseDirective
 
@@ -56,13 +56,14 @@ trait SchemaParser extends RegexParsers {
 
   def columnDefinition = ((columnIdentifier <~ ":") ~ rep(rule) ~ rep(columnDirective) <~ endOfColumnDefinition ^^ {
     case id ~ rules ~ columnDirectives => ColumnDefinition(id, rules, columnDirectives)
-  }).withFailureMessage("Column definition contains invalid text")
+  }).withFailureMessage("Invalid schema text")
 
   def columnDirective = positioned(optional | ignoreCase)
 
-  def rule = positioned(or | unaryRule)
+  def rule: Parser[Rule] = positioned(or | unaryRule )
 
-  def unaryRule = regex | fileExists | in | is | isNot | starts | ends | unique | uri | xDateTime | xDate | ukDate | xTime | uuid4 | positiveInteger | checksum | fileCount | failure("Invalid rule")
+  def unaryRule = regex | fileExists | in | is | isNot | starts | ends | unique | uri | xDateTime | xDate | ukDate | xTime | uuid4 | positiveInteger | checksum | fileCount | parenthesizesRule | failure("Invalid rule")
+  def parenthesizesRule: Parser[ParenRule] = "(" ~> rep1(rule) <~ ")" ^^ { ParenRule(_) } | failure("unmatched paren")
 
   def or: Parser[OrRule] = unaryRule ~ "or" ~ rule  ^^ { case lhs ~ _ ~ rhs => OrRule(lhs, rhs) }
 
@@ -115,7 +116,7 @@ trait SchemaParser extends RegexParsers {
 
   def ignoreCase = "@ignoreCase" ^^^ IgnoreCase()
 
-  private def endOfColumnDefinition: Parser[Any] = whiteSpace ~ (eol | endOfInput | failure("Column definition contains invalid text"))
+  private def endOfColumnDefinition: Parser[Any] = whiteSpace ~ (eol | endOfInput | failure("Invalid schema text"))
 
   private def endOfInput: Parser[Any] = new Parser[Any] {
     def apply(input: Input) = {
@@ -129,8 +130,10 @@ trait SchemaParser extends RegexParsers {
   }
 
 
-  private def validate(g: List[GlobalDirective], c: List[ColumnDefinition]): String =
-    totalColumnsValid(g, c) :: columnDirectivesValid(c) :: duplicateColumnsValid(c) :: crossColumnsValid(c) :: checksumAlgorithmValid(c) :: Nil collect  { case Some(s: String) => s } mkString("\n")
+  private def validate(g: List[GlobalDirective], c: List[ColumnDefinition]): String = {
+    globDirectivesValid(g) ::totalColumnsValid(g, c) :: columnDirectivesValid(c) :: duplicateColumnsValid(c) :: crossColumnsValid(c) :: checksumAlgorithmValid(c) :: Nil collect
+      { case Some(s: String) => s } mkString("\n")
+  }
 
   private def totalColumnsValid(g: List[GlobalDirective], c: List[ColumnDefinition]): Option[String] = {
     val tc: Option[TotalColumns] = g.collectFirst { case t @ TotalColumns(_) => t }
@@ -146,6 +149,13 @@ trait SchemaParser extends RegexParsers {
 
     if (duplicates.isEmpty) None
     else Some(duplicates.map { case (id, cds) => s"""Column: $id has duplicates on lines """ + cds.map(cd => cd.pos.line).mkString(", ") }.mkString("\n"))
+  }
+
+  private def globDirectivesValid(directives: List[GlobalDirective]): Option[String] = {
+    val dups = for ((name, lst) <- directives.groupBy(_.name) if (lst.length > 1)) yield {
+      s"Global directive @$name is duplicated"
+    }
+    if (dups.isEmpty) None else Some(dups.mkString("\n"))
   }
 
   private def columnDirectivesValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {

@@ -37,7 +37,7 @@ class SchemaParserColumnDefinitionsSpec extends Specification {
       @totalColumns 1
       column1':"""
       parse(new StringReader(schema)) must beLike {
-        case Failure(messages, _) => messages mustEqual "Column definition contains invalid text"
+        case Failure(messages, _) => messages mustEqual "Invalid schema text"
       }
     }
 
@@ -54,7 +54,7 @@ class SchemaParserColumnDefinitionsSpec extends Specification {
                       @totalColumns 1
                       Last Name """
 
-      parse(new StringReader(schema)) must beLike { case Failure(message, _) => message mustEqual "Column definition contains invalid text" }
+      parse(new StringReader(schema)) must beLike { case Failure(message, _) => message mustEqual "Invalid schema text" }
     }
 
     "succeed for column definition with no rules" in {
@@ -78,7 +78,7 @@ class SchemaParserColumnDefinitionsSpec extends Specification {
                       @totalColumns 1
                       LastName: regex ("[a-z]*") Age"""
 
-      parse(new StringReader(schema)) must beLike { case Failure(message, _) => message mustEqual """Column definition contains invalid text""" }
+      parse(new StringReader(schema)) must beLike { case Failure(message, _) => message mustEqual """Invalid schema text""" }
     }
 
     "fail for extra text after column definition on a line" in {
@@ -88,7 +88,7 @@ class SchemaParserColumnDefinitionsSpec extends Specification {
                       FirstName: dfsdfsdfwe
                       Age:"""
 
-      parse(new StringReader(schema)) must beLike { case Failure(message, _) => message mustEqual "Column definition contains invalid text" }
+      parse(new StringReader(schema)) must beLike { case Failure(message, _) => message mustEqual "Invalid schema text" }
     }
 
     "fail when one invalid column reference" in {

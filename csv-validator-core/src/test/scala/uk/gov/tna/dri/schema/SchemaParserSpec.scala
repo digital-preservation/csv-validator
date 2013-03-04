@@ -15,12 +15,13 @@ class SchemaParserSpec extends Specification {
       val columnDefinitions = List(new ColumnDefinition("column1"),new ColumnDefinition("column2"),new ColumnDefinition("column3"))
 
       val schema = """version 1.0
-                      @totalColumns 3
-                      column1:
-                      column2:
-                      column3:"""
+                     |@totalColumns 3
+                     |@noHeader
+                     |column1:
+                     |column2:
+                     |column3:""".stripMargin
 
-      parse(new StringReader(schema)) must beLike { case Success(parsedSchema, _) => parsedSchema mustEqual Schema(List(TotalColumns(3)), columnDefinitions) }
+      parse(new StringReader(schema)) must beLike { case Success(parsedSchema, _) => parsedSchema mustEqual Schema(List(TotalColumns(3),NoHeader()), columnDefinitions) }
     }
 
     "fail if the schema version is wrong" in {
@@ -48,7 +49,7 @@ class SchemaParserSpec extends Specification {
                       LastName: @IgnoreCase regex ("[a]")"""
 
       parse(new StringReader(schema)) must beLike {
-        case Failure(messages, _) => messages mustEqual "Column definition contains invalid text"
+        case Failure(messages, _) => messages mustEqual "Invalid schema text"
       }
     }
 

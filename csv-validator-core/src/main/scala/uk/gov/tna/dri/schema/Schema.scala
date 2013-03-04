@@ -9,17 +9,17 @@ object Schema {
   val version = "1.0"
 }
 
-trait GlobalDirective extends Positional
+abstract class GlobalDirective(val name: String) extends Positional
 
-case class Separator(separatorChar: Char) extends GlobalDirective
+case class Separator(separatorChar: Char) extends GlobalDirective("separator")
 
-case class Quoted() extends GlobalDirective
+case class Quoted() extends GlobalDirective("quoted")
 
-case class TotalColumns(numberOfColumns: Int) extends GlobalDirective
+case class TotalColumns(numberOfColumns: Int) extends GlobalDirective("totalColumns")
 
-case class NoHeader() extends GlobalDirective
+case class NoHeader() extends GlobalDirective("noHeader")
 
-case class IgnoreColumnNameCase() extends GlobalDirective
+case class IgnoreColumnNameCase() extends GlobalDirective("ignoreColumnNameCase")
 
 case class ColumnDefinition(id: String, rules: List[Rule] = Nil, directives: List[ColumnDirective] = Nil) extends Positional
 

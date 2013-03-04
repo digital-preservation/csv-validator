@@ -34,5 +34,18 @@ class TruthSpec extends Specification with DataTables {
         (a, b, c, d) =>  a && b || c must_== d
       }
     }
+
+    "work for a OR b AND c OR D" in {
+
+      "a"  |  "b"  | "c"   | "d" |
+     true  ! true ! false ! true |> {
+
+        (a, b, c, d) =>  a || b && c must_== d
+      }
+
+    }
+
   }
+
+
 }

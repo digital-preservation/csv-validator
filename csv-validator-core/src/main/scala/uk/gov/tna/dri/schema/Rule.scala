@@ -3,14 +3,16 @@ package uk.gov.tna.dri.schema
 import scalax.file.{PathSet, Path}
 import scalaz.Scalaz._
 import java.io.{BufferedInputStream, FileInputStream, File}
-import util.parsing.input.Positional
-import collection.mutable
+import scala.util.parsing.input.Positional
+import scala.collection.mutable
 import java.security.MessageDigest
 import scalaz.{Failure,Success}
 import uk.gov.tna.dri.metadata.Row
 import util.Try
 
 abstract class Rule(val name: String, val argProviders: ArgProvider*) extends Positional {
+
+  type RuleValidation[A] = ValidationNEL[String, A]
 
   val Uuid4Regex = "[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}"
 
@@ -43,6 +45,18 @@ case class OrRule(left: Rule, right: Rule) extends Rule("or") {
   def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = true
 
   override def toError = s"""${left.toError} $name ${right.toError}"""
+}
+
+case class ParenRule(rules: List[Rule]) extends Rule("paren"){
+
+  override def evaluate(columnIndex: Int, row: Row, schema: Schema): RuleValidation[Any] = {
+    val v = for (rule <- rules)yield {
+      rule.evaluate(columnIndex, row, schema)
+    }
+    v.sequence[RuleValidation, Any]
+  }
+
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = true
 }
 
 case class RegexRule(regex: ArgProvider) extends Rule("regex", regex) {
