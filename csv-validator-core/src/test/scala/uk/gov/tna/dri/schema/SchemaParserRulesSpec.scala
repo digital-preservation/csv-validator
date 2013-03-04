@@ -382,6 +382,5 @@ class SchemaParserRulesSpec extends Specification {
 
       parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual List("""Column: MD5 has invalid cross reference checksum(file($Hello, $File), "MD5") at line: 5, column: 17""") }
     }
-
   }
 }

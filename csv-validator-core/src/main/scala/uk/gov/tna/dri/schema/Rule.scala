@@ -181,8 +181,8 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
     val columnDefinition = schema.columnDefinitions(columnIndex)
 
     search(filename(columnIndex, row, schema)) match {
-      case Success(hexValue:String) if hexValue == cellValue => true.successNel[String]
-      case Success(hexValue:String) => s"$toError checksum match fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
+      case Success(hexValue: String) if hexValue == cellValue => true.successNel[String]
+      case Success(hexValue: String) => s"$toError checksum match fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
       case Failure(errMsg) => s"$toError ${errMsg.head} for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
     }
   }
@@ -288,30 +288,30 @@ case class FileCountRule(rootPath: ArgProvider, file: ArgProvider) extends Rule(
 
 trait FileWildcardSearch[T] {
   def matchWildcardPaths(matchList:PathSet[Path],fullPath:String): ValidationNEL[String, T]
-  def matchSimplePath(fullPath:String):ValidationNEL[String, T]
+  def matchSimplePath(fullPath: String): ValidationNEL[String, T]
 
-  def search(filePaths:(String,String) ):ValidationNEL[String, T] = {
+  def search(filePaths:(String,String) ): ValidationNEL[String, T] = {
     val (basePath, matchPath) = filePaths
     val fullPath = basePath + matchPath
 
-    def rootPath:ValidationNEL[String,Path] = {
+    def rootPath: ValidationNEL[String,Path] = {
       val rootPath:Path = scalax.file.Path.fromString(basePath)
-      if ( !rootPath.exists) s"""incorrect root $basePath found""".failNel[Path]
+      if (!rootPath.exists) s"""incorrect root $basePath found""".failNel[Path]
       else rootPath.successNel[String]
     }
 
-    val wildcardPath = (p:Path) => p.descendants( p.matcher( matchPath))
-    val wildcardFile = (p:Path) => p.children( p.matcher( "**/" +matchPath))
+    val wildcardPath = (p: Path) => p.descendants( p.matcher( matchPath))
+    val wildcardFile = (p: Path) => p.children( p.matcher( "**/" +matchPath))
 
-    def findMatches( wc:(Path) => PathSet[Path] ): ValidationNEL[String, T] = rootPath match {
+    def findMatches(wc: (Path) => PathSet[Path] ): ValidationNEL[String, T] = rootPath match {
       case Success(rPath) => matchWildcardPaths( wc(rPath), fullPath )
       case Failure(err) =>  err.head.failNel[T]
     }
 
 
     if (basePath.contains("*") ) s"""root $basePath should not contain wildcards""".failNel[T]
-    else if ( matchPath.contains("**")) findMatches(wildcardPath)
-    else if ( matchPath.contains("*"))  findMatches(wildcardFile)
+    else if (matchPath.contains("**")) findMatches(wildcardPath)
+    else if (matchPath.contains("*"))  findMatches(wildcardFile)
     else if (!(new File(fullPath)).exists)  s"""file "$fullPath" not found""".failNel[T]
     else matchSimplePath(fullPath)
   }
