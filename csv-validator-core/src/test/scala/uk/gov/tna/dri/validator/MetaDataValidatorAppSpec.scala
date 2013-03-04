@@ -101,7 +101,7 @@ class MetaDataValidatorAppSpec extends Specification {
 
       app.parseAndValidate(new StringReader(schema)) must beLike {
         case Failure(msgs) => msgs.list mustEqual List(
-          """[3.7] failure: Column definition contains invalid text
+          """[3.7] failure: Invalid schema text
             |
             |Name: regox("A")
             |
