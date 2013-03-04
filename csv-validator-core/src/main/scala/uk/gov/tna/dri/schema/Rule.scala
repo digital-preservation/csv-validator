@@ -331,3 +331,14 @@ trait FileWildcardSearch[T] {
     else matchSimplePath(fullPath)
   }
 }
+
+
+case class RangeRule(min: BigDecimal, max: BigDecimal) extends Rule("range") {
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
+
+    Try[BigDecimal]( BigDecimal(cellValue)) match {
+        case scala.util.Success(callDecimal) => if (callDecimal >= min && callDecimal <= max  ) true  else false
+        case _ => false
+      }
+  }
+}

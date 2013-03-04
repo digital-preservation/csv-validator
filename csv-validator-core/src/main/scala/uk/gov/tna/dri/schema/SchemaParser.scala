@@ -20,6 +20,8 @@ trait SchemaParser extends RegexParsers {
 
   val positiveNumber: Parser[String] = """[1-9][0-9]*""".r
 
+  val number: Parser[BigDecimal] = """(-|\+)*[0-9]*+(\.[0-9]*)?""".r ^^ { BigDecimal(_) }
+
   val stringRegex = """([^"\p{Cntrl}\\]|\\[\\'"bfnrt]|\\u[a-fA-F0-9]{4})*""".r
 
   val Regex = """([(]")(.*?)("[)])""".r
@@ -62,7 +64,7 @@ trait SchemaParser extends RegexParsers {
 
   def rule: Parser[Rule] = positioned(or | unaryRule)
 
-  def unaryRule = regex | fileExists | in | is | isNot | starts | ends | unique | uri | xDateTime | xDate | ukDate | xTime | uuid4 | positiveInteger | checksum | fileCount | parenthesesRule | failure("Invalid rule")
+  def unaryRule = regex | fileExists | in | is | isNot | starts | ends | unique | uri | xDateTime | xDate | ukDate | xTime | uuid4 | positiveInteger | checksum | fileCount | parenthesesRule | range | failure("Invalid rule")
 
   def parenthesesRule: Parser[ParenthesesRule] = "(" ~> rep1(rule) <~ ")" ^^ { ParenthesesRule(_) } | failure("unmatched paren")
 
@@ -109,6 +111,8 @@ trait SchemaParser extends RegexParsers {
 
   def fileCount = "fileCount(" ~> file <~ ")" ^^ { case a  => FileCountRule(a._1.getOrElse(Literal(None)), a._2) }
 
+  def range = "range(" ~> number ~ "," ~ number <~ ")"  ^^ { case a ~ _ ~ b =>  RangeRule(a, b) }
+
   def file = "file(" ~> opt(argProvider <~ (white ~ "," ~ white)) ~ argProvider <~ ")" ^^ { a => a }
 
   def algorithm: Parser[String] = "\"" ~> stringRegex <~ "\""  ^^ { a => a }
@@ -132,7 +136,7 @@ trait SchemaParser extends RegexParsers {
 
 
   private def validate(g: List[GlobalDirective], c: List[ColumnDefinition]): String = {
-    globDirectivesValid(g) ::totalColumnsValid(g, c) :: columnDirectivesValid(c) :: duplicateColumnsValid(c) :: crossColumnsValid(c) :: checksumAlgorithmValid(c) :: Nil collect
+    globDirectivesValid(g) ::totalColumnsValid(g, c) :: columnDirectivesValid(c) :: duplicateColumnsValid(c) :: crossColumnsValid(c) :: checksumAlgorithmValid(c) :: rangeValid(c) :: Nil collect
       { case Some(s: String) => s } mkString("\n")
   }
 
@@ -190,6 +194,27 @@ trait SchemaParser extends RegexParsers {
       rule match {
         case checksum:ChecksumRule => s"""Column: ${cd.id}: Invalid Algorithm: '${checksum.algorithm}' at line: ${rule.pos.line}, column: ${rule.pos.column}"""
         case _ =>  s"""Column: ${cd.id}: Invalid Algorithm: at line: ${rule.pos.line}, column: ${rule.pos.column}"""
+      }
+    }
+
+    if (v.isEmpty) None else Some(v.mkString("\n"))
+  }
+
+
+  private def rangeValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
+    def rangeCheck(rule: Rule): Boolean = rule match {
+      case RangeRule(min,max) => min > max
+      case _ => false
+    }
+
+    val v = for {
+      cd <- columnDefinitions
+      rule <- cd.rules
+      if (rangeCheck(rule))
+    } yield {
+      rule match {
+        case range:RangeRule => s"""Column: ${cd.id}: Invalid range, minimum greater than maximum in: 'range(${range.min},${range.max})' at line: ${rule.pos.line}, column: ${rule.pos.column}"""
+        case _ =>  s"""Column: ${cd.id}: Invalid range, minimum greater than maximum: at line: ${rule.pos.line}, column: ${rule.pos.column}"""
       }
     }
 

@@ -433,4 +433,38 @@ class SchemaParserRulesSpec extends Specification {
       parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual List("""Column: MD5 has invalid cross reference checksum(file($Hello, $File), "MD5") at line: 5, column: 17""") }
     }
   }
+
+
+  "Range rule" should {
+    "succeed with two integers" in {
+      val schema = """version 1.0
+                      @totalColumns 2
+                      Age: range(0,100)
+                      MyCountry:"""
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case SuccessZ(_) => ok
+      }
+    }
+
+    "succeed with two floats" in {
+      val schema = """version 1.0
+                      @totalColumns 2
+                      Age: range(0.1,1.00)
+                      MyCountry:"""
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case SuccessZ(_) => ok
+      }
+    }
+
+    "fail if min is greater than max" in {
+      val schema = """version 1.0
+                      @totalColumns 2
+                      Age: range(100,1)
+                      MyCountry:"""
+
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case FailureZ(msgs) => msgs.list mustEqual List("""Column: Age: Invalid range, minimum greater than maximum in: 'range(100,1)' at line: 3, column: 28""")
+      }
+    }
+  }
 }

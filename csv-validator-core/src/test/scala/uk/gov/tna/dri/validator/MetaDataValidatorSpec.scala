@@ -742,5 +742,43 @@ class MetaDataValidatorSpec extends Specification {
         case Failure(messages) => messages.list mustEqual List("unique fails for line: 4, column: Name, value: Jim (original at line: 2)","unique fails for line: 5, column: Name, value: Jim (original at line: 2)")
       }
     }
+
+
+    "succeed for valid ranges" in {
+      val schema = """version 1.0
+                      @totalColumns 2
+                      Name:
+                      Age: range(0,100)"""
+
+      val metaData =
+        """Bob,10
+           Jim,20
+           Ben,30
+           Jim,40
+           Jim,50
+        """
+
+      validate(metaData, schema) must beLike { case Success(_) => ok }
+    }
+
+    "fail when values outside range" in {
+      val schema = """version 1.0
+                      @totalColumns 2 @noHeader
+                      Name:
+                      Age: range(18,65)"""
+
+      val metaData =
+        """Bob,10
+           Jim,21
+           Ben,96
+           Jim,40
+           Jim,50
+        """
+
+      validate(metaData, schema) must beLike {
+        case Failure(messages) => messages.list mustEqual List("range fails for line: 1, column: Age, value: 10","range fails for line: 3, column: Age, value: 96")
+      }
+    }
   }
+
 }
