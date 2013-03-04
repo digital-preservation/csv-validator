@@ -47,12 +47,13 @@ case class OrRule(left: Rule, right: Rule) extends Rule("or") {
   override def toError = s"""${left.toError} $name ${right.toError}"""
 }
 
-case class ParenRule(rules: List[Rule]) extends Rule("paren"){
+case class ParenthesesRule(rules: List[Rule]) extends Rule("parentheses") {
 
   override def evaluate(columnIndex: Int, row: Row, schema: Schema): RuleValidation[Any] = {
-    val v = for (rule <- rules)yield {
+    val v = for (rule <- rules) yield {
       rule.evaluate(columnIndex, row, schema)
     }
+
     v.sequence[RuleValidation, Any]
   }
 

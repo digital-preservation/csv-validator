@@ -60,10 +60,11 @@ trait SchemaParser extends RegexParsers {
 
   def columnDirective = positioned(optional | ignoreCase)
 
-  def rule: Parser[Rule] = positioned(or | unaryRule )
+  def rule: Parser[Rule] = positioned(or | unaryRule)
 
-  def unaryRule = regex | fileExists | in | is | isNot | starts | ends | unique | uri | xDateTime | xDate | ukDate | xTime | uuid4 | positiveInteger | checksum | fileCount | parenthesizesRule | failure("Invalid rule")
-  def parenthesizesRule: Parser[ParenRule] = "(" ~> rep1(rule) <~ ")" ^^ { ParenRule(_) } | failure("unmatched paren")
+  def unaryRule = regex | fileExists | in | is | isNot | starts | ends | unique | uri | xDateTime | xDate | ukDate | xTime | uuid4 | positiveInteger | checksum | fileCount | parenthesesRule | failure("Invalid rule")
+
+  def parenthesesRule: Parser[ParenthesesRule] = "(" ~> rep1(rule) <~ ")" ^^ { ParenthesesRule(_) } | failure("unmatched paren")
 
   def or: Parser[OrRule] = unaryRule ~ "or" ~ rule  ^^ { case lhs ~ _ ~ rhs => OrRule(lhs, rhs) }
 
