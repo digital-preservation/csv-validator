@@ -342,3 +342,7 @@ case class RangeRule(min: BigDecimal, max: BigDecimal) extends Rule("range") {
       }
   }
 }
+
+case class LengthRule(from: Option[String], to:String) extends Rule("length") {
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = true
+}

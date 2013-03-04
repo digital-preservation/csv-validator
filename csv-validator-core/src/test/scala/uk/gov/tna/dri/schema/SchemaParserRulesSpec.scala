@@ -467,4 +467,89 @@ class SchemaParserRulesSpec extends Specification {
       }
     }
   }
+
+  "Length rule" should {
+
+    "pass for single wildcard" in {
+      val schema = """version 1.0
+                      @totalColumns 1
+                      Age: length(*)"""
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case SuccessZ(_) => ok
+      }
+    }
+
+    "pass for two wildcards" in {
+      val schema = """version 1.0
+                      @totalColumns 1
+                      Age: length(*,*)"""
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case SuccessZ(_) => ok
+      }
+    }
+
+    "pass for single int" in {
+      val schema = """version 1.0
+                      @totalColumns 1
+                      Age: length(12)"""
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case SuccessZ(_) => ok
+      }
+    }
+
+    "pass for ints" in {
+      val schema = """version 1.0
+                      @totalColumns 1
+                      Age: length(1,33)"""
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case SuccessZ(_) => ok
+      }
+    }
+
+    "pass for wildcard and int" in {
+      val schema = """version 1.0
+                      @totalColumns 1
+                      Age: length(*,55)"""
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case SuccessZ(_) => ok
+      }
+    }
+
+    "pass for int and wildcard" in {
+      val schema = """version 1.0
+                      @totalColumns 1
+                      Age: length(4,*)"""
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case SuccessZ(_) => ok
+      }
+    }
+
+    "fail for single value that is not a wild card or int" in {
+      val schema = """version 1.0
+                      @totalColumns 1
+                      Age: length(1.1)"""
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case FailureZ(_) => ok
+      }
+    }
+
+    "fail for invalid first value" in {
+      val schema = """version 1.0
+                      @totalColumns 1
+                      Age: length(a,*)"""
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case FailureZ(_) => ok
+      }
+    }
+
+    "fail for invalid second value" in {
+      val schema = """version 1.0
+                      @totalColumns 1
+                      Age: length(*,a)"""
+      parseAndValidate(new StringReader(schema))must beLike {
+        case FailureZ(_) => ok
+      }
+    }
+
+  }
 }

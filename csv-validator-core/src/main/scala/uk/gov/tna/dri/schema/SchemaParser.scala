@@ -64,7 +64,8 @@ trait SchemaParser extends RegexParsers {
 
   def rule: Parser[Rule] = positioned(or | unaryRule)
 
-  def unaryRule = regex | fileExists | in | is | isNot | starts | ends | unique | uri | xDateTime | xDate | ukDate | xTime | uuid4 | positiveInteger | checksum | fileCount | parenthesesRule | range | failure("Invalid rule")
+  def unaryRule = regex | fileExists | in | is | isNot | starts | ends | unique | uri | xDateTime | xDate | ukDate | xTime |
+    uuid4 | positiveInteger | checksum | fileCount | parenthesesRule | range | lengthExpr | failure("Invalid rule")
 
   def parenthesesRule: Parser[ParenthesesRule] = "(" ~> rep1(rule) <~ ")" ^^ { ParenthesesRule(_) } | failure("unmatched paren")
 
@@ -112,6 +113,11 @@ trait SchemaParser extends RegexParsers {
   def fileCount = "fileCount(" ~> file <~ ")" ^^ { case a  => FileCountRule(a._1.getOrElse(Literal(None)), a._2) }
 
   def range = "range(" ~> number ~ "," ~ number <~ ")"  ^^ { case a ~ _ ~ b =>  RangeRule(a, b) }
+
+  def lengthExpr: Parser[LengthRule] = ("length(" ~> opt(("*"| positiveNumber) <~ ",") ~ ("*" | positiveNumber) <~ ")") ^^ {
+    case a ~ b => LengthRule(a,b)
+  }
+
 
   def file = "file(" ~> opt(argProvider <~ (white ~ "," ~ white)) ~ argProvider <~ ")" ^^ { a => a }
 
