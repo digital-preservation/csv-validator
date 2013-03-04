@@ -109,7 +109,7 @@ trait SchemaParser extends RegexParsers {
 
   def file = "file(" ~> opt(argProvider <~ (white ~ "," ~ white)) ~ argProvider <~ ")" ^^ { a => a }
 
-  def algorithm: Parser[String] = "\"" ~> stringRegex <~ "\"" ^? (validateAlgorithm, s => "Invalid Algorithm " + s)
+  def algorithm: Parser[String] = "\"" ~> stringRegex <~ "\""  ^^ { a => a }
 
   def optional = "@optional" ^^^ Optional()
 
@@ -128,12 +128,9 @@ trait SchemaParser extends RegexParsers {
     case Regex(_, s, _) if Try(s.r).isSuccess => RegexRule(Literal(Some(s)))
   }
 
-  private def validateAlgorithm: PartialFunction[String, String] = {
-    case s: String if Try(MessageDigest.getInstance(s)).isSuccess => s
-  }
 
   private def validate(g: List[GlobalDirective], c: List[ColumnDefinition]): String =
-    totalColumnsValid(g, c) :: columnDirectivesValid(c) :: duplicateColumnsValid(c) :: crossColumnsValid(c) :: Nil collect  { case Some(s: String) => s } mkString("\n")
+    totalColumnsValid(g, c) :: columnDirectivesValid(c) :: duplicateColumnsValid(c) :: crossColumnsValid(c) :: checksumAlgorithmValid(c) :: Nil collect  { case Some(s: String) => s } mkString("\n")
 
   private def totalColumnsValid(g: List[GlobalDirective], c: List[ColumnDefinition]): Option[String] = {
     val tc: Option[TotalColumns] = g.collectFirst { case t @ TotalColumns(_) => t }
@@ -162,6 +159,32 @@ trait SchemaParser extends RegexParsers {
 
     if (v.isEmpty) None else Some(v.mkString("\n"))
   }
+
+  private def checksumAlgorithmValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
+
+    def algorithmCheck(rule: Rule): Boolean = rule match {
+      case checksum:ChecksumRule => Try(
+        // 3rd party checksum algorithm may need to be checked here
+        // if not added a part of the Service Provider Interface (SPI)
+        MessageDigest.getInstance(checksum.algorithm)
+      ).isFailure
+      case _ => false
+    }
+
+    val v = for {
+      cd <- columnDefinitions
+      rule <- cd.rules
+      if (algorithmCheck(rule))
+    } yield {
+      rule match {
+        case checksum:ChecksumRule => s"""Column: ${cd.id}: Invalid Algorithm: '${checksum.algorithm}' at line: ${rule.pos.line}, column: ${rule.pos.column}"""
+        case _ =>  s"""Column: ${cd.id}: Invalid Algorithm: at line: ${rule.pos.line}, column: ${rule.pos.column}"""
+      }
+    }
+
+    if (v.isEmpty) None else Some(v.mkString("\n"))
+  }
+
 
   private def crossColumnsValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
     def filterRules(cds: ColumnDefinition ): List[Rule] = { // List of failing rules

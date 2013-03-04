@@ -192,10 +192,39 @@ class SchemaParserRulesSpec extends Specification {
            MD5: checksum(file($File), "INVALID")
         """
 
-      parse(new StringReader(schema)) must beLike {
-        case Failure(messages, _) => messages mustEqual "Invalid Algorithm INVALID"
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case FailureZ(msgs) => msgs.list mustEqual List("""Column: MD5: Invalid Algorithm: 'INVALID' at line: 4, column: 17""")
       }
     }
+
+    "fail when 2 columns have invalid algorithms" in {
+      val schema =
+        """version 1.0
+           @totalColumns 3 @noHeader
+           File:
+           MD5: checksum(file($File), "INVALID")
+           chksum: checksum(file($File), "WRONG")
+        """
+
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case FailureZ(msgs) => msgs.list mustEqual List("Column: MD5: Invalid Algorithm: 'INVALID' at line: 4, column: 17\nColumn: chksum: Invalid Algorithm: 'WRONG' at line: 5, column: 20")
+      }
+    }
+
+    "fail when having one valid and one invalid algorithm" in {
+      val schema =
+        """version 1.0
+           @totalColumns 3 @noHeader
+           File:
+           MD5: checksum(file($File), "INVALID")
+           chksum: checksum(file($File), "MD5")
+        """
+
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case FailureZ(msgs) => msgs.list mustEqual List("""Column: MD5: Invalid Algorithm: 'INVALID' at line: 4, column: 17""")
+      }
+    }
+
   }
 
   "succeed for cross reference in rule" in {
