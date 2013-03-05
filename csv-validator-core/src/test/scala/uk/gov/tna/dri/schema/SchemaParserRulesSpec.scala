@@ -551,5 +551,27 @@ class SchemaParserRulesSpec extends Specification {
       }
     }
 
+    "fail for invalid second value" in {
+      val schema = """version 1.0
+                      @totalColumns 1
+                      Age: length(100,1)"""
+
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case FailureZ(msgs) => msgs.list mustEqual List("""Column: Age: Invalid length, minimum greater than maximum in: 'length(100,1)' at line: 3, column: 28""")
+      }
+
+    }
+
+    "fail for invalid value in rule" in {
+      val schema = """version 1.0
+                      @totalColumns 1
+                      Age: length(hello,1)"""
+
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case FailureZ(_) => ok
+      }
+
+    }
+
   }
 }

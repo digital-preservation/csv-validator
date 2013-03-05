@@ -776,7 +776,25 @@ class MetaDataValidatorSpec extends Specification {
         """
 
       validate(metaData, schema) must beLike {
-        case Failure(messages) => messages.list mustEqual List("range fails for line: 1, column: Age, value: 10","range fails for line: 3, column: Age, value: 96")
+        case Failure(messages) => messages.list mustEqual List("range(18,65) fails for line: 1, column: Age, value: 10","range(18,65) fails for line: 3, column: Age, value: 96")
+      }
+    }
+
+    "fail when cell length outside range" in {
+      val schema = """version 1.0
+                      @totalColumns 1 @noHeader
+                      Name: length(*,3)"""
+
+      val metaData =
+        """Bob
+           Jim
+           Benny
+           Jim
+           Timmy
+        """
+
+      validate(metaData, schema) must beLike {
+        case Failure(messages) => messages.list mustEqual List("length(*,3) fails for line: 3, column: Name, value: Benny","length(*,3) fails for line: 5, column: Name, value: Timmy")
       }
     }
   }

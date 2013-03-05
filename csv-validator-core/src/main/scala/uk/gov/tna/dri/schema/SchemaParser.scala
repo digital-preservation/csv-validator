@@ -142,7 +142,7 @@ trait SchemaParser extends RegexParsers {
 
 
   private def validate(g: List[GlobalDirective], c: List[ColumnDefinition]): String = {
-    globDirectivesValid(g) ::totalColumnsValid(g, c) :: columnDirectivesValid(c) :: duplicateColumnsValid(c) :: crossColumnsValid(c) :: checksumAlgorithmValid(c) :: rangeValid(c) :: Nil collect
+    globDirectivesValid(g) ::totalColumnsValid(g, c) :: columnDirectivesValid(c) :: duplicateColumnsValid(c) :: crossColumnsValid(c) :: checksumAlgorithmValid(c) :: rangeValid(c) :: lengthValid(c) :: Nil collect
       { case Some(s: String) => s } mkString("\n")
   }
 
@@ -221,6 +221,27 @@ trait SchemaParser extends RegexParsers {
       rule match {
         case range:RangeRule => s"""Column: ${cd.id}: Invalid range, minimum greater than maximum in: 'range(${range.min},${range.max})' at line: ${rule.pos.line}, column: ${rule.pos.column}"""
         case _ =>  s"""Column: ${cd.id}: Invalid range, minimum greater than maximum: at line: ${rule.pos.line}, column: ${rule.pos.column}"""
+      }
+    }
+
+    if (v.isEmpty) None else Some(v.mkString("\n"))
+  }
+
+
+  private def lengthValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
+    def lengthCheck(rule: Rule): Boolean = rule match {
+      case LengthRule(Some(from),to) => if (from == "*" || to == "*") true else from.toInt <= to.toInt
+      case _ => true
+    }
+
+    val v = for {
+      cd <- columnDefinitions
+      rule <- cd.rules
+      if (!lengthCheck(rule))
+    } yield {
+      rule match {
+        case len:LengthRule => s"""Column: ${cd.id}: Invalid length, minimum greater than maximum in: 'length(${len.from.getOrElse("")},${len.to})' at line: ${rule.pos.line}, column: ${rule.pos.column}"""
+        case _ =>  s"""Column: ${cd.id}: Invalid length, minimum greater than maximum: at line: ${rule.pos.line}, column: ${rule.pos.column}"""
       }
     }
 

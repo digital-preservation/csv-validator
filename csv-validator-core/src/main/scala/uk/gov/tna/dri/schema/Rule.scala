@@ -341,8 +341,18 @@ case class RangeRule(min: BigDecimal, max: BigDecimal) extends Rule("range") {
         case _ => false
       }
   }
+
+  override def toError = s"""$name($min,$max)"""
+
 }
 
 case class LengthRule(from: Option[String], to:String) extends Rule("length") {
-  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = true
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
+    val cellLen = cellValue.length
+    val fromInt: Int = if (from.getOrElse("*") == "*") 0 else from.get.toInt
+    val toInt: Int = if (to == "*") Int.MaxValue else to.toInt
+    if (cellLen < fromInt || cellLen > toInt) false else true
+  }
+
+  override def toError = if(from.isDefined) s"""$name(${from.get},$to)""" else s"""$name($to)"""
 }
