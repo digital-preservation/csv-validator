@@ -3,8 +3,8 @@ package uk.gov.tna.dri.validator
 import org.specs2.mutable.Specification
 import uk.gov.tna.dri.schema._
 import java.io.{Reader, StringReader}
-import scalaz.Success
 import uk.gov.tna.dri.schema.Schema
+import scalaz.Success
 import scalaz.Failure
 
 class MetaDataValidatorSpec extends Specification {
@@ -797,6 +797,62 @@ class MetaDataValidatorSpec extends Specification {
         case Failure(messages) => messages.list mustEqual List("length(*,3) fails for line: 3, column: Name, value: Benny","length(*,3) fails for line: 5, column: Name, value: Timmy")
       }
     }
+
+    "succeed with an 'and' command" in {
+      val schema = """version 1.0
+                      @totalColumns 1 @noHeader
+                      Name: length(5) and length(*,*) and is("Hello")"""
+
+      val metaData =
+        """Hello
+        """
+
+      validate(metaData, schema) must beLike { case Success(_) => ok }
+    }
+
+
+
+    "fail with good () error message" in {
+      val schema = """version 1.0
+                      @totalColumns 1 @noHeader
+                      Name: (length(5) and length(*,*) ) and is("Hello")"""
+
+      val metaData =
+        """Hello
+           World
+        """
+
+      validate(metaData, schema) must beLike {
+        case Failure(messages) => messages.list mustEqual List("""(length(5) and length(*,*)) and is("Hello") fails for line: 2, column: Name, value: World""")
+      }
+    }
+
+    "succeed when checksum matches given value" in {
+      val schema =
+        """version 1.0
+           @totalColumns 2 @noHeader
+           File:
+           MD5: checksum(file("src/test/resources/uk/gov/tna/dri/schema/checksum.txt"), "MD5")
+        """
+
+      val metaData = """src/test/resources/uk/gov/tna/dri/schema/checksum.txt,232762380299115da6995e4c4ac22fa2"""
+
+      validate(metaData, schema) must beLike { case Success(_) => ok }
+    }
+
+    "succeed when fileCount matches given root & cross referenced file" in {
+      val schema =
+        """version 1.0
+           @totalColumns 2 @noHeader
+           File:
+           Count: fileCount(file("src/test/resources/uk/gov/tna/dri/schema", $File))
+        """
+
+      val metaData = """checksum.txt,1"""
+
+      validate(metaData, schema) must beLike { case Success(_) => ok }
+    }
+
   }
 
 }

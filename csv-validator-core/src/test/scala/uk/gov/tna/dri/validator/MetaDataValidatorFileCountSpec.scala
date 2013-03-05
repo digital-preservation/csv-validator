@@ -113,7 +113,7 @@ class MetaDataValidatorFileCountSpec extends Specification {
   }
 
   "FileCount with rootpath and filename in schema" should {
-    "succeed when calculated algorithm does match given cross referenced string value" in {
+    "succeed when files found does match given cross referenced value" in {
       val schema =
         """version 1.0
            @totalColumns 2 @noHeader
@@ -126,7 +126,7 @@ class MetaDataValidatorFileCountSpec extends Specification {
       validate(metaData, schema) must beLike { case Success(_) => ok }
     }
 
-    "fail when calculated algorithm does match given cross referenced string value" in {
+    "fail when files found does match given cross referenced value" in {
       val schema =
         """version 1.0
            @totalColumns 2 @noHeader
@@ -144,7 +144,7 @@ class MetaDataValidatorFileCountSpec extends Specification {
 
   "FileCount with root in schema and file in metadata" should {
 
-    "succeed when calculated algorithm does match given root & cross referenced string value" in {
+    "succeed when fileCount does match given root & cross referenced string value" in {
       val schema =
         """version 1.0
            @totalColumns 2 @noHeader
@@ -176,7 +176,7 @@ class MetaDataValidatorFileCountSpec extends Specification {
 
   "FileCount with fullpath in metedata" should {
 
-    "succeed when calculated algorithm does match given cross referenced string value" in {
+    "succeed when files found for a crossed reference does match given value" in {
       val schema =
         """version 1.0
            @totalColumns 2 @noHeader
@@ -189,7 +189,7 @@ class MetaDataValidatorFileCountSpec extends Specification {
       validate(metaData, schema) must beLike { case Success(_) => ok }
     }
 
-    "fail when calculated algorithm does not match given cross referenced string value" in {
+    "fail when files found for a crossed reference does not match given value" in {
       val schema =
         """version 1.0
            @totalColumns 2 @noHeader
