@@ -347,12 +347,33 @@ case class RangeRule(min: BigDecimal, max: BigDecimal) extends Rule("range") {
 }
 
 case class LengthRule(from: Option[String], to:String) extends Rule("length") {
+
+  def toValue:Int = if (to == "*") Int.MaxValue else to.toInt
+  def fromValue:Int =  if (from.get == "*") 0 else from.get.toInt
+
   def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
     val cellLen = cellValue.length
-    val fromInt: Int = if (from.getOrElse("*") == "*") 0 else from.get.toInt
-    val toInt: Int = if (to == "*") Int.MaxValue else to.toInt
-    if (cellLen < fromInt || cellLen > toInt) false else true
+    from match {
+      case None => if ( to=="*") true else cellLen == to.toInt
+      case Some(_) => cellLen >= fromValue && cellLen <= toValue
+    }
   }
 
   override def toError = if(from.isDefined) s"""$name(${from.get},$to)""" else s"""$name($to)"""
+}
+
+case class AndRule(left: Rule, right: Rule) extends Rule("and") {
+  override def evaluate(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
+    left.evaluate(columnIndex, row, schema) match {
+      case s @ Failure(_) => s
+      case Success(_) => right.evaluate(columnIndex, row, schema) match {
+        case s @ Success(_) => s
+        case Failure(_) => fail(columnIndex, row, schema)
+      }
+    }
+  }
+
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = true
+
+  override def toError = s"""${left.toError} $name ${right.toError}"""
 }

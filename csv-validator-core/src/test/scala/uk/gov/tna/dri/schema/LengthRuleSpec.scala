@@ -11,13 +11,13 @@ class LengthRuleSpec extends Specification {
     "succeed with a matching single number" in {
       val lengthRule = new LengthRule(None, "5")
 
-      lengthRule.evaluate(0, Row(List(Cell("5")), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition("column1")))) mustEqual Success(true)
+      lengthRule.evaluate(0, Row(List(Cell("Hello")), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition("column1")))) mustEqual Success(true)
     }
 
     "succeed with a matching single '*'" in {
       val lengthRule = new LengthRule(None, "*")
 
-      lengthRule.evaluate(0, Row(List(Cell("5")), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition("column1")))) mustEqual Success(true)
+      lengthRule.evaluate(0, Row(List(Cell("Hello")), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition("column1")))) mustEqual Success(true)
     }
 
     "fail with a non-matching single number" in {
@@ -91,6 +91,15 @@ class LengthRuleSpec extends Specification {
       val lengthRule = new LengthRule(Some("*"), "*")
 
       lengthRule.evaluate(0, Row(List(Cell("HelloWorld")), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition("column1")))) mustEqual Success(true)
+    }
+
+
+    "fail with length is longer than cell" in {
+      val lengthRule = new LengthRule(None, "43")
+
+      lengthRule.evaluate(0, Row(List(Cell("helloworld")), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition("column1")))) must beLike {
+        case Failure(m) => m.list mustEqual List("""length(43) fails for line: 1, column: column1, value: helloworld""")
+      }
     }
 
   }

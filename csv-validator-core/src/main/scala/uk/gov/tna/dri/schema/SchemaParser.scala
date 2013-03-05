@@ -62,7 +62,7 @@ trait SchemaParser extends RegexParsers {
 
   def columnDirective = positioned(optional | ignoreCase)
 
-  def rule: Parser[Rule] = positioned(or | unaryRule)
+  def rule: Parser[Rule] = positioned( and | or | unaryRule)
 
   def unaryRule = regex | fileExists | in | is | isNot | starts | ends | unique | uri | xDateTime | xDate | ukDate | xTime |
     uuid4 | positiveInteger | checksum | fileCount | parenthesesRule | range | lengthExpr | failure("Invalid rule")
@@ -70,6 +70,8 @@ trait SchemaParser extends RegexParsers {
   def parenthesesRule: Parser[ParenthesesRule] = "(" ~> rep1(rule) <~ ")" ^^ { ParenthesesRule(_) } | failure("unmatched paren")
 
   def or: Parser[OrRule] = unaryRule ~ "or" ~ rule  ^^ { case lhs ~ _ ~ rhs => OrRule(lhs, rhs) }
+
+  def and: Parser[AndRule] = unaryRule ~ "and" ~ rule  ^^  { case lhs ~ _ ~ rhs =>  AndRule(lhs, rhs) }
 
   def regex = "regex" ~> regexParser ^? (validateRegex, s => s"regex invalid: $s") | failure("Invalid regex rule")
 
