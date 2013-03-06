@@ -722,6 +722,23 @@ class MetaDataValidatorSpec extends Specification {
       }
     }
 
+    "succeed for unique rule that is unique" in {
+      val schema = """version 1.0
+                      @totalColumns 2
+                      Name: unique
+                      Age: range(0,100)"""
+
+      val metaData =
+        """Bob,10
+           Jim,20
+           Ben,30
+           David,40
+           Andy,50
+        """
+
+      validate(metaData, schema) must beLike { case Success(_) => ok }
+    }
+
     "fail for multiple duplicates for unique rule" in {
 
       val schema =
@@ -741,6 +758,109 @@ class MetaDataValidatorSpec extends Specification {
       validate(metaData, schema) must beLike {
         case Failure(messages) => messages.list mustEqual List("unique fails for line: 4, column: Name, value: Jim (original at line: 2)","unique fails for line: 5, column: Name, value: Jim (original at line: 2)")
       }
+    }
+
+    "succeed for valid uri" in {
+      val schema = """version 1.0
+                      @totalColumns 1 @noHeader
+                      uri: uri"""
+
+      val metaData =
+        """http://datagov.nationalarchives.gov.uk/66/WO/409/123/123/12345678-1234-4abc-8123-ffffffffffff
+           http://datagov.nationalarchives.gov.uk/66/WO/409/456/222/aaaaaaaa-1234-4abc-9132-aaaaaaaaaaaa
+           http://datagov.nationalarchives.gov.uk/66/WO/409/789/22222/aa11bb33-1234-4abc-a123-ffffffffffff
+           http://datagov.nationalarchives.gov.uk/66/WO/409/1234/4444/12345678-5678-4abc-b123-aaaaaaaaaaaa
+           http://datagov.nationalarchives.gov.uk/66/WO/409/5678/1333/12345678-abcd-4abc-8123-ffffffffffff
+        """
+
+      validate(metaData, schema) must beLike { case Success(_) => ok }
+    }
+
+    "succeed for valid xDateTime (if you can guess the dates without google see me for a prize)" in {
+      val schema = """version 1.0
+                      @totalColumns 1 @noHeader
+                      date: xDateTime"""
+
+      val metaData =
+        """1969-07-21T02:56:00
+           1215-06-15T00:00:00
+           1844-05-24T00:00:00
+           1066-10-14T00:00:00
+           1966-07-30T00:00:00
+        """
+
+      validate(metaData, schema) must beLike { case Success(_) => ok }
+    }
+
+    "succeed for valid xDate (no prizes for the dates this time)" in {
+      val schema = """version 1.0
+                      @totalColumns 1 @noHeader
+                      date: xDate"""
+
+      val metaData =
+        """1953-06-02
+           1945-09-02
+           2001-09-11
+           1805-10-21
+           1963-11-22
+        """
+
+      validate(metaData, schema) must beLike { case Success(_) => ok }
+    }
+
+    "succeed for valid UK Date" in {
+      val schema = """version 1.0
+                      @totalColumns 1 @noHeader
+                      date: ukDate"""
+
+      val metaData =
+        """02/02/2013
+           2/2/2013
+           3/12/2013
+           12/12/2013
+           12/12/2013
+        """
+
+      validate(metaData, schema) must beLike { case Success(_) => ok }
+    }
+
+    "succeed for valid Xsd Time" in {
+      val schema = """version 1.0
+                      @totalColumns 1 @noHeader
+                      date: xTime"""
+
+      val metaData =
+        """09:11:10"""
+
+      validate(metaData, schema) must beLike { case Success(_) => ok }
+    }
+
+    "succeed for valid uuid 4 rule" in {
+      val schema = """version 1.0
+                      @totalColumns 1 @noHeader
+                      date: uuid4"""
+
+      val metaData =
+        """12345678-1234-4abc-8123-ffffffffffff
+           aaaaaaaa-1234-4abc-9132-aaaaaaaaaaaa
+           aa11bb33-1234-4abc-a123-ffffffffffff
+        """
+
+      validate(metaData, schema) must beLike { case Success(_) => ok }
+    }
+
+    "succeed for valid positive integer" in {
+      val schema = """version 1.0
+                      @totalColumns 1 @noHeader
+                      date: positiveInteger"""
+
+      val metaData =
+        """001
+           12340
+           123456789
+        """
+
+      validate(metaData, schema) must beLike { case Success(_) => ok }
     }
 
 
@@ -850,6 +970,16 @@ class MetaDataValidatorSpec extends Specification {
 
       val metaData = """checksum.txt,1"""
 
+      validate(metaData, schema) must beLike { case Success(_) => ok }
+    }
+
+    "succeed column id with A-Z a-z 0-9 - _ ." in {
+      val schema =
+        """version 1.0
+           @totalColumns 1 @noHeader
+           Na123-me._:
+        """
+      val metaData ="Joe Bloggs"
       validate(metaData, schema) must beLike { case Success(_) => ok }
     }
 
