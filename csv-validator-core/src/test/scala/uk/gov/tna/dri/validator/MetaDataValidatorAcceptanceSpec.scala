@@ -9,7 +9,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
 
   val basePath = "src/test/resources/uk/gov/tna/dri/validator/acceptance/"
 
-  val v: MetaDataValidatorApp = new MetaDataValidatorApp with AllErrorsMetaDataValidator
+  val v: MetaDataValidatorApp = new MetaDataValidatorApp with AllErrorsMetaDataValidator  { val pathSubstitutions = List[(String,String)]() }
   import v.{validate, parseSchema}
 
   def parse(filePath: String): Schema = parseSchema(filePath) fold (f => throw new IllegalArgumentException(f.toString), s => s)
@@ -137,7 +137,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
   }
 
   "Validate fail fast" should {
-    val app = new MetaDataValidatorApp with FailFastMetaDataValidator
+    val app = new MetaDataValidatorApp with FailFastMetaDataValidator  { val pathSubstitutions = List[(String,String)]() }
 
     "only report first error for invalid @TotalColumns" in {
       app.validate(basePath + "totalColumnsFailMetaData.csv", parse(basePath + "totalColumnsSchema.txt")) must beLike {

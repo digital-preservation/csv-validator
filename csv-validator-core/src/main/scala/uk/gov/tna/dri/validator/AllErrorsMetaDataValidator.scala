@@ -7,6 +7,8 @@ import uk.gov.tna.dri.metadata.{Cell, Row}
 
 trait AllErrorsMetaDataValidator extends MetaDataValidator {
 
+  val pathSubstitutions: List[(String,String)]
+
   def validateRows(rows: List[Row], schema: Schema): MetaDataValidation[Any] = {
     val v = for (row <- rows) yield validateRow(row, schema)
     v.sequence[MetaDataValidation, Any]

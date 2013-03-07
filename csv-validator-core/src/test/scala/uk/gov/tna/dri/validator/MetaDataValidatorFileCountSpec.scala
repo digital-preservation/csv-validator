@@ -13,6 +13,7 @@ class MetaDataValidatorFileCountSpec extends Specification {
 
   implicit def stringToSchema(s: String): Schema = {
     val schemaParser = new SchemaParser() {
+      val pathSubstitutions = List[(String,String)]()
       override def parse(reader: Reader): ParseResult[Schema] = super.parse(reader) match {
         case s@Success(schema: Schema, _) => s
         case NoSuccess(message, next) => throw new RuntimeException(message)
@@ -22,7 +23,7 @@ class MetaDataValidatorFileCountSpec extends Specification {
     schemaParser.parse(s).get
   }
 
-  object TestMetaDataValidator extends AllErrorsMetaDataValidator
+  object TestMetaDataValidator extends AllErrorsMetaDataValidator { val pathSubstitutions = List[(String,String)]() }
 
   import TestMetaDataValidator._
 

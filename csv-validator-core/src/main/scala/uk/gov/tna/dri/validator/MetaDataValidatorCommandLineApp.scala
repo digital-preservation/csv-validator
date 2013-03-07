@@ -20,6 +20,8 @@ object MetaDataValidatorCommandLineApp extends App {
 
   def run(args: Array[String]): Int = {
 
+    val pathSubstitutionsList: List[(String,String)] = findSubstitutionPaths(args.toList)
+
     val (failFast, fileArgs) = failFastAndFileArgs(args.toList)
 
     checkFileArguments(fileArgs) match {
@@ -30,7 +32,7 @@ object MetaDataValidatorCommandLineApp extends App {
         val (metaDataFile, schemaFile) = inputFilePaths(fileArgs)
         println("Validating...")
 
-        val validator = if (failFast) new MetaDataValidatorApp with FailFastMetaDataValidator else new MetaDataValidatorApp with AllErrorsMetaDataValidator
+        val validator = if (failFast) new MetaDataValidatorApp with FailFastMetaDataValidator { val pathSubstitutions = pathSubstitutionsList } else new MetaDataValidatorApp with AllErrorsMetaDataValidator { val pathSubstitutions = pathSubstitutionsList }
 
         validator.parseSchema(schemaFile) match {
           case FailureZ(errors) => println(prettyPrint(errors)); SystemExits.InvalidSchema
@@ -56,13 +58,22 @@ object MetaDataValidatorCommandLineApp extends App {
   }
 
   def failFastAndFileArgs(args: List[String]) = {
-    val (flags, files) = args.partition( a => a ==  "--fail-fast" || a == "-f")
-    (flags.nonEmpty, files)
+    val (flags, files) = args.partition( a => a.startsWith("-")) // ==  "--fail-fast" || a == "-f")
+    (flags.contains( "--fail-fast" ) || flags.contains( "-f" ), files)
   }
 
   private def fileArgumentCountValid(fileArgs: List[String]) = fileArgs.length == 2
 
-  private def usage = "Usage: validate [--fail-fast] <meta-data file path> <schema file path>"
+  def findSubstitutionPaths(args: List[String]): List[(String,String)]= {
+    val cmdName = "--path="
+    val paths =  args.filter( a => a.startsWith(cmdName))
+    paths.map( p => {
+      val i = p.drop(cmdName.length).split("-->").lift
+      (i(0).getOrElse(""),i(1).getOrElse(""))
+    })
+  }
+
+  private def usage = "Usage: validate [--fail-fast] [--path=<from>,<to>]* <meta-data file path> <schema file path>"
 
   private def inputFilePaths(fileArgs: List[String]) = (fileArgs(0), fileArgs(1))
 
@@ -77,6 +88,8 @@ object MetaDataValidatorCommandLineApp extends App {
 
 trait MetaDataValidatorApp extends SchemaParser {
   this: MetaDataValidator =>
+
+  val pathSubstitutions: List[(String,String)]
 
   def validate(metaDataFile: String, schema: Schema): MetaDataValidation[Any] = {
      validate(new FileReader(metaDataFile), schema)

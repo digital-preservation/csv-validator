@@ -10,6 +10,9 @@ import Scalaz._
 
 trait SchemaParser extends RegexParsers {
 
+  val pathSubstitutions: List[(String,String)]
+
+
   override protected val whiteSpace = """[ \t]*""".r
 
   val white: Parser[String] = whiteSpace
@@ -105,8 +108,8 @@ trait SchemaParser extends RegexParsers {
 
   def fileArgProvider: Parser[ArgProvider] = "$" ~> columnIdentifier ^^ { s => ColumnReference(s) } | '\"' ~> rootFilePath <~ '\"' ^^ {s => Literal(Some(s)) }
 
-  def fileExists = ("fileExists(" ~> fileArgProvider <~ ")" ^^ { s => FileExistsRule(s) }).withFailureMessage("fileExists rule has an invalid file path") |
-    "fileExists" ^^^ { FileExistsRule() } | failure("Invalid fileExists rule")
+  def fileExists = ("fileExists(" ~> fileArgProvider <~ ")" ^^ { s => FileExistsRule(pathSubstitutions, s) }).withFailureMessage("fileExists rule has an invalid file path") |
+    "fileExists" ^^^ { FileExistsRule( pathSubstitutions ) } | failure("Invalid fileExists rule")
 
   def rootFilePath: Parser[String] = """[a-zA-Z/-_\.\d\\:]+""".r
 

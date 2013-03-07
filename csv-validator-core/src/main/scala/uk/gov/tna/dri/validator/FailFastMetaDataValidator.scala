@@ -13,6 +13,8 @@ import annotation.tailrec
 
 trait FailFastMetaDataValidator extends MetaDataValidator {
 
+  val pathSubstitutions: List[(String,String)]
+
   def validateRows(rows: List[Row], schema: Schema): MetaDataValidation[Any] = {
 
     @tailrec

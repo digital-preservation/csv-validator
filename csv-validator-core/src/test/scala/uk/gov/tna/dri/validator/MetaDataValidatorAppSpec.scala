@@ -1,10 +1,9 @@
 package uk.gov.tna.dri.validator
 
-import org.specs2.mutable.{Before, BeforeAfter, Specification}
+import org.specs2.mutable.Specification
 import scalaz._
 import uk.gov.tna.dri.schema.Schema
 import java.io.StringReader
-import java.security.Permission
 
 class MetaDataValidatorAppSpec extends Specification {
 
@@ -13,19 +12,19 @@ class MetaDataValidatorAppSpec extends Specification {
   "Check arguments" should {
     "give usage message when no arguments supplied" in {
       MetaDataValidatorCommandLineApp.checkFileArguments(Nil) must beLike {
-        case Failure(errors) => errors.list mustEqual List("Usage: validate [--fail-fast] <meta-data file path> <schema file path>")
+        case Failure(errors) => errors.list mustEqual List("Usage: validate [--fail-fast] [--path=<from>,<to>]* <meta-data file path> <schema file path>")
       }
     }
 
     "give usage message when one argument supplied" in {
       MetaDataValidatorCommandLineApp.checkFileArguments(List("meta file")) must beLike {
-        case Failure(errors) => errors.list mustEqual List("Usage: validate [--fail-fast] <meta-data file path> <schema file path>")
+        case Failure(errors) => errors.list mustEqual List("Usage: validate [--fail-fast] [--path=<from>,<to>]* <meta-data file path> <schema file path>")
       }
     }
 
     "give usage message when too many arguments supplied" in {
       MetaDataValidatorCommandLineApp.checkFileArguments(List("somMetaData.csv", "someSchema.txt", "something extra")) must beLike {
-        case Failure(errors) => errors.list mustEqual List("Usage: validate [--fail-fast] <meta-data file path> <schema file path>")
+        case Failure(errors) => errors.list mustEqual List("Usage: validate [--fail-fast] [--path=<from>,<to>]* <meta-data file path> <schema file path>")
       }
     }
 
@@ -86,10 +85,15 @@ class MetaDataValidatorAppSpec extends Specification {
     "have exit code 3 when the metadata is invalid" in {
       MetaDataValidatorCommandLineApp.run(Array(basePath + "acceptance/standardRulesFailMetaData.csv", basePath + "acceptance/standardRulesSchema.txt")) mustEqual 3
     }
+
+    "handle --path option" in {
+      val commandLine = List[String]("""--path=c:-->""", """--path=file://c:-->file://""", "--fail-fast")
+      MetaDataValidatorCommandLineApp.findSubstitutionPaths(commandLine) mustEqual List( ("c:", ""), ("file://c:", "file://") )
+    }
   }
 
   "Parsing schema" should {
-    val app = new MetaDataValidatorApp with AllErrorsMetaDataValidator
+    val app = new MetaDataValidatorApp with AllErrorsMetaDataValidator { val pathSubstitutions = List[(String,String)]() }
 
     "report position on parse fail" in {
 
@@ -111,9 +115,9 @@ class MetaDataValidatorAppSpec extends Specification {
   }
 
   "Validation" should {
-    val app = new MetaDataValidatorApp with AllErrorsMetaDataValidator
+    val app = new MetaDataValidatorApp with AllErrorsMetaDataValidator { val pathSubstitutions = List[(String,String)]() }
 
-    def parse(filePath: String): Schema = app.parseSchema(filePath) fold (f => throw new IllegalArgumentException(f.toString), s => s)
+    def parse(filePath: String): Schema = app.parseSchema(filePath) fold (f => throw new IllegalArgumentException(f.toString()), s => s)
 
     "succeed for valid schema and metadata file" in {
       app.validate(basePath + "metaData.csv", parse(basePath + "schema.txt")) must beLike {

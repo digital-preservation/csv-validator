@@ -13,6 +13,7 @@ class MetaDataValidatorSpec extends Specification {
 
   implicit def stringToSchema(s: String): Schema = {
     val schemaParser = new SchemaParser() {
+      val pathSubstitutions = List[(String,String)]()
       override def parse(reader: Reader): ParseResult[Schema] = {
         super.parse(reader) match {
           case s @ Success(schema: Schema, _) => s
@@ -24,7 +25,7 @@ class MetaDataValidatorSpec extends Specification {
     schemaParser.parse(s).get
   }
 
-  object TestMetaDataValidator extends AllErrorsMetaDataValidator
+  object TestMetaDataValidator extends AllErrorsMetaDataValidator { val pathSubstitutions = List[(String,String)]() }
 
   import TestMetaDataValidator._
 

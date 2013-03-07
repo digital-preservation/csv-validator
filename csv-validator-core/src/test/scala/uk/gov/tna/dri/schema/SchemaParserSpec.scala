@@ -5,7 +5,7 @@ import java.io.StringReader
 
 class SchemaParserSpec extends Specification {
 
-  object TestSchemaParser extends SchemaParser
+  object TestSchemaParser extends SchemaParser { val pathSubstitutions = List[(String,String)]() }
 
   import TestSchemaParser._
 

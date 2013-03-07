@@ -2,12 +2,11 @@ package uk.gov.tna.dri.schema
 
 import org.specs2.mutable._
 import java.io.StringReader
-import scalaz.{Success => SuccessZ, Failure => FailureZ, _}
-import Scalaz._
+import scalaz.{Success => SuccessZ, Failure => FailureZ}
 
 class SchemaParserColumnDefinitionsSpec extends Specification {
 
-  object TestSchemaParser extends SchemaParser
+  object TestSchemaParser extends SchemaParser { val pathSubstitutions = List[(String,String)]() }
 
   import TestSchemaParser._
 

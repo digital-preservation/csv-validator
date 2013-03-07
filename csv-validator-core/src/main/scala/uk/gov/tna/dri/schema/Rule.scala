@@ -75,13 +75,13 @@ case class RegexRule(regex: ArgProvider) extends Rule("regex", regex) {
   }
 }
 
-case class FileExistsRule(rootPath: ArgProvider = Literal(None)) extends Rule("fileExists", rootPath) {
+case class FileExistsRule(pathSubstitutions: List[(String,String)], rootPath: ArgProvider = Literal(None) ) extends Rule("fileExists", rootPath) {
   def valid(filePath: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = {
     val ruleValue = rootPath.referenceValue(columnIndex, row, schema)
 
     val fileExists = ruleValue match {
-      case Some(rp) => new File(rp, filePath).exists()
-      case None => new File(filePath).exists()
+      case Some(rp) => new FileSystem(rp, filePath, pathSubstitutions).exists()   // new File(rp, filePath).exists()
+      case None =>   new FileSystem(filePath, pathSubstitutions).exists() // new File(filePath).exists()
     }
 
     fileExists
@@ -383,3 +383,39 @@ case class AndRule(left: Rule, right: Rule) extends Rule("and") {
 
   override def toError = s"""${left.toError} $name ${right.toError}"""
 }
+
+
+
+class FileSystem(root: Option[String], file: String, pathSubstitutions: List[(String,String)] ) {
+  import java.net.URI
+
+  def this( root:String, file: String, pathSubstitutions: List[(String,String)] ) = this( Some(root), file, pathSubstitutions)
+
+  def this( file: String, pathSubstitutions: List[(String,String)]) = this(None, file, pathSubstitutions)
+
+  private def cmdLinePath( args: List[(String,String)], filename: String): String = {
+    val x = args.filter(arg => filename.startsWith(arg._1)).map( arg => filename.replace(arg._1,arg._2))
+    if (x.isEmpty) filename else x.head
+  }
+
+  private def file2PlatformDependent( file: String): String =
+    if ( System.getProperty("file.separator") == "/" ) file.replace('\\', '/')
+    else file.replace('/', '\\')
+
+  private def convert(filename: String):File =
+    if ( filename.startsWith("file://")) new File(new URI(filename))
+    else new File( file2PlatformDependent( filename ))
+
+  private def joinPath( root: Option[String], file: String): String = {
+    val fs:Char = System.getProperty("file.separator").head
+
+    if (root.isDefined ) {
+      if ( root.get.length > 0 &&  root.get.last != fs && file.head != fs ) root.get + fs + file else root.get + file
+    } else file
+  }
+
+  def exists():Boolean = convert( cmdLinePath(pathSubstitutions, joinPath(root,file))).exists()
+
+
+}
+

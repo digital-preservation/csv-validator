@@ -22,6 +22,8 @@ assemblySettings
 
 jarName in assembly := "meta-data-validator.jar"
 
+mainClass in assembly := Some( "uk.gov.tna.dri.validator.MetaDataValidatorCommandLineApp" )
+
 libraryDependencies ++= Seq(
   "org.specs2" %% "specs2" % "1.12.3" % "test",
   "org.scalatest" %% "scalatest" % "1.9.1" % "test"
