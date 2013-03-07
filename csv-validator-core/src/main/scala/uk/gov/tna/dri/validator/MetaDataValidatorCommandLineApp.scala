@@ -68,7 +68,7 @@ object MetaDataValidatorCommandLineApp extends App {
     val cmdName = "--path="
     val paths =  args.filter( a => a.startsWith(cmdName))
     paths.map( p => {
-      val i = p.drop(cmdName.length).split("-->").lift
+      val i = p.drop(cmdName.length).split(",").lift
       (i(0).getOrElse(""),i(1).getOrElse(""))
     })
   }

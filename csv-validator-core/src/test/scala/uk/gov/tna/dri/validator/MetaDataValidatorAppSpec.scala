@@ -87,7 +87,7 @@ class MetaDataValidatorAppSpec extends Specification {
     }
 
     "handle --path option" in {
-      val commandLine = List[String]("""--path=c:-->""", """--path=file://c:-->file://""", "--fail-fast")
+      val commandLine = List[String]("""--path=c:,""", """--path=file://c:,file://""", "--fail-fast")
       MetaDataValidatorCommandLineApp.findSubstitutionPaths(commandLine) mustEqual List( ("c:", ""), ("file://c:", "file://") )
     }
   }
