@@ -66,6 +66,35 @@ case class ParenthesesRule(rules: List[Rule]) extends Rule("parentheses") {
 
 }
 
+case class IfRule(condition: Rule, rules: List[Rule], elseRules: Option[List[Rule]]) extends Rule("if") {
+
+  override def evaluate(columnIndex: Int, row: Row, schema: Schema): RuleValidation[Any] = {
+    val cellValue = row.cells(columnIndex).value
+    val v = if (condition.valid(cellValue, schema.columnDefinitions(columnIndex), columnIndex, row, schema)) {
+     for (rule <- rules) yield {
+        rule.evaluate(columnIndex, row, schema)
+      }
+    } else {
+      if (elseRules.isDefined) {
+        for (rule <- elseRules.get) yield {
+          rule.evaluate(columnIndex, row, schema)
+        }
+      } else {
+        Nil
+      }
+    }
+    v.sequence[RuleValidation, Any]
+  }
+
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = true
+
+  override def toError = {
+    val paramErrs = rules.map( _.toError).mkString(" ")
+    s"""($paramErrs)""" + (if (argProviders.isEmpty) "" else "(" + argProviders.foldLeft("")((a, b) => (if (a.isEmpty) "" else a + ", ") + b.toError) + ")")
+  }
+
+}
+
 case class RegexRule(regex: ArgProvider) extends Rule("regex", regex) {
   def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = {
     val ruleValue = regex.referenceValue(columnIndex, row, schema)

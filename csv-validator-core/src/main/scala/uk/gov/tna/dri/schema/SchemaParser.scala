@@ -68,13 +68,15 @@ trait SchemaParser extends RegexParsers {
   def rule: Parser[Rule] = positioned( and | or | unaryRule)
 
   def unaryRule = regex | fileExists | in | is | isNot | starts | ends | unique | uri | xDateTime | xDate | ukDate | xTime |
-    uuid4 | positiveInteger | checksum | fileCount | parenthesesRule | range | lengthExpr | failure("Invalid rule")
+    uuid4 | positiveInteger | checksum | fileCount | parenthesesRule | range | lengthExpr | ifExpr | failure("Invalid rule")
 
   def parenthesesRule: Parser[ParenthesesRule] = "(" ~> rep1(rule) <~ ")" ^^ { ParenthesesRule(_) } | failure("unmatched paren")
 
   def or: Parser[OrRule] = unaryRule ~ "or" ~ rule  ^^ { case lhs ~ _ ~ rhs => OrRule(lhs, rhs) }
 
   def and: Parser[AndRule] = unaryRule ~ "and" ~ rule  ^^  { case lhs ~ _ ~ rhs =>  AndRule(lhs, rhs) }
+
+  def ifExpr: Parser[IfRule] = ("if(" ~> unaryRule <~ "){") ~ (rep1(rule) <~ "}") ~ opt(("else{" ~> rep1(rule) <~ "}")) ^^ { case cond ~ bdy ~ optBdy => IfRule(cond, bdy, optBdy)}
 
   def regex = "regex" ~> regexParser ^? (validateRegex, s => s"regex invalid: $s") | failure("Invalid regex rule")
 
