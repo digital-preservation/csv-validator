@@ -27,7 +27,7 @@ abstract class Rule(val name: String, val argProviders: ArgProvider*) extends Po
 
   def fail(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
     val columnDefinition = schema.columnDefinitions(columnIndex)
-    s"$toError fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
+    s"$toError fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${'"'}${row.cells(columnIndex).value}${'"'}".failNel[Any]
   }
 
   def toError = s"""$name""" + (if (argProviders.isEmpty) "" else "(" + argProviders.foldLeft("")((a, b) => (if (a.isEmpty) "" else a + ", ") + b.toError) + ")")

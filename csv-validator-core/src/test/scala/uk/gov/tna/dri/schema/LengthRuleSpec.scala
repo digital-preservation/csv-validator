@@ -24,7 +24,7 @@ class LengthRuleSpec extends Specification {
       val lengthRule = new LengthRule(None, "5")
 
       lengthRule.evaluate(0, Row(List(Cell("HelloWorld")), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition("column1")))) must beLike {
-        case Failure(m) => m.list mustEqual List("""length(5) fails for line: 1, column: column1, value: HelloWorld""")
+        case Failure(m) => m.list mustEqual List("""length(5) fails for line: 1, column: column1, value: "HelloWorld"""")
       }
     }
 
@@ -44,7 +44,7 @@ class LengthRuleSpec extends Specification {
       val lengthRule = new LengthRule(Some("1"), "5")
 
       lengthRule.evaluate(0, Row(List(Cell("helloworld")), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition("column1")))) must beLike {
-        case Failure(m) => m.list mustEqual List("""length(1,5) fails for line: 1, column: column1, value: helloworld""")
+        case Failure(m) => m.list mustEqual List("""length(1,5) fails for line: 1, column: column1, value: "helloworld"""")
       }
     }
 
@@ -71,7 +71,7 @@ class LengthRuleSpec extends Specification {
       val lengthRule = new LengthRule(Some("5"), "5")
 
       lengthRule.evaluate(0, Row(List(Cell("helloworld")), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition("column1")))) must beLike {
-        case Failure(m) => m.list mustEqual List("""length(5,5) fails for line: 1, column: column1, value: helloworld""")
+        case Failure(m) => m.list mustEqual List("""length(5,5) fails for line: 1, column: column1, value: "helloworld"""")
       }
     }
 
@@ -98,7 +98,7 @@ class LengthRuleSpec extends Specification {
       val lengthRule = new LengthRule(None, "43")
 
       lengthRule.evaluate(0, Row(List(Cell("helloworld")), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition("column1")))) must beLike {
-        case Failure(m) => m.list mustEqual List("""length(43) fails for line: 1, column: column1, value: helloworld""")
+        case Failure(m) => m.list mustEqual List("""length(43) fails for line: 1, column: column1, value: "helloworld"""")
       }
     }
 
