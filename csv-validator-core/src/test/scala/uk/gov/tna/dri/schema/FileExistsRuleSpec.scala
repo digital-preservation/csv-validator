@@ -63,9 +63,35 @@ class FileExistsRuleSpec extends Specification{
 
     "succeed even when the filename contains %20 spaces" in {
       val pathSubstitutions =  List[(String,String)](
-        ("file://$ROOT", "file://" + System.getProperty("user.dir"))
+        ("HOME", System.getProperty("user.dir"))
       )
-      new FileSystem(Some("file://$ROOT/src/test/resources/uk/gov/tna/"), "dri/schema/must%20Exist%20With%20Spaces%20For%20Rule.txt", pathSubstitutions ).exists must beTrue
+      new FileSystem(Some("file://HOME/src/test/resources/uk/gov/tna/"), "dri/schema/must%20Exist%20With%20Spaces%20For%20Rule.txt", pathSubstitutions ).exists must beTrue
     }
+
+    "succeed when joining strings with missing '/'" in {
+      val f = new FileSystem(Some("file://root"), "file.txt", emptyPathSubstitutions )
+      f.jointPath mustEqual "file://root/file.txt"
+    }
+
+    "succeed when joining strings with both having '/'" in {
+      val f = new FileSystem(Some("file://root/"), "/file.txt", emptyPathSubstitutions )
+      f.jointPath mustEqual "file://root/file.txt"
+    }
+
+    "succeed when joining strings with base only having '/'" in {
+      val f = new FileSystem(Some("file://root"), "/file.txt", emptyPathSubstitutions )
+      f.jointPath mustEqual "file://root/file.txt"
+    }
+
+    "succeed when joining strings with file only having '/'" in {
+      val f = new FileSystem(Some("file://root/"), "file.txt", emptyPathSubstitutions )
+      f.jointPath mustEqual "file://root/file.txt"
+    }
+
+    "succeed when joining strings with file only having '/'" in {
+      val f = new FileSystem(None, "file.txt", emptyPathSubstitutions )
+      f.jointPath mustEqual "file.txt"
+    }
+
   }
 }

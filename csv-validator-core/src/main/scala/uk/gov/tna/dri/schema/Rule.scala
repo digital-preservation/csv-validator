@@ -369,16 +369,29 @@ trait FileWildcardSearch[T] {
 
     val path:Path = Path( new File(basePath))
 
+    def pathString = s"${filePaths._1} (localfile: $fullPath)"
 
     def findMatches(wc: (Path, String) => PathSet[Path] ): ValidationNEL[String, T] = matchWildcardPaths( wc(path,matchPath ), fullPath )
 
-    if ( filePaths._1.length>0 && (!new File(basePath).exists)) s"""incorrect basepath ${filePaths._1} found""".failNel[T]
-    else if (filePaths._1.contains("*") ) s"""root ${filePaths._1} should not contain wildcards""".failNel[T]
-    else if (matchPath.contains("**")) findMatches(wildcardPath)
-    else if (matchPath.contains("*"))  findMatches(wildcardFile)
-    else if (!(new File(basePath+System.getProperty("file.separator")+matchPath)).exists)  s"""file "$fullPath" not found""".failNel[T]
-    else matchSimplePath(basePath+System.getProperty("file.separator")+matchPath)
 
+
+    def basePathExists:Boolean =   filePaths._1.length>0 && (!new File(basePath).exists)
+
+    def wildcardNotInRoot:Boolean = filePaths._1.contains("*")
+
+    def matchUsesWildDirectory:Boolean = matchPath.contains("**")
+
+    def matchUsesWildFiles:Boolean = matchPath.contains("*")
+
+    def fileExists:Boolean = !(new File(basePath+System.getProperty("file.separator")+matchPath)).exists
+
+
+    if ( basePathExists) s"""incorrect basepath $pathString found""".failNel[T]
+    else if (wildcardNotInRoot ) s"""root $pathString should not contain wildcards""".failNel[T]
+    else if (matchUsesWildDirectory) findMatches(wildcardPath)
+    else if (matchUsesWildFiles)  findMatches(wildcardFile)
+    else if (fileExists)  s"""file "$fullPath" not found""".failNel[T]
+    else matchSimplePath(basePath+System.getProperty("file.separator")+matchPath)
   }
 }
 
@@ -436,7 +449,7 @@ class FileSystem(basePath: Option[String], file: String, pathSubstitutions: List
   def this( file: String, pathSubstitutions: List[(String,String)]) = this(None, file, pathSubstitutions)
 
   private def substitutePath(  filename: String): String = {
-    val x = pathSubstitutions.filter(arg => filename.startsWith(arg._1)).map( arg => filename.replace(arg._1,arg._2) )
+    val x = pathSubstitutions.filter(arg => filename.contains(arg._1)).map( arg => filename.replaceFirst(arg._1,arg._2) )
     if (x.isEmpty) filename else x.head
   }
 
@@ -448,20 +461,22 @@ class FileSystem(basePath: Option[String], file: String, pathSubstitutions: List
     if ( filename.startsWith("file://")) new File(new URI(filename))
     else new File( file2PlatformDependent( filename ))
 
-  private def joinPath( root: Option[String], file: String): String = {
+  def jointPath: String = {
     val fs: Char = System.getProperty("file.separator").head
 
-    if (root.isDefined ) {
-      if ( root.get.length > 0 &&  root.get.last != fs && file.head != fs ) root.get + fs + file
-      else root.get + file
-    } else file
+    basePath match {
+      case Some(bp) => if (bp.length > 0 && bp.last != fs && file.head != fs) bp + fs + file
+                       else if (bp.length > 0 && bp.last == fs && file.head == fs) bp + file.tail
+                       else bp + file
+      case None => file
+    }
   }
 
-  def exists: Boolean = convertPath2Platform( substitutePath(joinPath(basePath,file))).exists()
+  def exists: Boolean = convertPath2Platform( substitutePath(jointPath)).exists()
 
   def expandBasePath: String = {
     if ( basePath.isEmpty || basePath.getOrElse("") == "")  file2PlatformDependent(substitutePath(file))
-    else file2PlatformDependent(substitutePath(joinPath(basePath,file)))
+    else file2PlatformDependent(substitutePath(jointPath))
   }
 
 }

@@ -58,14 +58,14 @@ class ChecksumRuleSpec extends Specification {
 
     "succeed with help from substitutions with windows path seperators" in {
       val pathSubstitutions =  List[(String,String)](
-        ("bob", "src\\test")
+        ("bob", "src\\\\test")
       )
 
       val checksumRule = new ChecksumRule(Literal(Some("bob\\resources\\uk\\gov\\tna\\dri\\schema\\checksum.txt")), "MD5", pathSubstitutions)
       checksumRule.evaluate(0, Row(List(Cell("232762380299115da6995e4c4ac22fa2")), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition("column1")))) mustEqual Success(true)
     }
 
-    "fail when substitutions is not at the start of the path" in {
+    "succeed when substitutions is not at the start of the path" in {
       val pathSubstitutions =  List[(String,String)](
         ("bob", "src/test")
       )
@@ -73,7 +73,7 @@ class ChecksumRuleSpec extends Specification {
       val checksumRule = new ChecksumRule(Literal(Some("""file://bob/resources/uk/gov/tna/dri/schema/checksum.txt""")), "MD5", pathSubstitutions)
 
       checksumRule.evaluate(0, Row(List(Cell("232762380299115da6995e4c4ac22fa2")), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition("column1")))) must beLike {
-        case Failure(m) => m.list mustEqual List("""checksum(file("file://bob/resources/uk/gov/tna/dri/schema/checksum.txt"), "MD5") file "file://bob/resources/uk/gov/tna/dri/schema/checksum.txt" not found for line: 1, column: column1, value: 232762380299115da6995e4c4ac22fa2""")
+        case Failure(m) => m.list mustEqual List("""checksum(file("file://bob/resources/uk/gov/tna/dri/schema/checksum.txt"), "MD5") file "file://src/test/resources/uk/gov/tna/dri/schema/checksum.txt" not found for line: 1, column: column1, value: 232762380299115da6995e4c4ac22fa2""")
       }
     }
 

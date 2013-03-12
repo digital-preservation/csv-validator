@@ -169,7 +169,7 @@ class MetaDataValidatorFileCountSpec extends Specification {
       val metaData = """checksum.txt,99"""
 
       validate(metaData, schema) must beLike {
-        case Failure(messages) => messages.list mustEqual List("""fileCount(file("invalid/path/to/root", $File)) incorrect basepath invalid/path/to/root/ found for line: 1, column: Count, value: 99""")
+        case Failure(messages) => messages.list mustEqual List("""fileCount(file("invalid/path/to/root", $File)) incorrect basepath invalid/path/to/root/ (localfile: invalid/path/to/root/checksum.txt) found for line: 1, column: Count, value: 99""")
       }
     }
   }
@@ -235,7 +235,7 @@ class MetaDataValidatorFileCountSpec extends Specification {
       val metaData = """invalid/path/to/root,checksum.txt,99"""
 
       validate(metaData, schema) must beLike {
-        case Failure(messages) => messages.list mustEqual List("""fileCount(file($Root, $File)) incorrect basepath invalid/path/to/root/ found for line: 1, column: Count, value: 99""")
+        case Failure(messages) => messages.list mustEqual List("""fileCount(file($Root, $File)) incorrect basepath invalid/path/to/root/ (localfile: invalid/path/to/root/checksum.txt) found for line: 1, column: Count, value: 99""")
       }
     }
   }
@@ -297,7 +297,7 @@ class MetaDataValidatorFileCountSpec extends Specification {
       val metaData = """src/test/resources/uk/gov/tna/dri/**,checksum.*,1"""
 
       validate(metaData, schema) must beLike {
-        case Failure(messages) => messages.list mustEqual List("""fileCount(file($Root, $File)) root src/test/resources/uk/gov/tna/dri/**/ should not contain wildcards for line: 1, column: Count, value: 1""")
+        case Failure(messages) => messages.list mustEqual List("""fileCount(file($Root, $File)) root src/test/resources/uk/gov/tna/dri/**/ (localfile: src/test/resources/uk/gov/tna/dri/**/checksum.*) should not contain wildcards for line: 1, column: Count, value: 1""")
       }
     }
 
@@ -326,7 +326,7 @@ class MetaDataValidatorFileCountSpec extends Specification {
       val metaData = """**/*.jp2,2"""
 
       validate(metaData, schema) must beLike {
-        case Failure(messages) => messages.list mustEqual List("""fileCount(file("src/test/resources/this/is/incorrect", $File)) incorrect basepath src/test/resources/this/is/incorrect/ found for line: 1, column: Count, value: 2""")
+        case Failure(messages) => messages.list mustEqual List("""fileCount(file("src/test/resources/this/is/incorrect", $File)) incorrect basepath src/test/resources/this/is/incorrect/ (localfile: src/test/resources/this/is/incorrect/**/*.jp2) found for line: 1, column: Count, value: 2""")
       }
     }
   }
