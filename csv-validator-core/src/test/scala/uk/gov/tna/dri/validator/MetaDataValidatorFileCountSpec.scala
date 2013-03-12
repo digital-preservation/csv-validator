@@ -169,7 +169,7 @@ class MetaDataValidatorFileCountSpec extends Specification {
       val metaData = """checksum.txt,99"""
 
       validate(metaData, schema) must beLike {
-        case Failure(messages) => messages.list mustEqual List("""fileCount(file("invalid/path/to/root", $File)) file "invalid/path/to/root/checksum.txt" not found for line: 1, column: Count, value: 99""")
+        case Failure(messages) => messages.list mustEqual List("""fileCount(file("invalid/path/to/root", $File)) incorrect root invalid/path/to/root/ found for line: 1, column: Count, value: 99""")
       }
     }
   }
@@ -235,7 +235,7 @@ class MetaDataValidatorFileCountSpec extends Specification {
       val metaData = """invalid/path/to/root,checksum.txt,99"""
 
       validate(metaData, schema) must beLike {
-        case Failure(messages) => messages.list mustEqual List("""fileCount(file($Root, $File)) file "invalid/path/to/root/checksum.txt" not found for line: 1, column: Count, value: 99""")
+        case Failure(messages) => messages.list mustEqual List("""fileCount(file($Root, $File)) incorrect root invalid/path/to/root/ found for line: 1, column: Count, value: 99""")
       }
     }
   }

@@ -9,6 +9,8 @@ import java.security.MessageDigest
 import scalaz.{Failure,Success}
 import uk.gov.tna.dri.metadata.Row
 import util.Try
+import annotation.tailrec
+import java.net.URI
 
 abstract class Rule(val name: String, val argProviders: ArgProvider*) extends Positional {
 
@@ -109,8 +111,8 @@ case class FileExistsRule(pathSubstitutions: List[(String,String)], rootPath: Ar
     val ruleValue = rootPath.referenceValue(columnIndex, row, schema)
 
     val fileExists = ruleValue match {
-      case Some(rp) => new FileSystem(rp, filePath, pathSubstitutions).exists()   // new File(rp, filePath).exists()
-      case None =>   new FileSystem(filePath, pathSubstitutions).exists() // new File(filePath).exists()
+      case Some(rp) => new FileSystem(rp, filePath, pathSubstitutions).exists
+      case None =>   new FileSystem(filePath, pathSubstitutions).exists
     }
 
     fileExists
@@ -223,8 +225,9 @@ case class UniqueRule() extends Rule("unique") {
   def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = true
 }
 
-case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: String) extends Rule("checksum", rootPath, file) with FileWildcardSearch[String] {
-  def this(file: ArgProvider, algorithm: String) = this(Literal(None), file, algorithm)
+case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: String, pathSubstitutions: List[(String,String)]) extends Rule("checksum", rootPath, file) with FileWildcardSearch[String] {
+  def this(file: ArgProvider, algorithm: String, pathSubstitutions: List[(String,String)]) = this(Literal(None), file, algorithm, pathSubstitutions)
+  def this(file: ArgProvider, algorithm: String) = this(Literal(None), file, algorithm, List[(String,String)]())
 
   override def evaluate(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
     val cellValue = row.cells(columnIndex).value
@@ -255,16 +258,16 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
   }
 
 
-  def matchWildcardPaths(matchList:PathSet[Path],fullPath:String): ValidationNEL[String, String] = matchList.size match {
+  def matchWildcardPaths(matchList: PathSet[Path],fullPath: String): ValidationNEL[String, String] = matchList.size match {
     case 1 => calcChecksum(matchList.head.path).successNel[String]
     case 0 => s"""no files for $fullPath found""".failNel[String]
     case _ => s"""multiple files for $fullPath found""".failNel[String]
   }
 
-  def matchSimplePath(fullPath:String):ValidationNEL[String, String]  = calcChecksum(fullPath).successNel[String]
+  def matchSimplePath(fullPath: String): ValidationNEL[String, String]  = calcChecksum(fullPath).successNel[String]
 
 
-  def calcChecksum(file:String): String = {
+  def calcChecksum(file: String): String = {
     val digest = MessageDigest.getInstance(algorithm)
     val fileBuffer = new BufferedInputStream(new FileInputStream(file))
     Stream.continually(fileBuffer.read).takeWhile(-1 !=).map(_.toByte).foreach( digest.update(_))
@@ -295,8 +298,8 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
 }
 
 
-case class FileCountRule(rootPath: ArgProvider, file: ArgProvider) extends Rule("fileCount", rootPath, file) with FileWildcardSearch[Int] {
-  def this(file: ArgProvider, algorithm: String) = this(Literal(None), file)
+case class FileCountRule(rootPath: ArgProvider, file: ArgProvider, pathSubstitutions: List[(String,String)] = List.empty) extends Rule("fileCount", rootPath, file) with FileWildcardSearch[Int] {
+  def this(file: ArgProvider, pathSubstitutions: List[(String,String)] = List.empty) = this(Literal(None), file, pathSubstitutions)
 
   def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = true
 
@@ -307,8 +310,8 @@ case class FileCountRule(rootPath: ArgProvider, file: ArgProvider) extends Rule(
     Try(cellValue.toInt) match {
       case scala.util.Success(cellCount) =>
         search(filename(columnIndex, row, schema)) match {
-          case Success(count:Int) if count == cellCount => true.successNel[String]
-          case Success(count:Int) => s"$toError found $count file(s) for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
+          case Success(count: Int) if count == cellCount => true.successNel[String]
+          case Success(count: Int) => s"$toError found $count file(s) for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
           case Failure(errMsg) => s"$toError ${errMsg.head} for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
         }
       case scala.util.Failure(_) =>  s"$toError '$cellValue' is not a number for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
@@ -331,42 +334,53 @@ case class FileCountRule(rootPath: ArgProvider, file: ArgProvider) extends Rule(
     }
   }
 
-  def matchWildcardPaths(matchList:PathSet[Path],fullPath:String): ValidationNEL[String, Int] = matchList.size.successNel[String]
+  def matchWildcardPaths(matchList: PathSet[Path],fullPath: String): ValidationNEL[String, Int] = matchList.size.successNel[String]
 
-  def matchSimplePath(fullPath:String):ValidationNEL[String, Int]  = 1.successNel[String]  // file found so ok
+  def matchSimplePath(fullPath: String): ValidationNEL[String, Int]  = 1.successNel[String]  // file found so ok
 }
+
 
 trait FileWildcardSearch[T] {
-  def matchWildcardPaths(matchList:PathSet[Path],fullPath:String): ValidationNEL[String, T]
+  val pathSubstitutions: List[(String,String)]
+  def matchWildcardPaths(matchList: PathSet[Path],fullPath: String): ValidationNEL[String, T]
   def matchSimplePath(fullPath: String): ValidationNEL[String, T]
 
-  def search(filePaths:(String,String) ): ValidationNEL[String, T] = {
-    val (basePath, matchPath) = filePaths
-    val fullPath = basePath + matchPath
+  val wildcardPath = (p: Path, matchPath: String) => p.descendants( p.matcher( matchPath))
+  val wildcardFile = (p: Path, matchPath: String) => p.children( p.matcher( "**/" +matchPath))
 
-    def rootPath: ValidationNEL[String,Path] = {
-      val rootPath:Path = scalax.file.Path.fromString(basePath)
-      if (!rootPath.exists) s"""incorrect root $basePath found""".failNel[Path]
-      else rootPath.successNel[String]
+  def findBase(path:String): (String, String) = {
+
+    @tailrec
+    def findBaseRecur(p: String, f: String): (String,String) = {
+      if (p.contains("*")) findBaseRecur(Path.fromString(p).parent.get.path,  Path.fromString(p).name + "/" + f)
+      else (p,f)
     }
 
-    val wildcardPath = (p: Path) => p.descendants( p.matcher( matchPath))
-    val wildcardFile = (p: Path) => p.children( p.matcher( "**/" +matchPath))
-
-    def findMatches(wc: (Path) => PathSet[Path] ): ValidationNEL[String, T] = rootPath match {
-      case Success(rPath) => matchWildcardPaths( wc(rPath), fullPath )
-      case Failure(err) =>  err.head.failNel[T]
-    }
+    if (path.startsWith("file://"))  {
+      val pathURI = Path(new URI(path)).get
+      findBaseRecur(pathURI.parent.get.path, pathURI.name)
+    } else if(Path.fromString(path).parent.isEmpty) ("./", path) else  findBaseRecur(Path.fromString(path).parent.get.path, Path.fromString(path).name)
+  }
 
 
-    if (basePath.contains("*") ) s"""root $basePath should not contain wildcards""".failNel[T]
+  def search(filePaths: (String,String) ): ValidationNEL[String, T] = {
+    val fullPath = new FileSystem( None, filePaths._1 + filePaths._2, pathSubstitutions).expandBasePath
+    val (basePath,matchPath ) = findBase(fullPath)
+
+    val path:Path = Path( new File(basePath))
+
+
+    def findMatches(wc: (Path, String) => PathSet[Path] ): ValidationNEL[String, T] = matchWildcardPaths( wc(path,matchPath ), fullPath )
+
+    if ( filePaths._1.length>0 && (!new File(basePath).exists)) s"""incorrect root ${filePaths._1} found""".failNel[T]
+    else if (filePaths._1.contains("*") ) s"""root ${filePaths._1} should not contain wildcards""".failNel[T]
     else if (matchPath.contains("**")) findMatches(wildcardPath)
     else if (matchPath.contains("*"))  findMatches(wildcardFile)
-    else if (!(new File(fullPath)).exists)  s"""file "$fullPath" not found""".failNel[T]
-    else matchSimplePath(fullPath)
+    else if (!(new File(basePath+System.getProperty("file.separator")+matchPath)).exists)  s"""file "$fullPath" not found""".failNel[T]
+    else matchSimplePath(basePath+System.getProperty("file.separator")+matchPath)
+
   }
 }
-
 
 case class RangeRule(min: BigDecimal, max: BigDecimal) extends Rule("range") {
   def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
@@ -378,13 +392,12 @@ case class RangeRule(min: BigDecimal, max: BigDecimal) extends Rule("range") {
   }
 
   override def toError = s"""$name($min,$max)"""
-
 }
 
-case class LengthRule(from: Option[String], to:String) extends Rule("length") {
+case class LengthRule(from: Option[String], to: String) extends Rule("length") {
 
-  def toValue:Int = if (to == "*") Int.MaxValue else to.toInt
-  def fromValue:Int =  if (from.get == "*") 0 else from.get.toInt
+  def toValue: Int = if (to == "*") Int.MaxValue else to.toInt
+  def fromValue: Int =  if (from.get == "*") 0 else from.get.toInt
 
   def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
     val cellLen = cellValue.length
@@ -415,15 +428,15 @@ case class AndRule(left: Rule, right: Rule) extends Rule("and") {
 
 
 
-class FileSystem(root: Option[String], file: String, pathSubstitutions: List[(String,String)] ) {
+class FileSystem(basePath: Option[String], file: String, pathSubstitutions: List[(String,String)] ) {
   import java.net.URI
 
   def this( root:String, file: String, pathSubstitutions: List[(String,String)] ) = this( Some(root), file, pathSubstitutions)
 
   def this( file: String, pathSubstitutions: List[(String,String)]) = this(None, file, pathSubstitutions)
 
-  private def cmdLinePath( args: List[(String,String)], filename: String): String = {
-    val x = args.filter(arg => filename.startsWith(arg._1)).map( arg => filename.replace(arg._1,arg._2))
+  private def substitutePath(  filename: String): String = {
+    val x = pathSubstitutions.filter(arg => filename.startsWith(arg._1)).map( arg => filename.replace(arg._1,arg._2) )
     if (x.isEmpty) filename else x.head
   }
 
@@ -431,20 +444,25 @@ class FileSystem(root: Option[String], file: String, pathSubstitutions: List[(St
     if ( System.getProperty("file.separator") == "/" ) file.replace('\\', '/')
     else file.replace('/', '\\')
 
-  private def convert(filename: String):File =
+  private def convertPath2Platform(filename: String): File =
     if ( filename.startsWith("file://")) new File(new URI(filename))
     else new File( file2PlatformDependent( filename ))
 
   private def joinPath( root: Option[String], file: String): String = {
-    val fs:Char = System.getProperty("file.separator").head
+    val fs: Char = System.getProperty("file.separator").head
 
     if (root.isDefined ) {
-      if ( root.get.length > 0 &&  root.get.last != fs && file.head != fs ) root.get + fs + file else root.get + file
+      if ( root.get.length > 0 &&  root.get.last != fs && file.head != fs ) root.get + fs + file
+      else root.get + file
     } else file
   }
 
-  def exists():Boolean = convert( cmdLinePath(pathSubstitutions, joinPath(root,file))).exists()
+  def exists: Boolean = convertPath2Platform( substitutePath(joinPath(basePath,file))).exists()
 
+  def expandBasePath: String = {
+    if ( basePath.isEmpty || basePath.getOrElse("") == "")  file2PlatformDependent(substitutePath(file))
+    else file2PlatformDependent(substitutePath(joinPath(basePath,file)))
+  }
 
 }
 

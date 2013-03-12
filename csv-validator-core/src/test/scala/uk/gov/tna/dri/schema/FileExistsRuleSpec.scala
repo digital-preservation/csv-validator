@@ -67,6 +67,5 @@ class FileExistsRuleSpec extends Specification{
       )
       new FileSystem(Some("file://$ROOT/src/test/resources/uk/gov/tna/"), "dri/schema/must%20Exist%20With%20Spaces%20For%20Rule.txt", pathSubstitutions ).exists must beTrue
     }
-
   }
 }

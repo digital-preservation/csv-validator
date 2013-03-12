@@ -113,7 +113,7 @@ class MetaDataValidatorChecksumSpec extends Specification {
       val metaData = """checksum.txt,232762380299115da6995e4c4ac22fa2"""
 
       validate(metaData, schema) must beLike {
-        case Failure(messages) => messages.list mustEqual List("""checksum(file("invalid/path/to/root", $File), "MD5") file "invalid/path/to/root/checksum.txt" not found for line: 1, column: MD5, value: 232762380299115da6995e4c4ac22fa2""")
+        case Failure(messages) => messages.list mustEqual List("""checksum(file("invalid/path/to/root", $File), "MD5") incorrect root invalid/path/to/root/ found for line: 1, column: MD5, value: 232762380299115da6995e4c4ac22fa2""")
       }
     }
 
@@ -192,7 +192,7 @@ class MetaDataValidatorChecksumSpec extends Specification {
       val metaData = """invalid/path/to/root,checksum.txt,232762380299115da6995e4c4ac22fa2"""
 
       validate(metaData, schema) must beLike {
-        case Failure(messages) => messages.list mustEqual List("""checksum(file($Root, $File), "MD5") file "invalid/path/to/root/checksum.txt" not found for line: 1, column: MD5, value: 232762380299115da6995e4c4ac22fa2""")
+        case Failure(messages) => messages.list mustEqual List("""checksum(file($Root, $File), "MD5") incorrect root invalid/path/to/root/ found for line: 1, column: MD5, value: 232762380299115da6995e4c4ac22fa2""")
       }
     }
   }

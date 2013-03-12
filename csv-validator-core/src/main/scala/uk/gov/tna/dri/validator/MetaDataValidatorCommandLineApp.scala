@@ -74,15 +74,19 @@ object MetaDataValidatorCommandLineApp extends App {
     }
   }
 
-  def findPaths(args: List[String]): Either[String, (List[(String,String)], List[String])] =
-    if ( args.isEmpty ) Right(List.empty,args)
-    else if (args.length < 3 ) { if( args.contains("--path")) Left("Missing param to --path\n" + usage) else Right(List.empty,args) }
+  def findPaths(argsList: List[String]): Either[String, (List[(String,String)], List[String])] = {
+    def filterPaths(argsWithIndex: List[(String,Int)]) = argsWithIndex.sliding(3).filter{  i => i(0)._1 == "--path"}.map( x => (x(1), x(2))).toList
+    def removePathArgs(argsWithIndex: List[(String,Int)], path:List[((String,Int),(String,Int))]) = argsWithIndex.filter{ i =>  path.filter{pf => pf._1 == i || pf._2 == i}.isEmpty }
+
+    if ( argsList.isEmpty ) Right(List.empty,argsList)
+    else if (argsList.length < 3 ) { if( argsList.contains("--path")) Left("Missing param to --path\n" + usage) else Right(List.empty,argsList) }
     else {
-      val argsWithIndex = args.zipWithIndex
-      val path = argsWithIndex.sliding(3).filter{  i => i(0)._1 == "--path"}.map( x => (x(1), x(2))).toList
-      val remain = argsWithIndex.filter{ i =>  path.filter{pf => pf._1 == i || pf._2 == i}.isEmpty }
-      Right(path.map( i => (i._1._1, i._2._1) ),remain.filterNot(_._1 == "--path").map(_._1))
+      val argsWithIndex = argsList.zipWithIndex
+      val path = filterPaths(argsWithIndex)
+      val remaining = removePathArgs(argsWithIndex, path)
+      Right(path.map( i => (i._1._1, i._2._1) ), remaining.unzip._1.filterNot(_ == "--path"))
     }
+  }
 
 
   def unknownParams(args: List[String]): Either[String, (List[(String,String)], List[String])] =

@@ -115,9 +115,9 @@ trait SchemaParser extends RegexParsers {
 
   def rootFilePath: Parser[String] = """[a-zA-Z/-_\.\d\\:]+""".r
 
-  def checksum = "checksum(" ~> file ~ (white ~ "," ~ white) ~ algorithm <~ ")" ^^ { case a ~ _ ~ algo => ChecksumRule(a._1.getOrElse(Literal(None)), a._2, algo) }
+  def checksum = "checksum(" ~> file ~ (white ~ "," ~ white) ~ algorithm <~ ")" ^^ { case a ~ _ ~ algo => ChecksumRule(a._1.getOrElse(Literal(None)), a._2, algo, pathSubstitutions) }
 
-  def fileCount = "fileCount(" ~> file <~ ")" ^^ { case a  => FileCountRule(a._1.getOrElse(Literal(None)), a._2) }
+  def fileCount = "fileCount(" ~> file <~ ")" ^^ { case a  => FileCountRule(a._1.getOrElse(Literal(None)), a._2, pathSubstitutions) }
 
   def range = "range(" ~> number ~ "," ~ number <~ ")"  ^^ { case a ~ _ ~ b =>  RangeRule(a, b) }
 
