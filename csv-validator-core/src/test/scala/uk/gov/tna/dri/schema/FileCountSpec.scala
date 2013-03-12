@@ -125,6 +125,8 @@ class FileCountSpec extends Specification {
     }
 
     "find a single file from relative path" in {
+      skipped( "needs a full path to test so will need to change the file://.... to test on local machine")
+
       val wildCard = new FileWildcardSearch[Int]{
         val pathSubstitutions: List[(String, String)] = List[(String,String)](
           ("file://bob", "file:///home/dev/IdeaProjects/csv/csv-validator/csv-validator-core/src/test")
