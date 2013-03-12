@@ -82,7 +82,7 @@ class FileCountSpec extends Specification {
 
     "fail if an invalid relavtive basePath is given" in {
       wildCard.search( ("WRONGPATH/dri/fileCountTestFiles/threeFiles/","file1.jp2") ) must beLike {
-        case Failure(m) => m.list mustEqual List("""incorrect root WRONGPATH/dri/fileCountTestFiles/threeFiles/ found""")
+        case Failure(m) => m.list mustEqual List("""incorrect basepath WRONGPATH/dri/fileCountTestFiles/threeFiles/ found""")
       }
     }
 
@@ -144,13 +144,13 @@ class FileCountSpec extends Specification {
 
     "fail if an invalid relavtive basePath is given" in {
       wildCard.search( ("WRONGPATH/dri/fileCountTestFiles/threeFiles/","file1.jp2") ) must beLike {
-        case Failure(m) => m.list mustEqual List("""incorrect root WRONGPATH/dri/fileCountTestFiles/threeFiles/ found""")
+        case Failure(m) => m.list mustEqual List("""incorrect basepath WRONGPATH/dri/fileCountTestFiles/threeFiles/ found""")
       }
     }
 
     "fail if an invalid relavtive basePath is given" in {
       wildCard.search( ("src/test/dri/fileCountTestFiles/threeFiles/","bob.jp2") ) must beLike {
-        case Failure(m) => m.list mustEqual List("""incorrect root src/test/dri/fileCountTestFiles/threeFiles/ found""")
+        case Failure(m) => m.list mustEqual List("""incorrect basepath src/test/dri/fileCountTestFiles/threeFiles/ found""")
       }
     }
 

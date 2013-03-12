@@ -372,7 +372,7 @@ trait FileWildcardSearch[T] {
 
     def findMatches(wc: (Path, String) => PathSet[Path] ): ValidationNEL[String, T] = matchWildcardPaths( wc(path,matchPath ), fullPath )
 
-    if ( filePaths._1.length>0 && (!new File(basePath).exists)) s"""incorrect root ${filePaths._1} found""".failNel[T]
+    if ( filePaths._1.length>0 && (!new File(basePath).exists)) s"""incorrect basepath ${filePaths._1} found""".failNel[T]
     else if (filePaths._1.contains("*") ) s"""root ${filePaths._1} should not contain wildcards""".failNel[T]
     else if (matchPath.contains("**")) findMatches(wildcardPath)
     else if (matchPath.contains("*"))  findMatches(wildcardFile)
