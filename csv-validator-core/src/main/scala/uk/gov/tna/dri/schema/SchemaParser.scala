@@ -65,10 +65,14 @@ trait SchemaParser extends RegexParsers {
 
   def columnDirective = positioned(optional | ignoreCase)
 
-  def rule: Parser[Rule] = positioned( and | or | unaryRule)
+  def rule = positioned( and | or | nonConditionalRule | conditionalRule)
+
+  def nonConditionalRule = unaryRule
+
+  def conditionalRule = ifExpr
 
   def unaryRule = regex | fileExists | in | is | isNot | starts | ends | unique | uri | xDateTime | xDate | ukDate | xTime |
-    uuid4 | positiveInteger | checksum | fileCount | parenthesesRule | range | lengthExpr | ifExpr | failure("Invalid rule")
+    uuid4 | positiveInteger | checksum | fileCount | parenthesesRule | range | lengthExpr | failure("Invalid rule")
 
   def parenthesesRule: Parser[ParenthesesRule] = "(" ~> rep1(rule) <~ ")" ^^ { ParenthesesRule(_) } | failure("unmatched paren")
 
@@ -76,7 +80,7 @@ trait SchemaParser extends RegexParsers {
 
   def and: Parser[AndRule] = unaryRule ~ "and" ~ rule  ^^  { case lhs ~ _ ~ rhs =>  AndRule(lhs, rhs) }
 
-  def ifExpr: Parser[IfRule] = ("if(" ~> unaryRule <~ "){") ~ (rep1(rule) <~ "}") ~ opt(("else{" ~> rep1(rule) <~ "}")) ^^ { case cond ~ bdy ~ optBdy => IfRule(cond, bdy, optBdy)}
+  def ifExpr: Parser[IfRule] = (("if(" ~> nonConditionalRule <~ "){") ~ (rep1(rule) <~ "}") ~ opt(("else{" ~> rep1(rule) <~ "}")) ^^ { case cond ~ bdy ~ optBdy => IfRule(cond, bdy, optBdy)}) | failure("Invalid rule")
 
   def regex = "regex" ~> regexParser ^? (validateRegex, s => s"regex invalid: $s") | failure("Invalid regex rule")
 

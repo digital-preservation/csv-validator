@@ -67,5 +67,17 @@ class IfRuleSpec extends Specification {
       ifRule.evaluate(0, Row(List(Cell("hello world")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(List(List(true)))
     }
 
+    "nested if'" in {
+      val ifRule = IfRule(
+        StartsRule(Literal(Some("u"))),List(EndsRule(Literal(Some("def")))),
+        Some(List(
+          IfRule(
+            StartsRule(Literal(Some("u")))
+            ,List(EndsRule(Literal(Some("world")))), Some(List(EndsRule(Literal(Some("world"))))))
+        ))
+      )
+      ifRule.evaluate(0, Row(List(Cell("hello world")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(List(List(true)))
+    }
+
   }
 }
