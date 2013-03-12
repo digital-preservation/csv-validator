@@ -23,6 +23,8 @@ trait SchemaParser extends RegexParsers {
 
   val positiveNumber: Parser[String] = """[1-9][0-9]*""".r
 
+  val nonNegativeNumber: Parser[String] = """[0-9]+""".r
+
   val number: Parser[BigDecimal] = """(-|\+)*[0-9]*+(\.[0-9]*)?""".r ^^ { BigDecimal(_) }
 
   val stringRegex = """([^"\p{Cntrl}\\]|\\[\\'"bfnrt]|\\u[a-fA-F0-9]{4})*""".r
@@ -125,7 +127,7 @@ trait SchemaParser extends RegexParsers {
 
   def range = "range(" ~> number ~ "," ~ number <~ ")"  ^^ { case a ~ _ ~ b =>  RangeRule(a, b) }
 
-  def lengthExpr: Parser[LengthRule] = ("length(" ~> opt(("*"| positiveNumber) <~ ",") ~ ("*" | positiveNumber) <~ ")") ^^ {
+  def lengthExpr: Parser[LengthRule] = ("length(" ~> opt(("*"| nonNegativeNumber) <~ ",") ~ ("*" | nonNegativeNumber) <~ ")") ^^ {
     case a ~ b => LengthRule(a,b)
   }
 
