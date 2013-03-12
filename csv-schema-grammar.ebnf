@@ -95,7 +95,10 @@ ParenthesizedExpr       ::=     "(" ColumnValidationExpr ")"
 
 ConditionalExpr         ::=     IfExpr
 
-IfExpr                  ::=     "if(" NonConditionalExpr ")" "{" ColumnValidationExpr "}" ("else" "{" ColumnValidatorExpr "}")?        /* if with optional else */
+IfExpr                  ::=     "if(" NonConditionalExpr "," ThenExpr ("," ElseExpr)? ")"                           /* if with optional else */
+ThenExpr                ::=     ColumnValidationExpr
+ElseExpr                ::=     ColumnValidationExpr
+
 
 /* Column Directives modify the behaviour of ColumnValidatonExpr(s) */
 /* There are only three global directives (see the first line below), but they can appear in any of three orders, the following complexity deals with that */
