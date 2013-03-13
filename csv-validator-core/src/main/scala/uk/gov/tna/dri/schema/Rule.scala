@@ -97,12 +97,15 @@ case class IfRule(condition: Rule, rules: List[Rule], elseRules: Option[List[Rul
 
 }
 
-case class RegexRule(regex: ArgProvider) extends Rule("regex", regex) {
+case class RegexRule(regex: String) extends Rule("regex") {
   def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = {
-    val ruleValue = regex.referenceValue(columnIndex, row, schema)
 
-    val regexp = if (columnDefinition.directives.contains(IgnoreCase())) "(?i)" + ruleValue.get else ruleValue.get
+    val regexp = if (columnDefinition.directives.contains(IgnoreCase())) "(?i)" + regex else regex
     cellValue matches regexp
+  }
+
+  override def toError = {
+    s"""$name("$regex")"""
   }
 }
 

@@ -69,7 +69,7 @@ class SchemaParserColumnDefinitionsSpec extends Specification {
                       @totalColumns 1
                       Age: regex ("[1-9]*")"""
 
-      parse(new StringReader(schema)) must beLike { case Success(Schema(globalDirsOne, List(ColumnDefinition("Age", List(RegexRule(Literal(Some(r)))), _))), _) => r mustEqual "[1-9]*" }
+      parse(new StringReader(schema)) must beLike { case Success(Schema(globalDirsOne, List(ColumnDefinition("Age", List(RegexRule(r)), _))), _) => r mustEqual "[1-9]*" }
     }
 
     "fail for more than one column definition on a line" in {

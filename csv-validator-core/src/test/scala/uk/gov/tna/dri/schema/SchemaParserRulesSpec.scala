@@ -20,7 +20,7 @@ class SchemaParserRulesSpec extends Specification {
                       @totalColumns 1
                       LastName: regex("[a]")"""
 
-      parse(new StringReader(schema)) must beLike { case Success(Schema(_, List(ColumnDefinition("LastName", List(RegexRule(Literal(Some(r)))), _))), _) => r mustEqual "[a]" }
+      parse(new StringReader(schema)) must beLike { case Success(Schema(_, List(ColumnDefinition("LastName", List(RegexRule(r)), _))), _) => r mustEqual "[a]" }
     }
 
     "fail for an invalid regex" in {
@@ -28,7 +28,9 @@ class SchemaParserRulesSpec extends Specification {
                       @totalColumns 1
                       Something: regex ("[0-9")"""
 
-      parse(new StringReader(schema)) must beLike { case Failure(message, _) => (message mustEqual """regex invalid: ("[0-9")""") }
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case FailureZ(msgs) => msgs.list mustEqual List("Column: Something: Invalid regex(\"[0-9\"): at line: 3, column: 34")
+      }
     }
 
     "fail for missing quotes defining a regex" in {
@@ -246,7 +248,7 @@ class SchemaParserRulesSpec extends Specification {
                       Name: regex ("[1-9][a-z]*") in("dog")"""
 
     parse(new StringReader(schema)) must beLike {
-      case Success(Schema(_, List(ColumnDefinition("Name", List(RegexRule(Literal(Some(r))), InRule(Literal(Some(ir)))), _))), _) => {
+      case Success(Schema(_, List(ColumnDefinition("Name", List(RegexRule(r), InRule(Literal(Some(ir)))), _))), _) => {
         r mustEqual "[1-9][a-z]*"
         ir mustEqual "dog"
       }
@@ -256,10 +258,10 @@ class SchemaParserRulesSpec extends Specification {
   "succeed for inRule regex rules on a single and inRule has column reference and rules have had their order changed" in {
     val schema = """version 1.0
                       @totalColumns 1
-                      Name: in($Name) regex ("[1-9][a-z]*")"""
+                      Name: in($Name) regex("[1-9][a-z]*")"""
 
     parseAndValidate(new StringReader(schema)) must beLike {
-      case SuccessZ(Schema(_, List(ColumnDefinition("Name", List(InRule(ColumnReference(ir)), RegexRule(Literal(Some(r)))), _)))) => {
+      case SuccessZ(Schema(_, List(ColumnDefinition("Name", List(InRule(ColumnReference(ir)), RegexRule(r)), _)))) => {
         r mustEqual "[1-9][a-z]*"
         ir mustEqual "Name"
       }
@@ -294,6 +296,17 @@ class SchemaParserRulesSpec extends Specification {
                    |MyCountry:""".stripMargin
 
     parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual List("Column: Country has invalid cross reference is($MyMissingCountry) at line: 3, column: 10") }
+  }
+
+  "fail for invalid regex rule and'is' cross reference rule" in {
+    val schema = """version 1.0
+                   |@totalColumns 2
+                   |MyCountry: regex("[a-z*")
+                   |Country: is($MyMissingCountry)""".stripMargin
+
+    parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual List(
+      """Column: Country has invalid cross reference is($MyMissingCountry) at line: 4, column: 10
+        |Column: MyCountry: Invalid regex("[a-z*"): at line: 3, column: 12""".stripMargin) }
   }
 
   "succeed for 'isNot' text rule" in {

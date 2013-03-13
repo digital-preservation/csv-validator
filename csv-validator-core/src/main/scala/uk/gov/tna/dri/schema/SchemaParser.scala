@@ -85,7 +85,7 @@ trait SchemaParser extends RegexParsers {
   def ifExpr: Parser[IfRule] = (("if(" ~> white ~> nonConditionalRule <~ white <~ "," <~ white) ~ (rep1(rule)) ~ opt((white ~> "," ~> white ~> rep1(rule))) <~ white <~ ")" ^^
     { case cond ~ bdy ~ optBdy => IfRule(cond, bdy, optBdy)}) | failure("Invalid rule")
 
-  def regex = "regex" ~> regexParser ^? (validateRegex, s => s"regex invalid: $s") | failure("Invalid regex rule")
+  def regex = "regex" ~> regexParser ^^ { s => RegexRule(s.dropRight(2).drop(2)) }
 
   def in = "in(" ~> argProvider <~ ")" ^^ { InRule  }
 
@@ -151,13 +151,11 @@ trait SchemaParser extends RegexParsers {
     }
   }
 
-  private def validateRegex: PartialFunction[String, RegexRule] = {
-    case Regex(_, s, _) if Try(s.r).isSuccess => RegexRule(Literal(Some(s)))
-  }
+
 
 
   private def validate(g: List[GlobalDirective], c: List[ColumnDefinition]): String = {
-    globDirectivesValid(g) ::totalColumnsValid(g, c) :: columnDirectivesValid(c) :: duplicateColumnsValid(c) :: crossColumnsValid(c) :: checksumAlgorithmValid(c) :: rangeValid(c) :: lengthValid(c) :: Nil collect
+    globDirectivesValid(g) ::totalColumnsValid(g, c) :: columnDirectivesValid(c) :: duplicateColumnsValid(c) :: crossColumnsValid(c) :: checksumAlgorithmValid(c) :: rangeValid(c) :: lengthValid(c) :: regexValid(c):: Nil collect
       { case Some(s: String) => s } mkString("\n")
   }
 
@@ -286,5 +284,19 @@ trait SchemaParser extends RegexParsers {
 
     if (errors.isEmpty) None
     else Some(errors.map { case (cd, rules) => s"Column: ${cd.id} has invalid ${crossReferenceErrors(rules)}" }.mkString("\n"))
+  }
+
+  private def regexValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
+    def regexCheck(rule: Rule): Boolean = rule match {
+      case RegexRule(s) => {println("regexp to validate = " + s); Try(s.r).isFailure}
+      case _ => false
+    }
+
+    val v = for {
+      cd <- columnDefinitions
+      rule <- cd.rules
+      if (regexCheck(rule))
+    } yield s"""Column: ${cd.id}: Invalid ${rule.toError}: at line: ${rule.pos.line}, column: ${rule.pos.column}"""
+    if (v.isEmpty) None else Some(v.mkString("\n"))
   }
 }
