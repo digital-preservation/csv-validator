@@ -82,7 +82,8 @@ trait SchemaParser extends RegexParsers {
 
   def and: Parser[AndRule] = unaryRule ~ "and" ~ rule  ^^  { case lhs ~ _ ~ rhs =>  AndRule(lhs, rhs) }
 
-  def ifExpr: Parser[IfRule] = (("if(" ~> nonConditionalRule <~ "){") ~ (rep1(rule) <~ "}") ~ opt(("else{" ~> rep1(rule) <~ "}")) ^^ { case cond ~ bdy ~ optBdy => IfRule(cond, bdy, optBdy)}) | failure("Invalid rule")
+  def ifExpr: Parser[IfRule] = (("if(" ~> white ~> nonConditionalRule <~ white <~ "," <~ white) ~ (rep1(rule)) ~ opt((white ~> "," ~> white ~> rep1(rule))) <~ white <~ ")" ^^
+    { case cond ~ bdy ~ optBdy => IfRule(cond, bdy, optBdy)}) | failure("Invalid rule")
 
   def regex = "regex" ~> regexParser ^? (validateRegex, s => s"regex invalid: $s") | failure("Invalid regex rule")
 
@@ -131,6 +132,7 @@ trait SchemaParser extends RegexParsers {
     case a ~ b => LengthRule(a,b)
   }
 
+  def dateRange = "dateRange(\""
 
   def file = "file(" ~> opt(argProvider <~ (white ~ "," ~ white)) ~ argProvider <~ ")" ^^ { a => a }
 

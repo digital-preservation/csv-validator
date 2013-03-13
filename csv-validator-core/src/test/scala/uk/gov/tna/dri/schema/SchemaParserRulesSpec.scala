@@ -575,5 +575,69 @@ class SchemaParserRulesSpec extends Specification {
 
     }
 
+    "succeed for for simplest if expr:" in {
+      val schema = """version 1.0
+                      @totalColumns 1 @noHeader
+                      col1: if( length(1, 100) , starts("start") ) """
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case SuccessZ(_) => ok
+      }
+    }
+
+    "succeed for if with optional else :" in {
+      val schema = """version 1.0
+                      @totalColumns 1 @noHeader
+                      col1: if( length(1, 100) , starts("start"), ends("ends") ) """
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case SuccessZ(_) => ok
+      }
+    }
+
+    "succeed for if with nested if :" in {
+      val schema = """version 1.0
+                      @totalColumns 1 @noHeader
+                      col1: if( length(1, 100) , if( starts("start"), ends("ends"), ends("start")) ) """
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case SuccessZ(_) => ok
+      }
+    }
+
+    "succeed for if with nested if and else nested :" in {
+      val schema = """version 1.0
+                      @totalColumns 1 @noHeader
+                      col1: if( length(1, 100) , if( starts("start"), ends("ends"), ends("start")) ,  if( starts("start"), ends("ends"), ends("start")) ) """
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case SuccessZ(_) => ok
+      }
+    }
+
+    "fail for if when condition is an if expr :" in {
+      val schema = """version 1.0
+                      @totalColumns 1 @noHeader
+                      col1: if( if( starts("start"), ends("ends")) ,  ends("start") )"""
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case FailureZ(_) => ok
+      }
+    }
+
+    "fail for if when only condition supplied :" in {
+      val schema = """version 1.0
+                      @totalColumns 1 @noHeader
+                      col1: if( starts("start") )"""
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case FailureZ(_) => ok
+      }
+    }
+
+    "fail for if when more than two expressions supplied :" in {
+      val schema = """version 1.0
+                      @totalColumns 1 @noHeader
+                      col1: if( starts("start"), ends("end") , ends("end"), ends("end"))"""
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case FailureZ(_) => ok
+      }
+    }
+
+
   }
 }
