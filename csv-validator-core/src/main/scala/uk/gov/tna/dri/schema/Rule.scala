@@ -228,6 +228,37 @@ case class UniqueRule() extends Rule("unique") {
   def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = true
 }
 
+case class UniqueMultiRule( columns: List[String] ) extends Rule("unique(") {
+  val SEPARATOR:Char = 0x00 //'+'
+  val distinctValues = mutable.HashMap[String, Int]()
+
+  override def evaluate(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
+    val cellValue = row.cells(columnIndex).value
+    val columnDefinition = schema.columnDefinitions(columnIndex)
+
+    def columnName2Index( name:String): Int = schema.columnDefinitions.zipWithIndex.filter{ case (c,i) => c.id == name}.head._2
+
+    def secondaryValues:String = columns.foldLeft(""){ case (s,c) => s + SEPARATOR + row.cells(columnName2Index(c)).value}
+
+    def originalValue: Option[String] = {
+      val cellValue = cellValueCorrectCase
+      if (distinctValues contains cellValue) Some(cellValue) else None
+    }
+
+    def cellValueCorrectCase = if (columnDefinition.directives contains IgnoreCase()) (cellValue+SEPARATOR+secondaryValues).toLowerCase else cellValue+SEPARATOR+secondaryValues
+
+    originalValue match {
+      case None => distinctValues.put(cellValueCorrectCase, row.lineNumber); true.successNel
+      case Some(o) => {
+        s"$toError ${columns.mkString("$", ", $", "")} ) fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value} (original at line: ${distinctValues(o)})".failNel[Any]
+      }
+    }
+  }
+
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = true
+}
+
+
 case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: String, pathSubstitutions: List[(String,String)]) extends Rule("checksum", rootPath, file) with FileWildcardSearch[String] {
   def this(file: ArgProvider, algorithm: String, pathSubstitutions: List[(String,String)]) = this(Literal(None), file, algorithm, pathSubstitutions)
   def this(file: ArgProvider, algorithm: String) = this(Literal(None), file, algorithm, List[(String,String)]())

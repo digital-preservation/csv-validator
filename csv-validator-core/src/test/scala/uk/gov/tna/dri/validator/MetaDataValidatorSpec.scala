@@ -761,6 +761,28 @@ class MetaDataValidatorSpec extends Specification {
       }
     }
 
+    "succeed for multi-column unique rule" in {
+      val schema = """version 1.0
+                      @totalColumns 3
+                      Name: unique($Age,$PostCode)
+                      Age:
+                      PostCode:
+                   """
+
+      val metaData =
+        """Bob,10,N1
+           Jim,20,TN20
+           Bob,50,CR3
+           Ben,30,SE1
+           David,40,B5
+           Andy,50,ED9
+        """
+
+      validate(metaData, schema) must beLike { case Success(_) => ok }
+    }
+
+
+
     "succeed for valid uri" in {
       val schema = """version 1.0
                       @totalColumns 1 @noHeader

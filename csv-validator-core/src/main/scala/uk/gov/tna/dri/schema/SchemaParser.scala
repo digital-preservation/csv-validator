@@ -73,7 +73,7 @@ trait SchemaParser extends RegexParsers {
 
   def conditionalRule = ifExpr
 
-  def unaryRule = regex | fileExists | in | is | isNot | starts | ends | unique | uri | xDateTime | xDate | ukDate | xTime |
+  def unaryRule = regex | fileExists | in | is | isNot | starts | ends  | uniqueMultiExpr | uniqueExpr | uri | xDateTime | xDate | ukDate | xTime |
     uuid4 | positiveInteger | checksum | fileCount | parenthesesRule | range | lengthExpr | failure("Invalid rule")
 
   def parenthesesRule: Parser[ParenthesesRule] = "(" ~> rep1(rule) <~ ")" ^^ { ParenthesesRule(_) } | failure("unmatched paren")
@@ -97,7 +97,9 @@ trait SchemaParser extends RegexParsers {
 
   def ends = "ends(" ~> argProvider <~ ")" ^^ { EndsRule }
 
-  def unique: Parser[UniqueRule] = "unique" ^^^ UniqueRule()
+  def uniqueExpr: Parser[UniqueRule] = "unique" ^^^ UniqueRule()
+
+  def uniqueMultiExpr: Parser[UniqueMultiRule] = "unique(" ~ white ~ "$" ~> columnIdentifier ~ rep( white ~ ',' ~ "$" ~> columnIdentifier ) <~ ")" ^^ { s => UniqueMultiRule( s._1 :: s._2 ) }
 
   def uri: Parser[UriRule] = "uri" ^^^ UriRule()
 

@@ -653,4 +653,18 @@ class SchemaParserRulesSpec extends Specification {
 
 
   }
+
+  "unique multi-column should" should {
+    "succeed with two integers" in {
+      val schema = """version 1.0
+                      @totalColumns 3
+                      Name: unique( $Age, $PostCode )
+                      Age:
+                      PostCode:
+                   """
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case SuccessZ(_) => ok
+      }
+    }
+  }
 }
