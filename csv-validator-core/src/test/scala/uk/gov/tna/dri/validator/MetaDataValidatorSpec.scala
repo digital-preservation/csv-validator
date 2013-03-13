@@ -1080,6 +1080,39 @@ class MetaDataValidatorSpec extends Specification {
       validate(metaData, schema) must beLike { case Success(_) => ok }
     }
 
+
+    "succeed when 'and'ing rules together" in {
+      val schema =
+        """version 1.0
+           @totalColumns 1 @noHeader
+           col1: starts("Dath") and ends("Vader")
+        """
+      val metaData ="Dath Vader"
+      validate(metaData, schema) must beLike { case Success(_) => ok }
+    }
+
+    "succeed with parentheses creating a match, same as below with () difference" in {
+      val schema =
+        """version 1.0
+           @totalColumns 1 @noHeader
+           col1: is("True") or (is("True") and is("False"))
+        """
+      val metaData ="True"
+      validate(metaData, schema) must beLike { case Success(_) => ok }
+    }
+
+    "fail with parentheses creating a failed match, same example as above, only () difference" in {
+      val schema =
+        """version 1.0
+           @totalColumns 1 @noHeader
+           col1: (is("True") or is("True")) and is("False")
+        """
+      val metaData ="True"
+      validate(metaData, schema) must beLike {
+        case Failure(messages) => messages.list mustEqual List("""(is("True") or is("True")) and is("False") fails for line: 1, column: col1, value: "True"""")
+      }
+    }
+
   }
 
 }
