@@ -426,7 +426,7 @@ case class LengthRule(from: Option[String], to: String) extends Rule("length") {
 case class AndRule(left: Rule, right: Rule) extends Rule("and") {
   override def evaluate(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
     left.evaluate(columnIndex, row, schema) match {
-      case s @ Failure(_) => s
+      case s @ Failure(_) => fail(columnIndex, row, schema) // s
       case Success(_) => right.evaluate(columnIndex, row, schema) match {
         case s @ Success(_) => s
         case Failure(_) => fail(columnIndex, row, schema)
