@@ -290,7 +290,7 @@ trait SchemaParser extends RegexParsers {
 
   private def regexValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
     def regexCheck(rule: Rule): Boolean = rule match {
-      case RegexRule(s) => {println("regexp to validate = " + s); Try(s.r).isFailure}
+      case RegexRule(s) =>  Try(s.r).isFailure
       case _ => false
     }
 
