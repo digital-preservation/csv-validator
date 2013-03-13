@@ -984,6 +984,102 @@ class MetaDataValidatorSpec extends Specification {
       validate(metaData, schema) must beLike { case Success(_) => ok }
     }
 
+    "succeed for simple if where condition is not true" in {
+      val schema =
+        """version 1.0
+           @totalColumns 1 @noHeader
+           col1: if(starts("Jim"), ends("ogsf") )
+        """
+      val metaData ="Joe Bloggs"
+      validate(metaData, schema) must beLike { case Success(_) => ok }
+    }
+
+    "succeed for simple if where condition is true" in {
+      val schema =
+        """version 1.0
+           @totalColumns 1 @noHeader
+           col1: if(starts("Joe"), ends("oggs") )
+        """
+      val metaData ="Joe Bloggs"
+      validate(metaData, schema) must beLike { case Success(_) => ok }
+    }
+
+    "fail for simple if where condition is true and expr is false" in {
+      val schema =
+        """version 1.0
+           @totalColumns 1 @noHeader
+           col1: if(starts("Joe"), ends("Joe") )
+        """
+      val metaData ="Joe Bloggs"
+      validate(metaData, schema) must beLike {
+        case Failure(messages) => messages.list mustEqual List("""ends("Joe") fails for line: 1, column: col1, value: "Joe Bloggs"""")
+      }
+    }
+
+    "succeed for simple if where condition is false and else expr is true" in {
+      val schema =
+        """version 1.0
+           @totalColumns 1 @noHeader
+           col1: if(starts("Jim"), ends("Joe") , ends("oggs")  )
+        """
+      val metaData ="Joe Bloggs"
+      validate(metaData, schema) must beLike { case Success(_) => ok }
+    }
+
+    "fail for simple if where condition is false and else expr is false" in {
+      val schema =
+        """version 1.0
+           @totalColumns 1 @noHeader
+           col1: if(starts("ogs"), ends("oggs") , ends("Joe"))
+        """
+      val metaData ="Joe Bloggs"
+      validate(metaData, schema) must beLike {
+        case Failure(messages) => messages.list mustEqual List("""ends("Joe") fails for line: 1, column: col1, value: "Joe Bloggs"""")
+      }
+    }
+
+    "succeed for simple if where condition is true and else expr is false and expr is true" in {
+      val schema =
+        """version 1.0
+           @totalColumns 1 @noHeader
+           col1: if(starts("Joe"), ends("oggs") , ends("Joe"))
+        """
+      val metaData ="Joe Bloggs"
+      validate(metaData, schema) must beLike { case Success(_) => ok }
+    }
+
+    "succeed for nested if where condition is true" in {
+      val schema =
+        """version 1.0
+           @totalColumns 1 @noHeader
+           col1: if(starts("Joe"), if( starts("Bloggs"), length(4), length(1, 20) ) )
+        """
+      val metaData ="Joe Bloggs"
+      validate(metaData, schema) must beLike { case Success(_) => ok }
+    }
+
+    "fail for nested if where condition is true" in {
+      val schema =
+        """version 1.0
+           @totalColumns 1 @noHeader
+           col1: if(starts("Joe"), if( starts("Joe"), length(4), length(1, 20) ) )
+        """
+      val metaData ="Joe Bloggs"
+      validate(metaData, schema) must beLike {
+        case Failure(messages) => messages.list mustEqual List("""length(4) fails for line: 1, column: col1, value: "Joe Bloggs"""")
+      }
+    }
+
+    "succeed for nested if where condition is false" in {
+      val schema =
+        """version 1.0
+           @totalColumns 1 @noHeader
+           col1: if(starts("Bloggs"), if( starts("Joe"), length(4), length(1, 20) ) , if( starts("Joe"), length(4, 20), length(4) ) )
+        """
+      val metaData ="Joe Bloggs"
+      validate(metaData, schema) must beLike { case Success(_) => ok }
+    }
+
   }
 
 }
