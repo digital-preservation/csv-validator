@@ -238,14 +238,17 @@ case class UniqueMultiRule( columns: List[String] ) extends Rule("unique(") {
 
     def columnName2Index( name: String): Int = schema.columnDefinitions.zipWithIndex.filter{ case (c,i) => c.id == name}.head._2
 
-    def secondaryValues: String = columns.foldLeft(""){ case (s,c) => s + SEPARATOR + row.cells(columnName2Index(c)).value}
+//    def secondaryValues: String = columns.foldLeft(""){ case (s,c) => s + SEPARATOR + row.cells(columnName2Index(c)).value }
+
+    def uniqueString: String = columns.foldLeft(cellValue){ case (s,c) => s + SEPARATOR + row.cells(columnName2Index(c)).value }
 
     def originalValue: Option[String] = {
       val cellValue = cellValueCorrectCase
       if (distinctValues contains cellValue) Some(cellValue) else None
     }
 
-    def cellValueCorrectCase = if (columnDefinition.directives contains IgnoreCase) (cellValue+SEPARATOR+secondaryValues).toLowerCase else cellValue+SEPARATOR+secondaryValues
+
+    def cellValueCorrectCase = if (columnDefinition.directives contains IgnoreCase) uniqueString.toLowerCase else uniqueString
 
     originalValue match {
       case None => distinctValues.put(cellValueCorrectCase, row.lineNumber); true.successNel

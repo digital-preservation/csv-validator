@@ -42,7 +42,7 @@ object MetaDataValidatorCommandLineApp extends App {
     else new MetaDataValidatorApp with AllErrorsMetaDataValidator { val pathSubstitutions = pathSubstitutionsList }
 
 
-  private def processMetaData(metaDataFile: String, schemaFile: String, failFast: Boolean, pathSubstitutionsList: List[(String,String)] ) = {
+  private def processMetaData(metaDataFile: String, schemaFile: String, failFast: Boolean, pathSubstitutionsList: List[(String,String)] ): (String,Int) = {
     val validator = createValidator (failFast, pathSubstitutionsList)
     validator.parseSchema(schemaFile) match {
       case FailureZ(errors) => (prettyPrint(errors), SystemExits.InvalidSchema)
@@ -50,6 +50,25 @@ object MetaDataValidatorCommandLineApp extends App {
         validator.validate(metaDataFile, schema) match {
           case FailureZ(errors) => (prettyPrint(errors), SystemExits.InvalidCsv)
           case SuccessZ(_) => ("PASS", SystemExits.ValidCsv)
+        }
+    }
+  }
+
+  def javaProcessMetaData(metaDataFile: String, schemaFile: String, failFast: Boolean, pathSubstitutionsList: java.util.List[uk.gov.tna.dri.schema.Validator.Substitution] ): java.util.List[String] = {
+    import scala.collection.JavaConverters._
+    val tmp: List[(String,String)] = pathSubstitutionsList.asScala.map( x => (x.getFrom, x.getTo)).toList
+
+    checkFilesReadable(metaDataFile :: schemaFile :: Nil ) match {
+      case FailureZ(errors) => errors.list.asJava
+      case SuccessZ(_) =>
+        val validator = createValidator (failFast, tmp)
+        validator.parseSchema(schemaFile) match {
+          case FailureZ(errors) => errors.list.asJava
+          case SuccessZ(schema) =>
+            validator.validate(metaDataFile, schema) match {
+              case FailureZ(errors) => errors.list.asJava
+              case SuccessZ(_) => new java.util.ArrayList[String]
+            }
         }
     }
   }
