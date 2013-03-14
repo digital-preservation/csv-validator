@@ -220,7 +220,7 @@ case class UniqueRule() extends Rule("unique") {
     originalValue match {
       case None => distinctValues.put(cellValueCorrectCase, row.lineNumber); true.successNel
       case Some(o) => {
-        s"$toError fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value} (original at line: ${distinctValues(o)})".failNel[Any]
+        s"$toError fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${'"'}${row.cells(columnIndex).value}${'"'} (original at line: ${distinctValues(o)})".failNel[Any]
       }
     }
   }
@@ -245,7 +245,7 @@ case class UniqueMultiRule( columns: List[String] ) extends Rule("unique(") {
       if (distinctValues contains cellValue) Some(cellValue) else None
     }
 
-    def cellValueCorrectCase = if (columnDefinition.directives contains IgnoreCase()) (cellValue+SEPARATOR+secondaryValues).toLowerCase else cellValue+SEPARATOR+secondaryValues
+    def cellValueCorrectCase = if (columnDefinition.directives contains IgnoreCase) (cellValue+SEPARATOR+secondaryValues).toLowerCase else cellValue+SEPARATOR+secondaryValues
 
     originalValue match {
       case None => distinctValues.put(cellValueCorrectCase, row.lineNumber); true.successNel

@@ -124,7 +124,7 @@ trait SchemaParser extends RegexParsers {
 
   def rootFilePath: Parser[String] = """[a-zA-Z/-_\.\d\\:]+""".r
 
-  def checksum = "checksum(" ~> file ~ (white ~ "," ~ white) ~ algorithm <~ ")" ^^ { case a ~ _ ~ algo => ChecksumRule(a._1.getOrElse(Literal(None)), a._2, algo, pathSubstitutions) }
+  def checksum = "checksum(" ~> file ~ (white ~ "," ~ white) ~ algorithmExpr <~ ")" ^^ { case files ~ _ ~ algorithm => ChecksumRule(files._1.getOrElse(Literal(None)), files._2, algorithm, pathSubstitutions) }
 
   def fileCount = "fileCount(" ~> file <~ ")" ^^ { case a  => FileCountRule(a._1.getOrElse(Literal(None)), a._2, pathSubstitutions) }
 
@@ -138,7 +138,7 @@ trait SchemaParser extends RegexParsers {
 
   def file = "file(" ~> opt(argProvider <~ (white ~ "," ~ white)) ~ argProvider <~ ")" ^^ { a => a }
 
-  def algorithm: Parser[String] = "\"" ~> stringRegex <~ "\""  ^^ { a => a }
+  def algorithmExpr: Parser[String] = "\"" ~> stringRegex <~ "\""  ^^ { a => a }
 
   def optional = "@optional" ^^^ Optional()
 
@@ -178,10 +178,10 @@ trait SchemaParser extends RegexParsers {
   }
 
   private def globDirectivesValid(directives: List[GlobalDirective]): Option[String] = {
-    val dups = for ((name, lst) <- directives.groupBy(_.name) if (lst.length > 1)) yield {
+    val duplicates = for ((name, lst) <- directives.groupBy(_.name) if (lst.length > 1)) yield {
       s"Global directive @$name is duplicated"
     }
-    if (dups.isEmpty) None else Some(dups.mkString("\n"))
+    if (duplicates.isEmpty) None else Some(duplicates.mkString("\n"))
   }
 
   private def columnDirectivesValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {

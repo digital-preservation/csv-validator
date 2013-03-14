@@ -757,7 +757,7 @@ class MetaDataValidatorSpec extends Specification {
         """
 
       validate(metaData, schema) must beLike {
-        case Failure(messages) => messages.list mustEqual List("unique fails for line: 4, column: Name, value: Jim (original at line: 2)","unique fails for line: 5, column: Name, value: Jim (original at line: 2)")
+        case Failure(messages) => messages.list mustEqual List("unique fails for line: 4, column: Name, value: \"Jim\" (original at line: 2)","unique fails for line: 5, column: Name, value: \"Jim\" (original at line: 2)")
       }
     }
 
