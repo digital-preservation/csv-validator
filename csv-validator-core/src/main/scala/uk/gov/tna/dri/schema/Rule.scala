@@ -229,16 +229,16 @@ case class UniqueRule() extends Rule("unique") {
 }
 
 case class UniqueMultiRule( columns: List[String] ) extends Rule("unique(") {
-  val SEPARATOR:Char = 0x00 //'+'
+  val SEPARATOR:Char = 0x07 // BEL
   val distinctValues = mutable.HashMap[String, Int]()
 
   override def evaluate(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
     val cellValue = row.cells(columnIndex).value
     val columnDefinition = schema.columnDefinitions(columnIndex)
 
-    def columnName2Index( name:String): Int = schema.columnDefinitions.zipWithIndex.filter{ case (c,i) => c.id == name}.head._2
+    def columnName2Index( name: String): Int = schema.columnDefinitions.zipWithIndex.filter{ case (c,i) => c.id == name}.head._2
 
-    def secondaryValues:String = columns.foldLeft(""){ case (s,c) => s + SEPARATOR + row.cells(columnName2Index(c)).value}
+    def secondaryValues: String = columns.foldLeft(""){ case (s,c) => s + SEPARATOR + row.cells(columnName2Index(c)).value}
 
     def originalValue: Option[String] = {
       val cellValue = cellValueCorrectCase
@@ -250,7 +250,7 @@ case class UniqueMultiRule( columns: List[String] ) extends Rule("unique(") {
     originalValue match {
       case None => distinctValues.put(cellValueCorrectCase, row.lineNumber); true.successNel
       case Some(o) => {
-        s"$toError ${columns.mkString("$", ", $", "")} ) fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value} (original at line: ${distinctValues(o)})".failNel[Any]
+        s"$toError ${columns.mkString("$", ", $", "")} ) fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${'"'}${row.cells(columnIndex).value}${'"'} (original at line: ${distinctValues(o)})".failNel[Any]
       }
     }
   }
@@ -269,8 +269,8 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
 
     search(filename(columnIndex, row, schema)) match {
       case Success(hexValue: String) if hexValue == cellValue => true.successNel[String]
-      case Success(hexValue: String) => s"$toError checksum match fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
-      case Failure(errMsg) => s"$toError ${errMsg.head} for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
+      case Success(hexValue: String) => s"$toError checksum match fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${'"'}${row.cells(columnIndex).value}${'"'}".failNel[Any]
+      case Failure(errMsg) => s"$toError ${errMsg.head} for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${'"'}${row.cells(columnIndex).value}${'"'}".failNel[Any]
     }
   }
 
@@ -345,10 +345,10 @@ case class FileCountRule(rootPath: ArgProvider, file: ArgProvider, pathSubstitut
       case scala.util.Success(cellCount) =>
         search(filename(columnIndex, row, schema)) match {
           case Success(count: Int) if count == cellCount => true.successNel[String]
-          case Success(count: Int) => s"$toError found $count file(s) for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
-          case Failure(errMsg) => s"$toError ${errMsg.head} for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
+          case Success(count: Int) => s"$toError found $count file(s) for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${'"'}${row.cells(columnIndex).value}${'"'}".failNel[Any]
+          case Failure(errMsg) => s"$toError ${errMsg.head} for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${'"'}${row.cells(columnIndex).value}${'"'}".failNel[Any]
         }
-      case scala.util.Failure(_) =>  s"$toError '$cellValue' is not a number for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${row.cells(columnIndex).value}".failNel[Any]
+      case scala.util.Failure(_) =>  s"$toError '$cellValue' is not a number for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${'"'}${row.cells(columnIndex).value}${'"'}".failNel[Any]
     }
   }
 

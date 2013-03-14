@@ -30,7 +30,7 @@ class UniqueMultiRuleSpec extends Specification {
 
       rule.evaluate(0, Row(Cell("r2d2") :: Cell("3") :: Cell("blue") :: Nil, 1), schema)
       rule.evaluate(0, Row(Cell("r2d2") :: Cell("3") :: Cell("blue") :: Nil, 2), schema) must beLike {
-        case Failure(msgs) => msgs.list mustEqual(List("unique( $Legs, $Color ) fails for line: 2, column: Name, value: r2d2 (original at line: 1)"))
+        case Failure(msgs) => msgs.list mustEqual(List("unique( $Legs, $Color ) fails for line: 2, column: Name, value: \"r2d2\" (original at line: 1)"))
       }
     }
 

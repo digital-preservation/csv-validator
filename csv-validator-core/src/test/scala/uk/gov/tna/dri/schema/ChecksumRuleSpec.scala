@@ -14,7 +14,7 @@ class ChecksumRuleSpec extends Specification {
       val checksumRule = new ChecksumRule(Literal(Some("build.sbt")), "MD5")
 
       checksumRule.evaluate(0, Row(List(Cell("699d61aff25f16a5560372e610da91ab")), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition("column1")))) must beLike {
-        case Failure(m) => m.list mustEqual List("""checksum(file("build.sbt"), "MD5") checksum match fails for line: 1, column: column1, value: 699d61aff25f16a5560372e610da91ab""")
+        case Failure(m) => m.list mustEqual List("""checksum(file("build.sbt"), "MD5") checksum match fails for line: 1, column: column1, value: "699d61aff25f16a5560372e610da91ab"""")
       }
     }
 
@@ -73,7 +73,7 @@ class ChecksumRuleSpec extends Specification {
       val checksumRule = new ChecksumRule(Literal(Some("""file://bob/resources/uk/gov/tna/dri/schema/checksum.txt""")), "MD5", pathSubstitutions)
 
       checksumRule.evaluate(0, Row(List(Cell("232762380299115da6995e4c4ac22fa2")), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition("column1")))) must beLike {
-        case Failure(m) => m.list mustEqual List("""checksum(file("file://bob/resources/uk/gov/tna/dri/schema/checksum.txt"), "MD5") file "file://src/test/resources/uk/gov/tna/dri/schema/checksum.txt" not found for line: 1, column: column1, value: 232762380299115da6995e4c4ac22fa2""")
+        case Failure(m) => m.list mustEqual List("""checksum(file("file://bob/resources/uk/gov/tna/dri/schema/checksum.txt"), "MD5") file "file://src/test/resources/uk/gov/tna/dri/schema/checksum.txt" not found for line: 1, column: column1, value: "232762380299115da6995e4c4ac22fa2"""")
       }
     }
 
