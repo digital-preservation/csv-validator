@@ -7,6 +7,7 @@ import collection.immutable.TreeMap
 import java.security.MessageDigest
 import scalaz._
 import Scalaz._
+import org.joda.time.DateTime
 
 trait SchemaParser extends RegexParsers {
 
@@ -73,7 +74,7 @@ trait SchemaParser extends RegexParsers {
 
   def conditionalRule = ifExpr
 
-  def unaryRule = regex | fileExists | in | is | isNot | starts | ends  | uniqueMultiExpr | uniqueExpr | uri | xDateTime | xDate | ukDate | xTime |
+  def unaryRule = regex | fileExists | in | is | isNot | starts | ends  | uniqueMultiExpr | uniqueExpr | uri | xDateTimeRange | xDateTime | xDate | ukDate | xTime |
     uuid4 | positiveInteger | checksum | fileCount | parenthesesRule | range | lengthExpr | failure("Invalid rule")
 
   def parenthesesRule: Parser[ParenthesesRule] = "(" ~> rep1(rule) <~ ")" ^^ { ParenthesesRule(_) } | failure("unmatched paren")
@@ -104,6 +105,12 @@ trait SchemaParser extends RegexParsers {
   def uri: Parser[UriRule] = "uri" ^^^ UriRule()
 
   def xDateTime: Parser[XsdDateTimeRule] = "xDateTime" ^^^ XsdDateTimeRule()
+
+  def xDateTimeExpr: Parser[String] = """[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}""".r
+
+  def xDateTimeRange: Parser[XsdDateTimeRangeRule] = (("xDateTime(" ~> white) ~> xDateTimeExpr <~ (white <~ "," <~ white)) ~ xDateTimeExpr <~ (white ~ ")") ^^  {
+    case from ~ to => XsdDateTimeRangeRule(from, to)
+  }
 
   def xDate: Parser[XsdDateRule] = "xDate" ^^^ XsdDateRule()
 
@@ -157,7 +164,8 @@ trait SchemaParser extends RegexParsers {
 
 
   private def validate(g: List[GlobalDirective], c: List[ColumnDefinition]): String = {
-    globDirectivesValid(g) ::totalColumnsValid(g, c) :: columnDirectivesValid(c) :: duplicateColumnsValid(c) :: crossColumnsValid(c) :: checksumAlgorithmValid(c) :: rangeValid(c) :: lengthValid(c) :: regexValid(c):: Nil collect
+    globDirectivesValid(g) ::totalColumnsValid(g, c) :: columnDirectivesValid(c) :: duplicateColumnsValid(c) :: crossColumnsValid(c) ::
+      checksumAlgorithmValid(c) :: rangeValid(c) :: lengthValid(c) :: regexValid(c) :: dateRangeValid(c) :: Nil collect
       { case Some(s: String) => s } mkString("\n")
   }
 
@@ -289,6 +297,7 @@ trait SchemaParser extends RegexParsers {
   }
 
   private def regexValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
+
     def regexCheck(rule: Rule): Boolean = rule match {
       case RegexRule(s) =>  Try(s.r).isFailure
       case _ => false
@@ -301,4 +310,29 @@ trait SchemaParser extends RegexParsers {
     } yield s"""Column: ${cd.id}: Invalid ${rule.toError}: at line: ${rule.pos.line}, column: ${rule.pos.column}"""
     if (v.isEmpty) None else Some(v.mkString("\n"))
   }
+
+  private def dateRangeValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
+
+    def dateCheck(rule: Rule): Boolean = rule match {
+      case XsdDateTimeRangeRule(from,to) =>  {
+
+        val dtFrom = Try(DateTime.parse(from))
+        val dtTo = Try(DateTime.parse(to))
+        val diff = dtFrom.flatMap(f => dtTo.map(t =>  f.isBefore(t) ))
+        diff match {
+          case scala.util.Success(_) => false
+          case scala.util.Failure(_) => true
+        }
+      }
+      case _ => false
+    }
+
+    val v = for {
+      cd <- columnDefinitions
+      rule <- cd.rules
+      if (dateCheck(rule))
+    } yield s"""Column: ${cd.id}: Invalid ${rule.toError}: at line: ${rule.pos.line}, column: ${rule.pos.column}"""
+    if (v.isEmpty) None else Some(v.mkString("\n"))
+  }
+
 }

@@ -26,7 +26,7 @@ class SchemaParserRulesSpec extends Specification {
     "fail for an invalid regex" in {
       val schema = """version 1.0
                       @totalColumns 1
-                      Something: regex ("[0-9")"""
+                      Something: regex("[0-9")"""
 
       parseAndValidate(new StringReader(schema)) must beLike {
         case FailureZ(msgs) => msgs.list mustEqual List("Column: Something: Invalid regex(\"[0-9\"): at line: 3, column: 34")
@@ -37,7 +37,7 @@ class SchemaParserRulesSpec extends Specification {
       val schema = """version 1.0
                       @totalColumns 3
                       LastName:
-                      FirstName: regex ("a)
+                      FirstName: regex("a)
                       Age:"""
 
       parse(new StringReader(schema)) must beLike {
@@ -229,6 +229,26 @@ class SchemaParserRulesSpec extends Specification {
       }
     }
 
+  }
+
+  "succeed for xDateTime with valid date" in {
+    val schema =
+      """version 1.0
+           @totalColumns 1
+           Country: xDateTime( 2012-12-01T01:01:01 , 2012-12-01T01:01:01 )"""
+
+    parseAndValidate(new StringReader(schema)) must beLike {
+        case SuccessZ(Schema(_, _))  => ok
+    }
+  }
+
+  "fail for xDateTime with invalid date" in {
+    val schema =
+      """version 1.0
+           @totalColumns 1
+           Country: xDateTime( 2012-99-01T01:01:01 , 2012-12-01T01:01:01 )"""
+
+    parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual List("Column: Country: Invalid xDateTime(\"2012-99-01T01:01:01, 2012-12-01T01:01:01\"): at line: 3, column: 21") }
   }
 
   "succeed for cross reference in rule" in {

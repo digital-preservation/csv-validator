@@ -11,6 +11,8 @@ import uk.gov.tna.dri.metadata.Row
 import util.Try
 import annotation.tailrec
 import java.net.URI
+import org.joda.time.{LocalTime, DateTime}
+import org.joda.time.format.DateTimeFormat
 
 abstract class Rule(val name: String, val argProviders: ArgProvider*) extends Positional {
 
@@ -176,22 +178,63 @@ case class UriRule() extends Rule("uri") {
 
 case class XsdDateTimeRule() extends Rule("xDateTime") {
   val xsdDateTimeRegex = "[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}"
-  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = cellValue matches xsdDateTimeRegex
+
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
+    cellValue matches xsdDateTimeRegex match {
+      case true => Try(DateTime.parse(cellValue)).isSuccess
+      case _ => false
+    }
+  }
+}
+
+case class XsdDateTimeRangeRule(from: String, to: String) extends Rule("xDateTime") {
+
+  val xsdDateTimeRegex = "[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}"
+
+
+  override def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema):Boolean = {
+    cellValue matches xsdDateTimeRegex
+  }
+
+  override def toError = {
+    s"""$name("$from, $to")"""
+  }
+
 }
 
 case class XsdDateRule() extends Rule("xDate") {
   val xsdDateRegex = "[0-9]{4}-[0-9]{2}-[0-9]{2}"
-  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = cellValue matches xsdDateRegex
+
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
+    cellValue matches xsdDateRegex match {
+      case true => Try(DateTime.parse(cellValue)).isSuccess
+      case _ => false
+    }
+  }
 }
 
 case class UkDateRule() extends Rule("ukDate") {
   val ukDateRegex = "[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}"
-  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = cellValue matches ukDateRegex
+
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
+    val ukdate =  "dd/MM/YYYY"
+    val fmt = DateTimeFormat.forPattern(ukdate)
+    cellValue matches ukDateRegex match {
+      case true => Try(fmt.parseDateTime(cellValue)).isSuccess
+      case _ => false
+    }
+  }
 }
 
 case class XsdTimeRule() extends Rule("xTime") {
   val xsdTimeRegex = "[0-9]{2}:[0-9]{2}:[0-9]{2}"
-  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = cellValue matches xsdTimeRegex
+
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
+    cellValue matches xsdTimeRegex match {
+      case true => Try(LocalTime.parse(cellValue)).isSuccess
+      case _ => false
+    }
+  }
 }
 
 case class Uuid4Rule() extends Rule("uuid4") {

@@ -33,7 +33,9 @@ libraryDependencies ++= Seq(
   "net.sf.opencsv" % "opencsv" % "2.3",
   "org.scalaz" %% "scalaz-core" % "6.0.4",
   "com.github.scala-incubator.io" % "scala-io-core_2.10" % "0.4.2",
-  "com.github.scala-incubator.io" % "scala-io-file_2.10" % "0.4.2"
+  "com.github.scala-incubator.io" % "scala-io-file_2.10" % "0.4.2",
+  "joda-time" % "joda-time" % "2.1",
+  "org.joda" % "joda-convert" % "1.2"
 )
 
 
