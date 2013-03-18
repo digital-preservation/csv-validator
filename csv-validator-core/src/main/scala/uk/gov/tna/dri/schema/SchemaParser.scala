@@ -308,11 +308,8 @@ trait SchemaParser extends RegexParsers {
   private def dateRangeValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
 
     def dateCheck(rule: Rule): Boolean = rule match {
-      case XsdDateTimeRangeRule(from,to) =>  {
-
-        val dtFrom = Try(DateTime.parse(from))
-        val dtTo = Try(DateTime.parse(to))
-        val diff = dtFrom.flatMap(f => dtTo.map(t =>  f.isBefore(t) ))
+      case xsdDateTimeRule @ XsdDateTimeRangeRule(from,to) =>  {
+        val diff = for (frmDt <- xsdDateTimeRule.fromDate; toDt <- xsdDateTimeRule.toDate) yield frmDt.isBefore(toDt)
 
         diff match {
           case scala.util.Success(_) => false

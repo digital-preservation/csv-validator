@@ -11,7 +11,7 @@ import uk.gov.tna.dri.metadata.Row
 import util.Try
 import annotation.tailrec
 import java.net.URI
-import org.joda.time.{LocalTime, DateTime}
+import org.joda.time.{Interval, LocalTime, DateTime}
 import org.joda.time.format.DateTimeFormat
 
 abstract class Rule(val name: String, val argProviders: ArgProvider*) extends Positional {
@@ -193,8 +193,21 @@ case class XsdDateTimeRangeRule(from: String, to: String) extends Rule("xDateTim
 
   val xsdDateTimeRegex = "[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}"
 
-  override def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema):Boolean = {
-    cellValue matches xsdDateTimeRegex
+  lazy val fromDate = Try(DateTime.parse(from))
+  lazy val toDate = Try(DateTime.parse(to))
+
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
+
+    cellValue matches xsdDateTimeRegex match {
+      case true => {
+        val inRange = for ( frmDt <- fromDate; toDt <-toDate; cellDt <- Try(DateTime.parse(cellValue))) yield {
+          val interval = new Interval(frmDt,toDt)
+          interval.contains(cellDt)
+        }
+        inRange.getOrElse(false)
+      }
+      case _ => false
+    }
   }
 
   override def toError = {
@@ -213,6 +226,33 @@ case class XsdDateRule() extends Rule("xDate") {
   }
 }
 
+case class XsdDateRangeRule(from: String, to: String) extends Rule("xDateTime") {
+
+  val xsdDateRegex = "[0-9]{4}-[0-9]{2}-[0-9]{2}"
+
+  lazy val fromDate = Try(DateTime.parse(from))
+  lazy val toDate = Try(DateTime.parse(to))
+
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
+
+    cellValue matches xsdDateRegex match {
+      case true => {
+        val inRange = for ( frmDt <- fromDate; toDt <-toDate; cellDt <- Try(DateTime.parse(cellValue))) yield {
+          val interval = new Interval(frmDt,toDt)
+          interval.contains(cellDt)
+        }
+        inRange.getOrElse(false)
+      }
+      case _ => false
+    }
+  }
+
+  override def toError = {
+    s"""$name("$from, $to")"""
+  }
+
+}
+
 case class UkDateRule() extends Rule("ukDate") {
   val ukDateRegex = "[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}"
 
@@ -227,6 +267,33 @@ case class UkDateRule() extends Rule("ukDate") {
   }
 }
 
+case class UkDateRangeRule(from: String, to: String) extends Rule("xDateTime") {
+
+  val ukDateRegex = "[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}"
+  val fmt = DateTimeFormat.forPattern("dd/MM/YYYY")
+
+  lazy val fromDate = Try(fmt.parseDateTime(from))
+  lazy val toDate = Try(fmt.parseDateTime(to))
+
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
+
+    cellValue matches ukDateRegex match {
+      case true => {
+        val inRange = for ( frmDt <- fromDate; toDt <-toDate; cellDt <- Try(fmt.parseDateTime(cellValue))) yield {
+          val interval = new Interval(frmDt,toDt)
+          interval.contains(cellDt)
+        }
+        inRange.getOrElse(false)
+      }
+      case _ => false
+    }
+  }
+
+  override def toError = {
+    s"""$name("$from, $to")"""
+  }
+}
+
 case class XsdTimeRule() extends Rule("xTime") {
   val xsdTimeRegex = "[0-9]{2}:[0-9]{2}:[0-9]{2}"
 
@@ -236,6 +303,33 @@ case class XsdTimeRule() extends Rule("xTime") {
       case _ => false
     }
   }
+}
+
+case class XsdTimeRangeRule(from: String, to: String) extends Rule("xDateTime") {
+
+  val xsdTimeRegex = "[0-9]{2}:[0-9]{2}:[0-9]{2}"
+
+  lazy val fromDate = Try(LocalTime.parse(from))
+  lazy val toDate = Try(LocalTime.parse(to))
+
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
+
+    cellValue matches xsdTimeRegex match {
+      case true => {
+        val inRange = for ( frmDt <- fromDate; toDt <-toDate; cellDt <- Try(LocalTime.parse(cellValue))) yield {
+          val interval = new Interval(frmDt.toDateTimeToday,toDt.toDateTimeToday)
+          interval.contains(cellDt.toDateTimeToday)
+        }
+        inRange.getOrElse(false)
+      }
+      case _ => false
+    }
+  }
+
+  override def toError = {
+    s"""$name("$from, $to")"""
+  }
+
 }
 
 case class Uuid4Rule() extends Rule("uuid4") {
