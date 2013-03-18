@@ -18,7 +18,7 @@ trait SchemaParser extends RegexParsers {
 
   val white: Parser[String] = whiteSpace
 
-  val eol = sys.props("line.separator")
+  val eol = """\r?\n""".r
 
   val columnIdentifier: Parser[String] = """\s*[0-9a-zA-Z_\-.]+""".r withFailureMessage("Column identifier invalid")
 
