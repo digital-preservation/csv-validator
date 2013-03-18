@@ -398,7 +398,6 @@ case class FileCountRule(rootPath: ArgProvider, file: ArgProvider, pathSubstitut
     else s"""$name(file(${rootPath.toError}, ${file.toError}))"""
   }
 
-
   private def filename(columnIndex: Int, row: Row, schema: Schema): (String,String) = {  // return (base,path)
     val f = file.referenceValue(columnIndex, row, schema).get
 
@@ -436,7 +435,7 @@ trait FileWildcardSearch[T] {
     } else if (Path.fromString(path).parent.isEmpty) ("./", path) else findBaseRecur(Path.fromString(path).parent.get.path, Path.fromString(path).name)
   }
 
-  def search(filePaths: (String,String) ): ValidationNEL[String, T] = {
+  def search(filePaths: (String, String) ): ValidationNEL[String, T] = {
     try{
       val fullPath = new FileSystem( None, filePaths._1 + filePaths._2, pathSubstitutions).expandBasePath
       val (basePath,matchPath ) = findBase(fullPath)
