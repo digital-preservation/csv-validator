@@ -74,6 +74,7 @@ case class IfRule(condition: Rule, rules: List[Rule], elseRules: Option[List[Rul
 
   override def evaluate(columnIndex: Int, row: Row, schema: Schema): RuleValidation[Any] = {
     val cellValue = row.cells(columnIndex).value
+
     val v = if (condition.valid(cellValue, schema.columnDefinitions(columnIndex), columnIndex, row, schema)) {
      for (rule <- rules) yield {
         rule.evaluate(columnIndex, row, schema)
@@ -87,6 +88,7 @@ case class IfRule(condition: Rule, rules: List[Rule], elseRules: Option[List[Rul
         Nil
       }
     }
+
     v.sequence[RuleValidation, Any]
   }
 
@@ -191,7 +193,6 @@ case class XsdDateTimeRangeRule(from: String, to: String) extends Rule("xDateTim
 
   val xsdDateTimeRegex = "[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}"
 
-
   override def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema):Boolean = {
     cellValue matches xsdDateTimeRegex
   }
@@ -199,7 +200,6 @@ case class XsdDateTimeRangeRule(from: String, to: String) extends Rule("xDateTim
   override def toError = {
     s"""$name("$from, $to")"""
   }
-
 }
 
 case class XsdDateRule() extends Rule("xDate") {
@@ -219,6 +219,7 @@ case class UkDateRule() extends Rule("ukDate") {
   def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
     val ukdate =  "dd/MM/YYYY"
     val fmt = DateTimeFormat.forPattern(ukdate)
+
     cellValue matches ukDateRegex match {
       case true => Try(fmt.parseDateTime(cellValue)).isSuccess
       case _ => false
@@ -303,7 +304,6 @@ case class UniqueMultiRule( columns: List[String] ) extends Rule("unique(") {
   def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = true
 }
 
-
 case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: String, pathSubstitutions: List[(String,String)]) extends Rule("checksum", rootPath, file) with FileWildcardSearch[String] {
   def this(file: ArgProvider, algorithm: String, pathSubstitutions: List[(String,String)]) = this(Literal(None), file, algorithm, pathSubstitutions)
   def this(file: ArgProvider, algorithm: String) = this(Literal(None), file, algorithm, List[(String,String)]())
@@ -336,7 +336,6 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
     }
   }
 
-
   def matchWildcardPaths(matchList: PathSet[Path],fullPath: String): ValidationNEL[String, String] = matchList.size match {
     case 1 => calcChecksum(matchList.head.path).successNel[String]
     case 0 => s"""no files for $fullPath found""".failNel[String]
@@ -345,7 +344,6 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
 
   def matchSimplePath(fullPath: String): ValidationNEL[String, String]  = calcChecksum(fullPath).successNel[String]
 
-
   def calcChecksum(file: String): String = {
     val digest = MessageDigest.getInstance(algorithm)
     val fileBuffer = new BufferedInputStream(new FileInputStream(file))
@@ -353,7 +351,6 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
     fileBuffer.close()
     hexEncode(digest.digest)
   }
-
 
   private def hexEncode(in: Array[Byte]): String = {
     val sb = new StringBuilder
@@ -375,7 +372,6 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
     sb.toString()
   }
 }
-
 
 case class FileCountRule(rootPath: ArgProvider, file: ArgProvider, pathSubstitutions: List[(String,String)] = List.empty) extends Rule("fileCount", rootPath, file) with FileWildcardSearch[Int] {
   def this(file: ArgProvider, pathSubstitutions: List[(String,String)] = List.empty) = this(Literal(None), file, pathSubstitutions)
@@ -404,7 +400,7 @@ case class FileCountRule(rootPath: ArgProvider, file: ArgProvider, pathSubstitut
 
 
   private def filename(columnIndex: Int, row: Row, schema: Schema): (String,String) = {  // return (base,path)
-  val f = file.referenceValue(columnIndex, row, schema).get
+    val f = file.referenceValue(columnIndex, row, schema).get
 
     rootPath.referenceValue(columnIndex, row, schema) match {
       case None => ("",f)
@@ -417,7 +413,6 @@ case class FileCountRule(rootPath: ArgProvider, file: ArgProvider, pathSubstitut
 
   def matchSimplePath(fullPath: String): ValidationNEL[String, Int]  = 1.successNel[String]  // file found so ok
 }
-
 
 trait FileWildcardSearch[T] {
   val pathSubstitutions: List[(String,String)]
@@ -438,9 +433,8 @@ trait FileWildcardSearch[T] {
     if (path.startsWith("file://"))  {
       val pathURI = Path(new URI(path)).get
       findBaseRecur(pathURI.parent.get.path, pathURI.name)
-    } else if(Path.fromString(path).parent.isEmpty) ("./", path) else  findBaseRecur(Path.fromString(path).parent.get.path, Path.fromString(path).name)
+    } else if (Path.fromString(path).parent.isEmpty) ("./", path) else findBaseRecur(Path.fromString(path).parent.get.path, Path.fromString(path).name)
   }
-
 
   def search(filePaths: (String,String) ): ValidationNEL[String, T] = {
     try{
@@ -453,8 +447,6 @@ trait FileWildcardSearch[T] {
 
       def findMatches(wc: (Path, String) => PathSet[Path] ): ValidationNEL[String, T] = matchWildcardPaths( wc(path,matchPath ), fullPath )
 
-
-
       def basePathExists:Boolean =   filePaths._1.length>0 && (!new File(basePath).exists)
 
       def wildcardNotInRoot:Boolean = filePaths._1.contains("*")
@@ -464,7 +456,6 @@ trait FileWildcardSearch[T] {
       def matchUsesWildFiles:Boolean = matchPath.contains("*")
 
       def fileExists:Boolean = !(new File(basePath+System.getProperty("file.separator")+matchPath)).exists
-
 
       if ( basePathExists) s"""incorrect basepath $pathString found""".failNel[T]
       else if (wildcardNotInRoot ) s"""root $pathString should not contain wildcards""".failNel[T]
@@ -482,9 +473,9 @@ case class RangeRule(min: BigDecimal, max: BigDecimal) extends Rule("range") {
   def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
 
     Try[BigDecimal]( BigDecimal(cellValue)) match {
-        case scala.util.Success(callDecimal) => if (callDecimal >= min && callDecimal <= max  ) true  else false
-        case _ => false
-      }
+      case scala.util.Success(callDecimal) => if (callDecimal >= min && callDecimal <= max  ) true  else false
+      case _ => false
+     }
   }
 
   override def toError = s"""$name($min,$max)"""
@@ -497,6 +488,7 @@ case class LengthRule(from: Option[String], to: String) extends Rule("length") {
 
   def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
     val cellLen = cellValue.length
+
     from match {
       case None => if ( to=="*") true else cellLen == to.toInt
       case Some(_) => cellLen >= fromValue && cellLen <= toValue
@@ -521,8 +513,6 @@ case class AndRule(left: Rule, right: Rule) extends Rule("and") {
 
   override def toError = s"""${left.toError} $name ${right.toError}"""
 }
-
-
 
 class FileSystem(basePath: Option[String], file: String, pathSubstitutions: List[(String,String)] ) {
   import java.net.URI
@@ -561,6 +551,4 @@ class FileSystem(basePath: Option[String], file: String, pathSubstitutions: List
     if ( basePath.isEmpty || basePath.getOrElse("") == "")  file2PlatformDependent(substitutePath(file))
     else file2PlatformDependent(substitutePath(jointPath))
   }
-
 }
-

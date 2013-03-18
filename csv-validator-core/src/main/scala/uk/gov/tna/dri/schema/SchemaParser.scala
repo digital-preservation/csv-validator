@@ -11,9 +11,6 @@ import org.joda.time.DateTime
 
 trait SchemaParser extends RegexParsers {
 
-  val pathSubstitutions: List[(String,String)]
-
-
   override protected val whiteSpace = """[ \t]*""".r
 
   val white: Parser[String] = whiteSpace
@@ -33,6 +30,8 @@ trait SchemaParser extends RegexParsers {
   val Regex = """([(]")(.*?)("[)])""".r
 
   val regexParser: Parser[String] = Regex withFailureMessage("""regex not correctly delimited as ("your regex")""")
+
+  val pathSubstitutions: List[(String,String)]
 
   def parseAndValidate(reader: Reader): ValidationNEL[String, Schema] = {
     parse(reader) match {
@@ -83,8 +82,9 @@ trait SchemaParser extends RegexParsers {
 
   def and: Parser[AndRule] = unaryRule ~ "and" ~ rule  ^^  { case lhs ~ _ ~ rhs =>  AndRule(lhs, rhs) }
 
-  def ifExpr: Parser[IfRule] = (("if(" ~> white ~> nonConditionalRule <~ white <~ "," <~ white) ~ (rep1(rule)) ~ opt((white ~> "," ~> white ~> rep1(rule))) <~ white <~ ")" ^^
-    { case cond ~ bdy ~ optBdy => IfRule(cond, bdy, optBdy)}) | failure("Invalid rule")
+  def ifExpr: Parser[IfRule] = (("if(" ~> white ~> nonConditionalRule <~ white <~ "," <~ white) ~ (rep1(rule)) ~ opt((white ~> "," ~> white ~> rep1(rule))) <~ white <~ ")" ^^ {
+    case cond ~ bdy ~ optBdy => IfRule(cond, bdy, optBdy)
+  }) | failure("Invalid rule")
 
   def regex = "regex" ~> regexParser ^^ { s => RegexRule(s.dropRight(2).drop(2)) }
 
@@ -160,13 +160,9 @@ trait SchemaParser extends RegexParsers {
     }
   }
 
-
-
-
   private def validate(g: List[GlobalDirective], c: List[ColumnDefinition]): String = {
     globDirectivesValid(g) ::totalColumnsValid(g, c) :: columnDirectivesValid(c) :: duplicateColumnsValid(c) :: crossColumnsValid(c) ::
-      checksumAlgorithmValid(c) :: rangeValid(c) :: lengthValid(c) :: regexValid(c) :: dateRangeValid(c) :: uniqueMultiValid(c) :: Nil collect
-      { case Some(s: String) => s } mkString("\n")
+    checksumAlgorithmValid(c) :: rangeValid(c) :: lengthValid(c) :: regexValid(c) :: dateRangeValid(c) :: uniqueMultiValid(c) :: Nil collect { case Some(s: String) => s } mkString("\n")
   }
 
   private def totalColumnsValid(g: List[GlobalDirective], c: List[ColumnDefinition]): Option[String] = {
@@ -189,6 +185,7 @@ trait SchemaParser extends RegexParsers {
     val duplicates = for ((name, lst) <- directives.groupBy(_.name) if (lst.length > 1)) yield {
       s"Global directive @$name is duplicated"
     }
+
     if (duplicates.isEmpty) None else Some(duplicates.mkString("\n"))
   }
 
@@ -229,7 +226,6 @@ trait SchemaParser extends RegexParsers {
     if (v.isEmpty) None else Some(v.mkString("\n"))
   }
 
-
   private def rangeValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
     def rangeCheck(rule: Rule): Boolean = rule match {
       case RangeRule(min,max) => min > max
@@ -250,7 +246,6 @@ trait SchemaParser extends RegexParsers {
     if (v.isEmpty) None else Some(v.mkString("\n"))
   }
 
-
   private def lengthValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
     def lengthCheck(rule: Rule): Boolean = rule match {
       case LengthRule(Some(from),to) => if (from == "*" || to == "*") true else from.toInt <= to.toInt
@@ -270,7 +265,6 @@ trait SchemaParser extends RegexParsers {
 
     if (v.isEmpty) None else Some(v.mkString("\n"))
   }
-
 
   private def crossColumnsValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
     def filterRules(cds: ColumnDefinition ): List[Rule] = { // List of failing rules
@@ -307,6 +301,7 @@ trait SchemaParser extends RegexParsers {
       rule <- cd.rules
       if (regexCheck(rule))
     } yield s"""Column: ${cd.id}: Invalid ${rule.toError}: at line: ${rule.pos.line}, column: ${rule.pos.column}"""
+
     if (v.isEmpty) None else Some(v.mkString("\n"))
   }
 
@@ -318,6 +313,7 @@ trait SchemaParser extends RegexParsers {
         val dtFrom = Try(DateTime.parse(from))
         val dtTo = Try(DateTime.parse(to))
         val diff = dtFrom.flatMap(f => dtTo.map(t =>  f.isBefore(t) ))
+
         diff match {
           case scala.util.Success(_) => false
           case scala.util.Failure(_) => true
@@ -331,10 +327,9 @@ trait SchemaParser extends RegexParsers {
       rule <- cd.rules
       if (dateCheck(rule))
     } yield s"""Column: ${cd.id}: Invalid ${rule.toError}: at line: ${rule.pos.line}, column: ${rule.pos.column}"""
+
     if (v.isEmpty) None else Some(v.mkString("\n"))
   }
-
-
 
   private def uniqueMultiValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
     def uniqueMultiCheck(rule: Rule): Option[List[String]] = rule match {
@@ -343,6 +338,7 @@ trait SchemaParser extends RegexParsers {
         val invalidColumn = columns.filterNot( f => actualColumns.exists(_ == f))
 
         if ( invalidColumn.isEmpty) None else Some(invalidColumn)
+
       case _ => None
     }
 
@@ -352,7 +348,7 @@ trait SchemaParser extends RegexParsers {
       invalidColumns = uniqueMultiCheck(rule)
       _ <- invalidColumns
     } yield s"""Column: ${cd.id}: Invalid cross reference ${invalidColumns.get.mkString("$", ", $", "")}: at line: ${rule.pos.line}, column: ${rule.pos.column}"""
+
     if (v.isEmpty) None else Some(v.mkString("\n"))
   }
-
 }
