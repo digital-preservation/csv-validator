@@ -281,15 +281,14 @@ case class UniqueMultiRule( columns: List[String] ) extends Rule("unique(") {
 
     def columnName2Index( name: String): Int = schema.columnDefinitions.zipWithIndex.filter{ case (c,i) => c.id == name}.head._2
 
-//    def secondaryValues: String = columns.foldLeft(""){ case (s,c) => s + SEPARATOR + row.cells(columnName2Index(c)).value }
+    def secondaryValues: String =  columns.foldLeft(""){ case (s,c) => s + SEPARATOR + row.cells(columnName2Index(c)).value }
 
-    def uniqueString: String = columns.foldLeft(cellValue){ case (s,c) => s + SEPARATOR + row.cells(columnName2Index(c)).value }
+    def uniqueString: String =  cellValue + SEPARATOR +  secondaryValues
 
     def originalValue: Option[String] = {
       val cellValue = cellValueCorrectCase
       if (distinctValues contains cellValue) Some(cellValue) else None
     }
-
 
     def cellValueCorrectCase = if (columnDefinition.directives contains IgnoreCase) uniqueString.toLowerCase else uniqueString
 
@@ -444,34 +443,38 @@ trait FileWildcardSearch[T] {
 
 
   def search(filePaths: (String,String) ): ValidationNEL[String, T] = {
-    val fullPath = new FileSystem( None, filePaths._1 + filePaths._2, pathSubstitutions).expandBasePath
-    val (basePath,matchPath ) = findBase(fullPath)
+    try{
+      val fullPath = new FileSystem( None, filePaths._1 + filePaths._2, pathSubstitutions).expandBasePath
+      val (basePath,matchPath ) = findBase(fullPath)
 
-    val path:Path = Path( new File(basePath))
+      val path:Path = Path( new File(basePath))
 
-    def pathString = s"${filePaths._1} (localfile: $fullPath)"
+      def pathString = s"${filePaths._1} (localfile: $fullPath)"
 
-    def findMatches(wc: (Path, String) => PathSet[Path] ): ValidationNEL[String, T] = matchWildcardPaths( wc(path,matchPath ), fullPath )
-
-
-
-    def basePathExists:Boolean =   filePaths._1.length>0 && (!new File(basePath).exists)
-
-    def wildcardNotInRoot:Boolean = filePaths._1.contains("*")
-
-    def matchUsesWildDirectory:Boolean = matchPath.contains("**")
-
-    def matchUsesWildFiles:Boolean = matchPath.contains("*")
-
-    def fileExists:Boolean = !(new File(basePath+System.getProperty("file.separator")+matchPath)).exists
+      def findMatches(wc: (Path, String) => PathSet[Path] ): ValidationNEL[String, T] = matchWildcardPaths( wc(path,matchPath ), fullPath )
 
 
-    if ( basePathExists) s"""incorrect basepath $pathString found""".failNel[T]
-    else if (wildcardNotInRoot ) s"""root $pathString should not contain wildcards""".failNel[T]
-    else if (matchUsesWildDirectory) findMatches(wildcardPath)
-    else if (matchUsesWildFiles)  findMatches(wildcardFile)
-    else if (fileExists)  s"""file "$fullPath" not found""".failNel[T]
-    else matchSimplePath(basePath+System.getProperty("file.separator")+matchPath)
+
+      def basePathExists:Boolean =   filePaths._1.length>0 && (!new File(basePath).exists)
+
+      def wildcardNotInRoot:Boolean = filePaths._1.contains("*")
+
+      def matchUsesWildDirectory:Boolean = matchPath.contains("**")
+
+      def matchUsesWildFiles:Boolean = matchPath.contains("*")
+
+      def fileExists:Boolean = !(new File(basePath+System.getProperty("file.separator")+matchPath)).exists
+
+
+      if ( basePathExists) s"""incorrect basepath $pathString found""".failNel[T]
+      else if (wildcardNotInRoot ) s"""root $pathString should not contain wildcards""".failNel[T]
+      else if (matchUsesWildDirectory) findMatches(wildcardPath)
+      else if (matchUsesWildFiles)  findMatches(wildcardFile)
+      else if (fileExists)  s"""file "$fullPath" not found""".failNel[T]
+      else matchSimplePath(basePath+System.getProperty("file.separator")+matchPath)
+    } catch {
+      case err:Throwable => err.getMessage.failNel[T]
+    }
   }
 }
 

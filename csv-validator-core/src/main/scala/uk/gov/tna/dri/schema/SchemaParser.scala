@@ -165,7 +165,7 @@ trait SchemaParser extends RegexParsers {
 
   private def validate(g: List[GlobalDirective], c: List[ColumnDefinition]): String = {
     globDirectivesValid(g) ::totalColumnsValid(g, c) :: columnDirectivesValid(c) :: duplicateColumnsValid(c) :: crossColumnsValid(c) ::
-      checksumAlgorithmValid(c) :: rangeValid(c) :: lengthValid(c) :: regexValid(c) :: dateRangeValid(c) :: Nil collect
+      checksumAlgorithmValid(c) :: rangeValid(c) :: lengthValid(c) :: regexValid(c) :: dateRangeValid(c) :: uniqueMultiValid(c) :: Nil collect
       { case Some(s: String) => s } mkString("\n")
   }
 
@@ -297,7 +297,6 @@ trait SchemaParser extends RegexParsers {
   }
 
   private def regexValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
-
     def regexCheck(rule: Rule): Boolean = rule match {
       case RegexRule(s) =>  Try(s.r).isFailure
       case _ => false
@@ -332,6 +331,27 @@ trait SchemaParser extends RegexParsers {
       rule <- cd.rules
       if (dateCheck(rule))
     } yield s"""Column: ${cd.id}: Invalid ${rule.toError}: at line: ${rule.pos.line}, column: ${rule.pos.column}"""
+    if (v.isEmpty) None else Some(v.mkString("\n"))
+  }
+
+
+
+  private def uniqueMultiValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
+    def uniqueMultiCheck(rule: Rule): Option[List[String]] = rule match {
+      case UniqueMultiRule(columns) =>
+        val actualColumns:List[String] =  columnDefinitions.map( _.id)
+        val invalidColumn = columns.filterNot( f => actualColumns.exists(_ == f))
+
+        if ( invalidColumn.isEmpty) None else Some(invalidColumn)
+      case _ => None
+    }
+
+    val v = for {
+      cd <- columnDefinitions
+      rule <- cd.rules
+      invalidColumns = uniqueMultiCheck(rule)
+      _ <- invalidColumns
+    } yield s"""Column: ${cd.id}: Invalid cross reference ${invalidColumns.get.mkString("$", ", $", "")}: at line: ${rule.pos.line}, column: ${rule.pos.column}"""
     if (v.isEmpty) None else Some(v.mkString("\n"))
   }
 

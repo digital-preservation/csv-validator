@@ -66,7 +66,7 @@ class SchemaParserRulesSpec extends Specification {
                       @totalColumns 1
                       Name: fileExists"""
 
-      parse(new StringReader(schema)) must beLike { case Success(Schema(_, List(ColumnDefinition("Name", List(FileExistsRule(emptyPathSubstitutions, Literal(None))), _))), _) => ok }
+      parse(new StringReader(schema)) must beLike { case Success(Schema(_, List(ColumnDefinition("Name", List(FileExistsRule(emptyPathSubs, Literal(None))), _))), _) => ok }
     }
 
 //    "fail for file exists rule with empty ()" in {
@@ -83,7 +83,7 @@ class SchemaParserRulesSpec extends Specification {
                       Name: fileExists("some/root/path")"""
 
       parse(new StringReader(schema)) must beLike {
-        case Success(Schema(_, List(ColumnDefinition("Name", List(FileExistsRule(emptyPathSubstitutions, Literal(Some(rootPath)))), _))), _) => {
+        case Success(Schema(_, List(ColumnDefinition("Name", List(FileExistsRule(emptyPathSubs, Literal(Some(rootPath)))), _))), _) => {
           rootPath mustEqual "some/root/path"
         }
       }
@@ -592,7 +592,7 @@ class SchemaParserRulesSpec extends Specification {
                       Age: length(100,1)"""
 
       parseAndValidate(new StringReader(schema)) must beLike {
-        case FailureZ(msgs) => msgs.list mustEqual List("""Column: Age: Invalid length, minimum greater than maximum in: 'length(100,1)' at line: 3, column: 28""")
+        case FailureZ(messages) => messages.list mustEqual List("""Column: Age: Invalid length, minimum greater than maximum in: 'length(100,1)' at line: 3, column: 28""")
       }
 
     }
@@ -686,5 +686,20 @@ class SchemaParserRulesSpec extends Specification {
         case SuccessZ(_) => ok
       }
     }
+
+    "fail if the cross reference column is invalid" in {
+      val schema = """version 1.0
+                      @totalColumns 3
+                      Name: unique( $MADEUP, $PostCode )
+                      Age:
+                      PostCode:
+                   """
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case FailureZ(messages) => messages.list mustEqual List("""Column: Name: Invalid cross reference $MADEUP: at line: 3, column: 29""")
+      }
+    }
+
+
+
   }
 }
