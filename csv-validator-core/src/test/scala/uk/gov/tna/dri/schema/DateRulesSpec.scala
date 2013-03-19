@@ -47,11 +47,9 @@ class DateRulesSpec extends Specification {
       xsdDateRangeRule.evaluate(0, Row(List(Cell("2012-12-12T00:00:00")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(true)
     }
 
-    "fail if cell is equal to upper bound" in {
+    "pass if cell is equal to upper bound" in {
       val xsdDateRangeRule = XsdDateTimeRangeRule("2012-01-01T00:00:00", "2013-01-01T00:00:00")
-      xsdDateRangeRule.evaluate(0, Row(List(Cell("2013-01-01T00:00:00")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must beLike {
-        case Failure(messages) => messages.head mustEqual """xDateTime("2012-01-01T00:00:00, 2013-01-01T00:00:00") fails for line: 1, column: column1, value: "2013-01-01T00:00:00""""
-      }
+      xsdDateRangeRule.evaluate(0, Row(List(Cell("2013-01-01T00:00:00")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(true)
     }
 
     "succeed if cell just below upper bound" in {
@@ -101,11 +99,9 @@ class DateRulesSpec extends Specification {
       xsdDateRangeRule.evaluate(0, Row(List(Cell("2012-12-12")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(true)
     }
 
-    "fail if cell is equal to upper bound" in {
+    "pass if cell is equal to upper bound" in {
       val xsdDateRangeRule = XsdDateRangeRule("2012-01-01", "2013-01-01")
-      xsdDateRangeRule.evaluate(0, Row(List(Cell("2013-01-01")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must beLike {
-        case Failure(messages) => messages.head mustEqual """xDateTime("2012-01-01, 2013-01-01") fails for line: 1, column: column1, value: "2013-01-01""""
-      }
+      xsdDateRangeRule.evaluate(0, Row(List(Cell("2013-01-01")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(true)
     }
 
     "succeed if cell just below upper bound" in {
@@ -116,7 +112,7 @@ class DateRulesSpec extends Specification {
     "fail if cell is just below lower bound" in {
       val xsdDateRangeRule = XsdDateRangeRule("2012-01-01T00:00:01", "2013-01-01T00:00:00")
       xsdDateRangeRule.evaluate(0, Row(List(Cell("2012-01-01")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must beLike {
-        case Failure(messages) => messages.head mustEqual """xDateTime("2012-01-01T00:00:01, 2013-01-01T00:00:00") fails for line: 1, column: column1, value: "2012-01-01""""
+        case Failure(messages) => messages.head mustEqual """xDate("2012-01-01T00:00:01, 2013-01-01T00:00:00") fails for line: 1, column: column1, value: "2012-01-01""""
       }
     }
   }
@@ -156,11 +152,9 @@ class DateRulesSpec extends Specification {
       ukDateRangeRule.evaluate(0, Row(List(Cell("12/05/2012")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(true)
     }
 
-    "fail if cell is equal to upper bound" in {
+    "pass if cell is equal to upper bound" in {
       val ukDateRangeRule = UkDateRangeRule("01/01/2012", "01/01/2013")
-      ukDateRangeRule.evaluate(0, Row(List(Cell("01/01/2013")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must beLike {
-        case Failure(messages) => messages.head mustEqual """xDateTime("01/01/2012, 01/01/2013") fails for line: 1, column: column1, value: "01/01/2013""""
-      }
+      ukDateRangeRule.evaluate(0, Row(List(Cell("01/01/2013")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(true)
     }
 
     "succeed if cell just below upper bound" in {
@@ -171,7 +165,7 @@ class DateRulesSpec extends Specification {
     "fail if cell is just below lower bound" in {
       val ukDateRangeRule = UkDateRangeRule("01/01/2012", "02/01/2013")
       ukDateRangeRule.evaluate(0, Row(List(Cell("12/31/2011")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must beLike {
-        case Failure(messages) => messages.head mustEqual """xDateTime("01/01/2012, 02/01/2013") fails for line: 1, column: column1, value: "12/31/2011""""
+        case Failure(messages) => messages.head mustEqual """ukDate("01/01/2012, 02/01/2013") fails for line: 1, column: column1, value: "12/31/2011""""
       }
     }
   }
@@ -203,11 +197,9 @@ class DateRulesSpec extends Specification {
       xsdTimeRangeRule.evaluate(0, Row(List(Cell("01:15:01")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(true)
     }
 
-    "fail if cell is equal to upper bound" in {
+    "pass if cell is equal to upper bound" in {
       val xsdTimeRangeRule = XsdTimeRangeRule("01:10:01", "01:10:10")
-      xsdTimeRangeRule.evaluate(0, Row(List(Cell("01:10:10")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must beLike {
-        case Failure(messages) => messages.head mustEqual """xDateTime("01:10:01, 01:10:10") fails for line: 1, column: column1, value: "01:10:10""""
-      }
+      xsdTimeRangeRule.evaluate(0, Row(List(Cell("01:10:10")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(true)
     }
 
     "succeed if cell just below upper bound" in {
@@ -218,7 +210,7 @@ class DateRulesSpec extends Specification {
     "fail if cell is just below lower bound" in {
       val xsdTimeRangeRule = XsdTimeRangeRule("01:10:01", "01:10:10")
       xsdTimeRangeRule.evaluate(0, Row(List(Cell("01:10:00")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must beLike {
-        case Failure(messages) => messages.head mustEqual """xDateTime("01:10:01, 01:10:10") fails for line: 1, column: column1, value: "01:10:00""""
+        case Failure(messages) => messages.head mustEqual """xTime("01:10:01, 01:10:10") fails for line: 1, column: column1, value: "01:10:00""""
       }
     }
   }

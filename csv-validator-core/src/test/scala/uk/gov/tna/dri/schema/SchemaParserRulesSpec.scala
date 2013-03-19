@@ -231,7 +231,7 @@ class SchemaParserRulesSpec extends Specification {
 
   }
 
-  "succeed for xDateTime with valid date" in {
+  "succeed for xDateTime range with valid date" in {
     val schema =
       """version 1.0
            @totalColumns 1
@@ -242,13 +242,73 @@ class SchemaParserRulesSpec extends Specification {
     }
   }
 
-  "fail for xDateTime with invalid date" in {
+  "fail for xDateTime range with invalid date" in {
     val schema =
       """version 1.0
            @totalColumns 1
            Country: xDateTime( 2012-99-01T01:01:01 , 2012-12-01T01:01:01 )"""
 
     parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual List("Column: Country: Invalid xDateTime(\"2012-99-01T01:01:01, 2012-12-01T01:01:01\"): at line: 3, column: 21") }
+  }
+
+  "succeed for xDate range with valid date" in {
+    val schema =
+      """version 1.0
+           @totalColumns 1
+           Country: xDate( 2012-12-01 , 2012-12-01 )"""
+
+    parseAndValidate(new StringReader(schema)) must beLike {
+      case SuccessZ(Schema(_, _))  => ok
+    }
+  }
+
+  "fail for xDate range with invalid date" in {
+    val schema =
+      """version 1.0
+           @totalColumns 1
+           Country: xDate( 2012-99-01 , 2012-12-01 )"""
+
+    parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual List("Column: Country: Invalid xDate(\"2012-99-01, 2012-12-01\"): at line: 3, column: 21") }
+  }
+
+  "succeed for ukDate range with valid date" in {
+    val schema =
+      """version 1.0
+           @totalColumns 1
+           Country: ukDate( 01/02/1966 , 17/12/2000 )"""
+
+    parseAndValidate(new StringReader(schema)) must beLike {
+      case SuccessZ(Schema(_, _))  => ok
+    }
+  }
+
+  "fail for ukDate range with invalid date" in {
+    val schema =
+      """version 1.0
+           @totalColumns 1
+           Country: ukDate( 30/02/1900 , 30/02/1902 )"""
+
+    parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual List("Column: Country: Invalid ukDate(\"30/02/1900, 30/02/1902\"): at line: 3, column: 21") }
+  }
+
+  "succeed for xTime range with valid time" in {
+    val schema =
+      """version 1.0
+           @totalColumns 1
+           Country: xTime( 00:10:20 , 10:12:22 )"""
+
+    parseAndValidate(new StringReader(schema)) must beLike {
+      case SuccessZ(Schema(_, _))  => ok
+    }
+  }
+
+  "fail for xTime range with invalid time" in {
+    val schema =
+      """version 1.0
+           @totalColumns 1
+           Country: xTime( 90:10:20 , 10:12:22 )"""
+
+    parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual List("Column: Country: Invalid xTime(\"90:10:20, 10:12:22\"): at line: 3, column: 21") }
   }
 
   "succeed for cross reference in rule" in {

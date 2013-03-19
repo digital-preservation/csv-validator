@@ -73,7 +73,7 @@ trait SchemaParser extends RegexParsers {
 
   def conditionalRule = ifExpr
 
-  def unaryRule = regex | fileExists | in | is | isNot | starts | ends  | uniqueMultiExpr | uniqueExpr | uri | xDateTimeRange | xDateTime | xDate | ukDate | xTime |
+  def unaryRule = regex | fileExists | in | is | isNot | starts | ends  | uniqueMultiExpr | uniqueExpr | uri | xDateTimeRange | xDateTime | xDateRange | xDate | ukDateRange | ukDate | xTimeRange | xTime |
     uuid4 | positiveInteger | checksum | fileCount | parenthesesRule | range | lengthExpr | failure("Invalid rule")
 
   def parenthesesRule: Parser[ParenthesesRule] = "(" ~> rep1(rule) <~ ")" ^^ { ParenthesesRule(_) } | failure("unmatched paren")
@@ -114,9 +114,27 @@ trait SchemaParser extends RegexParsers {
 
   def xDate: Parser[XsdDateRule] = "xDate" ^^^ XsdDateRule()
 
+  def xsdDateExpr: Parser[String] = "[0-9]{4}-[0-9]{2}-[0-9]{2}".r
+
+  def xDateRange: Parser[XsdDateRangeRule] = (("xDate(" ~> white) ~> xsdDateExpr <~ (white <~ "," <~ white)) ~ xsdDateExpr <~ (white ~ ")") ^^  {
+    case from ~ to => XsdDateRangeRule(from, to)
+  }
+
   def ukDate: Parser[UkDateRule] = "ukDate" ^^^ UkDateRule()
 
+  val ukDateExpr: Parser[String] = "[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}".r
+
+  def ukDateRange: Parser[UkDateRangeRule] = (("ukDate(" ~> white) ~> ukDateExpr <~ (white <~ "," <~ white)) ~ ukDateExpr <~ (white ~ ")") ^^  {
+    case from ~ to => UkDateRangeRule(from, to)
+  }
+
   def xTime: Parser[XsdTimeRule] = "xTime" ^^^ XsdTimeRule()
+
+  val xsdTimeExpr: Parser[String] = "[0-9]{2}:[0-9]{2}:[0-9]{2}".r
+
+  def xTimeRange: Parser[XsdTimeRangeRule] = (("xTime(" ~> white) ~> xsdTimeExpr <~ (white <~ "," <~ white)) ~ xsdTimeExpr <~ (white ~ ")") ^^  {
+    case from ~ to => XsdTimeRangeRule(from, to)
+  }
 
   def uuid4: Parser[Uuid4Rule] = "uuid4" ^^^ Uuid4Rule()
 
@@ -162,7 +180,8 @@ trait SchemaParser extends RegexParsers {
 
   private def validate(g: List[GlobalDirective], c: List[ColumnDefinition]): String = {
     globDirectivesValid(g) ::totalColumnsValid(g, c) :: columnDirectivesValid(c) :: duplicateColumnsValid(c) :: crossColumnsValid(c) ::
-    checksumAlgorithmValid(c) :: rangeValid(c) :: lengthValid(c) :: regexValid(c) :: dateRangeValid(c) :: uniqueMultiValid(c) :: Nil collect { case Some(s: String) => s } mkString("\n")
+    checksumAlgorithmValid(c) :: rangeValid(c) :: lengthValid(c) :: regexValid(c) :: dateTimeRangeValid(c) :: dateRangeValid(c) ::
+    ukDateRangeValid(c) :: xTimeRangeValid(c) :: uniqueMultiValid(c) :: Nil collect { case Some(s: String) => s } mkString("\n")
   }
 
   private def totalColumnsValid(g: List[GlobalDirective], c: List[ColumnDefinition]): Option[String] = {
@@ -305,11 +324,80 @@ trait SchemaParser extends RegexParsers {
     if (v.isEmpty) None else Some(v.mkString("\n"))
   }
 
-  private def dateRangeValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
+  private def dateTimeRangeValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
 
     def dateCheck(rule: Rule): Boolean = rule match {
       case xsdDateTimeRule @ XsdDateTimeRangeRule(from,to) =>  {
         val diff = for (frmDt <- xsdDateTimeRule.fromDate; toDt <- xsdDateTimeRule.toDate) yield frmDt.isBefore(toDt)
+
+        diff match {
+          case scala.util.Success(_) => false
+          case scala.util.Failure(_) => true
+        }
+      }
+      case _ => false
+    }
+
+    val v = for {
+      cd <- columnDefinitions
+      rule <- cd.rules
+      if (dateCheck(rule))
+    } yield s"""Column: ${cd.id}: Invalid ${rule.toError}: at line: ${rule.pos.line}, column: ${rule.pos.column}"""
+
+    if (v.isEmpty) None else Some(v.mkString("\n"))
+  }
+
+  private def dateRangeValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
+
+    def dateCheck(rule: Rule): Boolean = rule match {
+      case xsdDateRule @ XsdDateRangeRule(from,to) =>  {
+        val diff = for (frmDt <- xsdDateRule.fromDate; toDt <- xsdDateRule.toDate) yield frmDt.isBefore(toDt)
+
+        diff match {
+          case scala.util.Success(_) => false
+          case scala.util.Failure(_) => true
+        }
+      }
+      case _ => false
+    }
+
+    val v = for {
+      cd <- columnDefinitions
+      rule <- cd.rules
+      if (dateCheck(rule))
+    } yield s"""Column: ${cd.id}: Invalid ${rule.toError}: at line: ${rule.pos.line}, column: ${rule.pos.column}"""
+
+    if (v.isEmpty) None else Some(v.mkString("\n"))
+  }
+
+  private def ukDateRangeValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
+
+    def dateCheck(rule: Rule): Boolean = rule match {
+      case ukDateRule @ UkDateRangeRule(from,to) =>  {
+        val diff = for (frmDt <- ukDateRule.fromDate; toDt <- ukDateRule.toDate) yield frmDt.isBefore(toDt)
+
+        diff match {
+          case scala.util.Success(_) => false
+          case scala.util.Failure(_) => true
+        }
+      }
+      case _ => false
+    }
+
+    val v = for {
+      cd <- columnDefinitions
+      rule <- cd.rules
+      if (dateCheck(rule))
+    } yield s"""Column: ${cd.id}: Invalid ${rule.toError}: at line: ${rule.pos.line}, column: ${rule.pos.column}"""
+
+    if (v.isEmpty) None else Some(v.mkString("\n"))
+  }
+
+  private def xTimeRangeValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
+
+    def dateCheck(rule: Rule): Boolean = rule match {
+      case xTimeRule @ XsdTimeRangeRule(from,to) =>  {
+        val diff = for (frmDt <- xTimeRule.fromDate; toDt <- xTimeRule.toDate) yield frmDt.isBefore(toDt)
 
         diff match {
           case scala.util.Success(_) => false

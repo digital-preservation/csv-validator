@@ -201,7 +201,7 @@ case class XsdDateTimeRangeRule(from: String, to: String) extends Rule("xDateTim
     cellValue matches xsdDateTimeRegex match {
       case true => {
         val inRange = for ( frmDt <- fromDate; toDt <-toDate; cellDt <- Try(DateTime.parse(cellValue))) yield {
-          val interval = new Interval(frmDt,toDt)
+          val interval = new Interval(frmDt,toDt.plusMillis(1))
           interval.contains(cellDt)
         }
         inRange.getOrElse(false)
@@ -226,7 +226,7 @@ case class XsdDateRule() extends Rule("xDate") {
   }
 }
 
-case class XsdDateRangeRule(from: String, to: String) extends Rule("xDateTime") {
+case class XsdDateRangeRule(from: String, to: String) extends Rule("xDate") {
 
   val xsdDateRegex = "[0-9]{4}-[0-9]{2}-[0-9]{2}"
 
@@ -238,7 +238,7 @@ case class XsdDateRangeRule(from: String, to: String) extends Rule("xDateTime") 
     cellValue matches xsdDateRegex match {
       case true => {
         val inRange = for ( frmDt <- fromDate; toDt <-toDate; cellDt <- Try(DateTime.parse(cellValue))) yield {
-          val interval = new Interval(frmDt,toDt)
+          val interval = new Interval(frmDt,toDt.plusMillis(1))
           interval.contains(cellDt)
         }
         inRange.getOrElse(false)
@@ -267,7 +267,7 @@ case class UkDateRule() extends Rule("ukDate") {
   }
 }
 
-case class UkDateRangeRule(from: String, to: String) extends Rule("xDateTime") {
+case class UkDateRangeRule(from: String, to: String) extends Rule("ukDate") {
 
   val ukDateRegex = "[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}"
   val fmt = DateTimeFormat.forPattern("dd/MM/YYYY")
@@ -280,7 +280,7 @@ case class UkDateRangeRule(from: String, to: String) extends Rule("xDateTime") {
     cellValue matches ukDateRegex match {
       case true => {
         val inRange = for ( frmDt <- fromDate; toDt <-toDate; cellDt <- Try(fmt.parseDateTime(cellValue))) yield {
-          val interval = new Interval(frmDt,toDt)
+          val interval = new Interval(frmDt,toDt.plusMillis(1))
           interval.contains(cellDt)
         }
         inRange.getOrElse(false)
@@ -305,7 +305,7 @@ case class XsdTimeRule() extends Rule("xTime") {
   }
 }
 
-case class XsdTimeRangeRule(from: String, to: String) extends Rule("xDateTime") {
+case class XsdTimeRangeRule(from: String, to: String) extends Rule("xTime") {
 
   val xsdTimeRegex = "[0-9]{2}:[0-9]{2}:[0-9]{2}"
 
@@ -317,7 +317,7 @@ case class XsdTimeRangeRule(from: String, to: String) extends Rule("xDateTime") 
     cellValue matches xsdTimeRegex match {
       case true => {
         val inRange = for ( frmDt <- fromDate; toDt <-toDate; cellDt <- Try(LocalTime.parse(cellValue))) yield {
-          val interval = new Interval(frmDt.toDateTimeToday,toDt.toDateTimeToday)
+          val interval = new Interval(frmDt.toDateTimeToday,toDt.toDateTimeToday.plusMillis(1))
           interval.contains(cellDt.toDateTimeToday)
         }
         inRange.getOrElse(false)
