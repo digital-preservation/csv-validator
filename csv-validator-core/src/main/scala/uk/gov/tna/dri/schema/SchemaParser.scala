@@ -7,7 +7,6 @@ import collection.immutable.TreeMap
 import java.security.MessageDigest
 import scalaz._
 import Scalaz._
-import org.joda.time.DateTime
 
 trait SchemaParser extends RegexParsers {
 
