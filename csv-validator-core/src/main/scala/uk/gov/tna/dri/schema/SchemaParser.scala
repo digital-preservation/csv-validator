@@ -327,20 +327,21 @@ trait SchemaParser extends RegexParsers {
 
     def dateCheck(rule: Rule): Boolean = rule match {
       case xsdDateTimeRule @ XsdDateTimeRangeRule(from,to) =>  {
-        val diff = for (frmDt <- xsdDateTimeRule.fromDate; toDt <- xsdDateTimeRule.toDate) yield frmDt.isBefore(toDt)
+        val diff = for (frmDt <- xsdDateTimeRule.fromDate; toDt <- xsdDateTimeRule.toDate) yield frmDt.isBefore(toDt) || frmDt.isEqual(toDt)
 
         diff match {
-          case scala.util.Success(_) => false
-          case scala.util.Failure(_) => true
+          case scala.util.Success(false) => false
+          case scala.util.Success(true) => true
+          case scala.util.Failure(_) => false
         }
       }
-      case _ => false
+      case _ => true
     }
 
     val v = for {
       cd <- columnDefinitions
       rule <- cd.rules
-      if (dateCheck(rule))
+      if (!dateCheck(rule))
     } yield s"""Column: ${cd.id}: Invalid ${rule.toError}: at line: ${rule.pos.line}, column: ${rule.pos.column}"""
 
     if (v.isEmpty) None else Some(v.mkString("\n"))
@@ -350,20 +351,21 @@ trait SchemaParser extends RegexParsers {
 
     def dateCheck(rule: Rule): Boolean = rule match {
       case xsdDateRule @ XsdDateRangeRule(from,to) =>  {
-        val diff = for (frmDt <- xsdDateRule.fromDate; toDt <- xsdDateRule.toDate) yield frmDt.isBefore(toDt)
+        val diff = for (frmDt <- xsdDateRule.fromDate; toDt <- xsdDateRule.toDate) yield frmDt.isBefore(toDt) || frmDt.isEqual(toDt)
 
         diff match {
-          case scala.util.Success(_) => false
-          case scala.util.Failure(_) => true
+          case scala.util.Success(false) => false
+          case scala.util.Success(true) => true
+          case scala.util.Failure(_) => false
         }
       }
-      case _ => false
+      case _ => true
     }
 
     val v = for {
       cd <- columnDefinitions
       rule <- cd.rules
-      if (dateCheck(rule))
+      if (!dateCheck(rule))
     } yield s"""Column: ${cd.id}: Invalid ${rule.toError}: at line: ${rule.pos.line}, column: ${rule.pos.column}"""
 
     if (v.isEmpty) None else Some(v.mkString("\n"))
@@ -373,20 +375,21 @@ trait SchemaParser extends RegexParsers {
 
     def dateCheck(rule: Rule): Boolean = rule match {
       case ukDateRule @ UkDateRangeRule(from,to) =>  {
-        val diff = for (frmDt <- ukDateRule.fromDate; toDt <- ukDateRule.toDate) yield frmDt.isBefore(toDt)
+        val diff = for (frmDt <- ukDateRule.fromDate; toDt <- ukDateRule.toDate) yield frmDt.isBefore(toDt) || frmDt.isEqual(toDt)
 
         diff match {
-          case scala.util.Success(_) => false
-          case scala.util.Failure(_) => true
+          case scala.util.Success(false) => false
+          case scala.util.Success(true) => true
+          case scala.util.Failure(_) => false
         }
       }
-      case _ => false
+      case _ => true
     }
 
     val v = for {
       cd <- columnDefinitions
       rule <- cd.rules
-      if (dateCheck(rule))
+      if (!dateCheck(rule))
     } yield s"""Column: ${cd.id}: Invalid ${rule.toError}: at line: ${rule.pos.line}, column: ${rule.pos.column}"""
 
     if (v.isEmpty) None else Some(v.mkString("\n"))
@@ -396,20 +399,21 @@ trait SchemaParser extends RegexParsers {
 
     def dateCheck(rule: Rule): Boolean = rule match {
       case xTimeRule @ XsdTimeRangeRule(from,to) =>  {
-        val diff = for (frmDt <- xTimeRule.fromDate; toDt <- xTimeRule.toDate) yield frmDt.isBefore(toDt)
+        val diff = for (frmDt <- xTimeRule.fromDate; toDt <- xTimeRule.toDate) yield frmDt.isBefore(toDt) || frmDt.isEqual(toDt)
 
         diff match {
-          case scala.util.Success(_) => false
-          case scala.util.Failure(_) => true
+          case scala.util.Success(false) => false
+          case scala.util.Success(true) => true
+          case scala.util.Failure(_) => false
         }
       }
-      case _ => false
+      case _ => true
     }
 
     val v = for {
       cd <- columnDefinitions
       rule <- cd.rules
-      if (dateCheck(rule))
+      if (!dateCheck(rule))
     } yield s"""Column: ${cd.id}: Invalid ${rule.toError}: at line: ${rule.pos.line}, column: ${rule.pos.column}"""
 
     if (v.isEmpty) None else Some(v.mkString("\n"))
