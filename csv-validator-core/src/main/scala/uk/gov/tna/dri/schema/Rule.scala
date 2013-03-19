@@ -20,14 +20,14 @@ abstract class Rule(val name: String, val argProviders: ArgProvider*) extends Po
 
   val Uuid4Regex = "[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}"
 
-  def evaluate(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
+  def evaluate(columnIndex: Int, row: Row, schema: Schema): RuleValidation[Any] = {
     val cellValue = row.cells(columnIndex).value
     if (valid(cellValue, schema.columnDefinitions(columnIndex), columnIndex, row, schema)) true.successNel[String] else fail(columnIndex, row, schema)
   }
 
   def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean
 
-  def fail(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
+  def fail(columnIndex: Int, row: Row, schema: Schema): RuleValidation[Any] = {
     val columnDefinition = schema.columnDefinitions(columnIndex)
     s"$toError fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${'"'}${row.cells(columnIndex).value}${'"'}".failNel[Any]
   }
@@ -36,7 +36,7 @@ abstract class Rule(val name: String, val argProviders: ArgProvider*) extends Po
 }
 
 case class OrRule(left: Rule, right: Rule) extends Rule("or") {
-  override def evaluate(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
+  override def evaluate(columnIndex: Int, row: Row, schema: Schema): RuleValidation[Any] = {
     left.evaluate(columnIndex, row, schema) match {
       case s @ Success(_) => s
       case Failure(_) => right.evaluate(columnIndex, row, schema) match {
@@ -344,7 +344,7 @@ case class PositiveIntegerRule() extends Rule("positiveInteger") {
 case class UniqueRule() extends Rule("unique") {
   val distinctValues = mutable.HashMap[String, Int]()
 
-  override def evaluate(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
+  override def evaluate(columnIndex: Int, row: Row, schema: Schema): RuleValidation[Any] = {
     val cellValue = row.cells(columnIndex).value
     val columnDefinition = schema.columnDefinitions(columnIndex)
 
@@ -370,7 +370,7 @@ case class UniqueMultiRule( columns: List[String] ) extends Rule("unique(") {
   val SEPARATOR:Char = 0x07 // BEL
   val distinctValues = mutable.HashMap[String, Int]()
 
-  override def evaluate(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
+  override def evaluate(columnIndex: Int, row: Row, schema: Schema): RuleValidation[Any] = {
     val cellValue = row.cells(columnIndex).value
     val columnDefinition = schema.columnDefinitions(columnIndex)
 
@@ -402,7 +402,7 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
   def this(file: ArgProvider, algorithm: String, pathSubstitutions: List[(String,String)]) = this(Literal(None), file, algorithm, pathSubstitutions)
   def this(file: ArgProvider, algorithm: String) = this(Literal(None), file, algorithm, List[(String,String)]())
 
-  override def evaluate(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
+  override def evaluate(columnIndex: Int, row: Row, schema: Schema): RuleValidation[Any] = {
     val cellValue = row.cells(columnIndex).value
     val columnDefinition = schema.columnDefinitions(columnIndex)
 
@@ -472,7 +472,7 @@ case class FileCountRule(rootPath: ArgProvider, file: ArgProvider, pathSubstitut
 
   def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = true
 
-  override def evaluate(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
+  override def evaluate(columnIndex: Int, row: Row, schema: Schema): RuleValidation[Any] = {
     val cellValue = row.cells(columnIndex).value
     val columnDefinition = schema.columnDefinitions(columnIndex)
 
@@ -592,7 +592,7 @@ case class LengthRule(from: Option[String], to: String) extends Rule("length") {
 }
 
 case class AndRule(left: Rule, right: Rule) extends Rule("and") {
-  override def evaluate(columnIndex: Int, row: Row, schema: Schema): ValidationNEL[String, Any] = {
+  override def evaluate(columnIndex: Int, row: Row, schema: Schema): RuleValidation[Any] = {
     left.evaluate(columnIndex, row, schema) match {
       case s @ Failure(_) => fail(columnIndex, row, schema) // s
       case Success(_) => right.evaluate(columnIndex, row, schema) match {
@@ -607,7 +607,7 @@ case class AndRule(left: Rule, right: Rule) extends Rule("and") {
   override def toError = s"""${left.toError} $name ${right.toError}"""
 }
 
-class FileSystem(basePath: Option[String], file: String, pathSubstitutions: List[(String,String)] ) {
+case class FileSystem(basePath: Option[String], file: String, pathSubstitutions: List[(String,String)] ) {
   import java.net.URI
 
   def this( root:String, file: String, pathSubstitutions: List[(String,String)] ) = this( Some(root), file, pathSubstitutions)
