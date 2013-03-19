@@ -189,11 +189,13 @@ case class XsdDateTimeRule() extends Rule("xDateTime") {
   }
 }
 
-trait DateRangeValidate {
+abstract class DateRangeRule(override val name: String) extends Rule(name) {
 
   val dateRegex: String
   val fromDate: Try[DateTime]
   val toDate: Try[DateTime]
+  val from: String
+  val to: String
 
   def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
     cellValue matches dateRegex match {
@@ -208,21 +210,20 @@ trait DateRangeValidate {
     }
   }
 
+  override def toError = {
+    s"""$name("$from, $to")"""
+  }
+
   def calcCellValueDate(cellValue: String) = Try(DateTime.parse(cellValue))
 
 }
 
-case class XsdDateTimeRangeRule(from: String, to: String) extends Rule("xDateTime") with DateRangeValidate {
+case class XsdDateTimeRangeRule(from: String, to: String) extends DateRangeRule("xDateTime")  {
 
   val dateRegex = "[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}"
 
   lazy val fromDate = Try(DateTime.parse(from))
   lazy val toDate = Try(DateTime.parse(to))
-
-
-  override def toError = {
-    s"""$name("$from, $to")"""
-  }
 
 }
 
@@ -237,16 +238,12 @@ case class XsdDateRule() extends Rule("xDate") {
   }
 }
 
-case class XsdDateRangeRule(from: String, to: String) extends Rule("xDate") with DateRangeValidate {
+case class XsdDateRangeRule(from: String, to: String) extends DateRangeRule("xDate") {
 
   val dateRegex = "[0-9]{4}-[0-9]{2}-[0-9]{2}"
 
   lazy val fromDate = Try(DateTime.parse(from))
   lazy val toDate = Try(DateTime.parse(to))
-
-  override def toError = {
-    s"""$name("$from, $to")"""
-  }
 
 }
 
@@ -264,7 +261,7 @@ case class UkDateRule() extends Rule("ukDate") {
   }
 }
 
-case class UkDateRangeRule(from: String, to: String) extends Rule("ukDate") with DateRangeValidate {
+case class UkDateRangeRule(from: String, to: String) extends DateRangeRule("ukDate") {
 
   val dateRegex = "[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}"
   val fmt = DateTimeFormat.forPattern("dd/MM/YYYY")
@@ -273,10 +270,6 @@ case class UkDateRangeRule(from: String, to: String) extends Rule("ukDate") with
   lazy val toDate = Try(fmt.parseDateTime(to))
 
   override def calcCellValueDate(cellValue: String) = Try(fmt.parseDateTime(cellValue))
-
-  override def toError = {
-    s"""$name("$from, $to")"""
-  }
 }
 
 case class XsdTimeRule() extends Rule("xTime") {
@@ -290,7 +283,7 @@ case class XsdTimeRule() extends Rule("xTime") {
   }
 }
 
-case class XsdTimeRangeRule(from: String, to: String) extends Rule("xTime") with DateRangeValidate {
+case class XsdTimeRangeRule(from: String, to: String) extends DateRangeRule("xTime") {
 
   val dateRegex = "[0-9]{2}:[0-9]{2}:[0-9]{2}"
 
@@ -298,11 +291,6 @@ case class XsdTimeRangeRule(from: String, to: String) extends Rule("xTime") with
   lazy val toDate = Try(LocalTime.parse(to).toDateTimeToday)
 
   override def calcCellValueDate(cellValue: String) = Try(LocalTime.parse(cellValue).toDateTimeToday)
-
-  override def toError = {
-    s"""$name("$from, $to")"""
-  }
-
 }
 
 case class Uuid4Rule() extends Rule("uuid4") {
