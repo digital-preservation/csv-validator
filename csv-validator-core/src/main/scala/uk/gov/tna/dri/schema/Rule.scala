@@ -189,18 +189,16 @@ case class XsdDateTimeRule() extends Rule("xDateTime") {
   }
 }
 
-case class XsdDateTimeRangeRule(from: String, to: String) extends Rule("xDateTime") {
+trait DateRangeValidate {
 
-  val xsdDateTimeRegex = "[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}"
-
-  lazy val fromDate = Try(DateTime.parse(from))
-  lazy val toDate = Try(DateTime.parse(to))
+  val dateRegex: String
+  val fromDate: Try[DateTime]
+  val toDate: Try[DateTime]
 
   def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
-
-    cellValue matches xsdDateTimeRegex match {
+    cellValue matches dateRegex match {
       case true => {
-        val inRange = for ( frmDt <- fromDate; toDt <-toDate; cellDt <- Try(DateTime.parse(cellValue))) yield {
+        val inRange = for ( frmDt <- fromDate; toDt <-toDate; cellDt <- calcCellValueDate(cellValue)) yield {
           val interval = new Interval(frmDt,toDt.plusMillis(1))
           interval.contains(cellDt)
         }
@@ -210,9 +208,22 @@ case class XsdDateTimeRangeRule(from: String, to: String) extends Rule("xDateTim
     }
   }
 
+  def calcCellValueDate(cellValue: String) = Try(DateTime.parse(cellValue))
+
+}
+
+case class XsdDateTimeRangeRule(from: String, to: String) extends Rule("xDateTime") with DateRangeValidate {
+
+  val dateRegex = "[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}"
+
+  lazy val fromDate = Try(DateTime.parse(from))
+  lazy val toDate = Try(DateTime.parse(to))
+
+
   override def toError = {
     s"""$name("$from, $to")"""
   }
+
 }
 
 case class XsdDateRule() extends Rule("xDate") {
@@ -226,26 +237,12 @@ case class XsdDateRule() extends Rule("xDate") {
   }
 }
 
-case class XsdDateRangeRule(from: String, to: String) extends Rule("xDate") {
+case class XsdDateRangeRule(from: String, to: String) extends Rule("xDate") with DateRangeValidate {
 
-  val xsdDateRegex = "[0-9]{4}-[0-9]{2}-[0-9]{2}"
+  val dateRegex = "[0-9]{4}-[0-9]{2}-[0-9]{2}"
 
   lazy val fromDate = Try(DateTime.parse(from))
   lazy val toDate = Try(DateTime.parse(to))
-
-  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
-
-    cellValue matches xsdDateRegex match {
-      case true => {
-        val inRange = for ( frmDt <- fromDate; toDt <-toDate; cellDt <- Try(DateTime.parse(cellValue))) yield {
-          val interval = new Interval(frmDt,toDt.plusMillis(1))
-          interval.contains(cellDt)
-        }
-        inRange.getOrElse(false)
-      }
-      case _ => false
-    }
-  }
 
   override def toError = {
     s"""$name("$from, $to")"""
@@ -267,27 +264,15 @@ case class UkDateRule() extends Rule("ukDate") {
   }
 }
 
-case class UkDateRangeRule(from: String, to: String) extends Rule("ukDate") {
+case class UkDateRangeRule(from: String, to: String) extends Rule("ukDate") with DateRangeValidate {
 
-  val ukDateRegex = "[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}"
+  val dateRegex = "[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}"
   val fmt = DateTimeFormat.forPattern("dd/MM/YYYY")
 
   lazy val fromDate = Try(fmt.parseDateTime(from))
   lazy val toDate = Try(fmt.parseDateTime(to))
 
-  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
-
-    cellValue matches ukDateRegex match {
-      case true => {
-        val inRange = for ( frmDt <- fromDate; toDt <-toDate; cellDt <- Try(fmt.parseDateTime(cellValue))) yield {
-          val interval = new Interval(frmDt,toDt.plusMillis(1))
-          interval.contains(cellDt)
-        }
-        inRange.getOrElse(false)
-      }
-      case _ => false
-    }
-  }
+  override def calcCellValueDate(cellValue: String) = Try(fmt.parseDateTime(cellValue))
 
   override def toError = {
     s"""$name("$from, $to")"""
@@ -305,26 +290,14 @@ case class XsdTimeRule() extends Rule("xTime") {
   }
 }
 
-case class XsdTimeRangeRule(from: String, to: String) extends Rule("xTime") {
+case class XsdTimeRangeRule(from: String, to: String) extends Rule("xTime") with DateRangeValidate {
 
-  val xsdTimeRegex = "[0-9]{2}:[0-9]{2}:[0-9]{2}"
+  val dateRegex = "[0-9]{2}:[0-9]{2}:[0-9]{2}"
 
-  lazy val fromDate = Try(LocalTime.parse(from))
-  lazy val toDate = Try(LocalTime.parse(to))
+  lazy val fromDate = Try(LocalTime.parse(from).toDateTimeToday)
+  lazy val toDate = Try(LocalTime.parse(to).toDateTimeToday)
 
-  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
-
-    cellValue matches xsdTimeRegex match {
-      case true => {
-        val inRange = for ( frmDt <- fromDate; toDt <-toDate; cellDt <- Try(LocalTime.parse(cellValue))) yield {
-          val interval = new Interval(frmDt.toDateTimeToday,toDt.toDateTimeToday.plusMillis(1))
-          interval.contains(cellDt.toDateTimeToday)
-        }
-        inRange.getOrElse(false)
-      }
-      case _ => false
-    }
-  }
+  override def calcCellValueDate(cellValue: String) = Try(LocalTime.parse(cellValue).toDateTimeToday)
 
   override def toError = {
     s"""$name("$from, $to")"""

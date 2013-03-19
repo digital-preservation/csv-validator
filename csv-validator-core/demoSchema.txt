@@ -1,7 +1,3 @@
-@totalColumns 6
-Name: unique  checksum(file("myFile.txt"), "MD5")
-Age: positiveInteger
-Address: regex("[0-9][0-9].*") or starts("M")
-Occupation: starts("All")
-DOB: ukDate
-Town: in($Address) @ignoreCase @optional
+version 1.0
+@totalColumns 1 @noHeader
+Country: if(starts("u")){ends("def")}else{if(if(starts("u")){ends("jim")}){starts("g")}}
