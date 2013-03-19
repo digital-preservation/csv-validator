@@ -176,18 +176,34 @@ case class UriRule() extends Rule("uri") {
   def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = cellValue matches uriRegex
 }
 
-abstract class DateRangeRule(override val name: String) extends Rule(name) {
+trait DateParser {
+  def parse(dateStr: String): Try[DateTime]
+}
 
-  val dateRegex: String
-  val fromDate: Try[DateTime]
-  val toDate: Try[DateTime]
+object IsoDateParser extends DateParser {
+  def parse(dateStr: String): Try[DateTime] = Try(DateTime.parse(dateStr))
+}
+
+object UkDateParser extends DateParser {
+  val fmt = DateTimeFormat.forPattern(UkDateFormat)
+  def parse(dateStr: String): Try[DateTime] = Try(fmt.parseDateTime(dateStr))
+}
+
+object TimeParser extends DateParser {
+  def parse(dateStr: String) = Try(LocalTime.parse(dateStr).toDateTimeToday)
+}
+
+abstract class DateRangeRule(override val name: String, dateRegex: String, dateParser: DateParser) extends Rule(name) {
+  import dateParser.parse
   val from: String
   val to: String
+  lazy val fromDate = parse(from)
+  lazy val toDate = parse(to)
 
   def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
     cellValue matches dateRegex match {
       case true => {
-        val inRange = for ( frmDt <- fromDate; toDt <-toDate; cellDt <- calcCellValueDate(cellValue)) yield {
+        val inRange = for ( frmDt <- fromDate; toDt <- toDate; cellDt <- parse(cellValue)) yield {
           val interval = new Interval(frmDt,toDt.plusMillis(1))
           interval.contains(cellDt)
         }
@@ -200,72 +216,32 @@ abstract class DateRangeRule(override val name: String) extends Rule(name) {
   override def toError = {
     s"""$name("$from, $to")"""
   }
-
-  def calcCellValueDate(cellValue: String) = Try(DateTime.parse(cellValue))
 }
 
-abstract class DateRule(override val name: String) extends Rule(name) {
-  val dateRegex: String
-
+abstract class DateRule(override val name: String, dateRegex: String, dateParser: DateParser) extends Rule(name) {
   def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
     cellValue matches dateRegex match {
-      case true => calcCellValueDate(cellValue).isSuccess
+      case true => dateParser.parse(cellValue).isSuccess
       case _ => false
     }
   }
-
-  def calcCellValueDate(cellValue: String) = Try(DateTime.parse(cellValue))
 }
 
-case class XsdDateTimeRule() extends DateRule("xDateTime") {
-  val dateRegex = XsdDateTimeRegex
-}
+case class XsdDateTimeRule() extends DateRule("xDateTime", XsdDateTimeRegex, IsoDateParser)
 
-case class XsdDateTimeRangeRule(from: String, to: String) extends DateRangeRule("xDateTime")  {
-  val dateRegex = XsdDateTimeRegex
-  lazy val fromDate = Try(DateTime.parse(from))
-  lazy val toDate = Try(DateTime.parse(to))
-}
+case class XsdDateTimeRangeRule(from: String, to: String) extends DateRangeRule("xDateTime", XsdDateTimeRegex, IsoDateParser)
 
-case class XsdDateRule() extends DateRule("xDate") {
-  val dateRegex = XsdDateRegex
-}
+case class XsdDateRule() extends DateRule("xDate", XsdDateRegex, IsoDateParser)
 
-case class XsdDateRangeRule(from: String, to: String) extends DateRangeRule("xDate") {
-  val dateRegex = XsdDateRegex
-  lazy val fromDate = Try(DateTime.parse(from))
-  lazy val toDate = Try(DateTime.parse(to))
-}
+case class XsdDateRangeRule(from: String, to: String) extends DateRangeRule("xDate",  XsdDateRegex, IsoDateParser)
 
-case class UkDateRule() extends DateRule("ukDate") {
-  val dateRegex = UkDateRegex
-  val fmt = DateTimeFormat.forPattern(UkDateFormat)
+case class UkDateRule() extends DateRule("ukDate", UkDateRegex, UkDateParser)
 
-  override def calcCellValueDate(cellValue: String) = Try(fmt.parseDateTime(cellValue))
-}
+case class UkDateRangeRule(from: String, to: String) extends DateRangeRule("ukDate", UkDateRegex, UkDateParser)
 
-case class UkDateRangeRule(from: String, to: String) extends DateRangeRule("ukDate") {
-  val dateRegex = UkDateRegex
-  val fmt = DateTimeFormat.forPattern(UkDateFormat)
-  lazy val fromDate = Try(fmt.parseDateTime(from))
-  lazy val toDate = Try(fmt.parseDateTime(to))
+case class XsdTimeRule() extends DateRule("xTime", XsdTimeRegex, TimeParser)
 
-  override def calcCellValueDate(cellValue: String) = Try(fmt.parseDateTime(cellValue))
-}
-
-case class XsdTimeRule() extends DateRule("xTime") {
-  val dateRegex = XsdTimeRegex
-
-  override def calcCellValueDate(cellValue: String) = Try(LocalTime.parse(cellValue).toDateTimeToday)
-}
-
-case class XsdTimeRangeRule(from: String, to: String) extends DateRangeRule("xTime") {
-  val dateRegex = XsdTimeRegex
-  lazy val fromDate = Try(LocalTime.parse(from).toDateTimeToday)
-  lazy val toDate = Try(LocalTime.parse(to).toDateTimeToday)
-
-  override def calcCellValueDate(cellValue: String) = Try(LocalTime.parse(cellValue).toDateTimeToday)
-}
+case class XsdTimeRangeRule(from: String, to: String) extends DateRangeRule("xTime", XsdTimeRegex, TimeParser)
 
 case class Uuid4Rule() extends Rule("uuid4") {
   def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = cellValue matches Uuid4Regex
