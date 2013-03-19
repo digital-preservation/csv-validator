@@ -431,19 +431,24 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
   }
 
   def matchWildcardPaths(matchList: PathSet[Path],fullPath: String): ValidationNEL[String, String] = matchList.size match {
-    case 1 => calcChecksum(matchList.head.path).successNel[String]
+    case 1 => calcChecksum(matchList.head.path)//.successNel[String]
     case 0 => s"""no files for $fullPath found""".failNel[String]
     case _ => s"""multiple files for $fullPath found""".failNel[String]
   }
 
-  def matchSimplePath(fullPath: String): ValidationNEL[String, String]  = calcChecksum(fullPath).successNel[String]
+  def matchSimplePath(fullPath: String): ValidationNEL[String, String]  = calcChecksum(fullPath)//.successNel[String]
 
-  def calcChecksum(file: String): String = {
+  def calcChecksum(file: String): ValidationNEL[String, String] = {
     val digest = MessageDigest.getInstance(algorithm)
-    val fileBuffer = new BufferedInputStream(new FileInputStream(file))
-    Stream.continually(fileBuffer.read).takeWhile(-1 !=).map(_.toByte).foreach( digest.update(_))
-    fileBuffer.close()
-    hexEncode(digest.digest)
+
+    FileSystem.createFile(file) match {
+      case scala.util.Success(f) =>
+        val fileBuffer = new BufferedInputStream( new FileInputStream( f) )
+        Stream.continually(fileBuffer.read).takeWhile(-1 !=).map(_.toByte).foreach( digest.update(_))
+        fileBuffer.close()
+        hexEncode(digest.digest).successNel[String]
+      case scala.util.Failure(_) => "file not fund".failNel[String]
+    }
   }
 
   private def hexEncode(in: Array[Byte]): String = {
@@ -650,9 +655,6 @@ case class FileSystem(basePath: Option[String], file: String, pathSubstitutions:
     val x = pathSubstitutions.filter(arg => filename.contains(arg._1)).map( arg => filename.replaceFirst(arg._1,arg._2) )
     if (x.isEmpty) filename else x.head
   }
-
-
-
 
   def jointPath: String = {
     val fs: Char = System.getProperty("file.separator").head
