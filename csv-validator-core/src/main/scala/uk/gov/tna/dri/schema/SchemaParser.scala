@@ -178,9 +178,8 @@ trait SchemaParser extends RegexParsers {
   }
 
   private def validate(g: List[GlobalDirective], c: List[ColumnDefinition]): String = {
-    globDirectivesValid(g) ::totalColumnsValid(g, c) :: columnDirectivesValid(c) :: duplicateColumnsValid(c) :: crossColumnsValid(c) ::
-    checksumAlgorithmValid(c) :: rangeValid(c) :: lengthValid(c) :: regexValid(c) :: dateTimeRangeValid(c) :: dateRangeValid(c) ::
-    ukDateRangeValid(c) :: xTimeRangeValid(c) :: uniqueMultiValid(c) :: Nil collect { case Some(s: String) => s } mkString("\n")
+    globDirectivesValid(g) ::totalColumnsValid(g, c) :: columnDirectivesValid(c) :: duplicateColumnsValid(c) :: crossColumnsValid(c) :: checksumAlgorithmValid(c) ::
+    rangeValid(c) :: lengthValid(c) :: regexValid(c) :: dateRangeValid(c) :: uniqueMultiValid(c) :: Nil collect { case Some(s: String) => s } mkString("\n")
   }
 
   private def totalColumnsValid(g: List[GlobalDirective], c: List[ColumnDefinition]): Option[String] = {
@@ -323,83 +322,11 @@ trait SchemaParser extends RegexParsers {
     if (v.isEmpty) None else Some(v.mkString("\n"))
   }
 
-  private def dateTimeRangeValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
-
-    def dateCheck(rule: Rule): Boolean = rule match {
-      case xsdDateTimeRule @ XsdDateTimeRangeRule(from,to) =>  {
-        val diff = for (frmDt <- xsdDateTimeRule.fromDate; toDt <- xsdDateTimeRule.toDate) yield frmDt.isBefore(toDt) || frmDt.isEqual(toDt)
-
-        diff match {
-          case scala.util.Success(false) => false
-          case scala.util.Success(true) => true
-          case scala.util.Failure(_) => false
-        }
-      }
-      case _ => true
-    }
-
-    val v = for {
-      cd <- columnDefinitions
-      rule <- cd.rules
-      if (!dateCheck(rule))
-    } yield s"""Column: ${cd.id}: Invalid ${rule.toError}: at line: ${rule.pos.line}, column: ${rule.pos.column}"""
-
-    if (v.isEmpty) None else Some(v.mkString("\n"))
-  }
-
   private def dateRangeValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
 
     def dateCheck(rule: Rule): Boolean = rule match {
-      case xsdDateRule @ XsdDateRangeRule(from,to) =>  {
-        val diff = for (frmDt <- xsdDateRule.fromDate; toDt <- xsdDateRule.toDate) yield frmDt.isBefore(toDt) || frmDt.isEqual(toDt)
-
-        diff match {
-          case scala.util.Success(false) => false
-          case scala.util.Success(true) => true
-          case scala.util.Failure(_) => false
-        }
-      }
-      case _ => true
-    }
-
-    val v = for {
-      cd <- columnDefinitions
-      rule <- cd.rules
-      if (!dateCheck(rule))
-    } yield s"""Column: ${cd.id}: Invalid ${rule.toError}: at line: ${rule.pos.line}, column: ${rule.pos.column}"""
-
-    if (v.isEmpty) None else Some(v.mkString("\n"))
-  }
-
-  private def ukDateRangeValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
-
-    def dateCheck(rule: Rule): Boolean = rule match {
-      case ukDateRule @ UkDateRangeRule(from,to) =>  {
-        val diff = for (frmDt <- ukDateRule.fromDate; toDt <- ukDateRule.toDate) yield frmDt.isBefore(toDt) || frmDt.isEqual(toDt)
-
-        diff match {
-          case scala.util.Success(false) => false
-          case scala.util.Success(true) => true
-          case scala.util.Failure(_) => false
-        }
-      }
-      case _ => true
-    }
-
-    val v = for {
-      cd <- columnDefinitions
-      rule <- cd.rules
-      if (!dateCheck(rule))
-    } yield s"""Column: ${cd.id}: Invalid ${rule.toError}: at line: ${rule.pos.line}, column: ${rule.pos.column}"""
-
-    if (v.isEmpty) None else Some(v.mkString("\n"))
-  }
-
-  private def xTimeRangeValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
-
-    def dateCheck(rule: Rule): Boolean = rule match {
-      case xTimeRule @ XsdTimeRangeRule(from,to) =>  {
-        val diff = for (frmDt <- xTimeRule.fromDate; toDt <- xTimeRule.toDate) yield frmDt.isBefore(toDt) || frmDt.isEqual(toDt)
+      case dateRule: DateRangeRule =>  {
+        val diff = for (frmDt <- dateRule.fromDate; toDt <- dateRule.toDate) yield frmDt.isBefore(toDt) || frmDt.isEqual(toDt)
 
         diff match {
           case scala.util.Success(false) => false
