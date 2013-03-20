@@ -64,7 +64,7 @@ trait SchemaParser extends RegexParsers {
     case id ~ rules ~ columnDirectives => ColumnDefinition(id, rules, columnDirectives)
   }).withFailureMessage("Invalid schema text")
 
-  def columnDirective = positioned(optional | ignoreCase)
+  def columnDirective = positioned(optional | ignoreCase | warning)
 
   def rule = positioned( and | or | nonConditionalRule | conditionalRule)
 
@@ -165,6 +165,8 @@ trait SchemaParser extends RegexParsers {
   def algorithmExpr: Parser[String] = "\"" ~> stringRegex <~ "\""  ^^ { a => a }
 
   def optional = "@optional" ^^^ Optional()
+
+  def warning = "@warning" ^^^ Warning()
 
   def ignoreCase = "@ignoreCase" ^^^ IgnoreCase()
 

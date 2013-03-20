@@ -53,6 +53,10 @@ case class Optional() extends ColumnDirective {
   override def toString = "optional"
 }
 
+case class Warning() extends ColumnDirective {
+  override def toString = "warning"
+}
+
 case class IgnoreCase() extends ColumnDirective  {
   override def toString = "ignoreCase"
 }

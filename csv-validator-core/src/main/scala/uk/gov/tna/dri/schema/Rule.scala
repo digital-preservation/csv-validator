@@ -318,7 +318,7 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
 
     search(filename(columnIndex, row, schema)) match {
       case Success(hexValue: String) if hexValue == cellValue => true.successNel[String]
-      case Success(hexValue: String) => s"$toError checksum match fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${'"'}${row.cells(columnIndex).value}${'"'}".failNel[Any]
+      case Success(hexValue: String) => s"$toError file ${'"'}${filename(columnIndex, row, schema)._1}${filename(columnIndex, row, schema)._2}${'"'} checksum match fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${'"'}${row.cells(columnIndex).value}${'"'}".failNel[Any]
       case Failure(errMsg) => s"$toError ${errMsg.head} for line: ${row.lineNumber}, column: ${columnDefinition.id}, value: ${'"'}${row.cells(columnIndex).value}${'"'}".failNel[Any]
     }
   }
@@ -438,10 +438,8 @@ trait FileWildcardSearch[T] {
       else (p,f)
     }
 
-    def spaces2twenty( file: String):String = file.replace(" ", "%20")
-
     if (path.startsWith("file://"))  {
-      val pathURI = Path(new URI(spaces2twenty(path))).get
+      val pathURI = Path(new URI( FileSystem.replaceSpaces(path))).get
       findBaseRecur("file://" + pathURI.parent.get.path, pathURI.name)
     } else if (Path.fromString(path).parent.isEmpty) ("./", path) else findBaseRecur(Path.fromString(path).parent.get.path, Path.fromString(path).name)
   }
@@ -451,30 +449,34 @@ trait FileWildcardSearch[T] {
       val fullPath = new FileSystem( None, filePaths._1 + filePaths._2, pathSubstitutions).expandBasePath
       val (basePath,matchPath ) = findBase(fullPath)
 
-      val path:Path = {
-        val file = FileSystem.createFile( basePath ) match {
-          case scala.util.Success(p) => p
-          case scala.util.Failure(_) => new File(".")
+      val path: Option[Path] = {
+        FileSystem.createFile( basePath ) match {
+          case scala.util.Success(f) => Some(Path(f))
+          case scala.util.Failure(_) => None
         }
-        Path( file )
       }
 
       def pathString = s"${filePaths._1} (localfile: $fullPath)"
 
-      def findMatches(wc: (Path, String) => PathSet[Path] ): ValidationNEL[String, T] = matchWildcardPaths( wc(path,matchPath ), fullPath )
+      def findMatches(wc: (Path, String) => PathSet[Path] ): ValidationNEL[String, T] = {
+        path match {
+          case Some(p) =>  matchWildcardPaths( wc(p, matchPath ), fullPath )
+          case None => "no file".failNel[T]
+        }
+      }
 
-      def basePathExists:Boolean =   filePaths._1.length>0 && (!(FileSystem.createFile( basePath ) match {
+      def basePathExists: Boolean =   filePaths._1.length>0 && (!(FileSystem.createFile( basePath ) match {
         case scala.util.Success(f) =>   f.exists
         case scala.util.Failure(_) => false
       }))
 
-      def wildcardNotInRoot:Boolean = filePaths._1.contains("*")
+      def wildcardNotInRoot: Boolean = filePaths._1.contains("*")
 
-      def matchUsesWildDirectory:Boolean = matchPath.contains("**")
+      def matchUsesWildDirectory: Boolean = matchPath.contains("**")
 
-      def matchUsesWildFiles:Boolean = matchPath.contains("*")
+      def matchUsesWildFiles: Boolean = matchPath.contains("*")
 
-      def fileExists:Boolean = {
+      def fileExists: Boolean = {
         val path = basePath+System.getProperty("file.separator")+matchPath
         FileSystem.createFile( path ) match {
           case scala.util.Success(file) =>   file.exists
@@ -542,15 +544,14 @@ case class AndRule(left: Rule, right: Rule) extends Rule("and") {
 object FileSystem {
   def createFile( filename:String): Try[File] =  Try{ if( filename.startsWith("file:")) new File( new URI(filename)) else  new File( filename )}
 
-  def spaces2twenty( file: String):String = file.replace(" ", "%20")
+  def replaceSpaces( file: String): String = file.replace(" ", "%20")
 
   private def file2PlatformDependent( file: String): String =
     if ( System.getProperty("file.separator") == "/" ) file.replace('\\', '/')
     else file.replace('/', '\\')
 
-  def convertPath2Platform(filename: String): Try[File] = {
-    val file = if ( filename.startsWith("file://"))  spaces2twenty(filename) else file2PlatformDependent( filename )
-    createFile( file )
+  def convertPath2Platform(filename: String): String = {
+    if ( filename.startsWith("file://"))  replaceSpaces(filename) else file2PlatformDependent( filename )
   }
 
 }
@@ -564,21 +565,23 @@ case class FileSystem(basePath: Option[String], file: String, pathSubstitutions:
   private def substitutePath(  filename: String): String = {
     val x = pathSubstitutions.filter(arg => filename.contains(arg._1)).map( arg => filename.replaceFirst(arg._1,arg._2) )
     if (x.isEmpty) filename else x.head
+//    pathSubstitutions.foldLeft(filename){ (f,s) => f.replaceFirst(s._1, s._2)}
   }
 
   def jointPath: String = {
     val fs: Char = System.getProperty("file.separator").head
 
     basePath match {
-      case Some(bp) => if (bp.length > 0 && bp.last != fs && file.head != fs) bp + fs + file
-      else if (bp.length > 0 && bp.last == fs && file.head == fs) bp + file.tail
-      else bp + file
+      case Some(bp) =>
+        if (bp.length > 0 && bp.last != fs && file.head != fs) bp + fs + file
+        else if (bp.length > 0 && bp.last == fs && file.head == fs) bp + file.tail
+        else bp + file
       case None => file
     }
   }
 
   def exists: Boolean = {
-    FileSystem.convertPath2Platform( substitutePath(jointPath)) match {
+    FileSystem.createFile( FileSystem.convertPath2Platform( substitutePath(jointPath))) match {
       case scala.util.Success(f) => f.exists
       case scala.util.Failure(_) => false
     }

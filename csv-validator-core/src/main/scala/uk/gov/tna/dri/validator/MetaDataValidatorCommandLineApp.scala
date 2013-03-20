@@ -45,7 +45,7 @@ object MetaDataValidatorCommandLineApp extends App {
   private def processMetaData(metaDataFile: String, schemaFile: String, failFast: Boolean, pathSubstitutionsList: List[(String,String)] ): (String,Int) = {
     val validator = createValidator (failFast, pathSubstitutionsList)
     validator.parseSchema(schemaFile) match {
-      case FailureZ(errors) => (prettyPrint(errors), SystemExits.InvalidSchema)
+      case FailureZ(errors) => (prettyPrintString(errors), SystemExits.InvalidSchema)
       case SuccessZ(schema) =>
         validator.validate(metaDataFile, schema) match {
           case FailureZ(errors) => (prettyPrint(errors), SystemExits.InvalidCsv)
@@ -66,7 +66,7 @@ object MetaDataValidatorCommandLineApp extends App {
           case FailureZ(errors) => errors.list.asJava
           case SuccessZ(schema) =>
             validator.validate(metaDataFile, schema) match {
-              case FailureZ(errors) => errors.list.asJava
+              case FailureZ(errors) => errors.list.map(i => i.toString).asJava
               case SuccessZ(_) => new java.util.ArrayList[String]
             }
         }
@@ -85,7 +85,7 @@ object MetaDataValidatorCommandLineApp extends App {
     else {
       val files = args.takeRight(2)
       checkFilesReadable(files) match {
-        case FailureZ(errors) => Left(prettyPrint(errors))
+        case FailureZ(errors) => Left(prettyPrintString(errors))
         case SuccessZ(_) =>
           val (metaDataFile: String, schemaFile: String) = (files(0),files(1))
           Right((metaDataFile, schemaFile), args.dropRight(2))
@@ -115,19 +115,28 @@ object MetaDataValidatorCommandLineApp extends App {
 
   private def usage = """Usage: validate [--fail-fast] [--path <from> <to>]* <meta-data file path> <schema file path>"""
 
-  private def checkFilesReadable(fileArgs: List[String]) = fileArgs.map(fileReadable).sequence[AppValidation, String]
+  private def checkFilesReadable(fileArgs: List[String]) = fileArgs.map(fileReadable).sequence[AppValidation, FailMessage]
 
-  private def fileReadable(filePath: String): AppValidation[String] = if (new File(filePath).canRead) filePath.successNel[String] else fileNotReadableMessage(filePath).failNel[String]
+  private def fileReadable(filePath: String): AppValidation[FailMessage] = if (new File(filePath).canRead) ErrorMessage(filePath).successNel[String] else fileNotReadableMessage(filePath).failNel[FailMessage]
 
   private def fileNotReadableMessage(filePath: String) = "Unable to read file : " + filePath
 
-  private def prettyPrint(l: NonEmptyList[String]): String = l.list.mkString(sys.props("line.separator"))
+  private def prettyPrintString(l: NonEmptyList[String]): String = l.list.mkString(sys.props("line.separator"))
+
+
+  private def prettyPrint(l: NonEmptyList[FailMessage]): String = l.list.map{i =>
+    i match {
+      case WarningMessage(err) => "Warning: " + err
+      case ErrorMessage(err) =>   "Error:   " + err
+      case _ => "*************************************  HELP *****************************************************"
+    }
+  }.mkString(sys.props("line.separator"))
 }
 
 trait MetaDataValidatorApp extends SchemaParser {
   this: MetaDataValidator =>
 
-  def validate(metaDataFile: String, schema: Schema): MetaDataValidation[Any] = {
+  def validate(metaDataFile: String, schema: Schema): FailMetaDataValidation[Any] = {
      validate(new FileReader(metaDataFile), schema)
   }
 
