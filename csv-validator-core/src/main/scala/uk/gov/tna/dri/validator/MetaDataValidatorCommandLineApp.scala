@@ -121,15 +121,11 @@ object MetaDataValidatorCommandLineApp extends App {
 
   private def fileNotReadableMessage(filePath: String) = SchemaMessage("Unable to read file : " + filePath)
 
-//  private def prettyPrintString(l: NonEmptyList[String]): String = l.list.mkString(sys.props("line.separator"))
-
-
   private def prettyPrint(l: NonEmptyList[FailMessage]): String = l.list.map{i =>
     i match {
       case WarningMessage(err) => "Warning: " + err
       case ErrorMessage(err) =>   "Error:   " + err
       case SchemaMessage(err) =>  err
-      case _ => "*************************************  H E L P *****************************************************"
     }
   }.mkString(sys.props("line.separator"))
 }
