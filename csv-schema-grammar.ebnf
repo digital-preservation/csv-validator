@@ -65,7 +65,7 @@ RangeExpr                   ::=     "range(" NumericLiteral "," NumericLiteral "
 
 LengthExpr                  ::=     "length(" (PositiveIntegerLiteral | WildcardLiteral ",")? PositiveIntegerLiteral | WildcardLiteral ")"                 
 NotEmptyExpr                ::=     "notEmpty"
-UniqueExpr	                ::=     "unique"
+UniqueExpr	                ::=     "unique" ("(" ColumnRef ("," ColumnRef)* ")")?
 UriExpr                     ::=     "uri"
 
 XsdDateTimeExpr             ::=     "xDateTime" ("(" fromXsdDateTimeExpr "," toXsdDateTimeExpr ")")?            
