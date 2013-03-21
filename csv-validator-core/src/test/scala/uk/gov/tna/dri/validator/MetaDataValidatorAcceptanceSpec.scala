@@ -147,7 +147,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
 
     "only report first rule fail for multiple rules on a column" in {
       app.validate(basePath + "rulesFailMetaData.csv", parse(basePath + "rulesSchema.txt")) must beLike {
-        case Failure(errors) => errors.list mustEqual List(ErrorMessage("""Error: regex("[A-Z][a-z]+") fails for line: 2, column: Name, value: "ben""""))
+        case Failure(errors) => errors.list mustEqual List(ErrorMessage("""regex("[A-Z][a-z]+") fails for line: 2, column: Name, value: "ben""""))
       }
     }
 
