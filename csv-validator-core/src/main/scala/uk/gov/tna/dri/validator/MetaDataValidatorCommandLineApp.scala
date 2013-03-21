@@ -137,7 +137,7 @@ object MetaDataValidatorCommandLineApp extends App {
 trait MetaDataValidatorApp extends SchemaParser {
   this: MetaDataValidator =>
 
-  def validate(metaDataFile: String, schema: Schema): FailMetaDataValidation[Any] = {
+  def validate(metaDataFile: String, schema: Schema): MetaDataValidation[Any] = {
      validate(new FileReader(metaDataFile), schema)
   }
 

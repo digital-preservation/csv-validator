@@ -15,10 +15,9 @@ case class SchemaMessage(message:String) extends FailMessage(message)
 
 
 trait MetaDataValidator {
-  type FailMetaDataValidation[S] = ValidationNEL[FailMessage, S]
-  type MetaDataValidation[S] = ValidationNEL[String, S]
+  type MetaDataValidation[S] = ValidationNEL[FailMessage, S]
 
-  def validate(csv: Reader, schema: Schema): FailMetaDataValidation[Any] = {
+  def validate(csv: Reader, schema: Schema): MetaDataValidation[Any] = {
     val rows = new CSVReader(csv).readAll().toList
     if (rows.isEmpty) ErrorMessage("metadata file is empty").failNel[Any] else {
       val rowsWithNoHeader = if (schema.globalDirectives.contains(NoHeader())) rows else rows.drop(1)
@@ -27,5 +26,5 @@ trait MetaDataValidator {
     }
   }
 
-  def validateRows(rows: List[Row], schema: Schema): FailMetaDataValidation[Any]
+  def validateRows(rows: List[Row], schema: Schema): MetaDataValidation[Any]
 }
