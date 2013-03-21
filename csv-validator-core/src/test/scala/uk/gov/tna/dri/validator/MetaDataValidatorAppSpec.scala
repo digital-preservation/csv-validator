@@ -159,12 +159,12 @@ class MetaDataValidatorAppSpec extends Specification {
         """.stripMargin
 
       app.parseAndValidate(new StringReader(schema)) must beLike {
-        case Failure(msgs) => msgs.list mustEqual List(
+        case Failure(msgs) => msgs.list mustEqual List(SchemaMessage(
           """[3.7] failure: Invalid schema text
             |
             |Name: regox("A")
             |
-            |      ^""".stripMargin)
+            |      ^""".stripMargin))
       }
     }
   }

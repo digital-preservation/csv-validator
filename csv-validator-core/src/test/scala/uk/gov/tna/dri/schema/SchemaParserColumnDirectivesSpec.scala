@@ -3,6 +3,7 @@ package uk.gov.tna.dri.schema
 import org.specs2.mutable._
 import java.io.StringReader
 import scalaz.{Failure => FailureZ}
+import uk.gov.tna.dri.validator.SchemaMessage
 
 
 class SchemaParserColumnDirectivesSpec extends Specification {
@@ -34,7 +35,7 @@ class SchemaParserColumnDirectivesSpec extends Specification {
                      |@totalColumns 1
                      |column1: @ignoreCase @ignoreCase""".stripMargin
 
-      parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual List("""column1: Duplicated column directives: @ignoreCase at line: 3, column: 10""") }
+      parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual List(SchemaMessage("""column1: Duplicated column directives: @ignoreCase at line: 3, column: 10""")) }
     }
 
     "fail for multiple duplicate column directives" in {
@@ -42,7 +43,7 @@ class SchemaParserColumnDirectivesSpec extends Specification {
                      |@totalColumns 1
                      |column1: @ignoreCase @optional @ignoreCase @optional""".stripMargin
 
-      parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual List("""column1: Duplicated column directives: @ignoreCase at line: 3, column: 10, @optional at line: 3, column: 22""") }
+      parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual List(SchemaMessage("""column1: Duplicated column directives: @ignoreCase at line: 3, column: 10, @optional at line: 3, column: 22""")) }
     }
 
     "fail for duplicate column directives on different columns" in {
@@ -52,9 +53,9 @@ class SchemaParserColumnDirectivesSpec extends Specification {
                      |column2: @optional @ignoreCase
                      |column3: @ignoreCase @ignoreCase @optional @optional""".stripMargin
 
-      parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual List(
+      parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual List(SchemaMessage(
         """column1: Duplicated column directives: @ignoreCase at line: 3, column: 10, @optional at line: 3, column: 22
-          |column3: Duplicated column directives: @ignoreCase at line: 5, column: 10, @optional at line: 5, column: 34""".stripMargin) }
+          |column3: Duplicated column directives: @ignoreCase at line: 5, column: 10, @optional at line: 5, column: 34""".stripMargin)) }
     }
 
   }

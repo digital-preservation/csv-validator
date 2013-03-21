@@ -57,7 +57,7 @@ trait FailFastMetaDataValidator extends MetaDataValidator {
   private def validateCell(columnIndex: Int, cells: (Int) => Option[Cell], row: Row, schema: Schema): FailMetaDataValidation[Any] = {
     cells(columnIndex) match {
       case Some(c) => rulesForCell(columnIndex, row, schema)
-      case _ => ErrorMessage(s"Missing value at line: ${row.lineNumber}, column: ${schema.columnDefinitions(columnIndex).id}").failNel[Any]
+      case _ => SchemaMessage(s"Missing value at line: ${row.lineNumber}, column: ${schema.columnDefinitions(columnIndex).id}").failNel[Any]
     }
   }
 
@@ -68,7 +68,7 @@ trait FailFastMetaDataValidator extends MetaDataValidator {
     def isOptionDirective: Boolean = columnDefinition.directives.contains(Optional())
 
     def convert2Warnings( results:Rule#RuleValidation[Any]): FailMetaDataValidation[Any] = {
-      results.fail.map{errorList => errorList.map(errorText => ErrorMessage("Warning: " + errorText))}.validation
+      results.fail.map{errorList => errorList.map(errorText => WarningMessage("Warning: " + errorText))}.validation
     }
 
     def convert2Errors( results:Rule#RuleValidation[Any]): FailMetaDataValidation[Any] = {

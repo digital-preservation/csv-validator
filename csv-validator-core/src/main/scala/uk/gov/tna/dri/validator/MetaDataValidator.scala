@@ -11,6 +11,7 @@ import au.com.bytecode.opencsv.CSVReader
 abstract class FailMessage(val msg:String)
 case class WarningMessage(message:String) extends FailMessage(message)
 case class ErrorMessage(message:String) extends FailMessage(message)
+case class SchemaMessage(message:String) extends FailMessage(message)
 
 
 trait MetaDataValidator {

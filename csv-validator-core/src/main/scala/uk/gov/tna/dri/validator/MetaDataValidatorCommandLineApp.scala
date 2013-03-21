@@ -14,7 +14,7 @@ object  SystemExits {
 }
 
 object MetaDataValidatorCommandLineApp extends App {
-  type AppValidation[S] = ValidationNEL[String, S]
+  type AppValidation[S] = ValidationNEL[FailMessage, S]
 
   val (exitMsg, exitCode) = run(args)
   println(exitMsg)
@@ -45,7 +45,7 @@ object MetaDataValidatorCommandLineApp extends App {
   private def processMetaData(metaDataFile: String, schemaFile: String, failFast: Boolean, pathSubstitutionsList: List[(String,String)] ): (String,Int) = {
     val validator = createValidator (failFast, pathSubstitutionsList)
     validator.parseSchema(schemaFile) match {
-      case FailureZ(errors) => (prettyPrintString(errors), SystemExits.InvalidSchema)
+      case FailureZ(errors) => (prettyPrint(errors), SystemExits.InvalidSchema)
       case SuccessZ(schema) =>
         validator.validate(metaDataFile, schema) match {
           case FailureZ(errors) => (prettyPrint(errors), SystemExits.InvalidCsv)
@@ -59,11 +59,11 @@ object MetaDataValidatorCommandLineApp extends App {
     val tmp: List[(String,String)] = pathSubstitutionsList.asScala.map( x => (x.getFrom, x.getTo)).toList
 
     checkFilesReadable(metaDataFile :: schemaFile :: Nil ) match {
-      case FailureZ(errors) => errors.list.asJava
+      case FailureZ(errors) => errors.map(a => a.msg ).list.asJava
       case SuccessZ(_) =>
         val validator = createValidator (failFast, tmp)
         validator.parseSchema(schemaFile) match {
-          case FailureZ(errors) => errors.list.asJava
+          case FailureZ(errors) => errors.map(a => a.msg ).list.asJava
           case SuccessZ(schema) =>
             validator.validate(metaDataFile, schema) match {
               case FailureZ(errors) => errors.list.map(i => i.toString).asJava
@@ -85,7 +85,7 @@ object MetaDataValidatorCommandLineApp extends App {
     else {
       val files = args.takeRight(2)
       checkFilesReadable(files) match {
-        case FailureZ(errors) => Left(prettyPrintString(errors))
+        case FailureZ(errors) => Left(prettyPrint(errors))
         case SuccessZ(_) =>
           val (metaDataFile: String, schemaFile: String) = (files(0),files(1))
           Right((metaDataFile, schemaFile), args.dropRight(2))
@@ -117,18 +117,19 @@ object MetaDataValidatorCommandLineApp extends App {
 
   private def checkFilesReadable(fileArgs: List[String]) = fileArgs.map(fileReadable).sequence[AppValidation, FailMessage]
 
-  private def fileReadable(filePath: String): AppValidation[FailMessage] = if (new File(filePath).canRead) ErrorMessage(filePath).successNel[String] else fileNotReadableMessage(filePath).failNel[FailMessage]
+  private def fileReadable(filePath: String): AppValidation[FailMessage] = if (new File(filePath).canRead) SchemaMessage(filePath).successNel[FailMessage] else fileNotReadableMessage(filePath).failNel[FailMessage]
 
-  private def fileNotReadableMessage(filePath: String) = "Unable to read file : " + filePath
+  private def fileNotReadableMessage(filePath: String) = SchemaMessage("Unable to read file : " + filePath)
 
-  private def prettyPrintString(l: NonEmptyList[String]): String = l.list.mkString(sys.props("line.separator"))
+//  private def prettyPrintString(l: NonEmptyList[String]): String = l.list.mkString(sys.props("line.separator"))
 
 
   private def prettyPrint(l: NonEmptyList[FailMessage]): String = l.list.map{i =>
     i match {
       case WarningMessage(err) => "Warning: " + err
       case ErrorMessage(err) =>   "Error:   " + err
-      case _ => "*************************************  HELP *****************************************************"
+      case SchemaMessage(err) =>  err
+      case _ => "*************************************  H E L P *****************************************************"
     }
   }.mkString(sys.props("line.separator"))
 }
@@ -140,5 +141,5 @@ trait MetaDataValidatorApp extends SchemaParser {
      validate(new FileReader(metaDataFile), schema)
   }
 
-  def parseSchema(schemaFilePath: String): ValidationNEL[String, Schema] = parseAndValidate(new FileReader(schemaFilePath))
+  def parseSchema(schemaFilePath: String): ValidationNEL[FailMessage, Schema] = parseAndValidate(new FileReader(schemaFilePath))
 }

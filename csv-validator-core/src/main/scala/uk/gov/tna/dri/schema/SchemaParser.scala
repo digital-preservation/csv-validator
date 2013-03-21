@@ -7,6 +7,7 @@ import collection.immutable.TreeMap
 import java.security.MessageDigest
 import scalaz._
 import Scalaz._
+import uk.gov.tna.dri.validator.{SchemaMessage, FailMessage}
 
 trait SchemaParser extends RegexParsers {
 
@@ -32,13 +33,13 @@ trait SchemaParser extends RegexParsers {
 
   val pathSubstitutions: List[(String,String)]
 
-  def parseAndValidate(reader: Reader): ValidationNEL[String, Schema] = {
+  def parseAndValidate(reader: Reader): ValidationNEL[FailMessage, Schema] = {
     parse(reader) match {
       case s @ Success(schema: Schema, next) => {
         val errors = validate(schema.globalDirectives, schema.columnDefinitions)
-        if (errors.isEmpty) schema.successNel[String] else errors.failNel[Schema]
+        if (errors.isEmpty) schema.successNel[FailMessage] else SchemaMessage(errors).failNel[Schema]
       }
-      case n : NoSuccess => n.toString.failNel[Schema]
+      case n : NoSuccess => SchemaMessage(n.toString).failNel[Schema]
     }
   }
 
