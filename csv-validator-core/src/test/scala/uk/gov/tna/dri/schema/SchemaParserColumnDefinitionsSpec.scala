@@ -29,7 +29,7 @@ class SchemaParserColumnDefinitionsSpec extends Specification {
                       0.a-B-z_Z:
                       -abc.txt:"""
 
-      parse(new StringReader(schema)) must beLike { case Success(schema, _) => schema mustEqual Schema(List(TotalColumns(7)), columnDefinitions) }
+      parse(new StringReader(schema)) must beLike { case Success(schemaResult, _) => schemaResult mustEqual Schema(List(TotalColumns(7)), columnDefinitions) }
     }
 
     "fail if colunm ident contains an in valid char ie not 0-9 a-z A-Z . - _" in {
@@ -62,7 +62,7 @@ class SchemaParserColumnDefinitionsSpec extends Specification {
                       @totalColumns 1
                       Name:"""
 
-      parse(new StringReader(schema)) must beLike { case Success(schema, _) => schema mustEqual Schema(globalDirsOne, List(ColumnDefinition("Name"))) }
+      parse(new StringReader(schema)) must beLike { case Success(schemaResult, _) => schemaResult mustEqual Schema(globalDirsOne, List(ColumnDefinition("Name"))) }
     }
 
     "succeed for column definition with single regex rule" in {
@@ -70,7 +70,7 @@ class SchemaParserColumnDefinitionsSpec extends Specification {
                       @totalColumns 1
                       Age: regex ("[1-9]*")"""
 
-      parse(new StringReader(schema)) must beLike { case Success(Schema(globalDirsOne, List(ColumnDefinition("Age", List(RegexRule(r)), _))), _) => r mustEqual "[1-9]*" }
+      parse(new StringReader(schema)) must beLike { case Success(Schema(globalDirsOne1, List(ColumnDefinition("Age", List(RegexRule(r)), _))), _) => r mustEqual "[1-9]*" }
     }
 
     "fail for more than one column definition on a line" in {
@@ -166,7 +166,7 @@ class SchemaParserColumnDefinitionsSpec extends Specification {
                       Column2:"""
 
       parseAndValidate(new StringReader(schema)) must beLike {
-        case SuccessZ(schema) => schema mustEqual Schema(globalDirsTwo, List(ColumnDefinition("Column1", List(InRule(ColumnReference("Column2")))),
+        case SuccessZ(schemaResult) => schemaResult mustEqual Schema(globalDirsTwo, List(ColumnDefinition("Column1", List(InRule(ColumnReference("Column2")))),
                                                                                ColumnDefinition("Column2")))
       }
     }
