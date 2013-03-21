@@ -17,11 +17,14 @@ trait FailFastMetaDataValidator extends MetaDataValidator {
 
   def validateRows(rows: List[Row], schema: Schema): MetaDataValidation[Any] = {
 
-    @tailrec
+    def containsErrors(e:MetaDataValidation[Any]): Boolean = e.fail.exists(a => a.list.exists(i => i.isInstanceOf[ErrorMessage]))
+
+//    @tailrec
     def validateRows(rows: List[Row]): MetaDataValidation[Any] = rows match {
       case Nil => true.successNel[FailMessage]
       case r :: tail =>  validateRow(r, schema) match {
-        case e@Failure(_) => e
+        case e@Failure(_) =>
+          if( containsErrors(e)) e else e *> validateRows(tail)
         case _ => validateRows(tail)
       }
     }
@@ -43,11 +46,13 @@ trait FailFastMetaDataValidator extends MetaDataValidator {
   private def rules(row: Row, schema: Schema): MetaDataValidation[Any] = {
     val cells: (Int) => Option[Cell] = row.cells.lift
 
-    @tailrec
+//    @tailrec
     def validateRules(columnDefinitions:List[(ColumnDefinition,Int)]): MetaDataValidation[Any] = columnDefinitions match {
       case Nil => true.successNel[FailMessage]
       case (columnDef, columnIndex) :: tail => validateCell(columnIndex, cells, row, schema) match {
-        case e@Failure(_) => e
+        case e@Failure(_) =>
+          if( schema.columnDefinitions(columnIndex).directives.contains(Warning()))  e  *> validateRules(tail)
+          else e
         case _ => validateRules(tail)
       }
     }
@@ -68,23 +73,30 @@ trait FailFastMetaDataValidator extends MetaDataValidator {
     def isOptionDirective: Boolean = columnDefinition.directives.contains(Optional())
 
     def convert2Warnings( results:Rule#RuleValidation[Any]): MetaDataValidation[Any] = {
-      results.fail.map{errorList => errorList.map(errorText => WarningMessage("Warning: " + errorText))}.validation
+      results.fail.map{errorList => errorList.map(errorText => WarningMessage(errorText))}.validation
     }
 
     def convert2Errors( results:Rule#RuleValidation[Any]): MetaDataValidation[Any] = {
-      results.fail.map{errorList => errorList.map(errorText => ErrorMessage("Error: " + errorText))}.validation
+      results.fail.map{errorList => errorList.map(errorText => ErrorMessage(errorText))}.validation
     }
 
     @tailrec
     def validateRulesForCell(rules:List[Rule]): MetaDataValidation[Any] = rules match {
       case Nil => true.successNel[FailMessage]
       case rule :: tail => rule.evaluate(columnIndex, row, schema) match {
-        case e@Failure(_) => if(isWarningDirective) convert2Warnings(e) else convert2Errors(e)
+        case e@Failure(_) => convert2Errors(e)
         case _ => validateRulesForCell(tail)
       }
     }
 
+    def validateAllRulesForCell(rules:List[Rule]): MetaDataValidation[Any] = {
+      rules.map(_.evaluate(columnIndex, row, schema)).map{ ruleResult:Rule#RuleValidation[Any] => {
+        convert2Warnings(ruleResult)
+      }}.sequence[MetaDataValidation, Any]
+    }
+
     if (row.cells(columnIndex).value.trim.isEmpty && isOptionDirective ) true.successNel
+    else if(isWarningDirective) validateAllRulesForCell(columnDefinition.rules)
     else validateRulesForCell(columnDefinition.rules)
   }
 }
