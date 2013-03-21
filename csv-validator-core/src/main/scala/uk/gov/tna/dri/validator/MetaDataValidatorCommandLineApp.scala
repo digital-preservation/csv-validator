@@ -5,6 +5,8 @@ import uk.gov.tna.dri.schema.{Schema, SchemaParser}
 import scalaz.{Success => SuccessZ, Failure => FailureZ, _}
 import Scalaz._
 import scala.App
+import uk.gov.tna.dri.schema.Validator.{JWarningMessage, JFailMessage, JErrorMessage}
+import java.util
 
 object  SystemExits {
   val ValidCsv = 0
@@ -54,20 +56,28 @@ object MetaDataValidatorCommandLineApp extends App {
     }
   }
 
-  def javaProcessMetaData(metaDataFile: String, schemaFile: String, failFast: Boolean, pathSubstitutionsList: java.util.List[uk.gov.tna.dri.schema.Validator.Substitution] ): java.util.List[String] = {
+  def javaProcessMetaData(metaDataFile: String, schemaFile: String, failFast: Boolean, pathSubstitutionsList: java.util.List[uk.gov.tna.dri.schema.Validator.Substitution] ): util.List[JFailMessage] = {
     import scala.collection.JavaConverters._
     val tmp: List[(String,String)] = pathSubstitutionsList.asScala.map( x => (x.getFrom, x.getTo)).toList
 
+
+    def asJavaMessage(f:FailMessage ): JFailMessage = f match {
+      case WarningMessage(msg) => new JWarningMessage(msg).asInstanceOf[JFailMessage]
+      case ErrorMessage(msg) => new JErrorMessage(msg).asInstanceOf[JFailMessage]
+      case SchemaMessage(msg) => new JErrorMessage(msg).asInstanceOf[JFailMessage]
+    }
+
     checkFilesReadable(metaDataFile :: schemaFile :: Nil ) match {
-      case FailureZ(errors) => errors.map(a => a.msg ).list.asJava
+      case FailureZ(errors) =>
+        errors.list.map{ asJavaMessage(_) }.asJava
       case SuccessZ(_) =>
         val validator = createValidator (failFast, tmp)
         validator.parseSchema(schemaFile) match {
-          case FailureZ(errors) => errors.map(a => a.msg ).list.asJava
+          case FailureZ(errors) => errors.list.map( asJavaMessage(_) ).asJava
           case SuccessZ(schema) =>
             validator.validate(metaDataFile, schema) match {
-              case FailureZ(errors) => errors.list.map(i => i.toString).asJava
-              case SuccessZ(_) => new java.util.ArrayList[String]
+              case FailureZ(errors) => errors.list.map( asJavaMessage(_) ).asJava
+              case SuccessZ(_) => new java.util.ArrayList[JFailMessage]
             }
         }
     }

@@ -6,9 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Validate that a cvs file matches a format specified by a schema.
- * This is a Java wrapper calling the main Scala application.
- */
+* Validate that a cvs file matches a format specified by a schema.
+* This is a Java wrapper calling the main Scala application.
+*/
 public class Validator {
 
     /**
@@ -20,7 +20,7 @@ public class Validator {
      * @param pathSubstitutions list of substitutions for file paths
      * @return empty list of no errors or list of error strings.
      */
-    public static List<String> validate( String cvsFilename, String schemaFilename, Boolean failFast, List<Substitution> pathSubstitutions) {
+    public static List<JFailMessage> validate( String cvsFilename, String schemaFilename, Boolean failFast, List<Substitution> pathSubstitutions) {
         return MetaDataValidatorCommandLineApp.javaProcessMetaData(cvsFilename, schemaFilename, failFast, pathSubstitutions);
     }
 
@@ -42,6 +42,23 @@ public class Validator {
     }
 
 
+
+    public static abstract class JFailMessage {
+        private String message = "";
+        public JFailMessage ( String message ) { this.message = message;}
+        public String getMessage() { return message;}
+    }
+
+    public static class JErrorMessage extends JFailMessage {
+        public JErrorMessage( String message ) { super(message);}
+    }
+
+    public static class JWarningMessage extends JFailMessage {
+        public JWarningMessage( String message ) { super(message);}
+    }
+
+
+
     /**
      * DEMO on how to use the java interface to call the validator
      *
@@ -55,7 +72,7 @@ public class Validator {
         // add a substitution path
 //        pathSubstitutions.add( new Substitution( "file://something", "/home/xxx") );  // add a substitution path
 
-        List<String> messages = uk.gov.tna.dri.schema.Validator.validate(
+        List<JFailMessage> messages = uk.gov.tna.dri.schema.Validator.validate(
                 "/home/dev/IdeaProjects/csv/csv-validator/csv-validator-core/metaData.csv",
                 "/home/dev/IdeaProjects/csv/csv-validator/csv-validator-core/schema.txt",
                 failFast,
@@ -65,8 +82,12 @@ public class Validator {
         if(messages.isEmpty()) {
             System.out.println( "All worked OK");
         } else {
-            for (String message : messages) {
-                System.out.println("ERROR: " + message);
+            for (JFailMessage message : messages) {
+                if( message instanceof JWarningMessage) {
+                    System.out.println("Warning: " + message.getMessage());
+                } else {
+                    System.out.println("Error: " + message.getMessage());
+                }
             }
         }
     }
