@@ -48,24 +48,23 @@ trait AllErrorsMetaDataValidator extends MetaDataValidator {
 
 
   private def rulesForCell(columnIndex: Int, row: Row, schema: Schema): FailMetaDataValidation[Any] = {
+
     val columnDefinition = schema.columnDefinitions(columnIndex)
 
+    def isWarningDirective: Boolean = columnDefinition.directives.contains(Warning())
+    def isOptionDirective: Boolean = columnDefinition.directives.contains(Optional())
+
     def convert2Warnings( results:Rule#RuleValidation[Any]): FailMetaDataValidation[Any] = {
-      val a = results.fail
-      val b = a.map{b => b.map(c => WarningMessage(c))}.validation
-      b
+      results.fail.map{errorList => errorList.map(errorText => WarningMessage(errorText))}.validation
     }
 
     def convert2Errors( results:Rule#RuleValidation[Any]): FailMetaDataValidation[Any] = {
-      val a = results.fail
-      val b = a.map{b => b.map(c => ErrorMessage(c))}.validation
-      b
+      results.fail.map{errorList => errorList.map(errorText => ErrorMessage(errorText))}.validation
     }
 
-    if (row.cells(columnIndex).value.trim.isEmpty && columnDefinition.directives.contains(Optional())) true.successNel
-    else columnDefinition.rules.map(_.evaluate(columnIndex, row, schema)).    map{ a:Rule#RuleValidation[Any] => {
-      if(columnDefinition.directives.contains(Warning())) convert2Warnings(a)
-      else convert2Errors(a)
+    if (row.cells(columnIndex).value.trim.isEmpty && isOptionDirective) true.successNel
+    else columnDefinition.rules.map(_.evaluate(columnIndex, row, schema)).map{ ruleResult:Rule#RuleValidation[Any] => {
+      if(isWarningDirective) convert2Warnings(ruleResult) else convert2Errors(ruleResult)
     }}.sequence[FailMetaDataValidation, Any]
   }
 }

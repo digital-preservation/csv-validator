@@ -64,29 +64,27 @@ trait FailFastMetaDataValidator extends MetaDataValidator {
   private def rulesForCell(columnIndex: Int, row: Row, schema: Schema): FailMetaDataValidation[Any] = {
     val columnDefinition = schema.columnDefinitions(columnIndex)
 
+    def isWarningDirective: Boolean = columnDefinition.directives.contains(Warning())
+    def isOptionDirective: Boolean = columnDefinition.directives.contains(Optional())
 
     def convert2Warnings( results:Rule#RuleValidation[Any]): FailMetaDataValidation[Any] = {
-      val a = results.fail
-      val b = a.map{b => b.map(c => ErrorMessage("Warning: " + c))}.validation
-      b
+      results.fail.map{errorList => errorList.map(errorText => ErrorMessage("Warning: " + errorText))}.validation
     }
 
     def convert2Errors( results:Rule#RuleValidation[Any]): FailMetaDataValidation[Any] = {
-      val a = results.fail
-      val b = a.map{b => b.map(c => ErrorMessage("Error: " + c))}.validation
-      b
+      results.fail.map{errorList => errorList.map(errorText => ErrorMessage("Error: " + errorText))}.validation
     }
 
     @tailrec
     def validateRulesForCell(rules:List[Rule]): FailMetaDataValidation[Any] = rules match {
       case Nil => true.successNel[FailMessage]
       case rule :: tail => rule.evaluate(columnIndex, row, schema) match {
-        case e@Failure(_) => convert2Errors(e)
+        case e@Failure(_) => if(isWarningDirective) convert2Warnings(e) else convert2Errors(e)
         case _ => validateRulesForCell(tail)
       }
     }
 
-    if (row.cells(columnIndex).value.trim.isEmpty && columnDefinition.directives.contains(Optional())) true.successNel
+    if (row.cells(columnIndex).value.trim.isEmpty && isOptionDirective ) true.successNel
     else validateRulesForCell(columnDefinition.rules)
   }
 }
