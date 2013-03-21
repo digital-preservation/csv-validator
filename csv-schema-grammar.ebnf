@@ -72,6 +72,7 @@ XsdDateTimeExpr             ::=     "xDateTime" ("(" fromXsdDateTimeExpr "," toX
 XsdDateExpr                 ::=     "xDate" ("(" fromXsdDateExpr "," toXsdDateExpr ")")?
 XsdTimeExpr                 ::=     "xTime" ("(" fromXsdTimeExpr "," toXsdTimeExpr ")")?
 UkDateExpr                  ::=     "ukDate" ("(" fromUkDateExpr "," toUkDateExpr ")")?
+DateExpr                    ::=     "date(" StringProvider "," StringProvider "," StringProvider ("," fromXsdDateExpr "," toXsdDateExpr)? ")"       /* first arg is year, second arg is month, thrid arg is day, optional fouth and fifth args are range */
 
 fromXsdDateTimeExpr         ::=     XsdDateTimeStringLiteral
 toXsdDateTimeExpr           ::=     XsdDateTimeStringLiteral
