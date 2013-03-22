@@ -125,12 +125,13 @@ ColumnDirectives            ::=     (
     | (IgnoreCaseDirective? OptionalDirective? MatchIsFalseDirective?)
     | (MatchIsFalseDirective? OptionalDirective? IgnoreCaseDirective?)
     | (OptionalDirective? MatchIsFalseDirective? IgnoreCaseDirective?)
-)
+) WarningDirective?
 
 
 IgnoreCaseDirective         ::=     DirectivePrefix "ignoreCase"
 MatchIsFalseDirective       ::=     DirectivePrefix "matchIsFalse"
 OptionalDirective           ::=     DirectivePrefix "optional"
+WarningDirective            ::=     DirectivePrefix "warning"
 
 
 /* Lexical */
