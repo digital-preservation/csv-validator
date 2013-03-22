@@ -11,8 +11,6 @@ import uk.gov.tna.dri.schema.Optional
 
 trait AllErrorsMetaDataValidator extends MetaDataValidator {
 
-  val pathSubstitutions: List[(String,String)]
-
   def validateRows(rows: List[Row], schema: Schema): MetaDataValidation[Any] = {
     val v = for (row <- rows) yield validateRow(row, schema)
     v.sequence[MetaDataValidation, Any]
@@ -45,7 +43,6 @@ trait AllErrorsMetaDataValidator extends MetaDataValidator {
       case _ => ErrorMessage(s"Missing value at line: ${row.lineNumber}, column: ${schema.columnDefinitions(columnIndex).id}").failNel[Any]
     }
   }
-
 
   private def rulesForCell(columnIndex: Int, row: Row, schema: Schema): MetaDataValidation[Any] = {
 
