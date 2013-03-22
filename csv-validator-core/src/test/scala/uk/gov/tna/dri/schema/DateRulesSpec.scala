@@ -38,8 +38,8 @@ class DateRulesSpec extends Specification {
   "XsdDateTimeRangeRule" should  {
 
     "succeed if cell is equal to the lower bound" in {
-      val xsdDateRangeRule = XsdDateTimeRangeRule("2012-01-01T00:00:00", "2013-01-01T00:00:00")
-      xsdDateRangeRule.evaluate(0, Row(List(Cell("2012-01-01T00:00:00")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(true)
+      val xsdDateRangeRule = XsdDateTimeRangeRule("2012-01-01T01:00:00", "2013-01-01T01:00:00")
+      xsdDateRangeRule.evaluate(0, Row(List(Cell("2012-01-01T01:00:00")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(true)
     }
 
     "succeed if cell is between lower bound and upper bound" in {

@@ -172,8 +172,7 @@ case class EndsRule(endsValue: ArgProvider) extends Rule("ends", endsValue) {
 }
 
 case class UriRule() extends Rule("uri") {
-  val uriRegex = "http://datagov.nationalarchives.gov.uk/66/WO/409/[0-9]+/[0-9]+/" + Uuid4Regex
-  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = cellValue matches uriRegex
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = cellValue matches UriRegex + "/" + Uuid4Regex
 }
 
 trait DateParser {

@@ -47,7 +47,7 @@ trait SchemaParser extends RegexParsers {
 
   def version: Parser[String] = ("version " ~> Schema.version <~ eol).withFailureMessage(s"version ${Schema.version} missing or incorrect")
 
-  def schema = version ~ globalDirectives ~ columnDefinitions ^^ { case v ~ g ~ c => Schema(g, c)}
+  def schema = version ~ globalDirectives ~ rep1((rep(comment) ~> columnDefinitions) <~ rep(comment)) ^^ { case v ~ g ~ c => Schema(g, c)}
 
   def globalDirectives: Parser[List[GlobalDirective]] = rep(positioned(globalDirective <~ (whiteSpace ~ opt(eol | endOfInput))))
 
@@ -59,11 +59,17 @@ trait SchemaParser extends RegexParsers {
 
   def ignoreColumnNameCaseDirective: Parser[IgnoreColumnNameCase] = "@ignoreColumnNameCase" ~ white ^^^ IgnoreColumnNameCase()
 
-  def columnDefinitions = rep1(positioned(columnDefinition))
+  def columnDefinitions = (positioned(columnDefinition))
 
-  def columnDefinition = ((columnIdentifier <~ ":") ~ rep(rule) ~ rep(columnDirective) <~ endOfColumnDefinition ^^ {
+  def columnDefinition = ((columnIdentifier <~ ":") ~ rep(rule) ~ rep(columnDirective) <~ (endOfColumnDefinition | comment) ^^ {
     case id ~ rules ~ columnDirectives => ColumnDefinition(id, rules, columnDirectives)
   }).withFailureMessage("Invalid schema text")
+
+  def comment: Parser[Any] = singleLineComment | multiLineComment
+
+  def singleLineComment: Parser[String] = """//.*\r?\n""".r
+
+  def multiLineComment: Parser[String] = """((?:/\*(?:[^*]|(?:\*+[^*/]))*\*+/)|(?://.*))\r?\n""".r
 
   def columnDirective = positioned(optional | ignoreCase | warning)
 

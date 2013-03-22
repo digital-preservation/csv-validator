@@ -838,8 +838,8 @@ class MetaDataValidatorSpec extends Specification {
 
       val metaData =
         """02/02/2013
-           2/2/2013
-           3/12/2013
+           02/02/2013
+           03/12/2013
            12/12/2013
            12/12/2013
         """
