@@ -46,7 +46,9 @@ ColumnValidationExpr        ::=     NonConditionalExpr | ConditionalExpr
 
 NonConditionalExpr          ::=     SingleExpr | ExternalSingleExpr | CombinatorialExpr | ParenthesizedExpr
 
-SingleExpr                  ::=     IsExpr | NotExpr | InExpr | StarstWithExpr | EndsWithExpr | RegExpExpr | RangeExpr | LengthExpr | NotEmptyExpr | UniqueExpr | UriExpr | XsdDateTimeExpr | XsdDateExpr | UkDateExpr | XsdTimeExpr | Uuid4Expr | PositiveIntegerExpr
+SingleExpr                  ::=     (ExplicitContextExpr)? IsExpr | NotExpr | InExpr | StarstWithExpr | EndsWithExpr | RegExpExpr | RangeExpr | LengthExpr | NotEmptyExpr | UniqueExpr | UriExpr | XsdDateTimeExpr | XsdDateExpr | UkDateExpr | XsdTimeExpr | Uuid4Expr | PositiveIntegerExpr
+
+ExplicitContextExpr         ::=     ColumnRef "/"
 
 IsExpr                      ::=     "is(" StringProvider ")"
 NotExpr                     ::=     "not(" StringProvider ")"
@@ -91,7 +93,7 @@ Uuid4Expr                   ::=     "uuid4"
 PositiveIntegerExpr         ::=     "positiveInteger"           /* [0-9]+ */
 
 /* External expressions cause the checking of a value against some external source or process */
-ExternalSingleExpr          ::=     FileExistsExpr | ChecksumExpr | FileCountExpr
+ExternalSingleExpr          ::=     (ExplicitContextExpr)? FileExistsExpr | ChecksumExpr | FileCountExpr
 
 FileExistsExpr              ::=     "fileExists" ("(" StringProvider ")")?                                              /* optional path to prepend to this cell with filename in */
 ChecksumExpr                ::=     "checksum(" FileExpr "," StringLiteral ")"                                          /* first arg is file expr, second arg is algorithm to use for checksum */
