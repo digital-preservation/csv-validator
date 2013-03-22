@@ -2,7 +2,7 @@ import AssemblyKeys._
 
 name := "csv-validator-core"
 
-version := "1.0"
+version := "1.1"
 
 organization := "uk.gov.tna.dri"
 
@@ -19,6 +19,8 @@ publishMavenStyle := true
 resolvers += "artifactory-external-releases" at "http://wb-d-tfs2.web.local:8081/artifactory/ext-release-local"
 
 assemblySettings
+
+//test in assembly := {}  // skip the 'sbt test' section
 
 jarName in assembly := "meta-data-validator.jar"
 
