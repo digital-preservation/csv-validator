@@ -77,7 +77,7 @@ XsdDateExpr                 ::=     "xDate" ("(" fromXsdDateExpr "," toXsdDateEx
 XsdTimeExpr                 ::=     "xTime" ("(" fromXsdTimeExpr "," toXsdTimeExpr ")")?
 UkDateExpr                  ::=     "ukDate" ("(" fromUkDateExpr "," toUkDateExpr ")")?
 DateExpr                    ::=     "date(" StringProvider "," StringProvider "," StringProvider ("," fromXsdDateExpr "," toXsdDateExpr)? ")"       /* first arg is year, second arg is month, thrid arg is day, optional fouth and fifth args are range */
-PartialUkDateExpr           ::=     "partUkDate"                                                                                                    /* DD/MMMM/YYYY, '?' used to indicate an illegible symbol and '*' to indicate a missing value */
+PartialUkDateExpr           ::=     "partUkDate"                                                                                                    /* DD/MMMM/YYYY, '?' used to indicate an illegible symbol in Day or Year or a completely illegible month, and '*' to indicate a missing value */
 PartialDateExpr             ::=     "partDate(" StringProvider "," StringProvider "," StringProvider ")"                                            /* first arg is year, second arg is month, thrid arg is day. Follows rules of PartialUkDateExpr */     
 
 fromXsdDateTimeExpr         ::=     XsdDateTimeStringLiteral
