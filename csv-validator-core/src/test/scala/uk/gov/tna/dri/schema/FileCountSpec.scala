@@ -4,6 +4,8 @@ import org.specs2.mutable.Specification
 import scalax.file.{PathSet, Path}
 import uk.gov.tna.dri.metadata.{Cell, Row}
 import scalaz.{Failure, Scalaz, Success}
+import com.sun.xml.internal.ws.api.PropertySet
+import sys.SystemProperties
 
 class FileCountSpec extends Specification {
 
@@ -52,14 +54,16 @@ class FileCountSpec extends Specification {
 //    }
   }
 
-//  "fileCount with path substitutions" should {
-//    val pathSubstitutions =  List[(String,String)](
-//      ("bob", "src/test")
-//    )
-//
-//    val fileCountRule = new FileCountRule(Literal(Some("""bob/resources/uk/gov/tna/dri/schema/checksum.txt""")), pathSubstitutions)
-//    fileCountRule.evaluate(0, Row(List(Cell("3")), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition("column1")))) mustEqual Success(true)
-//  }
+  "fileCount with path substitutions" should {
+    pending("Not yet implemented")
+
+    val pathSubstitutions =  List[(String,String)](
+      ("bob", "src/test")
+    )
+
+    val fileCountRule = new FileCountRule(Literal(Some("""bob/resources/uk/gov/tna/dri/schema/checksum.txt""")), pathSubstitutions)
+    fileCountRule.evaluate(0, Row(List(Cell("3")), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition("column1")))) mustEqual Success(true)
+  }
 
 
 
@@ -125,11 +129,11 @@ class FileCountSpec extends Specification {
     }
 
     "find a single file from relative path" in {
-      skipped( "needs a full path to test so will need to change the file://.... to test on local machine")
 
       val wildCard = new FileWildcardSearch[Int]{
+        val baseDir = sys.props.get("user.dir").get
         val pathSubstitutions: List[(String, String)] = List[(String,String)](
-          ("file://bob", "file:///home/dev/IdeaProjects/csv/csv-validator/csv-validator-core/src/test")
+          ("file://bob", s"file:${baseDir}/src/test")
         )
         def matchWildcardPaths(matchList: PathSet[Path], fullPath: String): Scalaz.ValidationNEL[String, Int] = matchList.size.successNel[String]
         def matchSimplePath(fullPath: String): Scalaz.ValidationNEL[String, Int] = 1.successNel[String]
