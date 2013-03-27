@@ -80,8 +80,12 @@ trait SchemaParser extends RegexParsers {
 
   def conditionalRule = ifExpr
 
-  def unaryRule = regex | fileExists | in | is | isNot | starts | ends  | uniqueMultiExpr | uniqueExpr | uri | xDateTimeRange | xDateTime | xDateRange | xDate | ukDateRange | ukDate | partUkDate | xTimeRange | xTime |
-    uuid4 | positiveInteger | checksum | fileCount | parenthesesRule | range | lengthExpr | failure("Invalid rule")
+  def unaryRule =
+    parenthesesRule | in | is | isNot | starts | ends |
+    uniqueMultiExpr | uniqueExpr |
+    regex | uuid4 | uri | xDateTimeRange | xDateTime | xDateRange | xDate | ukDateRange | ukDate | partUkDate | xTimeRange | xTime |
+    fileExists | checksum | fileCount |
+    positiveInteger | range | lengthExpr | failure("Invalid rule")
 
   def parenthesesRule: Parser[ParenthesesRule] = "(" ~> rep1(rule) <~ ")" ^^ { ParenthesesRule(_) } | failure("unmatched paren")
 
