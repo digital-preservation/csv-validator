@@ -117,6 +117,88 @@ class DateRulesSpec extends Specification {
     }
   }
 
+  "partUkDateRule" should {
+    "succeed if cell has a valid UK Date" in {
+      val partUkDateRule = PartUkDateRule()
+      partUkDateRule.evaluate(0, Row(List(Cell("04/February/1981")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(true)
+    }
+
+    "succeed if cell has a valid UK Date with missing day" in {
+      val partUkDateRule = PartUkDateRule()
+      partUkDateRule.evaluate(0, Row(List(Cell("*/February/1981")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(true)
+    }
+
+    "succeed if cell has a valid UK Date with missing month" in {
+      val partUkDateRule = PartUkDateRule()
+      partUkDateRule.evaluate(0, Row(List(Cell("04/*/1981")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(true)
+    }
+
+    "succeed if cell has a valid UK Date with missing year" in {
+      val partUkDateRule = PartUkDateRule()
+      partUkDateRule.evaluate(0, Row(List(Cell("04/February/*")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(true)
+    }
+
+    "succeed if cell has a valid UK Date with missing day, month and year" in {
+      val partUkDateRule = PartUkDateRule()
+      partUkDateRule.evaluate(0, Row(List(Cell("*/*/*")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(true)
+    }
+
+    "succeed if cell has a valid UK Date with illegiable day symbol" in {
+      val partUkDateRule = PartUkDateRule()
+      partUkDateRule.evaluate(0, Row(List(Cell("1?/June/2013")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(true)
+    }
+
+    "succeed if cell has a valid UK Date with double illegiable day" in {
+      val partUkDateRule = PartUkDateRule()
+      partUkDateRule.evaluate(0, Row(List(Cell("??/June/2013")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(true)
+    }
+
+    "succeed if cell has a valid UK Date with illegiable month" in {
+      val partUkDateRule = PartUkDateRule()
+      partUkDateRule.evaluate(0, Row(List(Cell("15/?/2013")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(true)
+    }
+
+    "succeed if cell has a valid UK Date with illegiable day, month and year" in {
+      val partUkDateRule = PartUkDateRule()
+      partUkDateRule.evaluate(0, Row(List(Cell("?2/?/201?")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(true)
+    }
+
+    "fail if cell has a valid UK Date with wrong ? count for month" in {
+      val partUkDateRule = PartUkDateRule()
+      partUkDateRule.evaluate(0, Row(List(Cell("?2/???/201?")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must beLike {
+        case Failure(messages) => messages.head mustEqual """partUkDate fails for line: 1, column: column1, value: "?2/???/201?""""
+      }
+    }
+
+    "fail if cell has a valid UK Date with wrong number of year symbols" in {
+      val partUkDateRule = PartUkDateRule()
+      partUkDateRule.evaluate(0, Row(List(Cell("04/Feburary/81")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must beLike {
+        case Failure(messages) => messages.head mustEqual """partUkDate fails for line: 1, column: column1, value: "04/Feburary/81""""
+      }
+    }
+
+    "fail if cell has a valid UK Date with typo in month" in {
+      val partUkDateRule = PartUkDateRule()
+      partUkDateRule.evaluate(0, Row(List(Cell("09/Augudt/2010")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must beLike {
+        case Failure(messages) => messages.head mustEqual """partUkDate fails for line: 1, column: column1, value: "09/Augudt/2010""""
+      }
+    }
+
+    "fail if cell has a valid UK Date with - instead of /" in {
+      val partUkDateRule = PartUkDateRule()
+      partUkDateRule.evaluate(0, Row(List(Cell("09-August-2010")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must beLike {
+        case Failure(messages) => messages.head mustEqual """partUkDate fails for line: 1, column: column1, value: "09-August-2010""""
+      }
+    }
+
+    "fail if cell has a valid UK Date with where zero padding is missing" in {
+      val partUkDateRule = PartUkDateRule()
+      partUkDateRule.evaluate(0, Row(List(Cell("9/August/2010")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must beLike {
+        case Failure(messages) => messages.head mustEqual """partUkDate fails for line: 1, column: column1, value: "9/August/2010""""
+      }
+    }
+  }
+
   "UkDateRule" should  {
 
     "succeed if cell has a valid UK Date" in {

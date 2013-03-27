@@ -820,8 +820,67 @@ class SchemaParserRulesSpec extends Specification {
         case FailureZ(messages) => messages.list mustEqual List(SchemaMessage("""Column: Name: Invalid cross reference $MADEUP: at line: 3, column: 29"""))
       }
     }
+  }
 
+  "Explicit" should {
+    "succeed with a valid explicit column name" in {
+      val schema = """version 1.0
+                      @totalColumns 2
+                      FirstName:
+                      LastName: $FirstName/is("Yoda")
+                   """
+
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case SuccessZ(_) => ok
+      }
+    }
+
+
+    "fail when the explicit named column is not a defined column" in {
+      val schema = """version 1.0
+                      @totalColumns 2
+                      FirstName:
+                      LastName: $WRONGCOLUMN/is("Yoda")
+                   """
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case FailureZ(messages) => messages.list mustEqual List(SchemaMessage("""Column: LastName: Invalid explicit column WRONGCOLUMN: at line: 4, column: 33"""))
+      }
+    }
+
+    "fail when the explicit named column is not a defined column " in {
+      val schema = """version 1.0
+                      @totalColumns 2
+                      FirstName:
+                      LastName: if( $WRONGCOLUMN/is("Yoda"), is(""))
+                   """
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case FailureZ(messages) => messages.list mustEqual List(SchemaMessage("""Column: LastName: Invalid explicit column WRONGCOLUMN: at line: 4, column: 33"""))
+      }
+    }
+
+    "fail when the explicit named column in the consequent branch is not a defined column " in {
+      val schema = """version 1.0
+                      @totalColumns 2
+                      FirstName:
+                      LastName: if( is("Yoda"), $WRONGCOLUMN/is(""))
+                   """
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case FailureZ(messages) => messages.list mustEqual List(SchemaMessage("""Column: LastName: Invalid explicit column WRONGCOLUMN: at line: 4, column: 33"""))
+      }
+    }
+
+    "fail when the explicit named column in the alternative branch is not a defined column " in {
+      val schema = """version 1.0
+                      @totalColumns 2
+                      FirstName:
+                      LastName: if( is("Yoda"), is(""), $WRONGCOLUMN/is(""))
+                   """
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case FailureZ(messages) => messages.list mustEqual List(SchemaMessage("""Column: LastName: Invalid explicit column WRONGCOLUMN: at line: 4, column: 33"""))
+      }
+    }
 
 
   }
+
 }

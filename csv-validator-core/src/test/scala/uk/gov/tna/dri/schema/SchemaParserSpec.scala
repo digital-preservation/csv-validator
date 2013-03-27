@@ -61,4 +61,56 @@ class SchemaParserSpec extends Specification {
       parse(new StringReader(schema)) must beLike { case Success(parsedSchema, _) => parsedSchema mustEqual Schema(List(TotalColumns(2), NoHeader()), List(ColumnDefinition("Name"), ColumnDefinition("Age"))) }
     }
   }
+
+
+  "When there is a named column for a rule the schema" should {
+    "succeed when there is a named column for a rule" in {
+
+      val columnDefinitions = List(new ColumnDefinition("FirstName", Nil, Nil),new ColumnDefinition("LastName", List( IsRule(Literal(Some("Yoda")))))   )
+
+      val schema = """version 1.0
+                      @totalColumns 2  @noHeader
+                      FirstName:
+                      LastName: $FirstName/is("Yoda")"""
+
+      parse(new StringReader(schema)) must beLike { case Success(parsedSchema, _) => parsedSchema mustEqual Schema(List(TotalColumns(2), NoHeader()), columnDefinitions) }
+    }
+
+    "succeed when there is NO named column for a rule" in {
+
+      val columnDefinitions = List(new ColumnDefinition("FirstName", Nil, Nil),new ColumnDefinition("LastName", List( IsRule(Literal(Some("Yoda")))))   )
+
+      val schema = """version 1.0
+                      @totalColumns 2  @noHeader
+                      FirstName:
+                      LastName: is("Yoda")"""
+
+      parse(new StringReader(schema)) must beLike { case Success(parsedSchema, _) => parsedSchema mustEqual Schema(List(TotalColumns(2), NoHeader()), columnDefinitions) }
+    }
+
+    "succeed when there is 'or' rule named column for a rule" in {
+
+      val columnDefinitions = List(new ColumnDefinition("FirstName", Nil, Nil),new ColumnDefinition("LastName", List( OrRule( IsRule(Literal(Some("Yoda"))),IsRule(Literal(Some("Darth"))) ) )) )
+
+      val schema = """version 1.0
+                      @totalColumns 2  @noHeader
+                      FirstName:
+                      LastName: $FirstName/is("Yoda") or $FirstName/is("Darth")"""
+
+      parse(new StringReader(schema)) must beLike { case Success(parsedSchema, _) => parsedSchema mustEqual Schema(List(TotalColumns(2), NoHeader()), columnDefinitions) }
+    }
+
+
+    "fail if is an invalid explisit column format" in {
+      val schema = """version 1.0
+                      @totalColumns 2  @noHeader
+                      FirstName:
+                      LastName: WRONGCOLUMN/is("Yoda") or $FirstName/is("Darth")"""
+
+      parse(new StringReader(schema)) must beLike {
+        case Failure(messages, _) => messages mustEqual "Invalid schema text"
+      }
+    }
+
+  }
 }

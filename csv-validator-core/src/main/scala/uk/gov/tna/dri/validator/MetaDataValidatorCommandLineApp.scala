@@ -58,7 +58,7 @@ object MetaDataValidatorCommandLineApp extends App {
 
   def javaProcessMetaData(metaDataFile: String, schemaFile: String, failFast: Boolean, pathSubstitutionsList: java.util.List[uk.gov.tna.dri.schema.Validator.Substitution] ): util.List[JFailMessage] = {
     import scala.collection.JavaConverters._
-    val tmp: List[(String,String)] = pathSubstitutionsList.asScala.map( x => (x.getFrom, x.getTo)).toList
+    val pathSubs: List[(String,String)] = pathSubstitutionsList.asScala.map( x => (x.getFrom, x.getTo)).toList
 
 
     def asJavaMessage(f:FailMessage ): JFailMessage = f match {
@@ -71,7 +71,7 @@ object MetaDataValidatorCommandLineApp extends App {
       case FailureZ(errors) =>
         errors.list.map{ asJavaMessage(_) }.asJava
       case SuccessZ(_) =>
-        val validator = createValidator (failFast, tmp)
+        val validator = createValidator (failFast, pathSubs)
         validator.parseSchema(schemaFile) match {
           case FailureZ(errors) => errors.list.map( asJavaMessage(_) ).asJava
           case SuccessZ(schema) =>

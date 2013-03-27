@@ -14,15 +14,36 @@ class NoArgRulesSpec extends Specification {
 
   "UriRule" should  {
 
-    "succeed if cell has a valid uri" in {
+    "succeed if cell has a valid HomeGuard style uri" in {
       val uriRule = UriRule()
       uriRule.evaluate(0, Row(List(Cell("http://datagov.nationalarchives.gov.uk/66/WO/409/9999/0/aaaaaaaa-aaaa-4aaa-9eee-0123456789ab")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(true)
     }
 
-    "fail if cell has an invalid uri" in {
+    "succeed if cell has a valid uri without scheme" in {
       val uriRule = UriRule()
-      uriRule.evaluate(0, Row(List(Cell("http//datagovern.nationalarchives.gov.uk/66/WO/409/9999/0/aaaaaaaa-aaaa-4aaa-9eee-0123456789ab")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must beLike {
-        case Failure(messages) => messages.head mustEqual """uri fails for line: 1, column: column1, value: "http//datagovern.nationalarchives.gov.uk/66/WO/409/9999/0/aaaaaaaa-aaaa-4aaa-9eee-0123456789ab""""
+      uriRule.evaluate(0, Row(List(Cell("datagov.nationalarchives.gov.uk/66/WO/409/9999/0/aaaaaaaa-aaaa-4aaa-9eee-0123456789ab")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(true)
+    }
+
+    "succeed if cell has a valid uri without scheme and host" in {
+      val uriRule = UriRule()
+      uriRule.evaluate(0, Row(List(Cell("/66/WO/409/9999/0/aaaaaaaa-aaaa-4aaa-9eee-0123456789ab")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(true)
+    }
+
+    "succeed if cell has a valid relative uri without scheme and host" in {
+      val uriRule = UriRule()
+      uriRule.evaluate(0, Row(List(Cell("66/WO/409/9999/0/aaaaaaaa-aaaa-4aaa-9eee-0123456789ab")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(true)
+    }
+
+    "succeed if cell has a valid File system style uri" in {
+      val uriRule = UriRule()
+      uriRule.evaluate(0, Row(List(Cell("file:///WO/16/409/27_1/1/thing.jp2")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(true)
+    }
+
+    "fail if cell has an invalid uri" in {
+
+      val uriRule = UriRule()
+      uriRule.evaluate(0, Row(List(Cell("http://http://datagov.nationalarchives.gov.uk/66/WO/409/9999/0/aaaaaaaa-aaaa-4aaa-9eee-0123456789ab")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must beLike {
+        case Failure(messages) => messages.head mustEqual """uri fails for line: 1, column: column1, value: "http://http://datagov.nationalarchives.gov.uk/66/WO/409/9999/0/aaaaaaaa-aaaa-4aaa-9eee-0123456789ab""""
       }
     }
   }

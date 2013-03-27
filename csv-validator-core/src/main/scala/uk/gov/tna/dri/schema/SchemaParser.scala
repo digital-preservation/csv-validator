@@ -45,9 +45,11 @@ trait SchemaParser extends RegexParsers {
 
   def parse(reader: Reader) = parseAll(schema, reader)
 
-  def version: Parser[String] = ("version " ~> Schema.version <~ eol).withFailureMessage(s"version ${Schema.version} missing or incorrect")
+
 
   def schema = version ~ globalDirectives ~ rep1((rep(comment) ~> columnDefinitions) <~ rep(comment)) ^^ { case v ~ g ~ c => Schema(g, c)}
+
+  def version: Parser[String] = ("version " ~> Schema.version <~ eol).withFailureMessage(s"version ${Schema.version} missing or incorrect")
 
   def globalDirectives: Parser[List[GlobalDirective]] = rep(positioned(globalDirective <~ (whiteSpace ~ opt(eol | endOfInput))))
 
@@ -75,18 +77,20 @@ trait SchemaParser extends RegexParsers {
 
   def rule = positioned( and | or | nonConditionalRule | conditionalRule)
 
-  def nonConditionalRule = unaryRule
+//  def nonConditionalRule = unaryRule
+  def nonConditionalRule = opt( "$" ~> columnIdentifier <~ "/") ~ unaryRule ^^ {case explicitColumn ~ rule => rule.explicitColumn = explicitColumn; rule }
+
 
   def conditionalRule = ifExpr
 
-  def unaryRule = regex | fileExists | in | is | isNot | starts | ends  | uniqueMultiExpr | uniqueExpr | uri | xDateTimeRange | xDateTime | xDateRange | xDate | ukDateRange | ukDate | xTimeRange | xTime |
+  def unaryRule = regex | fileExists | in | is | isNot | starts | ends  | uniqueMultiExpr | uniqueExpr | uri | xDateTimeRange | xDateTime | xDateRange | xDate | ukDateRange | ukDate | partUkDate | xTimeRange | xTime |
     uuid4 | positiveInteger | checksum | fileCount | parenthesesRule | range | lengthExpr | failure("Invalid rule")
 
   def parenthesesRule: Parser[ParenthesesRule] = "(" ~> rep1(rule) <~ ")" ^^ { ParenthesesRule(_) } | failure("unmatched paren")
 
-  def or: Parser[OrRule] = unaryRule ~ "or" ~ rule  ^^ { case lhs ~ _ ~ rhs => OrRule(lhs, rhs) }
+  def or: Parser[OrRule] = nonConditionalRule ~ "or" ~ rule  ^^ { case lhs ~ _ ~ rhs => OrRule(lhs, rhs) }
 
-  def and: Parser[AndRule] = unaryRule ~ "and" ~ rule  ^^  { case lhs ~ _ ~ rhs =>  AndRule(lhs, rhs) }
+  def and: Parser[AndRule] = nonConditionalRule ~ "and" ~ rule  ^^  { case lhs ~ _ ~ rhs =>  AndRule(lhs, rhs) }
 
   def ifExpr: Parser[IfRule] = (("if(" ~> white ~> nonConditionalRule <~ white <~ "," <~ white) ~ (rep1(rule)) ~ opt((white ~> "," ~> white ~> rep1(rule))) <~ white <~ ")" ^^ {
     case cond ~ bdy ~ optBdy => IfRule(cond, bdy, optBdy)
@@ -127,6 +131,8 @@ trait SchemaParser extends RegexParsers {
   }
 
   def ukDate: Parser[UkDateRule] = "ukDate" ^^^ UkDateRule()
+
+  def partUkDate: Parser[PartUkDateRule] = "partUkDate" ^^^ PartUkDateRule()
 
   val ukDateExpr: Parser[String] = "[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}".r
 
@@ -188,7 +194,7 @@ trait SchemaParser extends RegexParsers {
 
   private def validate(g: List[GlobalDirective], c: List[ColumnDefinition]): String = {
     globDirectivesValid(g) ::totalColumnsValid(g, c) :: columnDirectivesValid(c) :: duplicateColumnsValid(c) :: crossColumnsValid(c) :: checksumAlgorithmValid(c) ::
-    rangeValid(c) :: lengthValid(c) :: regexValid(c) :: dateRangeValid(c) :: uniqueMultiValid(c) :: Nil collect { case Some(s: String) => s } mkString("\n")
+    rangeValid(c) :: lengthValid(c) :: regexValid(c) :: dateRangeValid(c) :: uniqueMultiValid(c) :: explicitColumnValid(c) :: Nil collect { case Some(s: String) => s } mkString("\n")
   }
 
   private def totalColumnsValid(g: List[GlobalDirective], c: List[ColumnDefinition]): Option[String] = {
@@ -322,13 +328,13 @@ trait SchemaParser extends RegexParsers {
       case _ => false
     }
 
-    val v = for {
+    val result = for {
       cd <- columnDefinitions
       rule <- cd.rules
       if (regexCheck(rule))
     } yield s"""Column: ${cd.id}: Invalid ${rule.toError}: at line: ${rule.pos.line}, column: ${rule.pos.column}"""
 
-    if (v.isEmpty) None else Some(v.mkString("\n"))
+    if (result.isEmpty) None else Some(result.mkString("\n"))
   }
 
   private def dateRangeValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
@@ -346,13 +352,13 @@ trait SchemaParser extends RegexParsers {
       case _ => true
     }
 
-    val v = for {
+    val result = for {
       cd <- columnDefinitions
       rule <- cd.rules
       if (!dateCheck(rule))
     } yield s"""Column: ${cd.id}: Invalid ${rule.toError}: at line: ${rule.pos.line}, column: ${rule.pos.column}"""
 
-    if (v.isEmpty) None else Some(v.mkString("\n"))
+    if (result.isEmpty) None else Some(result.mkString("\n"))
   }
 
   private def uniqueMultiValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
@@ -375,4 +381,47 @@ trait SchemaParser extends RegexParsers {
 
     if (v.isEmpty) None else Some(v.mkString("\n"))
   }
+
+  private def explicitColumnValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
+
+    def checkAlternativeOption( f:Option[List[Rule]]): Option[List[String]] = {
+      f match {
+        case Some(l) => Some( l.foldLeft(List.empty[String]){ case (list,r:Rule) => {
+          list ++ (explicitColumnCheck(r) match {
+            case Some(x:List[String]) => x
+            case None => List.empty[String]
+          } )
+        } } )
+        case None => None
+      }
+    }
+
+
+    def explicitColumnCheck(rule: Rule): Option[List[String]] = {
+      val result = rule match {
+        case IfRule(c,t,f:Option[List[Rule]]) =>
+          val cond = explicitColumnCheck(c)
+          val cons = t.foldLeft(Some(List.empty[String])){ case (l,r) => Some((l ++  explicitColumnCheck(r)).flatten.toList) }
+          val alt = checkAlternativeOption(f)
+          Some( (cond ++ cons ++ alt).flatten.toList  )
+        case _ =>  rule.explicitColumn match {
+          case Some(columnName) =>  if (!columnDefinitions.map(_.id).contains(columnName)) Some(List(columnName)) else None
+          case None => None
+        }
+      }
+      result
+    }
+
+    val result = for {
+      cd <- columnDefinitions
+      rule <- cd.rules
+      errorColumn = explicitColumnCheck(rule)
+      if( errorColumn.isDefined && errorColumn.get.length > 0)
+    } yield {
+      s"""Column: ${cd.id}: Invalid explicit column ${errorColumn.get.mkString(", ")}: at line: ${rule.pos.line}, column: ${rule.pos.column}"""
+    }
+    if (result.isEmpty) None else Some(result.mkString("\n"))
+  }
+
+
 }

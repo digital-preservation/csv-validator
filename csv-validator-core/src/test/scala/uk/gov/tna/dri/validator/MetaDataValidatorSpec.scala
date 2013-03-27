@@ -847,6 +847,24 @@ class MetaDataValidatorSpec extends Specification {
       validate(metaData, schema) must beLike { case Success(_) => ok }
     }
 
+
+    "succeed for valid Part UK Date" in {
+      val schema = """version 1.0
+                      @totalColumns 1 @noHeader
+                      date: partUkDate"""
+
+      val metaData =
+        """02/February/2013
+           0?/February/2013
+           ??/May/2013
+           02/*/2013
+           */?/*
+           12/?/2013
+        """
+
+      validate(metaData, schema) must beLike { case Success(_) => ok }
+    }
+
     "succeed for valid Xsd Time" in {
       val schema = """version 1.0
                       @totalColumns 1 @noHeader
@@ -1135,6 +1153,24 @@ class MetaDataValidatorSpec extends Specification {
       }
     }
 
-  }
 
+    "succeed with an explicit column reference" in {
+      val schema =
+        """version 1.0
+           @totalColumns 2 @noHeader
+           Name: $Age/is("900") or $Age/is("25")
+           Age:  if( $Name/is("Yoda"), is("900"))
+        """
+
+      val metaData =
+        """Bob,25
+           Yoda,900
+        """
+
+      validate(metaData, schema) must beLike { case Success(_) => ok }
+    }
+
+
+
+  }
 }
