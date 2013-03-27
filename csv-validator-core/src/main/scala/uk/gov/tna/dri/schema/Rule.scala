@@ -27,10 +27,10 @@ abstract class Rule(name: String, val argProviders: ArgProvider*) extends Positi
 
   def ruleName = explicitName + name
 
-  def columnName2Index(schema: Schema, name: String): Int = schema.columnDefinitions.zipWithIndex.filter{ case (c,i) => c.id == name}.head._2
+  def columnNameToIndex(schema: Schema, name: String): Int = schema.columnDefinitions.zipWithIndex.filter{ case (c,i) => c.id == name}.head._2
 
   def cellValue(columnIndex: Int, row: Row, schema: Schema) = explicitColumn match {
-    case Some(columnName) => row.cells(columnName2Index(schema, columnName)).value
+    case Some(columnName) => row.cells(columnNameToIndex(schema, columnName)).value
     case None => row.cells(columnIndex).value
   }
 
@@ -82,14 +82,13 @@ case class ParenthesesRule(rules: List[Rule]) extends Rule("parentheses") {
     val paramErrs = rules.map( _.toError).mkString(" ")
     s"""($paramErrs)""" + (if (argProviders.isEmpty) "" else "(" + argProviders.foldLeft("")((a, b) => (if (a.isEmpty) "" else a + ", ") + b.toError) + ")")
   }
-
 }
 
 case class IfRule(condition: Rule, rules: List[Rule], elseRules: Option[List[Rule]]) extends Rule("if") {
 
   override def evaluate(columnIndex: Int, row: Row, schema: Schema): RuleValidation[Any] = {
     val (cellValue,idx) = condition.explicitColumn match {
-      case Some(columnName) => (row.cells(columnName2Index(schema, columnName)).value, columnName2Index(schema, columnName) )
+      case Some(columnName) => (row.cells(columnNameToIndex(schema, columnName)).value, columnNameToIndex(schema, columnName) )
       case None => (row.cells(columnIndex).value, columnIndex)
     }
 
@@ -116,7 +115,6 @@ case class IfRule(condition: Rule, rules: List[Rule], elseRules: Option[List[Rul
     val paramErrs = rules.map( _.toError).mkString(" ")
     s"""($paramErrs)""" + (if (argProviders.isEmpty) "" else "(" + argProviders.foldLeft("")((a, b) => (if (a.isEmpty) "" else a + ", ") + b.toError) + ")")
   }
-
 }
 
 case class RegexRule(regex: String) extends Rule("regex") {
@@ -224,8 +222,10 @@ abstract class DateRangeRule(name: String, dateRegex: String, dateParser: DatePa
           val interval = new Interval(frmDt,toDt.plusMillis(1))
           interval.contains(cellDt)
         }
+
         inRange.getOrElse(false)
       }
+
       case _ => false
     }
   }
@@ -301,7 +301,7 @@ case class UniqueMultiRule( columns: List[String] ) extends Rule("unique(") {
   override def evaluate(columnIndex: Int, row: Row, schema: Schema): RuleValidation[Any] = {
     val columnDefinition = schema.columnDefinitions(columnIndex)
 
-    def secondaryValues: String =  columns.foldLeft(""){ case (s,c) => s + SEPARATOR + row.cells(columnName2Index(schema, c)).value }
+    def secondaryValues: String =  columns.foldLeft(""){ case (s,c) => s + SEPARATOR + row.cells(columnNameToIndex(schema, c)).value }
 
     def uniqueString: String =  cellValue(columnIndex,row,schema) + SEPARATOR +  secondaryValues
 
@@ -371,6 +371,7 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
         Stream.continually(fileBuffer.read).takeWhile(-1 !=).map(_.toByte).foreach( digest.update(_))
         fileBuffer.close()
         hexEncode(digest.digest).successNel[String]
+
       case scala.util.Failure(_) => "file not fund".failNel[String]
     }
   }
@@ -411,6 +412,7 @@ case class FileCountRule(rootPath: ArgProvider, file: ArgProvider, pathSubstitut
           case Success(count: Int) => s"$toError found $count file(s) for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}".failNel[Any]
           case Failure(errMsg) => s"$toError ${errMsg.head} for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}".failNel[Any]
         }
+
       case scala.util.Failure(_) =>  s"$toError '${cellValue(columnIndex,row,schema)}' is not a number for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}".failNel[Any]
     }
   }
@@ -457,8 +459,8 @@ trait FileWildcardSearch[T] {
     } else if (Path.fromString(path).parent.isEmpty) ("./", path) else findBaseRecur(Path.fromString(path).parent.get.path, Path.fromString(path).name)
   }
 
-  def search(filePaths: (String, String) ): ValidationNEL[String, T] = {
-    try{
+  def search(filePaths: (String, String)): ValidationNEL[String, T] = {
+    try {
       val fullPath = new FileSystem( None, filePaths._1 + filePaths._2, pathSubstitutions).expandBasePath
       val (basePath,matchPath ) = findBase(fullPath)
 
@@ -490,7 +492,8 @@ trait FileWildcardSearch[T] {
       def matchUsesWildFiles: Boolean = matchPath.contains("*")
 
       def fileExists: Boolean = {
-        val path = basePath+System.getProperty("file.separator")+matchPath
+        val path = basePath+System.getProperty("file.separator") + matchPath
+
         FileSystem.createFile( path ) match {
           case scala.util.Success(file) =>   file.exists
           case scala.util.Failure(_) => false
@@ -542,6 +545,7 @@ case class AndRule(left: Rule, right: Rule) extends Rule("and") {
   override def evaluate(columnIndex: Int, row: Row, schema: Schema): RuleValidation[Any] = {
     left.evaluate(columnIndex, row, schema) match {
       case s @ Failure(_) => fail(columnIndex, row, schema)
+
       case Success(_) => right.evaluate(columnIndex, row, schema) match {
         case s @ Success(_) => s
         case Failure(_) => fail(columnIndex, row, schema)
@@ -588,6 +592,7 @@ case class FileSystem(basePath: Option[String], file: String, pathSubstitutions:
         if (bp.length > 0 && bp.last != fs && file.head != fs) bp + fs + file
         else if (bp.length > 0 && bp.last == fs && file.head == fs) bp + file.tail
         else bp + file
+
       case None => file
     }
   }

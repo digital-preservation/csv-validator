@@ -45,9 +45,7 @@ trait SchemaParser extends RegexParsers {
 
   def parse(reader: Reader) = parseAll(schema, reader)
 
-
-
-  def schema = version ~ globalDirectives ~ rep1((rep(comment) ~> columnDefinitions) <~ rep(comment)) ^^ { case v ~ g ~ c => Schema(g, c)}
+  def schema = version ~ globalDirectives ~ rep1((rep(comment) ~> columnDefinitions) <~ rep(comment)) ^^ { case v ~ g ~ c => Schema(g, c) }
 
   def version: Parser[String] = ("version " ~> Schema.version <~ eol).withFailureMessage(s"version ${Schema.version} missing or incorrect")
 
@@ -77,9 +75,8 @@ trait SchemaParser extends RegexParsers {
 
   def rule = positioned( and | or | nonConditionalRule | conditionalRule)
 
-//  def nonConditionalRule = unaryRule
+  // def nonConditionalRule = unaryRule
   def nonConditionalRule = opt( "$" ~> columnIdentifier <~ "/") ~ unaryRule ^^ {case explicitColumn ~ rule => rule.explicitColumn = explicitColumn; rule }
-
 
   def conditionalRule = ifExpr
 
@@ -384,32 +381,30 @@ trait SchemaParser extends RegexParsers {
 
   private def explicitColumnValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
 
-    def checkAlternativeOption( f:Option[List[Rule]]): Option[List[String]] = {
-      f match {
-        case Some(l) => Some( l.foldLeft(List.empty[String]){ case (list,r:Rule) => {
+    def checkAlternativeOption(f: Option[List[Rule]]): Option[List[String]] = f match {
+      case Some(l) => Some(l.foldLeft(List.empty[String]) {
+        case (list,r:Rule) => {
           list ++ (explicitColumnCheck(r) match {
             case Some(x:List[String]) => x
             case None => List.empty[String]
-          } )
-        } } )
-        case None => None
-      }
+          })
+        }
+      })
+
+      case None => None
     }
 
+    def explicitColumnCheck(rule: Rule): Option[List[String]] = rule match {
+      case IfRule(c,t,f:Option[List[Rule]]) =>
+        val cond = explicitColumnCheck(c)
+        val cons = t.foldLeft(Some(List.empty[String])){ case (l,r) => Some((l ++  explicitColumnCheck(r)).flatten.toList) }
+        val alt = checkAlternativeOption(f)
+        Some((cond ++ cons ++ alt).flatten.toList )
 
-    def explicitColumnCheck(rule: Rule): Option[List[String]] = {
-      val result = rule match {
-        case IfRule(c,t,f:Option[List[Rule]]) =>
-          val cond = explicitColumnCheck(c)
-          val cons = t.foldLeft(Some(List.empty[String])){ case (l,r) => Some((l ++  explicitColumnCheck(r)).flatten.toList) }
-          val alt = checkAlternativeOption(f)
-          Some( (cond ++ cons ++ alt).flatten.toList  )
-        case _ =>  rule.explicitColumn match {
-          case Some(columnName) =>  if (!columnDefinitions.map(_.id).contains(columnName)) Some(List(columnName)) else None
-          case None => None
-        }
+      case _ =>  rule.explicitColumn match {
+        case Some(columnName) =>  if (!columnDefinitions.map(_.id).contains(columnName)) Some(List(columnName)) else None
+        case None => None
       }
-      result
     }
 
     val result = for {
@@ -420,8 +415,7 @@ trait SchemaParser extends RegexParsers {
     } yield {
       s"""Column: ${cd.id}: Invalid explicit column ${errorColumn.get.mkString(", ")}: at line: ${rule.pos.line}, column: ${rule.pos.column}"""
     }
+
     if (result.isEmpty) None else Some(result.mkString("\n"))
   }
-
-
 }
