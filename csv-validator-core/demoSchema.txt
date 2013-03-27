@@ -1,3 +1,0 @@
-version 1.0
-@totalColumns 1 @noHeader
-Country: if(starts("u")){ends("def")}else{if(if(starts("u")){ends("jim")}){starts("g")}}
