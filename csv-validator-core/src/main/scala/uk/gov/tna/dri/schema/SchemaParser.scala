@@ -385,21 +385,21 @@ trait SchemaParser extends RegexParsers {
 
   private def explicitColumnValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
 
-    def checkAlternativeOption(f: Option[List[Rule]]): Option[List[String]] = f match {
-      case Some(l) => Some(l.foldLeft(List.empty[String]) {
-        case (list,r:Rule) => {
-          list ++ (explicitColumnCheck(r) match {
-            case Some(x:List[String]) => x
-            case None => List.empty[String]
-          })
-        }
-      })
+    def invalidColumnNames(rule:Rule) = explicitColumnCheck(rule) match {
+      case Some(x) => x
+      case None => List.empty[String]
+    }
 
+    def checkAlternativeOption(rules: Option[List[Rule]]): Option[List[String]] = rules match {
+      case Some(rulesList) => Some( rulesList.foldLeft(List.empty[String]) {
+        case (list,rule:Rule) =>  list ++ invalidColumnNames(rule)
+      })
       case None => None
     }
 
+
     def explicitColumnCheck(rule: Rule): Option[List[String]] = rule match {
-      case IfRule(c,t,f:Option[List[Rule]]) =>
+      case IfRule(c,t,f) =>
         val cond = explicitColumnCheck(c)
         val cons = t.foldLeft(Some(List.empty[String])){ case (l,r) => Some((l ++  explicitColumnCheck(r)).flatten.toList) }
         val alt = checkAlternativeOption(f)
