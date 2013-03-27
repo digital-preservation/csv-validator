@@ -861,6 +861,7 @@ class MetaDataValidatorSpec extends Specification {
            */?/*
            12/?/2013
         """
+//  */  -- to keep intellij happy (Not a scala error)
 
       validate(metaData, schema) must beLike { case Success(_) => ok }
     }
@@ -1169,8 +1170,6 @@ class MetaDataValidatorSpec extends Specification {
 
       validate(metaData, schema) must beLike { case Success(_) => ok }
     }
-
-
 
   }
 }
