@@ -35,7 +35,15 @@ abstract class Rule(name: String, val argProviders: ArgProvider*) extends Positi
 
   def ruleName = explicitName + name
 
-  def columnNameToIndex(schema: Schema, name: String): Int = schema.columnDefinitions.zipWithIndex.filter{ case (c,i) => c.id == name}.head._2
+  def columnNameToIndex(schema: Schema, name: String): Int = {
+    try {
+      schema.columnDefinitions.zipWithIndex.filter{ case (c,i) => c.id == name}.head._2
+    } catch {
+      // this should be fixed in the schema validator, preventing this from ever happening
+      case _:java.util.NoSuchElementException => println( s"Error:   Unable to find: $name for line: ${pos.line}, column: ${pos.column}"); 0
+      case _:Throwable => println( s"Error: with: $name"); 0
+    }
+  }
 
   def cellValue(columnIndex: Int, row: Row, schema: Schema) = explicitColumn match {
     case Some(columnName) => row.cells(columnNameToIndex(schema, columnName)).value
