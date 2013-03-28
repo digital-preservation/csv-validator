@@ -411,7 +411,16 @@ trait SchemaParser extends RegexParsers {
         val cons = t.foldLeft(Some(List.empty[String])){ case (l,r) => Some((l ++  explicitColumnCheck(r)).flatten.toList) }
         val alt = checkAlternativeOption(f)
         Some((cond ++ cons ++ alt).flatten.toList )
-
+      case AndRule(lf,rt) =>
+         val left = explicitColumnCheck(lf)
+         val right = explicitColumnCheck(rt)
+         Some( (left ++ right ).flatten.toList )
+      case OrRule(lf,rt) =>
+         val left = explicitColumnCheck(lf)
+         val right = explicitColumnCheck(rt)
+         Some( (left ++ right ).flatten.toList )
+      case ParenthesesRule(l) =>
+        l.foldLeft(Some(List.empty[String])){ case (l,r) => Some((l ++  explicitColumnCheck(r)).flatten.toList) }
       case _ => rule.explicitColumn match {
         case Some(columnName) =>  if (!columnDefinitions.map(_.id).contains(columnName)) Some(List(columnName)) else None
         case None => None
