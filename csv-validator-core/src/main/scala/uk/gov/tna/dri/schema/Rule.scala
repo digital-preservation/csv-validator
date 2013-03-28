@@ -25,7 +25,7 @@ abstract class Rule(name: String, val argProviders: ArgProvider*) extends Positi
 
   type RuleValidation[A] = ValidationNEL[String, A]
 
-  var explicitColumn:Option[String] = None
+  var explicitColumn: Option[String] = None
 
   def evaluate(columnIndex: Int, row: Row, schema: Schema): RuleValidation[Any] = {
     if (valid(cellValue(columnIndex, row, schema), schema.columnDefinitions(columnIndex), columnIndex, row, schema)) true.successNel[String] else fail(columnIndex, row, schema)
@@ -55,11 +55,10 @@ abstract class Rule(name: String, val argProviders: ArgProvider*) extends Positi
       schema.columnDefinitions.zipWithIndex.filter{ case (c,i) => c.id == name}.head._2
     } catch {
       // this should be fixed in the schema validator, preventing this from ever happening
-      case _:java.util.NoSuchElementException => println( s"Error:   Unable to find: $name for line: ${pos.line}, column: ${pos.column}"); 0
-      case _:Throwable => println( s"Error: with: $name"); 0
+      case _: java.util.NoSuchElementException => println( s"Error:   Unable to find: $name for line: ${pos.line}, column: ${pos.column}"); 0
+      case _: Throwable => println( s"Error: with: $name"); 0
     }
   }
-
 
   def toValueError(row: Row, columnIndex:Int ) =  s"""value: ${'"'}${row.cells(columnIndex).value}${'"'}"""
 
@@ -70,6 +69,7 @@ case class OrRule(left: Rule, right: Rule) extends Rule("or") {
   override def evaluate(columnIndex: Int, row: Row, schema: Schema): RuleValidation[Any] = {
     left.evaluate(columnIndex, row, schema) match {
       case s @ SuccessZ(_) => s
+
       case FailureZ(_) => right.evaluate(columnIndex, row, schema) match {
         case s @ SuccessZ(_) => s
         case FailureZ(_) => fail(columnIndex, row, schema)
@@ -105,7 +105,7 @@ case class ParenthesesRule(rules: List[Rule]) extends Rule("parentheses") {
   }
 
   override def toError = {
-    val paramErrs = rules.map( _.toError).mkString(" ")
+    val paramErrs = rules.map(_.toError).mkString(" ")
     s"""($paramErrs)""" + (if (argProviders.isEmpty) "" else "(" + argProviders.foldLeft("")((a, b) => (if (a.isEmpty) "" else a + ", ") + b.toError) + ")")
   }
 }
@@ -499,8 +499,8 @@ trait FileWildcardSearch[T] {
 
     @tailrec
     def findBaseRecur(p: String, f: String): (String,String) = {
-      if (p.contains("*")) findBaseRecur(Path.fromString(p).parent.get.path,  Path.fromString(p).name + "/" + f)
-      else (p,f)
+      if (p.contains("*")) findBaseRecur(Path.fromString(p).parent.get.path, Path.fromString(p).name + "/" + f)
+      else (p, f)
     }
 
     if (path.startsWith("file://"))  {
@@ -610,7 +610,6 @@ case class AndRule(left: Rule, right: Rule) extends Rule("and") {
     }
   }
 
-
   override def toError = s"""${left.toError} $ruleName ${right.toError}"""
 }
 
@@ -626,7 +625,6 @@ object FileSystem {
   def convertPath2Platform(filename: String): String = {
     if ( filename.startsWith("file://"))  replaceSpaces(filename) else file2PlatformDependent( filename )
   }
-
 }
 
 case class FileSystem(basePath: Option[String], file: String, pathSubstitutions: List[(String,String)] ) {

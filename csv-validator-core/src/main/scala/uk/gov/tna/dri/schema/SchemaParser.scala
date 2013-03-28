@@ -46,7 +46,7 @@ trait SchemaParser extends RegexParsers {
         val errors = validate(schema.globalDirectives, schema.columnDefinitions)
         if (errors.isEmpty) schema.successNel[FailMessage] else SchemaMessage(errors).failNel[Schema]
       }
-      case n : NoSuccess => SchemaMessage(n.toString).failNel[Schema]
+      case n: NoSuccess => SchemaMessage(n.toString).failNel[Schema]
     }
   }
 
@@ -83,7 +83,7 @@ trait SchemaParser extends RegexParsers {
   def rule = positioned( and | or | nonConditionalRule | conditionalRule)
 
   // def nonConditionalRule = unaryRule
-  def nonConditionalRule = opt( "$" ~> columnIdentifier <~ "/") ~ unaryRule ^^ {case explicitColumn ~ rule => rule.explicitColumn = explicitColumn; rule }
+  def nonConditionalRule = opt( "$" ~> columnIdentifier <~ "/") ~ unaryRule ^^ { case explicitColumn ~ rule => rule.explicitColumn = explicitColumn; rule }
 
   def conditionalRule = ifExpr
 
@@ -249,6 +249,7 @@ trait SchemaParser extends RegexParsers {
         // if not added a part of the Service Provider Interface (SPI)
         MessageDigest.getInstance(checksum.algorithm)
       ).isFailure
+
       case _ => false
     }
 
@@ -399,28 +400,32 @@ trait SchemaParser extends RegexParsers {
 
     def checkAlternativeOption(rules: Option[List[Rule]]): Option[List[String]] = rules match {
       case Some(rulesList) => Some( rulesList.foldLeft(List.empty[String]) {
-        case (list,rule:Rule) =>  list ++ invalidColumnNames(rule)
+        case (list, rule: Rule) =>  list ++ invalidColumnNames(rule)
       })
+
       case None => None
     }
-
 
     def explicitColumnCheck(rule: Rule): Option[List[String]] = rule match {
       case IfRule(c,t,f) =>
         val cond = explicitColumnCheck(c)
-        val cons = t.foldLeft(Some(List.empty[String])){ case (l,r) => Some((l ++  explicitColumnCheck(r)).flatten.toList) }
+        val cons = t.foldLeft(Some(List.empty[String])) { case (l, r) => Some((l ++  explicitColumnCheck(r)).flatten.toList) }
         val alt = checkAlternativeOption(f)
-        Some((cond ++ cons ++ alt).flatten.toList )
+        Some((cond ++ cons ++ alt).flatten.toList)
+
       case AndRule(lf,rt) =>
          val left = explicitColumnCheck(lf)
          val right = explicitColumnCheck(rt)
-         Some( (left ++ right ).flatten.toList )
+         Some((left ++ right ).flatten.toList)
+
       case OrRule(lf,rt) =>
          val left = explicitColumnCheck(lf)
          val right = explicitColumnCheck(rt)
-         Some( (left ++ right ).flatten.toList )
+         Some((left ++ right ).flatten.toList)
+
       case ParenthesesRule(l) =>
-        l.foldLeft(Some(List.empty[String])){ case (l,r) => Some((l ++  explicitColumnCheck(r)).flatten.toList) }
+        l.foldLeft(Some(List.empty[String])) { case (l,r) => Some((l ++  explicitColumnCheck(r)).flatten.toList) }
+
       case _ => rule.explicitColumn match {
         case Some(columnName) =>  if (!columnDefinitions.map(_.id).contains(columnName)) Some(List(columnName)) else None
         case None => None
