@@ -405,7 +405,7 @@ trait SchemaParser extends RegexParsers {
         val alt = checkAlternativeOption(f)
         Some((cond ++ cons ++ alt).flatten.toList )
 
-      case _ =>  rule.explicitColumn match {
+      case _ => rule.explicitColumn match {
         case Some(columnName) =>  if (!columnDefinitions.map(_.id).contains(columnName)) Some(List(columnName)) else None
         case None => None
       }
@@ -416,9 +416,7 @@ trait SchemaParser extends RegexParsers {
       rule <- cd.rules
       errorColumn = explicitColumnCheck(rule)
       if( errorColumn.isDefined && errorColumn.get.length > 0)
-    } yield {
-      s"""Column: ${cd.id}: Invalid explicit column ${errorColumn.get.mkString(", ")}: at line: ${rule.pos.line}, column: ${rule.pos.column}"""
-    }
+    } yield  s"""Column: ${cd.id}: Invalid explicit column ${errorColumn.get.mkString(", ")}: at line: ${rule.pos.line}, column: ${rule.pos.column}"""
 
     if (result.isEmpty) None else Some(result.mkString("\n"))
   }

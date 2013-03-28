@@ -13,6 +13,7 @@ import annotation.tailrec
 import java.net.URI
 import org.joda.time.{Interval, LocalTime, DateTime}
 import org.joda.time.format.DateTimeFormat
+import scalaz.{Success => SuccessZ, Failure => FailureZ}
 
 abstract class Rule(name: String, val argProviders: ArgProvider*) extends Positional {
 
@@ -21,7 +22,7 @@ abstract class Rule(name: String, val argProviders: ArgProvider*) extends Positi
   var explicitColumn:Option[String] = None
 
   def explicitName = explicitColumn match {
-    case Some(n) => "$" + n + "/"
+    case Some(colName) => "$" + colName + "/"
     case None => ""
   }
 
@@ -61,7 +62,12 @@ case class OrRule(left: Rule, right: Rule) extends Rule("or") {
     }
   }
 
-  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = true
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
+    evaluate(columnIndex, row, schema) match {
+      case FailureZ(_) => false
+      case SuccessZ(_) => true
+    }
+  }
 
   override def toError = s"""${left.toError} $ruleName ${right.toError}"""
 }
@@ -76,7 +82,12 @@ case class ParenthesesRule(rules: List[Rule]) extends Rule("parentheses") {
     v.sequence[RuleValidation, Any]
   }
 
-  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = true
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
+    evaluate(columnIndex, row, schema) match {
+      case FailureZ(_) => false
+      case SuccessZ(_) => true
+    }
+  }
 
   override def toError = {
     val paramErrs = rules.map( _.toError).mkString(" ")
@@ -109,7 +120,12 @@ case class IfRule(condition: Rule, rules: List[Rule], elseRules: Option[List[Rul
     v.sequence[RuleValidation, Any]
   }
 
-  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = true
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
+    evaluate(columnIndex, row, schema) match {
+      case FailureZ(_) => false
+      case SuccessZ(_) => true
+    }
+  }
 
   override def toError = {
     val paramErrs = rules.map( _.toError).mkString(" ")
@@ -118,7 +134,7 @@ case class IfRule(condition: Rule, rules: List[Rule], elseRules: Option[List[Rul
 }
 
 case class RegexRule(regex: String) extends Rule("regex") {
-  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = {
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
 
     val regexp = if (columnDefinition.directives.contains(IgnoreCase())) "(?i)" + regex else regex
     cellValue matches regexp
@@ -154,7 +170,7 @@ case class InRule(inValue: ArgProvider) extends Rule("in", inValue) {
 }
 
 case class IsRule(isValue: ArgProvider) extends Rule("is", isValue) {
-  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = {
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
     val ruleValue = isValue.referenceValue(columnIndex, row, schema)
 
     val (rv, cv) = if (columnDefinition.directives.contains(IgnoreCase())) (ruleValue.get.toLowerCase, cellValue.toLowerCase) else (ruleValue.get, cellValue)
@@ -163,7 +179,7 @@ case class IsRule(isValue: ArgProvider) extends Rule("is", isValue) {
 }
 
 case class IsNotRule(isNotValue: ArgProvider) extends Rule("isNot", isNotValue) {
-  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = {
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
     val ruleValue = isNotValue.referenceValue(columnIndex, row, schema)
 
     val (rv, cv) = if (columnDefinition.directives.contains(IgnoreCase())) (ruleValue.get.toLowerCase, cellValue.toLowerCase) else (ruleValue.get, cellValue)
@@ -172,7 +188,7 @@ case class IsNotRule(isNotValue: ArgProvider) extends Rule("isNot", isNotValue) 
 }
 
 case class StartsRule(startsValue: ArgProvider) extends Rule("starts", startsValue) {
-  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = {
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
     val ruleValue = startsValue.referenceValue(columnIndex, row, schema)
 
     val (rv, cv) = if (columnDefinition.directives.contains(IgnoreCase())) (ruleValue.get.toLowerCase, cellValue.toLowerCase) else (ruleValue.get, cellValue)
@@ -181,7 +197,7 @@ case class StartsRule(startsValue: ArgProvider) extends Rule("starts", startsVal
 }
 
 case class EndsRule(endsValue: ArgProvider) extends Rule("ends", endsValue) {
-  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = {
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
     val ruleValue = endsValue.referenceValue(columnIndex, row, schema)
 
     val (rv, cv) = if (columnDefinition.directives.contains(IgnoreCase())) (ruleValue.get.toLowerCase, cellValue.toLowerCase) else (ruleValue.get, cellValue)
@@ -230,13 +246,11 @@ abstract class DateRangeRule(name: String, dateRegex: String, dateParser: DatePa
     }
   }
 
-  override def toError = {
-    s"""$ruleName("$from, $to")"""
-  }
+  override def toError = s"""$ruleName("$from, $to")"""
 }
 
 abstract class PatternRule(name: String, pattern: String) extends Rule(name) {
-  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = cellValue matches pattern
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = cellValue matches pattern
 }
 
 abstract class DateRule(name: String, dateRegex: String, dateParser: DateParser) extends PatternRule(name, dateRegex) {
@@ -291,7 +305,12 @@ case class UniqueRule() extends Rule("unique") {
     }
   }
 
-  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = true
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
+    evaluate(columnIndex, row, schema) match {
+      case FailureZ(_) => false
+      case SuccessZ(_) => true
+    }
+  }
 }
 
 case class UniqueMultiRule( columns: List[String] ) extends Rule("unique(") {
@@ -320,7 +339,12 @@ case class UniqueMultiRule( columns: List[String] ) extends Rule("unique(") {
     }
   }
 
-  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = true
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
+    evaluate(columnIndex, row, schema) match {
+      case FailureZ(_) => false
+      case SuccessZ(_) => true
+    }
+  }
 }
 
 case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: String, pathSubstitutions: List[(String,String)]) extends Rule("checksum", rootPath, file) with FileWildcardSearch[String] {
@@ -337,7 +361,12 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
     }
   }
 
-  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = true
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
+    evaluate(columnIndex, row, schema) match {
+      case FailureZ(_) => false
+      case SuccessZ(_) => true
+    }
+  }
 
   override def toError = {
     if (rootPath.toError.isEmpty) s"""$ruleName(file(${file.toError}), "$algorithm")"""
@@ -401,7 +430,12 @@ case class FileCountRule(rootPath: ArgProvider, file: ArgProvider, pathSubstitut
   def this(file: ArgProvider, pathSubstitutions: List[(String,String)] = List.empty) = this(Literal(None), file, pathSubstitutions)
   def this(rootPath: Literal, file: Literal) = this(rootPath, file,  List.empty)
 
-  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = true
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
+    evaluate(columnIndex, row, schema) match {
+      case FailureZ(_) => false
+      case SuccessZ(_) => true
+    }
+  }
 
   override def evaluate(columnIndex: Int, row: Row, schema: Schema): RuleValidation[Any] = {
     val columnDefinition = schema.columnDefinitions(columnIndex)
@@ -554,7 +588,13 @@ case class AndRule(left: Rule, right: Rule) extends Rule("and") {
     }
   }
 
-  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = true
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
+    evaluate(columnIndex, row, schema) match {
+      case FailureZ(_) => false
+      case SuccessZ(_) => true
+    }
+  }
+
 
   override def toError = s"""${left.toError} $ruleName ${right.toError}"""
 }
@@ -580,8 +620,10 @@ case class FileSystem(basePath: Option[String], file: String, pathSubstitutions:
 
   def this( file: String, pathSubstitutions: List[(String,String)]) = this(None, file, pathSubstitutions)
 
+  val separator: Char = System.getProperty("file.separator").head
+
   private def substitutePath(  filename: String): String = {
-    val x = pathSubstitutions.filter(arg => filename.contains(arg._1)).map( arg => filename.replaceFirst(arg._1,arg._2) )
+    val x = pathSubstitutions.filter{ case (subFrom, _) => filename.contains(subFrom)}.map{ case (subFrom, subTo) => filename.replaceFirst(subFrom, subTo) }
     if (x.isEmpty) filename else x.head
   }
 
