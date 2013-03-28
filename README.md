@@ -1,4 +1,4 @@
-csv-validator
+CSV Validator
 =============
 
 Schema and Validation Tool for CSV files
