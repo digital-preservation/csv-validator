@@ -43,26 +43,27 @@ class FileCountSpec extends Specification {
   "fileCount" should {
     "find a match on a directory" in {
       val fileCountRule = new FileCountRule( Literal(Some("src/test/resources/uk/gov/tna/dri/fileCountTestFiles/threeFiles/**/*.jp2")) )
-      fileCountRule.evaluate(0, Row(List(Cell("3")), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition("column1")))) mustEqual Success(true)
+      val expectedFileCount = "3"
+      fileCountRule.evaluate(0, Row(List(Cell(expectedFileCount)), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition("column1")))) mustEqual Success(true)
 
     }
 
-//    "find a match on a directory with basePath and file" in {
-//      val fileCountRule = new FileCountRule( Literal(Some("src/test/resources/uk/gov/tna/dri/fileCountTestFiles/threeFiles/")), "**/*.jp2" )
-//      fileCountRule.evaluate(0, Row(List(Cell("3")), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition("column1")))) mustEqual Success(true)
-//
-//    }
+    "find a match on a directory with basePath and file" in {
+      val fileCountRule = new FileCountRule( Literal(Some("src/test/resources/uk/gov/tna/dri/fileCountTestFiles/threeFiles/")), Literal(Some("**/*.jp2")) )
+      val expectedFileCount: String = "3"
+      fileCountRule.evaluate(0, Row(List(Cell(expectedFileCount)), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition("column1")))) mustEqual Success(true)
+
+    }
   }
 
   "fileCount with path substitutions" should {
-    pending("Not yet implemented")
-
     val pathSubstitutions =  List[(String,String)](
       ("bob", "src/test")
     )
 
     val fileCountRule = new FileCountRule(Literal(Some("""bob/resources/uk/gov/tna/dri/schema/checksum.txt""")), pathSubstitutions)
-    fileCountRule.evaluate(0, Row(List(Cell("3")), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition("column1")))) mustEqual Success(true)
+    val expectedFileCount = "1"
+    fileCountRule.evaluate(0, Row(List(Cell(expectedFileCount)), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition("column1")))) mustEqual Success(true)
   }
 
 
