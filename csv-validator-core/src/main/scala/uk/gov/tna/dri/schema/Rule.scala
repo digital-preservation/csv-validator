@@ -13,7 +13,6 @@ import java.io.{BufferedInputStream, FileInputStream, File}
 import scala.util.parsing.input.Positional
 import scala.collection.mutable
 import java.security.MessageDigest
-import scalaz.{Failure,Success}
 import uk.gov.tna.dri.metadata.Row
 import util.Try
 import annotation.tailrec
@@ -27,6 +26,22 @@ abstract class Rule(name: String, val argProviders: ArgProvider*) extends Positi
   type RuleValidation[A] = ValidationNEL[String, A]
 
   var explicitColumn:Option[String] = None
+
+  def evaluate(columnIndex: Int, row: Row, schema: Schema): RuleValidation[Any] = {
+    if (valid(cellValue(columnIndex, row, schema), schema.columnDefinitions(columnIndex), columnIndex, row, schema)) true.successNel[String] else fail(columnIndex, row, schema)
+  }
+
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean
+
+  def fail(columnIndex: Int, row: Row, schema: Schema): RuleValidation[Any] = {
+    val columnDefinition = schema.columnDefinitions(columnIndex)
+    s"$toError fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}".failNel[Any]
+  }
+
+  def cellValue(columnIndex: Int, row: Row, schema: Schema) = explicitColumn match {
+    case Some(columnName) => row.cells(columnNameToIndex(schema, columnName)).value
+    case None => row.cells(columnIndex).value
+  }
 
   def explicitName = explicitColumn match {
     case Some(colName) => "$" + colName + "/"
@@ -45,21 +60,6 @@ abstract class Rule(name: String, val argProviders: ArgProvider*) extends Positi
     }
   }
 
-  def cellValue(columnIndex: Int, row: Row, schema: Schema) = explicitColumn match {
-    case Some(columnName) => row.cells(columnNameToIndex(schema, columnName)).value
-    case None => row.cells(columnIndex).value
-  }
-
-  def evaluate(columnIndex: Int, row: Row, schema: Schema): RuleValidation[Any] = {
-    if (valid(cellValue(columnIndex, row, schema), schema.columnDefinitions(columnIndex), columnIndex, row, schema)) true.successNel[String] else fail(columnIndex, row, schema)
-  }
-
-  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean
-
-  def fail(columnIndex: Int, row: Row, schema: Schema): RuleValidation[Any] = {
-    val columnDefinition = schema.columnDefinitions(columnIndex)
-    s"$toError fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}".failNel[Any]
-  }
 
   def toValueError(row: Row, columnIndex:Int ) =  s"""value: ${'"'}${row.cells(columnIndex).value}${'"'}"""
 
@@ -69,10 +69,10 @@ abstract class Rule(name: String, val argProviders: ArgProvider*) extends Positi
 case class OrRule(left: Rule, right: Rule) extends Rule("or") {
   override def evaluate(columnIndex: Int, row: Row, schema: Schema): RuleValidation[Any] = {
     left.evaluate(columnIndex, row, schema) match {
-      case s @ Success(_) => s
-      case Failure(_) => right.evaluate(columnIndex, row, schema) match {
-        case s @ Success(_) => s
-        case Failure(_) => fail(columnIndex, row, schema)
+      case s @ SuccessZ(_) => s
+      case FailureZ(_) => right.evaluate(columnIndex, row, schema) match {
+        case s @ SuccessZ(_) => s
+        case FailureZ(_) => fail(columnIndex, row, schema)
       }
     }
   }
@@ -370,9 +370,9 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
     val columnDefinition = schema.columnDefinitions(columnIndex)
 
     search(filename(columnIndex, row, schema)) match {
-      case Success(hexValue: String) if hexValue == cellValue(columnIndex,row,schema) => true.successNel[String]
-      case Success(hexValue: String) => s"$toError file ${'"'}${filename(columnIndex, row, schema)._1}${filename(columnIndex, row, schema)._2}${'"'} checksum match fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}".failNel[Any]
-      case Failure(errMsg) => s"$toError ${errMsg.head} for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}".failNel[Any]
+      case SuccessZ(hexValue: String) if hexValue == cellValue(columnIndex,row,schema) => true.successNel[String]
+      case SuccessZ(hexValue: String) => s"$toError file ${'"'}${filename(columnIndex, row, schema)._1}${filename(columnIndex, row, schema)._2}${'"'} checksum match fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}".failNel[Any]
+      case FailureZ(errMsg) => s"$toError ${errMsg.head} for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}".failNel[Any]
     }
   }
 
@@ -458,9 +458,9 @@ case class FileCountRule(rootPath: ArgProvider, file: ArgProvider, pathSubstitut
     Try(cellValue(columnIndex,row,schema).toInt) match {
       case scala.util.Success(cellCount) =>
         search(filename(columnIndex, row, schema)) match {
-          case Success(count: Int) if count == cellCount => true.successNel[String]
-          case Success(count: Int) => s"$toError found $count file(s) for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}".failNel[Any]
-          case Failure(errMsg) => s"$toError ${errMsg.head} for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}".failNel[Any]
+          case SuccessZ(count: Int) if count == cellCount => true.successNel[String]
+          case SuccessZ(count: Int) => s"$toError found $count file(s) for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}".failNel[Any]
+          case FailureZ(errMsg) => s"$toError ${errMsg.head} for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}".failNel[Any]
         }
 
       case scala.util.Failure(_) =>  s"$toError '${cellValue(columnIndex,row,schema)}' is not a number for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}".failNel[Any]
@@ -594,11 +594,11 @@ case class LengthRule(from: Option[String], to: String) extends Rule("length") {
 case class AndRule(left: Rule, right: Rule) extends Rule("and") {
   override def evaluate(columnIndex: Int, row: Row, schema: Schema): RuleValidation[Any] = {
     left.evaluate(columnIndex, row, schema) match {
-      case s @ Failure(_) => fail(columnIndex, row, schema)
+      case s @ FailureZ(_) => fail(columnIndex, row, schema)
 
-      case Success(_) => right.evaluate(columnIndex, row, schema) match {
-        case s @ Success(_) => s
-        case Failure(_) => fail(columnIndex, row, schema)
+      case SuccessZ(_) => right.evaluate(columnIndex, row, schema) match {
+        case s @ SuccessZ(_) => s
+        case FailureZ(_) => fail(columnIndex, row, schema)
       }
     }
   }
