@@ -2,44 +2,149 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    
+
     <parent>
-        <groupId>uk.gov.tna.dri</groupId>
-        <artifactId>dri-parent</artifactId>
-        <version>1.11-SNAPSHOT</version>
-        <relativePath>../dri-parent</relativePath>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>7</version>
     </parent>
-    
+
+    <groupId>uk.gov.nationalarchives</groupId>
     <artifactId>csv-validator-parent</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-    
-    <groupId>uk.gov.tna.dri.csv</groupId>
-    
+
+    <name>csv-validator-parent</name>
+    <description>Schema and Validation tool for CSV files</description>
+    <url>http://digital-preservation.github.com/csv-validator/</url>
+    <inceptionYear>2013</inceptionYear>
+
+    <organization>
+        <name>The National Archives</name>
+        <url>http://www.nationalarchives.gov.uk</url>
+    </organization>
+
+    <developers>
+        <developer>
+            <name>David Ainslie</name>
+        </developer>
+        <developer>
+            <name>Jim Collins</name>
+        </developer>
+        <developer>
+            <name>Alex Green</name>
+        </developer>
+        <developer>
+            <name>Andy Hicks</name>
+        </developer>
+        <developer>
+            <name>Ben Parker</name>
+        </developer>
+        <developer>
+            <name>Adam Retter</name>
+        </developer>
+        <developer>
+            <name>Nicola Welch</name>
+        </developer>
+    </developers>
+
+    <licenses>
+        <license>
+            <name>The Mozilla Public License Version 2.0</name>
+            <url>http://opensource.org/licenses/MPL-2.0</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <connection>scm:git:git@github.com:digital-preservation/csv-validator.git</connection>
+        <developerConnection>scm:git:git@github.com:digital-preservation/csv-validator.git</developerConnection>
+        <url>scm:git:git@github.com:digital-preservation/csv-validator.git</url>
+    </scm>
+
+    <properties>
+        <scala.version>2.10.0</scala.version>
+        <java.version>1.6</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
     <build>
-        <sourceDirectory>src/main/scala</sourceDirectory>
-        <testSourceDirectory>src/test/scala</testSourceDirectory>
+
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>com.mycila.maven-license-plugin</groupId>
+                    <artifactId>maven-license-plugin</artifactId>
+                    <version>1.9.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>2.6</version>
+                </plugin>
+                <plugin>
+                    <groupId>net.alchim31.maven</groupId>
+                    <artifactId>scala-maven-plugin</artifactId>
+                    <version>3.1.3</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>com.mmakowski</groupId>
+                    <artifactId>maven-specs2-plugin</artifactId>
+                    <version>0.4.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-release-plugin</artifactId>
+                    <version>2.4.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-gpg-plugin</artifactId>
+                    <version>1.4</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
         <plugins>
             <plugin>
-                <groupId>org.scala-tools</groupId>
-                <artifactId>maven-scala-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>compile</goal>
-                            <goal>testCompile</goal>
-                        </goals>
-                        <configuration>
-                            <args>
-                                <arg>-make:transitive</arg>
-                                <arg>-dependencyfile</arg>
-                                <arg>${project.build.directory}/.scala_dependencies</arg>
-                            </args>
-                        </configuration>
-                    </execution>
-                </executions>
+                <groupId>com.mycila.maven-license-plugin</groupId>
+                <artifactId>maven-license-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <configuration>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <configuration>
+                    <mavenExecutorId>forked-path</mavenExecutorId> <!-- avoid a bug with GPG plugin hanging http://jira.codehaus.org/browse/MGPG-9 -->
+                </configuration>
             </plugin>
         </plugins>
     </build>
-    
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.scala-lang</groupId>
+                <artifactId>scala-library</artifactId>
+                <version>${scala.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+
 </project>
