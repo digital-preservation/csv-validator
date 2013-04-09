@@ -20,6 +20,7 @@ import java.net.URI
 import org.joda.time.{Interval, LocalTime, DateTime}
 import org.joda.time.format.DateTimeFormat
 import scalaz.{Success => SuccessZ, Failure => FailureZ}
+import java.util.regex.Matcher
 
 abstract class Rule(name: String, val argProviders: ArgProvider*) extends Positional {
 
@@ -618,12 +619,11 @@ object FileSystem {
 
   def replaceSpaces( file: String): String = file.replace(" ", "%20")
 
-  private def file2PlatformDependent( file: String): String =
-    if ( System.getProperty("file.separator") == "/" ) file.replace('\\', '/')
-    else file.replace('/', '\\')
+  private def file2PlatformIndependent( file: String): String =
+    file.replaceAll("""([^\\])\\([^\\])""", "$1/$2")
 
   def convertPath2Platform(filename: String): String = {
-    if ( filename.startsWith("file://"))  replaceSpaces(filename) else file2PlatformDependent( filename )
+    if ( filename.startsWith("file://"))  replaceSpaces(filename) else file2PlatformIndependent( filename )
   }
 }
 
@@ -636,32 +636,49 @@ case class FileSystem(basePath: Option[String], file: String, pathSubstitutions:
   val separator: Char = System.getProperty("file.separator").head
 
   private def substitutePath(  filename: String): String = {
-    val x = pathSubstitutions.filter{ case (subFrom, _) => filename.contains(subFrom)}.map{ case (subFrom, subTo) => filename.replaceFirst(subFrom, subTo) }
-    if (x.isEmpty) filename else x.head
+    val x = {
+      pathSubstitutions.filter {
+        case (subFrom, _) => filename.contains(subFrom)
+      }.map {
+        case (subFrom, subTo) => filename.replaceFirst(Matcher.quoteReplacement(subFrom), Matcher.quoteReplacement(FileSystem.file2PlatformIndependent(subTo)))
+      }
+    }
+    if(x.isEmpty)
+      filename
+    else
+      x.head
   }
 
   def jointPath: String = {
-    val fs: Char = System.getProperty("file.separator").head
+    val uri_sep: Char = '/'
 
     basePath match {
       case Some(bp) =>
-        if (bp.length > 0 && bp.last != fs && file.head != fs) bp + fs + file
-        else if (bp.length > 0 && bp.last == fs && file.head == fs) bp + file.tail
-        else bp + file
+
+        if (bp.length > 0 && bp.last != uri_sep && file.head != uri_sep) {
+          bp + uri_sep + file
+        } else if (bp.length > 0 && bp.last == uri_sep && file.head == uri_sep) {
+          bp + file.tail
+        } else {
+          bp + file
+        }
 
       case None => file
     }
   }
 
   def exists: Boolean = {
-    FileSystem.createFile( FileSystem.convertPath2Platform( substitutePath(jointPath))) match {
+    val j = jointPath
+    val k = substitutePath(j)
+    val p = FileSystem.convertPath2Platform(k)
+    FileSystem.createFile(p) match {
       case scala.util.Success(f) => f.exists
       case scala.util.Failure(_) => false
     }
   }
 
   def expandBasePath: String = {
-    if ( basePath.isEmpty || basePath.getOrElse("") == "")  FileSystem.file2PlatformDependent(substitutePath(file))
-    else FileSystem.file2PlatformDependent(substitutePath(jointPath))
+    if ( basePath.isEmpty || basePath.getOrElse("") == "")  FileSystem.file2PlatformIndependent(substitutePath(file))
+    else FileSystem.file2PlatformIndependent(substitutePath(jointPath))
   }
 }

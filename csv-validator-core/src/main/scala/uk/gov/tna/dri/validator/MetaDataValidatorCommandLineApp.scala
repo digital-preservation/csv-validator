@@ -8,6 +8,7 @@
 package uk.gov.tna.dri.validator
 
 import java.io.{FileReader, File}
+import uk.gov.tna.dri.EOL
 import uk.gov.tna.dri.schema.{Schema, SchemaParser}
 import scalaz.{Success => SuccessZ, Failure => FailureZ, _}
 import Scalaz._
@@ -115,7 +116,7 @@ object MetaDataValidatorCommandLineApp extends App {
     def removePathArgs(argsWithIndex: List[(String,Int)], path:List[((String,Int),(String,Int))]) = argsWithIndex.filter{ i =>  path.filter{pf => pf._1 == i || pf._2 == i}.isEmpty }
 
     if ( argsList.isEmpty ) Right(List.empty,argsList)
-    else if (argsList.length < 3 ) { if( argsList.contains("--path")) Left("Missing param to --path\n" + usage) else Right(List.empty,argsList) }
+    else if (argsList.length < 3 ) { if( argsList.contains("--path")) Left("Missing param to --path" + EOL + usage) else Right(List.empty,argsList) }
     else {
       val argsWithIndex = argsList.zipWithIndex
       val path = filterPaths(argsWithIndex)

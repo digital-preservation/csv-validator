@@ -11,6 +11,7 @@ import org.specs2.mutable._
 import java.io.StringReader
 
 import scalaz.{Success => SuccessZ, Failure => FailureZ}
+import uk.gov.tna.dri.EOL
 import uk.gov.tna.dri.validator.SchemaMessage
 
 class SchemaParserRulesSpec extends Specification {
@@ -219,7 +220,7 @@ class SchemaParserRulesSpec extends Specification {
         """
 
       parseAndValidate(new StringReader(schema)) must beLike {
-        case FailureZ(msgs) => msgs.list mustEqual List(SchemaMessage("Column: MD5: Invalid Algorithm: 'INVALID' at line: 4, column: 17\nColumn: chksum: Invalid Algorithm: 'WRONG' at line: 5, column: 20"))
+        case FailureZ(msgs) => msgs.list mustEqual List(SchemaMessage("Column: MD5: Invalid Algorithm: 'INVALID' at line: 4, column: 17" + EOL + "Column: chksum: Invalid Algorithm: 'WRONG' at line: 5, column: 20"))
       }
     }
 
