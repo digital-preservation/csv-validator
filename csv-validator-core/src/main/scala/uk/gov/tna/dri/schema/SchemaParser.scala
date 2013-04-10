@@ -44,35 +44,20 @@ trait SchemaParser extends RegexParsers {
 
   def parseAndValidate(reader: Reader): ValidationNEL[FailMessage, Schema] = {
 
-    //start temp
-    //TODO following two functions and case class work around a deficiency in scala.util.parsing.combinator.Parsers{$Error, $Failure} that use hard-coded Linux EOL
-    /*def failureString(f : Failure) =  { "[" + f.next.pos + "] failure: " + f.msg + EOL + EOL + new PlatformIndependentOffsetPosition(f.next.pos).longString }
-    def errorString(e: Error) = { "[" + e.next.pos + "] error: " + e.msg + EOL + EOL + new PlatformIndependentOffsetPosition(e.next.pos).longString }
-    case class PlatformIndependentOffsetPosition(p: OffsetPosition) extends OffsetPosition(p.source, p.offset) {
-      override def longString: String = { lineContents + EOL + lineContents.take(column - 1).map{x => if (x == '\t') x else ' ' } + "^" }
-    }*/
-    def failureString(f : Failure) =  { "[" + f.next.pos + "] failure: " + f.msg + EOL + EOL + f.next.pos.longString }
-    def errorString(e: Error) = { "[" + e.next.pos + "] error: " + e.msg + EOL + EOL + e.next.pos.longString }
-    //end temp
+    //TODO following function works around a deficiency in scala.util.parsing.combinator.Parsers{$Error, $Failure} that use hard-coded Unix EOL in Scala 2.10.0
+    def formatNoSuccessMessageForPlatform(s: String) = {
+      if(sys.props("os.name").toLowerCase.startsWith("win"))
+        s.replaceAll("([^\\r]?)\\n", "$1\r\n")
+      else
+        s
+    }
 
     parse(reader) match {
       case s @ Success(schema: Schema, next) => {
         val errors = validate(schema.globalDirectives, schema.columnDefinitions)
         if (errors.isEmpty) schema.successNel[FailMessage] else SchemaMessage(errors).failNel[Schema]
       }
-      case n: NoSuccess => {
-        val errorMsg = n match {
-          case f : Failure =>
-            failureString(f)
-
-          case e : Error =>
-            errorString(e)
-
-          case _ =>
-            n.toString
-        }
-        SchemaMessage(errorMsg).failNel[Schema]
-      }
+      case n: NoSuccess => SchemaMessage(formatNoSuccessMessageForPlatform(n.toString)).failNel[Schema]
     }
   }
 

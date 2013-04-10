@@ -168,8 +168,6 @@ class MetaDataValidatorAppSpec extends Specification {
 
       app.parseAndValidate(new StringReader(schema)) must beLike {
         case Failure(msgs) =>
-          val ary = msgs.list.head.msg.toCharArray
-          val x = println(ary)
           msgs.list mustEqual List(SchemaMessage(
           "[3.7] failure: Invalid schema text" + EOL
           + EOL
