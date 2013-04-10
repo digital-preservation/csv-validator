@@ -10,9 +10,11 @@ package object dri {
   /**
    * Separator in file paths i.e. '\' or '/'
    */
-  val FILE_SEPARATOR = sys.props("file.separator")
+  val FILE_SEPARATOR = sys.props("file.separator").head
 
   val WINDOWS_FILE_SEPARATOR = '\\'
 
   val UNIX_FILE_SEPARATOR = '/'
+
+  val URI_PATH_SEPARATOR = '/'
 }

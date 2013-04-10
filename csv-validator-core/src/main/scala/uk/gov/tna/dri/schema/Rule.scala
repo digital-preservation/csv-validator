@@ -22,7 +22,7 @@ import org.joda.time.format.DateTimeFormat
 import scalaz.{Success => SuccessZ, Failure => FailureZ}
 import java.util.regex.{Pattern, Matcher}
 import scala.Some
-import uk.gov.tna.dri.{UNIX_FILE_SEPARATOR, WINDOWS_FILE_SEPARATOR, FILE_SEPARATOR}
+import uk.gov.tna.dri.{UNIX_FILE_SEPARATOR, WINDOWS_FILE_SEPARATOR, FILE_SEPARATOR, URI_PATH_SEPARATOR}
 
 abstract class Rule(name: String, val argProviders: ArgProvider*) extends Positional {
 
@@ -499,7 +499,7 @@ trait FileWildcardSearch[T] {
   val wildcardPath = (p: Path, matchPath: String) => p.descendants( p.matcher( matchPath))
   val wildcardFile = (p: Path, matchPath: String) => p.children( p.matcher( "**/" +matchPath))
 
-  //TODO consider rewritting the FileSystem stuff to use TypedPath
+  //TODO consider re-writing the FileSystem stuff to use TypedPath
   abstract class TypedPath {
 
     def path : String
@@ -548,7 +548,7 @@ trait FileWildcardSearch[T] {
     override def thisFolder = new WindowsPath("." + separator)
   }
   case class UnixPath(path : String) extends TypedPath {
-    override def toString = FileSystem.file2UnixPatform(path)
+    override def toString = FileSystem.file2UnixPlatform(path)
     override def parent = new UnixPath(parentPath)
     override def thisFolder = new UnixPath("." + separator)
   }
@@ -684,7 +684,7 @@ object FileSystem {
   def file2PlatformIndependent(file: String): String =
     file.replaceAll("""([^\\]?)\\([^\\])""", "$1/$2")
 
-  def file2UnixPatform(file: String) : String = file2PlatformIndependent(file)
+  def file2UnixPlatform(file: String) : String = file2PlatformIndependent(file)
 
   def file2WindowsPlatform(file: String) : String =
     file.replaceAll("([^/]?)/([^/])", """$1\$2""")
@@ -700,9 +700,9 @@ case class FileSystem(basePath: Option[String], file: String, pathSubstitutions:
 
   def this( file: String, pathSubstitutions: List[(String,String)]) = this(None, file, pathSubstitutions)
 
-  val separator: Char = System.getProperty("file.separator").head
+  val separator: Char = FILE_SEPARATOR
 
-  private def substitutePath(  filename: String): String = {
+  private def substitutePath(filename: String): String = {
     val x = {
       pathSubstitutions.filter {
         case (subFrom, _) => filename.contains(subFrom)
@@ -717,7 +717,7 @@ case class FileSystem(basePath: Option[String], file: String, pathSubstitutions:
   }
 
   def jointPath: String = {
-    val uri_sep: Char = '/'
+    val uri_sep: Char = URI_PATH_SEPARATOR
 
     basePath match {
       case Some(bp) =>
@@ -735,17 +735,16 @@ case class FileSystem(basePath: Option[String], file: String, pathSubstitutions:
   }
 
   def exists: Boolean = {
-    val j = jointPath
-    val k = substitutePath(j)
-    val p = FileSystem.convertPath2Platform(k)
-    FileSystem.createFile(p) match {
+    FileSystem.createFile(FileSystem.convertPath2Platform(substitutePath(jointPath))) match {
       case scala.util.Success(f) => f.exists
       case scala.util.Failure(_) => false
     }
   }
 
   def expandBasePath: String = {
-    if ( basePath.isEmpty || basePath.getOrElse("") == "")  FileSystem.file2PlatformIndependent(substitutePath(file))
-    else FileSystem.file2PlatformIndependent(substitutePath(jointPath))
+    if( basePath.isEmpty || basePath.getOrElse("") == "")
+      FileSystem.file2PlatformIndependent(substitutePath(file))
+    else
+      FileSystem.file2PlatformIndependent(substitutePath(jointPath))
   }
 }
