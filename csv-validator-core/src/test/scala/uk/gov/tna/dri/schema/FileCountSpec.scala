@@ -162,13 +162,13 @@ class FileCountSpec extends Specification {
       wildCard.search( ("src\\test\\resources\\uk\\gov\\tna\\dri\\fileCountTestFiles\\threeFiles\\","file1.jp2") )   mustEqual Success(1)
     }
 
-    "fail if an invalid relavtive basePath is given" in {
+    "fail if an invalid relative basePath is given" in {
       wildCard.search( ("WRONGPATH/dri/fileCountTestFiles/threeFiles/","file1.jp2") ) must beLike {
         case Failure(m) => m.list mustEqual List("""incorrect basepath WRONGPATH/dri/fileCountTestFiles/threeFiles/ (localfile: WRONGPATH/dri/fileCountTestFiles/threeFiles/file1.jp2) found""")
       }
     }
 
-    "fail if an invalid relavtive basePath is given" in {
+    "fail if an invalid relative basePath is given" in {
       wildCard.search( ("src/test/dri/fileCountTestFiles/threeFiles/","xfile.jp2") ) must beLike {
         case Failure(m) => m.list mustEqual List("""incorrect basepath src/test/dri/fileCountTestFiles/threeFiles/ (localfile: src/test/dri/fileCountTestFiles/threeFiles/xfile.jp2) found""")
       }

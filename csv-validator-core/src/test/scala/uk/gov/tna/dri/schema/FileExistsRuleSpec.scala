@@ -109,8 +109,8 @@ class FileExistsRuleSpec extends Specification{
   }
 
 
-  "file system substatution" should {
-    "succeed with no substatutions" in {
+  "file system substitution" should {
+    "succeed with no substitutions" in {
       val pathSubstitutions =  List[(String,String)](
         ("Q", "X")
       )
@@ -118,7 +118,7 @@ class FileExistsRuleSpec extends Specification{
       f.expandBasePath  mustEqual  "file:///a/b/c/d/e/file.txt"
     }
 
-    "succeed with first substatution replacement" in {
+    "succeed with first substitution replacement" in {
       val pathSubstitutions =  List[(String,String)](
         ("a", "Z"),
         ("Q", "X")
@@ -128,7 +128,7 @@ class FileExistsRuleSpec extends Specification{
 
     }
 
-    "succeed with first substatution replacement" in {
+    "succeed with first substitution replacement" in {
       val pathSubstitutions =  List[(String,String)](
         ("P", "Z"),
         ("c", "X")
@@ -137,7 +137,7 @@ class FileExistsRuleSpec extends Specification{
       f.expandBasePath  mustEqual  "file:///a/b/X/d/e/file.txt"
     }
 
-    "succeed with only first substatution replacement" in {
+    "succeed with only first substitution replacement" in {
       val pathSubstitutions =  List[(String,String)](
         ("a", "Z"),
         ("c", "X")
