@@ -69,13 +69,14 @@ class FileExistsRuleSpec extends Specification{
 
     "succeed even when the filename contains %20 spaces" in {
 
-      val substitute = if(System.getProperty("os.name").toLowerCase.startsWith("win"))
-        "HOME"
-      else
-        "/HOME"
+      val substitute =
+        if(sys.props("os.name").toLowerCase.startsWith("win"))
+          "HOME"
+        else
+          "/HOME"
 
       val pathSubstitutions =  List[(String,String)](
-        (substitute, System.getProperty("user.dir"))
+        (substitute, sys.props("user.dir"))
       )
 
       FileSystem(Some("file:///HOME/src/test/resources/uk/gov/tna/"), "dri/schema/must%20Exist%20With%20Spaces%20For%20Rule.txt", pathSubstitutions ).exists must beTrue

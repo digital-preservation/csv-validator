@@ -20,7 +20,9 @@ import java.net.URI
 import org.joda.time.{Interval, LocalTime, DateTime}
 import org.joda.time.format.DateTimeFormat
 import scalaz.{Success => SuccessZ, Failure => FailureZ}
-import java.util.regex.Matcher
+import java.util.regex.{Pattern, Matcher}
+import scala.Some
+import uk.gov.tna.dri.{UNIX_FILE_SEPARATOR, WINDOWS_FILE_SEPARATOR, FILE_SEPARATOR}
 
 abstract class Rule(name: String, val argProviders: ArgProvider*) extends Positional {
 
@@ -489,6 +491,7 @@ case class FileCountRule(rootPath: ArgProvider, file: ArgProvider, pathSubstitut
 }
 
 trait FileWildcardSearch[T] {
+
   val pathSubstitutions: List[(String,String)]
   def matchWildcardPaths(matchList: PathSet[Path],fullPath: String): ValidationNEL[String, T]
   def matchSimplePath(fullPath: String): ValidationNEL[String, T]
@@ -496,27 +499,85 @@ trait FileWildcardSearch[T] {
   val wildcardPath = (p: Path, matchPath: String) => p.descendants( p.matcher( matchPath))
   val wildcardFile = (p: Path, matchPath: String) => p.children( p.matcher( "**/" +matchPath))
 
-  def findBase(path:String): (String, String) = {
+  abstract class TypedPath {
+
+    def path : String
+
+    val separator = UNIX_FILE_SEPARATOR
+    private lazy val p = Path.fromString(path)
+
+    def name = p.name
+    def hasParent = !p.parent.isEmpty
+    protected def parentPath = p.parent.get.path
+    def parent : TypedPath
+    def thisFolder : TypedPath
+    def toString : String
+  }
+
+  object TypedPath {
+
+    //extracts the scheme from the file:/c:/ or file:/// or file:///c:/ part of a URI
+    lazy val fileUriMatcher = Pattern.compile("((file:///)[a-zA-Z]+:/|(file://)/|(file:/)[a-zA-Z]+:/)(.*)").matcher("")
+    //extracts the path from the URI
+    lazy val fileUriPathMatcher = Pattern.compile("file:///([a-zA-Z]+:/.*)|file://(/.*)|file:/([a-zA-Z]+:/.*)").matcher("")
+
+    def apply(path : String) : TypedPath = {
+      fileUriMatcher.reset(path)
+      if(fileUriMatcher.matches) {
+        fileUriPathMatcher.reset(path)
+        new FileUriPath(fileUriMatcher.replaceFirst("$2$3$4"), fileUriPathMatcher.replaceFirst("$1$2$3"))
+      } else if(path.contains(UNIX_FILE_SEPARATOR) && !path.contains(WINDOWS_FILE_SEPARATOR)) {
+        new UnixPath(path)
+      } else {
+        new WindowsPath(path)
+      }
+    }
+  }
+
+  case class FileUriPath(uriPrefix : String, path: String) extends TypedPath {
+    def toURI : URI = new URI(uriPrefix + FileSystem.file2PlatformIndependent(path))
+    override def toString : String = toURI.toString
+    override def parent = new FileUriPath(uriPrefix, parentPath)
+    override def thisFolder = new FileUriPath(uriPrefix, "." + separator)
+  }
+  case class WindowsPath(path : String) extends TypedPath {
+    override val separator = WINDOWS_FILE_SEPARATOR
+    override def toString = FileSystem.file2WindowsPlatform(path)
+    override def parent = new WindowsPath(parentPath)
+    override def thisFolder = new WindowsPath("." + separator)
+  }
+  case class UnixPath(path : String) extends TypedPath {
+    override def toString = FileSystem.file2UnixPatform(path)
+    override def parent = new UnixPath(parentPath)
+    override def thisFolder = new UnixPath("." + separator)
+  }
+
+  def findBase(path:String): (TypedPath, String) = {
 
     @tailrec
-    def findBaseRecur(p: String, f: String): (String,String) = {
-      if (p.contains("*")) findBaseRecur(Path.fromString(p).parent.get.path, Path.fromString(p).name + "/" + f)
-      else (p, f)
+    def findBaseRecur(p : TypedPath, f: String): (TypedPath, String) = {
+      if(!p.path.contains("*"))
+        (p, f)
+      else
+        findBaseRecur(p.parent, p.name + p.separator + f)
     }
 
-    if (path.startsWith("file://"))  {
-      val pathURI = Path(new URI( FileSystem.replaceSpaces(path))).get
-      findBaseRecur("file://" + pathURI.parent.get.path, pathURI.name)
-    } else if (Path.fromString(path).parent.isEmpty) ("./", path) else findBaseRecur(Path.fromString(path).parent.get.path, Path.fromString(path).name)
+    val typedBasePath = TypedPath(path)
+
+    if(!typedBasePath.hasParent) {
+      (typedBasePath.thisFolder, typedBasePath.toString)
+    } else {
+      findBaseRecur(typedBasePath.parent, typedBasePath.name)
+    }
   }
 
   def search(filePaths: (String, String)): ValidationNEL[String, T] = {
     try {
       val fullPath = new FileSystem( None, filePaths._1 + filePaths._2, pathSubstitutions).expandBasePath
-      val (basePath,matchPath ) = findBase(fullPath)
+      val (basePath, matchPath) = findBase(fullPath)
 
       val path: Option[Path] = {
-        FileSystem.createFile( basePath ) match {
+        FileSystem.createFile( basePath.toString ) match {
           case scala.util.Success(f) => Some(Path(f))
           case scala.util.Failure(_) => None
         }
@@ -531,7 +592,7 @@ trait FileWildcardSearch[T] {
         }
       }
 
-      def basePathExists: Boolean =   filePaths._1.length>0 && (!(FileSystem.createFile( basePath ) match {
+      def basePathExists: Boolean =   filePaths._1.length>0 && (!(FileSystem.createFile( basePath.toString ) match {
         case scala.util.Success(f) =>   f.exists
         case scala.util.Failure(_) => false
       }))
@@ -543,7 +604,7 @@ trait FileWildcardSearch[T] {
       def matchUsesWildFiles: Boolean = matchPath.contains("*")
 
       def fileExists: Boolean = {
-        val path = basePath+System.getProperty("file.separator") + matchPath
+        val path = basePath.toString + basePath.separator + matchPath
 
         FileSystem.createFile( path ) match {
           case scala.util.Success(file) =>   file.exists
@@ -615,15 +676,20 @@ case class AndRule(left: Rule, right: Rule) extends Rule("and") {
 }
 
 object FileSystem {
-  def createFile( filename:String): Try[File] =  Try{ if( filename.startsWith("file:")) new File( new URI(filename)) else  new File( filename )}
+  def createFile(filename: String): Try[File] =  Try{ if( filename.startsWith("file:")) new File( new URI(filename)) else  new File( filename )}
 
-  def replaceSpaces( file: String): String = file.replace(" ", "%20")
+  def replaceSpaces(file: String): String = file.replace(" ", "%20")
 
-  private def file2PlatformIndependent( file: String): String =
-    file.replaceAll("""([^\\])\\([^\\])""", "$1/$2")
+  def file2PlatformIndependent(file: String): String =
+    file.replaceAll("""([^\\]?)\\([^\\])""", "$1/$2")
+
+  def file2UnixPatform(file: String) : String = file2PlatformIndependent(file)
+
+  def file2WindowsPlatform(file: String) : String =
+    file.replaceAll("([^/]?)/([^/])", """$1\$2""")
 
   def convertPath2Platform(filename: String): String = {
-    if ( filename.startsWith("file://"))  replaceSpaces(filename) else file2PlatformIndependent( filename )
+    if ( filename.startsWith("file:/"))  replaceSpaces(filename) else file2PlatformIndependent( filename )
   }
 }
 

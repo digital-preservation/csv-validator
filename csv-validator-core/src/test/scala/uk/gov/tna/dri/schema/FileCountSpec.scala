@@ -139,10 +139,18 @@ class FileCountSpec extends Specification {
     "find a single file from relative path" in {
 
       val wildCard = new FileWildcardSearch[Int]{
-        val baseDir = sys.props.get("user.dir").get
-        val pathSubstitutions: List[(String, String)] = List[(String,String)](
-          ("file:///bob", s"file:${baseDir}/src/test")
+
+        val userDir = sys.props("user.dir")
+        val substituted =
+          if(sys.props("os.name").toLowerCase.startsWith("win"))
+            s"file:///${userDir}/src/test"
+          else
+            s"file://${userDir}/src/test"
+
+        val pathSubstitutions: List[(String, String)] = List[(String, String)](
+          ("file:///bob", substituted)
         )
+
         def matchWildcardPaths(matchList: PathSet[Path], fullPath: String): Scalaz.ValidationNEL[String, Int] = matchList.size.successNel[String]
         def matchSimplePath(fullPath: String): Scalaz.ValidationNEL[String, Int] = 1.successNel[String]
       }
