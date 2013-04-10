@@ -499,6 +499,7 @@ trait FileWildcardSearch[T] {
   val wildcardPath = (p: Path, matchPath: String) => p.descendants( p.matcher( matchPath))
   val wildcardFile = (p: Path, matchPath: String) => p.children( p.matcher( "**/" +matchPath))
 
+  //TODO consider rewritting the FileSystem stuff to use TypedPath
   abstract class TypedPath {
 
     def path : String
