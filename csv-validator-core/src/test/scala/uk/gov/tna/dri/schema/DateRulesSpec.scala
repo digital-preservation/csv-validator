@@ -26,6 +26,11 @@ class DateRulesSpec extends Specification {
       xsdDateRule.evaluate(0, Row(List(Cell("2002-12-30T09:00:10")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(true)
     }
 
+    "succeed if cell has a valid xsdDateTime with explicit zero'd timezone" in {
+      val xsdDateRule = XsdDateTimeRule()
+      xsdDateRule.evaluate(0, Row(List(Cell("2013-03-22T11:33:40+00:00")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(true)
+    }
+
     "fail if cell has an invalid xsdDateTime format" in {
       val xsdDateRule = XsdDateTimeRule()
       xsdDateRule.evaluate(0, Row(List(Cell("2002-999-30T09:00:10")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must beLike {
@@ -79,6 +84,11 @@ class DateRulesSpec extends Specification {
       xsdDateRule.evaluate(0, Row(List(Cell("2002-01-30")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(true)
     }
 
+    "succeed if cell has a valid xsdDate with explicit zero'd timezone" in {
+      val xsdDateRule = XsdDateRule()
+      xsdDateRule.evaluate(0, Row(List(Cell("2013-03-22+00:00")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(true)
+    }
+
     "fail if cell has an invalid xsdDate format" in {
       val xsdDateRule = XsdDateRule()
       xsdDateRule.evaluate(0, Row(List(Cell("2002-999-30")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must beLike {
@@ -97,12 +107,12 @@ class DateRulesSpec extends Specification {
   "XsdDateRangeRule" should  {
 
     "succeed if cell is equal to the lower bound" in {
-      val xsdDateRangeRule = XsdDateRangeRule("2012-01-01T00:00:00", "2013-01-01T00:00:00")
+      val xsdDateRangeRule = XsdDateRangeRule("2012-01-01", "2013-01-01")
       xsdDateRangeRule.evaluate(0, Row(List(Cell("2012-01-01")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(true)
     }
 
     "succeed if cell is between lower bound and upper bound" in {
-      val xsdDateRangeRule = XsdDateRangeRule("2012-01-01T00:00:00", "2013-01-01T00:00:00")
+      val xsdDateRangeRule = XsdDateRangeRule("2012-01-01", "2013-01-01")
       xsdDateRangeRule.evaluate(0, Row(List(Cell("2012-12-12")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(true)
     }
 
@@ -112,14 +122,14 @@ class DateRulesSpec extends Specification {
     }
 
     "succeed if cell just below upper bound" in {
-      val xsdDateRangeRule = XsdDateRangeRule("2012-01-01T00:00:00", "2013-01-01T00:00:01")
+      val xsdDateRangeRule = XsdDateRangeRule("2012-01-01", "2013-01-01")
       xsdDateRangeRule.evaluate(0, Row(List(Cell("2013-01-01")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(true)
     }
 
     "fail if cell is just below lower bound" in {
-      val xsdDateRangeRule = XsdDateRangeRule("2012-01-01T00:00:01", "2013-01-01T00:00:00")
-      xsdDateRangeRule.evaluate(0, Row(List(Cell("2012-01-01")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must beLike {
-        case Failure(messages) => messages.head mustEqual """xDate("2012-01-01T00:00:01, 2013-01-01T00:00:00") fails for line: 1, column: column1, value: "2012-01-01""""
+      val xsdDateRangeRule = XsdDateRangeRule("2012-01-01", "2013-01-01")
+      xsdDateRangeRule.evaluate(0, Row(List(Cell("2011-12-31")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must beLike {
+        case Failure(messages) => messages.head mustEqual """xDate("2012-01-01, 2013-01-01") fails for line: 1, column: column1, value: "2011-12-31""""
       }
     }
   }
@@ -264,6 +274,11 @@ class DateRulesSpec extends Specification {
     "succeed if cell has a valid xsdTime" in {
       val xsdTimeRule = XsdTimeRule()
       xsdTimeRule.evaluate(0, Row(List(Cell("12:30:20")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(true)
+    }
+
+    "succeed if cell has a valid xsdTime with explicit zero'd timezone" in {
+      val xsdTimeRule = XsdTimeRule()
+      xsdTimeRule.evaluate(0, Row(List(Cell("11:33:40+00:00")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(true)
     }
 
     "fail if cell has an invalid xsdTime" in {
