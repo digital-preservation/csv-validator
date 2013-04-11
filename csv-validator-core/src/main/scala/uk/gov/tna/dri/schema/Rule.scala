@@ -430,7 +430,7 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
         fileBuffer.close()
         hexEncode(digest.digest).successNel[String]
 
-      case scala.util.Failure(_) => "file not fund".failNel[String]
+      case scala.util.Failure(_) => "file not found".failNel[String]
     }
   }
 
