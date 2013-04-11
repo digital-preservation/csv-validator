@@ -499,33 +499,53 @@ trait FileWildcardSearch[T] {
   val wildcardPath = (p: Path, matchPath: String) => p.descendants( p.matcher( matchPath))
   val wildcardFile = (p: Path, matchPath: String) => p.children( p.matcher( "**/" +matchPath))
 
-  //TODO consider re-writing the FileSystem stuff to use TypedPath
+  //TODO consider re-writing the FileSystem stuff to use TypedPath now that we have toPlatform - just need a better File approach and handling of parent/child - maybe use scalax.file.Path
   abstract class TypedPath {
 
     def path : String
 
     val separator = UNIX_FILE_SEPARATOR
-    private lazy val p = Path.fromString(path)
+    //private lazy val p = Path.fromString(path)
 
-    def name = p.name
-    def hasParent = !p.parent.isEmpty
-    protected def parentPath = p.parent.get.path
-    def parent : TypedPath
-    def thisFolder : TypedPath
+    def name = path.lastIndexOf(separator) match {
+      case -1 =>
+        path
+      case index =>
+        path.substring(index + 1)
+    }
+    //def hasParent = !p.parent.isEmpty
+    //protected def parentPath = p.parent.get.path
+    def hasParent = parentPath.nonEmpty
+    private lazy val parentPath : Option[String] = {
+      path.lastIndexOf(separator) match {
+        case -1 =>
+          None
+        case index =>
+          Some(path.substring(0, index))
+      }
+    }
+    def parent : Option[TypedPath] = parentPath match {
+      case Some(pp) => Some(construct(pp))
+      case _ => None
+    }
+    protected def construct(p: String) : TypedPath
+    def thisFolder : TypedPath = construct(".")
     def toString : String
+    protected lazy val isWindowsPlatform = sys.props("os.name").toLowerCase.startsWith("win")
+    def toPlatform : TypedPath
   }
 
   object TypedPath {
 
     //extracts the scheme from the file:/c:/ or file:/// or file:///c:/ part of a URI
-    lazy val fileUriMatcher = Pattern.compile("((file:///)[a-zA-Z]+:/|(file://)/|(file:/)[a-zA-Z]+:/)(.*)").matcher("")
+    lazy val fileUriPattern = Pattern.compile("((file:///)[a-zA-Z]+:/|(file://)/|(file:/)[a-zA-Z]+:/)(.*)")
     //extracts the path from the URI
-    lazy val fileUriPathMatcher = Pattern.compile("file:///([a-zA-Z]+:/.*)|file://(/.*)|file:/([a-zA-Z]+:/.*)").matcher("")
+    lazy val fileUriPathPattern = Pattern.compile("file:///([a-zA-Z]+:/.*)|file://(/.*)|file:/([a-zA-Z]+:/.*)")
 
     def apply(path : String) : TypedPath = {
-      fileUriMatcher.reset(path)
+      val fileUriMatcher = fileUriPattern.matcher(path)
       if(fileUriMatcher.matches) {
-        fileUriPathMatcher.reset(path)
+       val fileUriPathMatcher = fileUriPathPattern.matcher(path)
         new FileUriPath(fileUriMatcher.replaceFirst("$2$3$4"), fileUriPathMatcher.replaceFirst("$1$2$3"))
       } else if(path.contains(UNIX_FILE_SEPARATOR) && !path.contains(WINDOWS_FILE_SEPARATOR)) {
         new UnixPath(path)
@@ -538,38 +558,40 @@ trait FileWildcardSearch[T] {
   case class FileUriPath(uriPrefix : String, path: String) extends TypedPath {
     def toURI : URI = new URI(uriPrefix + FileSystem.file2PlatformIndependent(path))
     override def toString : String = toURI.toString
-    override def parent = new FileUriPath(uriPrefix, parentPath)
-    override def thisFolder = new FileUriPath(uriPrefix, "." + separator)
+    override protected def construct(p : String) = new FileUriPath(uriPrefix, p);
+    override def toPlatform = this
   }
   case class WindowsPath(path : String) extends TypedPath {
     override val separator = WINDOWS_FILE_SEPARATOR
     override def toString = FileSystem.file2WindowsPlatform(path)
-    override def parent = new WindowsPath(parentPath)
-    override def thisFolder = new WindowsPath("." + separator)
+    override protected def construct(p : String) = new WindowsPath(p)
+    override def toPlatform = if(isWindowsPlatform) this else new UnixPath(FileSystem.file2UnixPlatform(path))
   }
   case class UnixPath(path : String) extends TypedPath {
     override def toString = FileSystem.file2UnixPlatform(path)
-    override def parent = new UnixPath(parentPath)
-    override def thisFolder = new UnixPath("." + separator)
+    override protected def construct(p: String) = new UnixPath(p)
+    override def toPlatform = if(isWindowsPlatform) new WindowsPath(FileSystem.file2WindowsPlatform(path)) else this
   }
 
   def findBase(path:String): (TypedPath, String) = {
 
     @tailrec
-    def findBaseRecur(p : TypedPath, f: String): (TypedPath, String) = {
-      if(!p.path.contains("*"))
-        (p, f)
-      else
-        findBaseRecur(p.parent, p.name + p.separator + f)
+    def findBaseRecur(p : TypedPath, subPath: String) : (TypedPath, String) = {
+      p.parent match {
+        case None =>
+          (p.thisFolder, subPath)
+
+        case Some(parent) =>
+          if(!parent.path.contains("*"))
+            (parent, subPath)
+          else
+            findBaseRecur(parent, parent.name + p.separator + subPath)
+      }
     }
 
     val typedBasePath = TypedPath(path)
+    findBaseRecur(typedBasePath, typedBasePath.name)
 
-    if(!typedBasePath.hasParent) {
-      (typedBasePath.thisFolder, typedBasePath.toString)
-    } else {
-      findBaseRecur(typedBasePath.parent, typedBasePath.name)
-    }
   }
 
   def search(filePaths: (String, String)): ValidationNEL[String, T] = {
@@ -578,7 +600,7 @@ trait FileWildcardSearch[T] {
       val (basePath, matchPath) = findBase(fullPath)
 
       val path: Option[Path] = {
-        FileSystem.createFile( basePath.toString ) match {
+        FileSystem.createFile( basePath.toPlatform.toString ) match {
           case scala.util.Success(f) => Some(Path(f))
           case scala.util.Failure(_) => None
         }
@@ -593,7 +615,7 @@ trait FileWildcardSearch[T] {
         }
       }
 
-      def basePathExists: Boolean =   filePaths._1.length>0 && (!(FileSystem.createFile( basePath.toString ) match {
+      def basePathExists: Boolean =   filePaths._1.length>0 && (!(FileSystem.createFile( basePath.toPlatform.toString ) match {
         case scala.util.Success(f) =>   f.exists
         case scala.util.Failure(_) => false
       }))
@@ -605,7 +627,8 @@ trait FileWildcardSearch[T] {
       def matchUsesWildFiles: Boolean = matchPath.contains("*")
 
       def fileExists: Boolean = {
-        val path = basePath.toString + basePath.separator + matchPath
+        val platformPath = basePath.toPlatform
+        val path = platformPath.toString + platformPath.separator + matchPath
 
         FileSystem.createFile( path ) match {
           case scala.util.Success(file) =>   file.exists
@@ -682,7 +705,7 @@ object FileSystem {
   def replaceSpaces(file: String): String = file.replace(" ", "%20")
 
   def file2PlatformIndependent(file: String): String =
-    file.replaceAll("""([^\\]?)\\([^\\])""", "$1/$2")
+    file.replaceAll("""([^\\]?)\\([^\\]?)""", "$1/$2")
 
   def file2UnixPlatform(file: String) : String = file2PlatformIndependent(file)
 
