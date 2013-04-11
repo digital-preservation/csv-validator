@@ -20,6 +20,9 @@ import java.net.URI
 import org.joda.time.{Interval, LocalTime, DateTime}
 import org.joda.time.format.DateTimeFormat
 import scalaz.{Success => SuccessZ, Failure => FailureZ}
+import java.util.regex.{Pattern, Matcher}
+import scala.Some
+import uk.gov.tna.dri.{UNIX_FILE_SEPARATOR, WINDOWS_FILE_SEPARATOR, FILE_SEPARATOR, URI_PATH_SEPARATOR}
 
 abstract class Rule(name: String, val argProviders: ArgProvider*) extends Positional {
 
@@ -488,6 +491,7 @@ case class FileCountRule(rootPath: ArgProvider, file: ArgProvider, pathSubstitut
 }
 
 trait FileWildcardSearch[T] {
+
   val pathSubstitutions: List[(String,String)]
   def matchWildcardPaths(matchList: PathSet[Path],fullPath: String): ValidationNEL[String, T]
   def matchSimplePath(fullPath: String): ValidationNEL[String, T]
@@ -495,27 +499,108 @@ trait FileWildcardSearch[T] {
   val wildcardPath = (p: Path, matchPath: String) => p.descendants( p.matcher( matchPath))
   val wildcardFile = (p: Path, matchPath: String) => p.children( p.matcher( "**/" +matchPath))
 
-  def findBase(path:String): (String, String) = {
+  //TODO consider re-writing the FileSystem stuff to use TypedPath now that we have toPlatform - just need a better File approach and handling of parent/child - maybe use scalax.file.Path
+  abstract class TypedPath {
+
+    def path : String
+
+    val separator = UNIX_FILE_SEPARATOR
+    //private lazy val p = Path.fromString(path)
+
+    def name = path.lastIndexOf(separator) match {
+      case -1 =>
+        path
+      case index =>
+        path.substring(index + 1)
+    }
+    //def hasParent = !p.parent.isEmpty
+    //protected def parentPath = p.parent.get.path
+    def hasParent = parentPath.nonEmpty
+    private lazy val parentPath : Option[String] = {
+      path.lastIndexOf(separator) match {
+        case -1 =>
+          None
+        case index =>
+          Some(path.substring(0, index))
+      }
+    }
+    def parent : Option[TypedPath] = parentPath match {
+      case Some(pp) => Some(construct(pp))
+      case _ => None
+    }
+    protected def construct(p: String) : TypedPath
+    def thisFolder : TypedPath = construct(".")
+    def toString : String
+    protected lazy val isWindowsPlatform = sys.props("os.name").toLowerCase.startsWith("win")
+    def toPlatform : TypedPath
+  }
+
+  object TypedPath {
+
+    //extracts the scheme from the file:/c:/ or file:/// or file:///c:/ part of a URI
+    lazy val fileUriPattern = Pattern.compile("((file:///)[a-zA-Z]+:/|(file://)/|(file:/)[a-zA-Z]+:/)(.*)")
+    //extracts the path from the URI
+    lazy val fileUriPathPattern = Pattern.compile("file:///([a-zA-Z]+:/.*)|file://(/.*)|file:/([a-zA-Z]+:/.*)")
+
+    def apply(path : String) : TypedPath = {
+      val fileUriMatcher = fileUriPattern.matcher(path)
+      if(fileUriMatcher.matches) {
+       val fileUriPathMatcher = fileUriPathPattern.matcher(path)
+        new FileUriPath(fileUriMatcher.replaceFirst("$2$3$4"), fileUriPathMatcher.replaceFirst("$1$2$3"))
+      } else if(path.contains(UNIX_FILE_SEPARATOR) && !path.contains(WINDOWS_FILE_SEPARATOR)) {
+        new UnixPath(path)
+      } else {
+        new WindowsPath(path)
+      }
+    }
+  }
+
+  case class FileUriPath(uriPrefix : String, path: String) extends TypedPath {
+    def toURI : URI = new URI(uriPrefix + FileSystem.file2PlatformIndependent(path))
+    override def toString : String = toURI.toString
+    override protected def construct(p : String) = new FileUriPath(uriPrefix, p);
+    override def toPlatform = this
+  }
+  case class WindowsPath(path : String) extends TypedPath {
+    override val separator = WINDOWS_FILE_SEPARATOR
+    override def toString = FileSystem.file2WindowsPlatform(path)
+    override protected def construct(p : String) = new WindowsPath(p)
+    override def toPlatform = if(isWindowsPlatform) this else new UnixPath(FileSystem.file2UnixPlatform(path))
+  }
+  case class UnixPath(path : String) extends TypedPath {
+    override def toString = FileSystem.file2UnixPlatform(path)
+    override protected def construct(p: String) = new UnixPath(p)
+    override def toPlatform = if(isWindowsPlatform) new WindowsPath(FileSystem.file2WindowsPlatform(path)) else this
+  }
+
+  def findBase(path:String): (TypedPath, String) = {
 
     @tailrec
-    def findBaseRecur(p: String, f: String): (String,String) = {
-      if (p.contains("*")) findBaseRecur(Path.fromString(p).parent.get.path, Path.fromString(p).name + "/" + f)
-      else (p, f)
+    def findBaseRecur(p : TypedPath, subPath: String) : (TypedPath, String) = {
+      p.parent match {
+        case None =>
+          (p.thisFolder, subPath)
+
+        case Some(parent) =>
+          if(!parent.path.contains("*"))
+            (parent, subPath)
+          else
+            findBaseRecur(parent, parent.name + p.separator + subPath)
+      }
     }
 
-    if (path.startsWith("file://"))  {
-      val pathURI = Path(new URI( FileSystem.replaceSpaces(path))).get
-      findBaseRecur("file://" + pathURI.parent.get.path, pathURI.name)
-    } else if (Path.fromString(path).parent.isEmpty) ("./", path) else findBaseRecur(Path.fromString(path).parent.get.path, Path.fromString(path).name)
+    val typedBasePath = TypedPath(path)
+    findBaseRecur(typedBasePath, typedBasePath.name)
+
   }
 
   def search(filePaths: (String, String)): ValidationNEL[String, T] = {
     try {
       val fullPath = new FileSystem( None, filePaths._1 + filePaths._2, pathSubstitutions).expandBasePath
-      val (basePath,matchPath ) = findBase(fullPath)
+      val (basePath, matchPath) = findBase(fullPath)
 
       val path: Option[Path] = {
-        FileSystem.createFile( basePath ) match {
+        FileSystem.createFile( basePath.toPlatform.toString ) match {
           case scala.util.Success(f) => Some(Path(f))
           case scala.util.Failure(_) => None
         }
@@ -530,7 +615,7 @@ trait FileWildcardSearch[T] {
         }
       }
 
-      def basePathExists: Boolean =   filePaths._1.length>0 && (!(FileSystem.createFile( basePath ) match {
+      def basePathExists: Boolean =   filePaths._1.length>0 && (!(FileSystem.createFile( basePath.toPlatform.toString ) match {
         case scala.util.Success(f) =>   f.exists
         case scala.util.Failure(_) => false
       }))
@@ -542,7 +627,8 @@ trait FileWildcardSearch[T] {
       def matchUsesWildFiles: Boolean = matchPath.contains("*")
 
       def fileExists: Boolean = {
-        val path = basePath+System.getProperty("file.separator") + matchPath
+        val platformPath = basePath.toPlatform
+        val path = platformPath.toString + platformPath.separator + matchPath
 
         FileSystem.createFile( path ) match {
           case scala.util.Success(file) =>   file.exists
@@ -614,16 +700,20 @@ case class AndRule(left: Rule, right: Rule) extends Rule("and") {
 }
 
 object FileSystem {
-  def createFile( filename:String): Try[File] =  Try{ if( filename.startsWith("file:")) new File( new URI(filename)) else  new File( filename )}
+  def createFile(filename: String): Try[File] =  Try{ if( filename.startsWith("file:")) new File( new URI(filename)) else  new File( filename )}
 
-  def replaceSpaces( file: String): String = file.replace(" ", "%20")
+  def replaceSpaces(file: String): String = file.replace(" ", "%20")
 
-  private def file2PlatformDependent( file: String): String =
-    if ( System.getProperty("file.separator") == "/" ) file.replace('\\', '/')
-    else file.replace('/', '\\')
+  def file2PlatformIndependent(file: String): String =
+    file.replaceAll("""([^\\]?)\\([^\\]?)""", "$1/$2")
+
+  def file2UnixPlatform(file: String) : String = file2PlatformIndependent(file)
+
+  def file2WindowsPlatform(file: String) : String =
+    file.replaceAll("([^/]?)/([^/]?)", """$1\\$2""")
 
   def convertPath2Platform(filename: String): String = {
-    if ( filename.startsWith("file://"))  replaceSpaces(filename) else file2PlatformDependent( filename )
+    if ( filename.startsWith("file:/"))  replaceSpaces(filename) else file2PlatformIndependent( filename )
   }
 }
 
@@ -633,35 +723,51 @@ case class FileSystem(basePath: Option[String], file: String, pathSubstitutions:
 
   def this( file: String, pathSubstitutions: List[(String,String)]) = this(None, file, pathSubstitutions)
 
-  val separator: Char = System.getProperty("file.separator").head
+  val separator: Char = FILE_SEPARATOR
 
-  private def substitutePath(  filename: String): String = {
-    val x = pathSubstitutions.filter{ case (subFrom, _) => filename.contains(subFrom)}.map{ case (subFrom, subTo) => filename.replaceFirst(subFrom, subTo) }
-    if (x.isEmpty) filename else x.head
+  private def substitutePath(filename: String): String = {
+    val x = {
+      pathSubstitutions.filter {
+        case (subFrom, _) => filename.contains(subFrom)
+      }.map {
+        case (subFrom, subTo) => filename.replaceFirst(Matcher.quoteReplacement(subFrom), Matcher.quoteReplacement(FileSystem.file2PlatformIndependent(subTo)))
+      }
+    }
+    if(x.isEmpty)
+      filename
+    else
+      x.head
   }
 
   def jointPath: String = {
-    val fs: Char = System.getProperty("file.separator").head
+    val uri_sep: Char = URI_PATH_SEPARATOR
 
     basePath match {
       case Some(bp) =>
-        if (bp.length > 0 && bp.last != fs && file.head != fs) bp + fs + file
-        else if (bp.length > 0 && bp.last == fs && file.head == fs) bp + file.tail
-        else bp + file
+
+        if (bp.length > 0 && bp.last != uri_sep && file.head != uri_sep) {
+          bp + uri_sep + file
+        } else if (bp.length > 0 && bp.last == uri_sep && file.head == uri_sep) {
+          bp + file.tail
+        } else {
+          bp + file
+        }
 
       case None => file
     }
   }
 
   def exists: Boolean = {
-    FileSystem.createFile( FileSystem.convertPath2Platform( substitutePath(jointPath))) match {
+    FileSystem.createFile(FileSystem.convertPath2Platform(substitutePath(jointPath))) match {
       case scala.util.Success(f) => f.exists
       case scala.util.Failure(_) => false
     }
   }
 
   def expandBasePath: String = {
-    if ( basePath.isEmpty || basePath.getOrElse("") == "")  FileSystem.file2PlatformDependent(substitutePath(file))
-    else FileSystem.file2PlatformDependent(substitutePath(jointPath))
+    if( basePath.isEmpty || basePath.getOrElse("") == "")
+      FileSystem.file2PlatformIndependent(substitutePath(file))
+    else
+      FileSystem.file2PlatformIndependent(substitutePath(jointPath))
   }
 }

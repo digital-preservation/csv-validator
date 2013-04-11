@@ -14,7 +14,9 @@ import collection.immutable.TreeMap
 import java.security.MessageDigest
 import scalaz._
 import Scalaz._
+import uk.gov.tna.dri.EOL
 import uk.gov.tna.dri.validator.{SchemaMessage, FailMessage}
+import scala.util.parsing.input.{OffsetPosition, Position}
 
 trait SchemaParser extends RegexParsers {
 
@@ -41,12 +43,21 @@ trait SchemaParser extends RegexParsers {
   val pathSubstitutions: List[(String,String)]
 
   def parseAndValidate(reader: Reader): ValidationNEL[FailMessage, Schema] = {
+
+    //TODO following function works around a deficiency in scala.util.parsing.combinator.Parsers{$Error, $Failure} that use hard-coded Unix EOL in Scala 2.10.0
+    def formatNoSuccessMessageForPlatform(s: String) = {
+      if(sys.props("os.name").toLowerCase.startsWith("win"))
+        s.replaceAll("([^\\r]?)\\n", "$1\r\n")
+      else
+        s
+    }
+
     parse(reader) match {
       case s @ Success(schema: Schema, next) => {
         val errors = validate(schema.globalDirectives, schema.columnDefinitions)
         if (errors.isEmpty) schema.successNel[FailMessage] else SchemaMessage(errors).failNel[Schema]
       }
-      case n: NoSuccess => SchemaMessage(n.toString).failNel[Schema]
+      case n: NoSuccess => SchemaMessage(formatNoSuccessMessageForPlatform(n.toString)).failNel[Schema]
     }
   }
 
@@ -202,7 +213,7 @@ trait SchemaParser extends RegexParsers {
 
   private def validate(g: List[GlobalDirective], c: List[ColumnDefinition]): String = {
     globDirectivesValid(g) ::totalColumnsValid(g, c) :: columnDirectivesValid(c) :: duplicateColumnsValid(c) :: crossColumnsValid(c) :: checksumAlgorithmValid(c) ::
-    rangeValid(c) :: lengthValid(c) :: regexValid(c) :: dateRangeValid(c) :: uniqueMultiValid(c) :: explicitColumnValid(c) :: Nil collect { case Some(s: String) => s } mkString("\n")
+    rangeValid(c) :: lengthValid(c) :: regexValid(c) :: dateRangeValid(c) :: uniqueMultiValid(c) :: explicitColumnValid(c) :: Nil collect { case Some(s: String) => s } mkString(EOL)
   }
 
   private def totalColumnsValid(g: List[GlobalDirective], c: List[ColumnDefinition]): Option[String] = {
@@ -218,7 +229,7 @@ trait SchemaParser extends RegexParsers {
     val duplicates = TreeMap(columnDefinitions.groupBy(_.id).toSeq:_*).filter(_._2.length > 1)
 
     if (duplicates.isEmpty) None
-    else Some(duplicates.map { case (id, cds) => s"""Column: $id has duplicates on lines """ + cds.map(cd => cd.pos.line).mkString(", ") }.mkString("\n"))
+    else Some(duplicates.map { case (id, cds) => s"""Column: $id has duplicates on lines """ + cds.map(cd => cd.pos.line).mkString(", ") }.mkString(EOL))
   }
 
   private def globDirectivesValid(directives: List[GlobalDirective]): Option[String] = {
@@ -226,7 +237,7 @@ trait SchemaParser extends RegexParsers {
       s"Global directive @$name is duplicated"
     }
 
-    if (duplicates.isEmpty) None else Some(duplicates.mkString("\n"))
+    if (duplicates.isEmpty) None else Some(duplicates.mkString(EOL))
   }
 
   private def columnDirectivesValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
@@ -238,7 +249,7 @@ trait SchemaParser extends RegexParsers {
       cd.directives.groupBy(identity).filter { case (_, cds) => cds.size > 1}.map { case (cdId, _) => "@" + cdId + s" at line: ${cdId.pos.line}, column: ${cdId.pos.column}"}.mkString(", ")
     }
 
-    if (v.isEmpty) None else Some(v.mkString("\n"))
+    if (v.isEmpty) None else Some(v.mkString(EOL))
   }
 
   private def checksumAlgorithmValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
@@ -264,7 +275,7 @@ trait SchemaParser extends RegexParsers {
       }
     }
 
-    if (v.isEmpty) None else Some(v.mkString("\n"))
+    if (v.isEmpty) None else Some(v.mkString(EOL))
   }
 
   private def rangeValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
@@ -284,7 +295,7 @@ trait SchemaParser extends RegexParsers {
       }
     }
 
-    if (v.isEmpty) None else Some(v.mkString("\n"))
+    if (v.isEmpty) None else Some(v.mkString(EOL))
   }
 
   private def lengthValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
@@ -304,7 +315,7 @@ trait SchemaParser extends RegexParsers {
       }
     }
 
-    if (v.isEmpty) None else Some(v.mkString("\n"))
+    if (v.isEmpty) None else Some(v.mkString(EOL))
   }
 
   private def crossColumnsValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
@@ -328,7 +339,7 @@ trait SchemaParser extends RegexParsers {
     val errors = columnDefinitions.map(cd => (cd, filterRules(cd))).filter(_._2.length > 0)
 
     if (errors.isEmpty) None
-    else Some(errors.map { case (cd, rules) => s"Column: ${cd.id} has invalid ${crossReferenceErrors(rules)}" }.mkString("\n"))
+    else Some(errors.map { case (cd, rules) => s"Column: ${cd.id} has invalid ${crossReferenceErrors(rules)}" }.mkString(EOL))
   }
 
   private def regexValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
@@ -343,7 +354,7 @@ trait SchemaParser extends RegexParsers {
       if (regexCheck(rule))
     } yield s"""Column: ${cd.id}: Invalid ${rule.toError}: at line: ${rule.pos.line}, column: ${rule.pos.column}"""
 
-    if (result.isEmpty) None else Some(result.mkString("\n"))
+    if (result.isEmpty) None else Some(result.mkString(EOL))
   }
 
   private def dateRangeValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
@@ -367,7 +378,7 @@ trait SchemaParser extends RegexParsers {
       if (!dateCheck(rule))
     } yield s"""Column: ${cd.id}: Invalid ${rule.toError}: at line: ${rule.pos.line}, column: ${rule.pos.column}"""
 
-    if (result.isEmpty) None else Some(result.mkString("\n"))
+    if (result.isEmpty) None else Some(result.mkString(EOL))
   }
 
   private def uniqueMultiValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
@@ -388,7 +399,7 @@ trait SchemaParser extends RegexParsers {
       _ <- invalidColumns
     } yield s"""Column: ${cd.id}: Invalid cross reference ${invalidColumns.get.mkString("$", ", $", "")}: at line: ${rule.pos.line}, column: ${rule.pos.column}"""
 
-    if (v.isEmpty) None else Some(v.mkString("\n"))
+    if (v.isEmpty) None else Some(v.mkString(EOL))
   }
 
   private def explicitColumnValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
@@ -439,6 +450,6 @@ trait SchemaParser extends RegexParsers {
       if( errorColumn.isDefined && errorColumn.get.length > 0)
     } yield  s"""Column: ${cd.id}: Invalid explicit column ${errorColumn.get.mkString(", ")}: at line: ${rule.pos.line}, column: ${rule.pos.column}"""
 
-    if (result.isEmpty) None else Some(result.mkString("\n"))
+    if (result.isEmpty) None else Some(result.mkString(EOL))
   }
 }
