@@ -64,7 +64,7 @@ class FileExistsRuleSpec extends Specification{
     }
 
     "succeed with windows file seperators" in {
-      FileSystem(Some("""src\\test\\resources\\uk\\gov\\tna\\"""), """dri\\schema\\mustExistForRule.txt""", emptyPathSubstitutions ).exists must beTrue
+      FileSystem(Some("src\\test\\resources\\uk\\gov\\tna\\"), "dri\\schema\\mustExistForRule.txt", emptyPathSubstitutions ).exists must beTrue
     }
 
     "succeed even when the filename contains %20 spaces" in {
