@@ -104,7 +104,7 @@ class FileCountSpec extends Specification {
       }
     }
 
-    "find multiple file fina single directory from relative path" in {
+    "find multiple file in a single directory from relative path" in {
       wildCard.search( ("src/test/resources/uk/gov/tna/dri/fileCountTestFiles/threeFiles/","*.jp2") )   mustEqual Success(3)
     }
 
