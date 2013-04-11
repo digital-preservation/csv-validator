@@ -9,6 +9,7 @@ package uk.gov.tna.dri.validator
 
 import org.specs2.mutable.Specification
 import scalaz._
+import uk.gov.tna.dri.EOL
 import uk.gov.tna.dri.schema.Schema
 import java.io.StringReader
 
@@ -49,7 +50,7 @@ class MetaDataValidatorAppSpec extends Specification {
 
     "fail if both metadata and schema file are unreadable" in {
       MetaDataValidatorCommandLineApp.run(Array("nonExistentmetaData.csv", "nonExistentSchema.txt")) must beLike {
-        case (errMsg,errCode) => errMsg mustEqual "Unable to read file : nonExistentmetaData.csv\nUnable to read file : nonExistentSchema.txt"
+        case (errMsg,errCode) => errMsg mustEqual "Unable to read file : nonExistentmetaData.csv" + EOL + "Unable to read file : nonExistentSchema.txt"
       }
     }
 
@@ -63,15 +64,15 @@ class MetaDataValidatorAppSpec extends Specification {
   "Fail fast and file args" should {
 
     "return true and the file names for fail fast" in {
-      MetaDataValidatorCommandLineApp.run(Array("--fail-fast", "someMetaData.csv", "someSchema.txt")) mustEqual ("Unable to read file : someMetaData.csv\nUnable to read file : someSchema.txt",1)
+      MetaDataValidatorCommandLineApp.run(Array("--fail-fast", "someMetaData.csv", "someSchema.txt")) mustEqual ("Unable to read file : someMetaData.csv" + EOL + "Unable to read file : someSchema.txt",1)
     }
 
     "return true and the file names for fail fast short form" in {
-      MetaDataValidatorCommandLineApp.run(Array("-f", "someMetaData.csv", "someSchema.txt")) mustEqual ("Unable to read file : someMetaData.csv\nUnable to read file : someSchema.txt",1)
+      MetaDataValidatorCommandLineApp.run(Array("-f", "someMetaData.csv", "someSchema.txt")) mustEqual ("Unable to read file : someMetaData.csv" + EOL + "Unable to read file : someSchema.txt",1)
     }
 
     "return false and the file names for no fail fast" in {
-      MetaDataValidatorCommandLineApp.run(Array("someMetaData.csv", "someSchema.txt")) mustEqual ("Unable to read file : someMetaData.csv\nUnable to read file : someSchema.txt",1)
+      MetaDataValidatorCommandLineApp.run(Array("someMetaData.csv", "someSchema.txt")) mustEqual ("Unable to read file : someMetaData.csv" + EOL + "Unable to read file : someSchema.txt",1)
     }
   }
 
@@ -106,7 +107,7 @@ class MetaDataValidatorAppSpec extends Specification {
 
 
     "be able to handle a missing value" in {
-      MetaDataValidatorCommandLineApp.findPaths( List("--path", "hello" )) mustEqual Left("Missing param to --path\nUsage: validate [--fail-fast] [--path <from> <to>]* <meta-data file path> <schema file path>")
+      MetaDataValidatorCommandLineApp.findPaths( List("--path", "hello" )) mustEqual Left("Missing param to --path" + EOL + "Usage: validate [--fail-fast] [--path <from> <to>]* <meta-data file path> <schema file path>")
     }
 
     "find the --fail-fast option" in {
@@ -166,12 +167,13 @@ class MetaDataValidatorAppSpec extends Specification {
         """.stripMargin
 
       app.parseAndValidate(new StringReader(schema)) must beLike {
-        case Failure(msgs) => msgs.list mustEqual List(SchemaMessage(
-          """[3.7] failure: Invalid schema text
-            |
-            |Name: regox("A")
-            |
-            |      ^""".stripMargin))
+        case Failure(msgs) =>
+          msgs.list mustEqual List(SchemaMessage(
+          "[3.7] failure: Invalid schema text" + EOL
+          + EOL
+          + """Name: regox("A")""" + EOL
+          + EOL
+          + "      ^"))
       }
     }
   }

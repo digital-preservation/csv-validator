@@ -13,7 +13,7 @@ import uk.gov.tna.dri.schema.Schema
 
 class MetaDataValidatorBusinessAcceptanceSpec extends Specification {
 
-  val basePath = "src/test/resources/uk/gov/tna/dri/validator/acceptance/dptests/"
+  val basePath = "src/test/resources/uk/gov/tna/dri/validator/acceptance/dp/"
 
   val v: MetaDataValidatorApp = new MetaDataValidatorApp with AllErrorsMetaDataValidator { val pathSubstitutions = List[(String,String)]() }
   import v.{validate, parseSchema}

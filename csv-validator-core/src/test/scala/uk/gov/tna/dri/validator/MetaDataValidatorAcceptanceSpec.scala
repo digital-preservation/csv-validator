@@ -191,7 +191,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification {
 
     "fail if both the lhs or rhs are fail" in {
       validate(basePath + "orWithTwoRulesFailMetaData.csv", parse(basePath + "orWithTwoRulesSchema.txt")) must beLike {
-        case Failure(errors) => errors.list mustEqual List(ErrorMessage("""regex("[A-Z][a-z]+") or regex("[0-9]+") fails for line: 4, column: CountryOrCountryCode, value: "@@£$%^""""))
+        case Failure(errors) => errors.list mustEqual List(ErrorMessage("""regex("[A-Z][a-z]+") or regex("[0-9]+") fails for line: 4, column: CountryOrCountryCode, value: "Andromeda9""""))
       }
     }
 

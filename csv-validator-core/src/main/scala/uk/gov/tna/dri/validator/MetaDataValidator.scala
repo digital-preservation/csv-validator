@@ -20,7 +20,6 @@ case class WarningMessage(message:String) extends FailMessage(message)
 case class ErrorMessage(message:String) extends FailMessage(message)
 case class SchemaMessage(message:String) extends FailMessage(message)
 
-
 trait MetaDataValidator {
   type MetaDataValidation[S] = ValidationNEL[FailMessage, S]
 
