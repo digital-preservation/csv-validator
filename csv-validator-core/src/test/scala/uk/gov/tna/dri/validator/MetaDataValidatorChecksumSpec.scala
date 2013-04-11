@@ -59,7 +59,7 @@ class MetaDataValidatorChecksumSpec extends Specification {
       val metaData = """src/test/resources/uk/gov/tna/dri/schema/checksum.txt,wrong"""
 
       validate(metaData, schema) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""checksum(file("src/test/resources/uk/gov/tna/dri/schema/checksum.txt"), "MD5") file "src/test/resources/uk/gov/tna/dri/schema/checksum.txt" checksum match fails for line: 1, column: MD5, value: "wrong""""))
+        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""checksum(file("src/test/resources/uk/gov/tna/dri/schema/checksum.txt"), "MD5") file "src/test/resources/uk/gov/tna/dri/schema/checksum.txt" checksum match fails for line: 1, column: MD5, value: "wrong". Computed checksum value:"232762380299115da6995e4c4ac22fa2""""))
       }
     }
   }
@@ -89,7 +89,7 @@ class MetaDataValidatorChecksumSpec extends Specification {
       val metaData = """ABC,wrong"""
 
       validate(metaData, schema) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""checksum(file("src/test/resources/uk/gov/tna/dri/schema", "checksum.txt"), "MD5") file "src/test/resources/uk/gov/tna/dri/schema/checksum.txt" checksum match fails for line: 1, column: MD5, value: "wrong""""))
+        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""checksum(file("src/test/resources/uk/gov/tna/dri/schema", "checksum.txt"), "MD5") file "src/test/resources/uk/gov/tna/dri/schema/checksum.txt" checksum match fails for line: 1, column: MD5, value: "wrong". Computed checksum value:"232762380299115da6995e4c4ac22fa2""""))
       }
     }
   }
@@ -150,7 +150,7 @@ class MetaDataValidatorChecksumSpec extends Specification {
       val metaData = """src/test/resources/uk/gov/tna/dri/schema/checksum.txt,rubbish"""
 
       validate(metaData, schema) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""checksum(file($File), "MD5") file "src/test/resources/uk/gov/tna/dri/schema/checksum.txt" checksum match fails for line: 1, column: MD5, value: "rubbish""""))
+        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""checksum(file($File), "MD5") file "src/test/resources/uk/gov/tna/dri/schema/checksum.txt" checksum match fails for line: 1, column: MD5, value: "rubbish". Computed checksum value:"232762380299115da6995e4c4ac22fa2""""))
       }
     }
   }
@@ -166,7 +166,7 @@ class MetaDataValidatorChecksumSpec extends Specification {
       val metaData = """checksum.txt,rubbish"""
 
       validate(metaData, schema) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""checksum(file("src/test/resources/uk/gov/tna/dri/schema", $File), "MD5") file "src/test/resources/uk/gov/tna/dri/schema/checksum.txt" checksum match fails for line: 1, column: MD5, value: "rubbish""""))
+        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""checksum(file("src/test/resources/uk/gov/tna/dri/schema", $File), "MD5") file "src/test/resources/uk/gov/tna/dri/schema/checksum.txt" checksum match fails for line: 1, column: MD5, value: "rubbish". Computed checksum value:"232762380299115da6995e4c4ac22fa2""""))
       }
     }
   }

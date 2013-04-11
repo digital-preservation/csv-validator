@@ -385,7 +385,7 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
 
     search(filename(columnIndex, row, schema)) match {
       case SuccessZ(hexValue: String) if hexValue == cellValue(columnIndex,row,schema) => true.successNel[String]
-      case SuccessZ(hexValue: String) => s"$toError file ${'"'}${filename(columnIndex, row, schema)._1}${filename(columnIndex, row, schema)._2}${'"'} checksum match fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}".failNel[Any]
+      case SuccessZ(hexValue: String) => s"$toError file ${'"'}${filename(columnIndex, row, schema)._1}${filename(columnIndex, row, schema)._2}${'"'} checksum match fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}. Computed checksum value:${'"'}${hexValue}${'"'}".failNel[Any]
       case FailureZ(errMsg) => s"$toError ${errMsg.head} for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}".failNel[Any]
     }
   }
@@ -430,7 +430,7 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
         fileBuffer.close()
         hexEncode(digest.digest).successNel[String]
 
-      case scala.util.Failure(_) => "file not found".failNel[String]
+      case scala.util.Failure(_) => s"""file '$file' not found""".failNel[String]
     }
   }
 
