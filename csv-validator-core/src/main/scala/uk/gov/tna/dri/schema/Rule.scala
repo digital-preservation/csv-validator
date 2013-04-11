@@ -710,7 +710,7 @@ object FileSystem {
   def file2UnixPlatform(file: String) : String = file2PlatformIndependent(file)
 
   def file2WindowsPlatform(file: String) : String =
-    file.replaceAll("([^/]?)/([^/])", """$1\$2""")
+    file.replaceAll("([^/]?)/([^/])", """$1\\$2""")
 
   def convertPath2Platform(filename: String): String = {
     if ( filename.startsWith("file:/"))  replaceSpaces(filename) else file2PlatformIndependent( filename )
