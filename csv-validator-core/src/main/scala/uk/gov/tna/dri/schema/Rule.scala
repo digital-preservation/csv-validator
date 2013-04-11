@@ -18,7 +18,7 @@ import util.Try
 import annotation.tailrec
 import java.net.URI
 import org.joda.time.{Interval, LocalTime, DateTime}
-import org.joda.time.format.DateTimeFormat
+import org.joda.time.format.{DateTimeFormatter, DateTimeFormatterBuilder, ISODateTimeFormat, DateTimeFormat}
 import scalaz.{Success => SuccessZ, Failure => FailureZ}
 import java.util.regex.{Pattern, Matcher}
 import scala.Some
@@ -229,17 +229,28 @@ trait DateParser {
   def parse(dateStr: String): Try[DateTime]
 }
 
-object IsoDateParser extends DateParser {
+object IsoDateTimeParser extends DateParser {
   def parse(dateStr: String): Try[DateTime] = Try(DateTime.parse(dateStr))
+}
+
+object XsdDateParser extends DateParser {
+  val xsdDateFormatter = new DateTimeFormatterBuilder()
+    .append(ISODateTimeFormat.dateElementParser)
+    .appendOptional(
+      new DateTimeFormatterBuilder()
+        .appendTimeZoneOffset("Z", true, 2, 4).toParser
+    ).toFormatter
+
+  def parse(dateStr: String): Try[DateTime] = Try(DateTime.parse(dateStr, xsdDateFormatter))
+}
+
+object IsoTimeParser extends DateParser {
+  def parse(dateStr: String): Try[DateTime] = Try(DateTime.parse(dateStr, ISODateTimeFormat.timeParser))
 }
 
 object UkDateParser extends DateParser {
   val fmt = DateTimeFormat.forPattern(UkDateFormat)
   def parse(dateStr: String): Try[DateTime] = Try(fmt.parseDateTime(dateStr))
-}
-
-object TimeParser extends DateParser {
-  def parse(dateStr: String) = Try(LocalTime.parse(dateStr).toDateTimeToday)
 }
 
 abstract class DateRangeRule(name: String, dateRegex: String, dateParser: DateParser) extends Rule(name) {
@@ -280,21 +291,21 @@ abstract class DateRule(name: String, dateRegex: String, dateParser: DateParser)
   }
 }
 
-case class XsdDateTimeRule() extends DateRule("xDateTime", XsdDateTimeRegex, IsoDateParser)
+case class XsdDateTimeRule() extends DateRule("xDateTime", XsdDateTimeRegex, IsoDateTimeParser)
 
-case class XsdDateTimeRangeRule(from: String, to: String) extends DateRangeRule("xDateTime", XsdDateTimeRegex, IsoDateParser)
+case class XsdDateTimeRangeRule(from: String, to: String) extends DateRangeRule("xDateTime", XsdDateTimeRegex, IsoDateTimeParser)
 
-case class XsdDateRule() extends DateRule("xDate", XsdDateRegex, IsoDateParser)
+case class XsdDateRule() extends DateRule("xDate", XsdDateRegex, XsdDateParser)
 
-case class XsdDateRangeRule(from: String, to: String) extends DateRangeRule("xDate",  XsdDateRegex, IsoDateParser)
+case class XsdDateRangeRule(from: String, to: String) extends DateRangeRule("xDate",  XsdDateRegex, XsdDateParser)
 
 case class UkDateRule() extends DateRule("ukDate", UkDateRegex, UkDateParser)
 
 case class UkDateRangeRule(from: String, to: String) extends DateRangeRule("ukDate", UkDateRegex, UkDateParser)
 
-case class XsdTimeRule() extends DateRule("xTime", XsdTimeRegex, TimeParser)
+case class XsdTimeRule() extends DateRule("xTime", XsdTimeRegex, IsoTimeParser)
 
-case class XsdTimeRangeRule(from: String, to: String) extends DateRangeRule("xTime", XsdTimeRegex, TimeParser)
+case class XsdTimeRangeRule(from: String, to: String) extends DateRangeRule("xTime", XsdTimeRegex, IsoTimeParser)
 
 case class PartUkDateRule() extends PatternRule("partUkDate", PartUkDateRegex)
 
