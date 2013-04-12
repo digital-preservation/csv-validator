@@ -2,15 +2,12 @@ import AssemblyKeys._
 
 name := "csv-validator-core"
 
+//TODO remove in favour of csv-validator-parent/build.sbt
+scalaVersion in ThisBuild := "2.10.0"
+
 parallelExecution in Test := true
 
-publishTo := Some("Artifactory Realm" at "http://wb-d-tfs2.web.local:8081/artifactory/libs-release-local")
-
-credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
-
 publishMavenStyle := true
-
-resolvers += "artifactory-external-releases" at "http://wb-d-tfs2.web.local:8081/artifactory/ext-release-local"
 
 assemblySettings
 
