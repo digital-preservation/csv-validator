@@ -1,0 +1,51 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>uk.gov.nationalarchives</groupId>
+        <artifactId>csv-validator-parent</artifactId>
+        <version>1.0-SNAPSHOT</version>
+        <relativePath>../csv-validator-parent</relativePath>
+    </parent>
+
+    <artifactId>csv-validator-ui</artifactId>
+    <packaging>jar</packaging>
+
+    <build>
+
+        <plugins>
+            <plugin>
+                <groupId>net.alchim31.maven</groupId>
+                <artifactId>scala-maven-plugin</artifactId>
+                <configuration>
+                    <recompileMode>incremental</recompileMode>
+                    <!-- useZincServer>true</useZincServer -->          <!-- NOTE: if you have Zinc server installed and running, you can get faster compilation by enabling this -->
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-library</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-swing</artifactId>
+            <version>2.10.0</version>
+        </dependency>
+        <dependency>
+            <groupId>net.java.dev.designgridlayout</groupId>
+            <artifactId>designgridlayout</artifactId>
+            <version>1.10</version>
+        </dependency>
+	    <dependency>
+	        <groupId>${project.groupId}</groupId>
+	        <artifactId>csv-validator-core</artifactId>
+	        <version>${project.version}</version>
+	    </dependency>
+    </dependencies>
+</project>
