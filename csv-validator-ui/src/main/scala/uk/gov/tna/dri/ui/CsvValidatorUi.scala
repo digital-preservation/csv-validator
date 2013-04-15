@@ -8,12 +8,14 @@
 package uk.gov.tna.dri.ui
 
 import scala.swing._
-import javax.swing.{JOptionPane, UnsupportedLookAndFeelException, UIManager}
+import javax.swing._
 import net.java.dev.designgridlayout._
 import scala.swing.event.ButtonClicked
 import scala.swing.FileChooser.Result
 import java.io.{File, PrintWriter}
 import uk.gov.tna.dri.validator.MetaDataValidatorCommandLineApp
+import org.jdesktop.swingx.{JXTaskPane, JXTaskPaneContainer}
+import swing.event.ButtonClicked
 
 object CsvValidatorUi extends SimpleSwingApplication {
 
@@ -84,6 +86,12 @@ object CsvValidatorUi extends SimpleSwingApplication {
     val csvSchemaFileChooser = new FileChooser
     val btnChooseCsvSchemaFile = new Button("...")
     btnChooseCsvSchemaFile.reactions += chooseFile(csvSchemaFileChooser, txtCsvSchemaFile, btnChooseCsvSchemaFile)
+
+    val settingsPane = new JXTaskPaneContainer
+    val settingsGroup = new JXTaskPane("Settings")
+    settingsGroup.add(new JLabel("hello1"))
+    settingsGroup.add(new JButton("hello2"))
+    settingsPane.add(settingsGroup)
 
     val separator1 = new Separator
 
