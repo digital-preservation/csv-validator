@@ -10,6 +10,11 @@ package uk.gov.tna.dri.ui
 import net.java.dev.designgridlayout.{ISpannableGridRow, IRowCreator, IGridRow, IRow}
 import swing.{Label, Component}
 
+/**
+ * Some simple Implicits to ease
+ * working with DesignGridLayout
+ * from scala.swing
+ */
 object DesignGridImplicits {
 
   implicit def iRowAddComponent(iRow: IRow): { def add(component: Component) : IRow } = new {

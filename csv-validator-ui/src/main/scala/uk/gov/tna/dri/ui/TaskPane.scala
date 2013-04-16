@@ -10,11 +10,17 @@ package uk.gov.tna.dri.ui
 import swing.{Component, Panel}
 import org.jdesktop.swingx.{JXTaskPane, JXTaskPaneContainer}
 
+/**
+ * scala.swing compatible implementation of JXTaskPaneContainer
+ */
 class TaskPaneContainer extends Panel {
   override lazy val peer = new JXTaskPaneContainer
   def add(taskPane: TaskPane) = peer.add(taskPane.peer)
 }
 
+/**
+ * scala.swing compatible implementation of JXTaskPane
+ */
 class TaskPane(title: String) extends Panel {
   override lazy val peer = new JXTaskPane(title)
   def this() = this("")
