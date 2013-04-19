@@ -8,58 +8,47 @@
 package uk.gov.tna.dri.ui
 
 import scala.swing._
-import javax.swing.{JOptionPane, UnsupportedLookAndFeelException, UIManager}
+import javax.swing._
 import net.java.dev.designgridlayout._
-import scala.swing.event.ButtonClicked
-import scala.swing.FileChooser.Result
 import java.io.{File, PrintWriter}
+import table.DefaultTableModel
 import uk.gov.tna.dri.validator.MetaDataValidatorCommandLineApp
+import swing.GridBagPanel.Anchor
+import uk.gov.tna.dri.ui.DesignGridImplicits._
+import scala.swing.PopupMenuImplicits._
+import ScalaSwingHelpers._
 
+/**
+ * Simple GUI for the CSV Validator
+ */
 object CsvValidatorUi extends SimpleSwingApplication {
 
   override def startup(args: Array[String]) {
     try {
-      UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())
+      UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName)
     } catch {
-      case ulafe : UnsupportedLookAndFeelException =>
-        JOptionPane.showMessageDialog(this.top.peer, "Unable to set native look and feel: " + ulafe.getMessage, "Look and Feel Warning", JOptionPane.WARNING_MESSAGE)
+      case ue : UnsupportedLookAndFeelException =>
+        JOptionPane.showMessageDialog(this.top.peer, "Unable to set native look and feel: " + ue.getMessage, "Look and Feel Warning", JOptionPane.WARNING_MESSAGE)
     }
     super.startup(args)
   }
 
-  implicit def iRowAddComponent(iRow: IRow): { def add(component: Component) : IRow } = new {
-    def add(component: Component) : IRow = iRow.add(component.peer)
+  def top = new MainFrame {
+    title = "CSV Validator"
+    contents = new ContentPanel(new SettingsPanel)
   }
 
-  implicit def iGridRowAddComponentSpan(iGridRow: IGridRow): { def add(component: Component, gridSpan : Int) : IGridRow } = new {
-    def add(component: Component, gridSpan: Int) : IGridRow = iGridRow.add(component.peer, gridSpan)
+  private def validate(csvFilePath: String, csvSchemaFilePath: String, failOnFirstError: Boolean, pathSubstitutions: List[(String, String)], output: TextComponent) {
+    output.text = MetaDataValidatorCommandLineApp.processMetaData(csvFilePath, csvSchemaFilePath, failOnFirstError, pathSubstitutions)._1
   }
 
-  implicit def iRowCreatorGridLabel(iRowCreator: IRowCreator): { def grid(label: Label) : ISpannableGridRow } = new {
-    def grid(label: Label) : ISpannableGridRow = iRowCreator.grid(label.peer)
-  }
-
-  def chooseFile(fileChooser: FileChooser, output: TextComponent, locateOver: Component) : Reactions.Reaction = chooseFile(fileChooser, f => output.text = f.getAbsolutePath, locateOver)
-
-  def chooseFile(fileChooser: FileChooser, result: File => Unit, locateOver: Component) : Reactions.Reaction = {
-    case _ : ButtonClicked =>
-      fileChooser.showOpenDialog(locateOver) match {
-        case Result.Approve =>
-          result(fileChooser.selectedFile)
-        case Result.Cancel =>
-      }
-  }
-
-  def onClick(action : => Unit) : Reactions.Reaction = {
-    case _: ButtonClicked =>
-      action
-  }
-
-  def validate(csvFilePath: String, csvSchemaFilePath: String, failOnFirstError: Boolean, output: TextComponent) = {
-    output.text = MetaDataValidatorCommandLineApp.processMetaData(csvFilePath, csvSchemaFilePath, failOnFirstError, List.empty)._1
-  }
-
-  def saveToFile(s: String, f: File) = {
+  /**
+   * Saves a String to a File
+   *
+   * @param s
+   * @param f
+   */
+  private def saveToFile(s: String, f: File) {
     val printWriter = new PrintWriter(f)
     try {
       printWriter.write(s)
@@ -68,55 +57,127 @@ object CsvValidatorUi extends SimpleSwingApplication {
     }
   }
 
-  def content : Panel = {
+  /**
+   * The main UI of the application
+   *
+   * @param settingsPanel The settings panel for the UI
+   */
+  private class ContentPanel(settingsPanel: SettingsPanel) extends Panel {
 
-    val panel = new Panel{}
-    val layout = new DesignGridLayout(panel.peer)
+    private val layout = new DesignGridLayout(peer)
 
-    val lblCsvFile = new Label("CSV file:")
-    val txtCsvFile = new TextField(30)
-    val csvFileChooser = new FileChooser
-    val btnChooseCsvFile = new Button("...")
-    btnChooseCsvFile.reactions += chooseFile(csvFileChooser, txtCsvFile, btnChooseCsvFile)
+    private val lblCsvFile = new Label("CSV file:")
+    private val txtCsvFile = new TextField(30)
+    private val csvFileChooser = new FileChooser
+    private val btnChooseCsvFile = new Button("...")
+    btnChooseCsvFile.reactions += onClick(chooseFile(csvFileChooser, txtCsvFile, btnChooseCsvFile))
 
-    val lblCsvSchemaFile = new Label("CSV Schema file:")
-    val txtCsvSchemaFile = new TextField(30)
-    val csvSchemaFileChooser = new FileChooser
-    val btnChooseCsvSchemaFile = new Button("...")
-    btnChooseCsvSchemaFile.reactions += chooseFile(csvSchemaFileChooser, txtCsvSchemaFile, btnChooseCsvSchemaFile)
+    private val lblCsvSchemaFile = new Label("CSV Schema file:")
+    private val txtCsvSchemaFile = new TextField(30)
+    private val csvSchemaFileChooser = new FileChooser
+    private val btnChooseCsvSchemaFile = new Button("...")
+    btnChooseCsvSchemaFile.reactions += onClick(chooseFile(csvSchemaFileChooser, txtCsvSchemaFile, btnChooseCsvSchemaFile))
 
-    val separator1 = new Separator
+    private val separator1 = new Separator
 
-    val scrollPane = new ScrollPane
-    val txtArReport = new TextArea(12,30)
+    private val scrollPane = new ScrollPane
+    private val txtArReport = new TextArea(12,30)
     scrollPane.viewportView = txtArReport
 
-    val cbFailOnFirstError = new CheckBox("Fail on first error?")
-    val btnValidate = new Button("Validate")
-    btnValidate.reactions += onClick(validate(txtCsvFile.text, txtCsvSchemaFile.text, cbFailOnFirstError.selected, txtArReport))
+    private val btnValidate = new Button("Validate")
+    btnValidate.reactions += onClick(validate(txtCsvFile.text, txtCsvSchemaFile.text, settingsPanel.failOnFirstError, settingsPanel.pathSubstitutions, txtArReport))
 
-    val separator2 = new Separator
+    private val separator2 = new Separator
 
-    val btnClose = new Button("Close")
+    private val btnClose = new Button("Close")
     btnClose.reactions += onClick(quit)
 
-    val reportFileChooser = new FileChooser
-    val btnSave = new Button("Save")
+    private val reportFileChooser = new FileChooser
+    private val btnSave = new Button("Save")
     btnSave.reactions += onClick(chooseFile(reportFileChooser, saveToFile(txtArReport.text, _), btnSave))
 
     layout.row.grid(lblCsvFile).add(txtCsvFile, 5).add(btnChooseCsvFile)
     layout.row.grid(lblCsvSchemaFile).add(txtCsvSchemaFile, 5).add(btnChooseCsvSchemaFile)
-    layout.row.right.add(cbFailOnFirstError).add(btnValidate)
+
+    layout.row.center.fill.add(settingsPanel)
+
+    layout.row.center.fill.add(btnValidate)
+
     layout.row.center.fill.add(separator1)
     layout.row.center.fill.add(scrollPane)
     layout.row.center.fill.add(separator2)
-    layout.row.right.add(btnSave).add(btnClose)
 
-    panel
+    layout.row.right.withOwnRowWidth.add(btnSave).add(btnClose)
   }
 
-  def top = new MainFrame {
-    title = "CSV Validator"
-    contents = content
+  /**
+   * A UI aspect for the Settings available
+   * when calling CSV Validator
+   *
+   * This was only separated from ContentPanel
+   * because it is self-contained and allowed
+   * us to break up the code easily, hopefully
+   * making it more understandable.
+   */
+  private class SettingsPanel extends TaskPaneContainer {
+
+    private val settingsGroup = new TaskPane("Settings", true)
+    private val cbFailOnFirstError = new CheckBox("Fail on first error?")
+    private val lblPathSubstitutions = new Label("Path Substitutions")
+
+    private val tblPathSubstitutions = new Table(0, 2) {
+      preferredViewportSize = new Dimension(500, 70)
+      model = new DefaultTableModel(Array[Object]("From", "To"), 0)
+
+      def addRow(rowData: Array[String]) {
+        model.asInstanceOf[DefaultTableModel].addRow(rowData.asInstanceOf[Array[AnyRef]])
+      }
+
+      def removeSelectedRow() {
+        model.asInstanceOf[DefaultTableModel].removeRow(peer.getSelectedRow)
+      }
+
+      def pathSubstitutions : List[(String, String)] = {
+        for(rowIdx <- (0 to model.getRowCount - 1)) yield (model.getValueAt(rowIdx, 0).asInstanceOf[String], model.getValueAt(rowIdx, 1).asInstanceOf[String])
+      }.toList
+    }
+
+    private val popupMenu = new PopupMenu
+    private val miRemove = new MenuItem("Remove Path Substitution")
+    miRemove.reactions += onClick(tblPathSubstitutions.removeSelectedRow)
+    popupMenu.contents += miRemove
+    tblPathSubstitutions.popupMenu(popupMenu)
+
+    private val spTblPathSubstitutions = new ScrollPane(tblPathSubstitutions)
+    private val btnAddPathSubstitution = new Button("Add Path Substitution...")
+    btnAddPathSubstitution.reactions += onClick(addToTableDialog(top, "Add Path Substitution...", tblPathSubstitutions, tblPathSubstitutions.addRow))
+
+    private val settingsGroupLayout = new GridBagPanel {
+      private val c = new Constraints
+      c.gridx = 0
+      c.gridy = 0
+      layout(cbFailOnFirstError) = c
+
+      c.gridx = 0
+      c.gridy = 1
+      c.insets = new Insets(0,10,0,0)
+      layout(lblPathSubstitutions) = c
+
+      c.gridx = 0
+      c.gridy = 2
+      c.gridwidth = 2
+      layout(spTblPathSubstitutions) = c
+
+      c.gridx = 1
+      c.gridy = 3
+      c.anchor = Anchor.LastLineEnd
+      layout(btnAddPathSubstitution) = c
+    }
+    settingsGroup.add(settingsGroupLayout)
+
+    add(settingsGroup)
+
+    def failOnFirstError: Boolean = cbFailOnFirstError.selected
+    def pathSubstitutions: List[(String, String)] = tblPathSubstitutions.pathSubstitutions
   }
 }

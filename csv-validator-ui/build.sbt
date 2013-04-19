@@ -20,5 +20,6 @@ mainClass in assembly := Some( "uk.gov.tna.dri.ui.CsvValidatorUi" )
 libraryDependencies ++= Seq(
     "org.scala-lang" % "scala-swing" % "2.10.0",
     "net.java.dev.designgridlayout" % "designgridlayout" % "1.10",
+    "org.swinglabs.swingx" % "swingx-core" % "1.6.5-1",
     "uk.gov.nationalarchives" %% "csv-validator-core" % "1.0"
 )
