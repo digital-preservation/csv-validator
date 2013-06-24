@@ -721,7 +721,7 @@ case class AndRule(left: Rule, right: Rule) extends Rule("and") {
 }
 
 object FileSystem {
-  def createFile(filename: String): Try[File] =  Try{ if( filename.startsWith("file:")) new File( new URI(filename)) else  new File( filename )}
+  def createFile(filename: String): Try[File] =  Try{ if( filename.startsWith("file:")) new File( new URI(file2PlatformIndependent(filename))) else  new File( filename )}
 
   def replaceSpaces(file: String): String = file.replace(" ", "%20")
 
