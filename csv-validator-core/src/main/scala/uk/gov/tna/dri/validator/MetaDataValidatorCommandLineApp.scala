@@ -52,7 +52,7 @@ object MetaDataValidatorCommandLineApp extends App {
     else new MetaDataValidatorApp with AllErrorsMetaDataValidator { val pathSubstitutions = pathSubstitutionsList }
 
 
-  private def processMetaData(metaDataFile: String, schemaFile: String, failFast: Boolean, pathSubstitutionsList: List[(String,String)] ): (String,Int) = {
+  def processMetaData(metaDataFile: String, schemaFile: String, failFast: Boolean, pathSubstitutionsList: List[(String,String)] ): (String,Int) = {
     val validator = createValidator (failFast, pathSubstitutionsList)
     validator.parseSchema(schemaFile) match {
       case FailureZ(errors) => (prettyPrint(errors), SystemExits.InvalidSchema)

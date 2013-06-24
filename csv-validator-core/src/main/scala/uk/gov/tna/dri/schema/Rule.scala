@@ -16,7 +16,7 @@ import java.security.MessageDigest
 import uk.gov.tna.dri.metadata.Row
 import util.Try
 import annotation.tailrec
-import java.net.URI
+import java.net.{URISyntaxException, URI}
 import org.joda.time.{Interval, LocalTime, DateTime}
 import org.joda.time.format.{DateTimeFormatter, DateTimeFormatterBuilder, ISODateTimeFormat, DateTimeFormat}
 import scalaz.{Success => SuccessZ, Failure => FailureZ}
@@ -223,7 +223,17 @@ case class EndsRule(endsValue: ArgProvider) extends Rule("ends", endsValue) {
   }
 }
 
-case class UriRule() extends PatternRule("uri", UriRegex)
+//case class UriRule() extends PatternRule("uri", UriRegex)
+case class UriRule() extends Rule("uri") {
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
+    try {
+      val uri = new URI(cellValue)
+      true
+    } catch {
+      case use: URISyntaxException => false
+    }
+  }
+}
 
 trait DateParser {
   def parse(dateStr: String): Try[DateTime]
