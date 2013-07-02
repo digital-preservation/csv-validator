@@ -82,7 +82,6 @@ trait SchemaParser extends RegexParsers {
 
   def rule = positioned( and | or | nonConditionalRule | conditionalRule)
 
-  // def nonConditionalRule = unaryRule
   def nonConditionalRule = opt( "$" ~> columnIdentifier <~ "/") ~ unaryRule ^^ { case explicitColumn ~ rule => rule.explicitColumn = explicitColumn; rule }
 
   def conditionalRule = ifExpr
