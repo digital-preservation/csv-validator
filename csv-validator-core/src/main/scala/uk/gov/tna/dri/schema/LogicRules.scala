@@ -14,6 +14,28 @@ import scalaz.Scalaz._
 import uk.gov.tna.dri.metadata.Row
 
 
+case class AndRule(left: Rule, right: Rule) extends Rule("and") {
+  override def evaluate(columnIndex: Int, row: Row, schema: Schema): RuleValidation[Any] = {
+    left.evaluate(columnIndex, row, schema) match {
+      case s @ FailureZ(_) => fail(columnIndex, row, schema)
+
+      case SuccessZ(_) => right.evaluate(columnIndex, row, schema) match {
+        case s @ SuccessZ(_) => s
+        case FailureZ(_) => fail(columnIndex, row, schema)
+      }
+    }
+  }
+
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
+    evaluate(columnIndex, row, schema) match {
+      case FailureZ(_) => false
+      case SuccessZ(_) => true
+    }
+  }
+
+  override def toError = s"""${left.toError} $ruleName ${right.toError}"""
+}
+
 case class OrRule(left: Rule, right: Rule) extends Rule("or") {
   override def evaluate(columnIndex: Int, row: Row, schema: Schema): RuleValidation[Any] = {
     left.evaluate(columnIndex, row, schema) match {
