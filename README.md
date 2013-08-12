@@ -5,19 +5,19 @@ A Schema Language and Validation Tool for CSV (Comma Separated Value) files.
 
 Released under the [Mozilla Public Licence version 2.0](http://www.mozilla.org/MPL/2.0/).
 
-The validaton tool is written in Scala 2.10 and may be used as:
-
-* A stand-alone command line tool.
-* A desktop tool, we provide a simple Swing GUI.
-* A library in your Scala project.
-* A library in your Java project (We provide a Java 6 interface, to make things simple for Java programmers too).
+A start on the documentation is below, but more will follow soon...
 
 Approach
 --------
 Firstly, we have defined a Grammar which describes a language for expressing rules to validate a CSV file. We call such an expression of this language a CSVS (CSV Schema). The grammar itself is described in [EBNF](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_Form) and is available in the [csv-schema-grammar.ebnf](blob/master/csv-schema-grammar.ebnf) file.
 
 Secondly, we built an implementation that will take a CSV Schema and a CSV file and assert that each rule in the CSV 
-Schema holds true for the CSV file.
+Schema holds true for the CSV file. The validaton tool is written in Scala 2.10 and may be used as:
+
+* A stand-alone command line tool.
+* A desktop tool, we provide a simple Swing GUI.
+* A library in your Scala project.
+* A library in your Java project (We provide a Java 6 interface, to make things simple for Java programmers too).
 
 Use Case
 --------
