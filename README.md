@@ -15,8 +15,11 @@ Secondly, we built an implementation that will take a CSV Schema and a CSV file 
 Schema holds true for the CSV file. The validaton tool is written in Scala 2.10 and may be used as:
 
 * A stand-alone command line tool.
+
 * A desktop tool, we provide a simple Swing GUI.
+
 * A library in your Scala project.
+
 * A library in your Java project (We provide a Java 6 interface, to make things simple for Java programmers too).
 
 Use Case
@@ -26,8 +29,11 @@ TNA (The National Archives) receive Metadata along with Collections of Digitised
 TNA set exacting requirements on the Metadata that they expect and the format of that Metadata. Such constraints enable them to automatically process it, as the semantics of the metadata is already defined. Where previous bespoke tools have been developed in the past for validating data in various CSV files, it was felt that a generic open tool which could be shared with suppliers would offer several benefits:
 
 * A common CSV Schema language, would enable TNA to absolutely define required Metadata formats.
+
 * Developed CSV Schemas could be shared with suppliers and other archival sector organisations.
+
 * Suppliers could validate Metadata before sending it to TNA. Hopefully reducing mistakes and therefore costs to both parties.
+
 * TNA could use the same tool to ensure Metadata compliance automatically.
 
 Philosophy
@@ -36,9 +42,15 @@ A few bullet-points that will try and help to explain our thinking in the design
 
 * Simple CSV Schema Language.
 A DSL (Domain Specifc Language) was desired that could be expressed in plain text and should be simple enough that Metadata experts could easily write it without having to know a programming language or data/document modelling language such as XML or RDF. Note, the CSV Schema Language is **NOT** itself expressed in CSV.
-* Context is King! Each assertion rule in the CSV Schema operates on the current context, unless otherwise specified. Hopefully this makes the rules short and concise.
-* Streaming. Often the Metadata files that we receive are very large as they contain many records about a Collection which itself can be huge. The CSV Schema Language was designed with an eye to being able to write a Validation tool which could read the CSV file as a stream. Few steps require mnenomization of data from the CSV file, and where they do this is limited and should be easily optimisable to keep memory use to a minimum.
-* Sane Defaults. We try to do the right thing by default, CSV files and their bretheren (Tab Separated Values etc.) can come in many shapes and sizes, by default we parse CSV according to [RFC 4180](http://tools.ietf.org/html/rfc4180 "Common Format and MIME Type for Comma-Separated Values (CSV) Files"), of course we allow you to customize this behaviour in the CSV Schema.
+
+* Context is King!
+Schema rules are written for each column of the CSV file. Each set of column rules is then asserted against each row of the CSV file in turn. Each rule in the CSV Schema operates on the current context (e.g. defined Column and parsed Row), unless otherwise specified. Hopefully this makes the rules short and concise.
+
+* Streaming.
+Often the Metadata files that we receive are very large as they contain many records about a Collection which itself can be huge. The CSV Schema Language was designed with an eye to being able to write a Validation tool which could read the CSV file as a stream. Few steps require mnenomization of data from the CSV file, and where they do this is limited and should be easily optimisable to keep memory use to a minimum.
+
+* Sane Defaults.
+We try to do the right thing by default, CSV files and their bretheren (Tab Separated Values etc.) can come in many shapes and sizes, by default we parse CSV according to [RFC 4180](http://tools.ietf.org/html/rfc4180 "Common Format and MIME Type for Comma-Separated Values (CSV) Files"), of course we allow you to customize this behaviour in the CSV Schema.
 
 Schema Reference
 ================
