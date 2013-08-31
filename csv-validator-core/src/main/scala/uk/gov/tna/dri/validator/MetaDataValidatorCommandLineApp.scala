@@ -24,7 +24,7 @@ object  SystemExits {
 }
 
 object MetaDataValidatorCommandLineApp extends App {
-  type AppValidation[S] = ValidationNEL[FailMessage, S]
+  type AppValidation[S] = ValidationNel[FailMessage, S]
 
   val (exitMsg, exitCode) = run(args)
   println(exitMsg)
@@ -155,5 +155,5 @@ trait MetaDataValidatorApp extends SchemaParser {
      validate(new FileReader(metaDataFile), schema)
   }
 
-  def parseSchema(schemaFilePath: String): ValidationNEL[FailMessage, Schema] = parseAndValidate(new FileReader(schemaFilePath))
+  def parseSchema(schemaFilePath: String): ValidationNel[FailMessage, Schema] = parseAndValidate(new FileReader(schemaFilePath))
 }

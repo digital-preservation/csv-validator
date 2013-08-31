@@ -42,7 +42,7 @@ trait SchemaParser extends RegexParsers {
 
   val pathSubstitutions: List[(String,String)]
 
-  def parseAndValidate(reader: Reader): ValidationNEL[FailMessage, Schema] = {
+  def parseAndValidate(reader: Reader): ValidationNel[FailMessage, Schema] = {
 
     //TODO following function works around a deficiency in scala.util.parsing.combinator.Parsers{$Error, $Failure} that use hard-coded Unix EOL in Scala 2.10.0
     def formatNoSuccessMessageForPlatform(s: String) = {
