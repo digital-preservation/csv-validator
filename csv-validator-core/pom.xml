@@ -74,6 +74,14 @@
                         </goals>
                     </execution>
                 </executions>
+		<dependencies>
+			<dependency>
+				<!-- see https://github.com/mmakowski/maven-specs2-plugin/issues/12 -->
+				<groupId>org.pegdown</groupId>
+				<artifactId>pegdown</artifactId>
+				<version>1.2.1</version>
+			</dependency>
+		</dependencies>
             </plugin>
         </plugins>
     </build>
