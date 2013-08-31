@@ -2,7 +2,7 @@ package uk.gov.tna.dri.schema
 
 import org.specs2.mutable.Specification
 import scalax.file.{Path, PathSet}
-import scalaz.Scalaz
+import scalaz._
 
 class FileWildcardSearchSpec extends Specification {
 
@@ -10,8 +10,8 @@ class FileWildcardSearchSpec extends Specification {
     import scalaz.Scalaz._
 
     val pathSubstitutions = List.empty
-    def matchSimplePath(fullPath : String) : Scalaz.ValidationNEL[String, Int] = 0.successNel[String]
-    def matchWildcardPaths(matchList: PathSet[Path], fullPath: String): Scalaz.ValidationNEL[String, Int] = 0.successNel[String]
+    def matchSimplePath(fullPath : String) : ValidationNel[String, Int] = 0.successNel[String]
+    def matchWildcardPaths(matchList: PathSet[Path], fullPath: String): ValidationNel[String, Int] = 0.successNel[String]
 
     def findBaseWrapper(path: String) : (String, String) = {
       val result = super.findBase(path)

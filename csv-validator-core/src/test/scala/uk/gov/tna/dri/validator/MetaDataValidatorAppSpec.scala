@@ -76,7 +76,7 @@ class MetaDataValidatorAppSpec extends Specification {
     }
   }
 
-  "--path and file args" should {
+  "--path and file args" in {
 //    "find " {
 //
 //    }
@@ -89,7 +89,7 @@ class MetaDataValidatorAppSpec extends Specification {
 //      )
 //      MetaDataValidatorCommandLineApp.findSubstitutionPaths(commandLine) mustEqual Success(List( ("c:", ""), ("file://c:", "file://")) )
 //    }
-
+     pending
   }
 
   "Given a list of args" should {
