@@ -10,7 +10,7 @@ package uk.gov.tna.dri.schema
 import org.specs2.mutable.Specification
 import scalax.file.{PathSet, Path}
 import uk.gov.tna.dri.metadata.{Cell, Row}
-import scalaz.{Failure, Scalaz, Success}
+import scalaz.{ValidationNel, Failure, Scalaz, Success}
 import com.sun.xml.internal.ws.api.PropertySet
 import sys.SystemProperties
 
@@ -63,7 +63,7 @@ class FileCountSpec extends Specification {
     }
   }
 
-  "fileCount with path substitutions" should {
+  "fileCount with path substitutions" in {
     val pathSubstitutions =  List[(String,String)](
       ("bob", "src/test")
     )
@@ -80,8 +80,8 @@ class FileCountSpec extends Specification {
 
     val wildCard = new FileWildcardSearch[Int]{
       val pathSubstitutions: List[(String, String)] = List.empty
-      def matchWildcardPaths(matchList: PathSet[Path], fullPath: String): Scalaz.ValidationNEL[String, Int] = matchList.size.successNel[String]
-      def matchSimplePath(fullPath: String): Scalaz.ValidationNEL[String, Int] = 1.successNel[String]
+      def matchWildcardPaths(matchList: PathSet[Path], fullPath: String): ValidationNel[String, Int] = matchList.size.successNel[String]
+      def matchSimplePath(fullPath: String): ValidationNel[String, Int] = 1.successNel[String]
     }
 
     "find a single file from relative path" in {
@@ -128,8 +128,8 @@ class FileCountSpec extends Specification {
       val pathSubstitutions: List[(String, String)] = List[(String,String)](
         ("bob", "src/test")
       )
-      def matchWildcardPaths(matchList: PathSet[Path], fullPath: String): Scalaz.ValidationNEL[String, Int] = matchList.size.successNel[String]
-      def matchSimplePath(fullPath: String): Scalaz.ValidationNEL[String, Int] = 1.successNel[String]
+      def matchWildcardPaths(matchList: PathSet[Path], fullPath: String): ValidationNel[String, Int] = matchList.size.successNel[String]
+      def matchSimplePath(fullPath: String): ValidationNel[String, Int] = 1.successNel[String]
     }
 
     "find a single file from relative path" in {
@@ -151,8 +151,8 @@ class FileCountSpec extends Specification {
           ("file:///bob", substituted)
         )
 
-        def matchWildcardPaths(matchList: PathSet[Path], fullPath: String): Scalaz.ValidationNEL[String, Int] = matchList.size.successNel[String]
-        def matchSimplePath(fullPath: String): Scalaz.ValidationNEL[String, Int] = 1.successNel[String]
+        def matchWildcardPaths(matchList: PathSet[Path], fullPath: String): ValidationNel[String, Int] = matchList.size.successNel[String]
+        def matchSimplePath(fullPath: String): ValidationNel[String, Int] = 1.successNel[String]
       }
 
       wildCard.search( ("file:///bob/resources/uk/gov/tna/dri/fileCountTestFiles/threeFiles/","file1.jp2") )   mustEqual Success(1)

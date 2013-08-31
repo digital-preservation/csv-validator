@@ -7,7 +7,7 @@
  */
 package uk.gov.tna.dri.validator
 
-import scalaz.Scalaz._
+import scalaz._, Scalaz._
 import java.io.Reader
 import uk.gov.tna.dri.schema.{NoHeader, Schema}
 import uk.gov.tna.dri.metadata.{Cell, Row}
@@ -21,7 +21,7 @@ case class ErrorMessage(message:String) extends FailMessage(message)
 case class SchemaMessage(message:String) extends FailMessage(message)
 
 trait MetaDataValidator {
-  type MetaDataValidation[S] = ValidationNEL[FailMessage, S]
+  type MetaDataValidation[S] = ValidationNel[FailMessage, S]
 
   def validate(csv: Reader, schema: Schema): MetaDataValidation[Any] = {
     val rows = new CSVReader(csv).readAll().toList
