@@ -24,14 +24,14 @@ trait FailFastMetaDataValidator extends MetaDataValidator {
 
   def validateRows(rows: List[Row], schema: Schema): MetaDataValidation[Any] = {
 
-    def containsErrors(e:MetaDataValidation[Any]): Boolean = e.fail.exists(a => a.list.exists(i => i.isInstanceOf[ErrorMessage]))
+    def containsErrors(e:MetaDataValidation[Any]): Boolean = e.fold(_.list.exists(_.isInstanceOf[ErrorMessage]), _ => false)
 
 //    @tailrec
     def validateRows(rows: List[Row]): MetaDataValidation[Any] = rows match {
       case Nil => true.successNel[FailMessage]
       case r :: tail =>  validateRow(r, schema) match {
-        case e@Failure(_) =>
-          if( containsErrors(e)) e else e *> validateRows(tail)
+        case e@Failure(messages) =>
+          if( containsErrors(e)) e else validateRows(tail).leftMap(_ append messages)
         case _ => validateRows(tail)
       }
     }
@@ -57,8 +57,8 @@ trait FailFastMetaDataValidator extends MetaDataValidator {
     def validateRules(columnDefinitions:List[(ColumnDefinition,Int)]): MetaDataValidation[Any] = columnDefinitions match {
       case Nil => true.successNel[FailMessage]
       case (columnDef, columnIndex) :: tail => validateCell(columnIndex, cells, row, schema) match {
-        case e@Failure(_) =>
-          if( schema.columnDefinitions(columnIndex).directives.contains(Warning()))  e  *> validateRules(tail)
+        case e@Failure(messages) =>
+          if( schema.columnDefinitions(columnIndex).directives.contains(Warning())) validateRules(tail).leftMap(_ append messages)
           else e
         case _ => validateRules(tail)
       }
@@ -79,12 +79,12 @@ trait FailFastMetaDataValidator extends MetaDataValidator {
     def isWarningDirective: Boolean = columnDefinition.directives.contains(Warning())
     def isOptionDirective: Boolean = columnDefinition.directives.contains(Optional())
 
-    def convert2Warnings( results:Rule#RuleValidation[Any]): MetaDataValidation[Any] = {
-      results.fail.map{errorList => errorList.map(errorText => WarningMessage(errorText))}.validation
+    def convert2Warnings(results:Rule#RuleValidation[Any]): MetaDataValidation[Any] = {
+      results.leftMap(_.map(WarningMessage))
     }
 
-    def convert2Errors( results:Rule#RuleValidation[Any]): MetaDataValidation[Any] = {
-      results.fail.map{errorList => errorList.map(errorText => ErrorMessage(errorText))}.validation
+    def convert2Errors(results:Rule#RuleValidation[Any]): MetaDataValidation[Any] = {
+      results.leftMap(_.map(ErrorMessage))
     }
 
     @tailrec

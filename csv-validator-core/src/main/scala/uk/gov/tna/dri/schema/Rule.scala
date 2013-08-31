@@ -8,7 +8,7 @@
 package uk.gov.tna.dri.schema
 
 import scalax.file.{PathSet, Path}
-import scalaz.Scalaz._
+import scalaz._, Scalaz._
 import java.io.{BufferedInputStream, FileInputStream, File}
 import scala.util.parsing.input.Positional
 import scala.collection.mutable
@@ -26,7 +26,7 @@ import uk.gov.tna.dri.{UNIX_FILE_SEPARATOR, WINDOWS_FILE_SEPARATOR, FILE_SEPARAT
 
 abstract class Rule(name: String, val argProviders: ArgProvider*) extends Positional {
 
-  type RuleValidation[A] = ValidationNEL[String, A]
+  type RuleValidation[A] = ValidationNel[String, A]
 
   var explicitColumn: Option[String] = None
 
@@ -422,15 +422,15 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
     }
   }
 
-  def matchWildcardPaths(matchList: PathSet[Path],fullPath: String): ValidationNEL[String, String] = matchList.size match {
+  def matchWildcardPaths(matchList: PathSet[Path],fullPath: String): ValidationNel[String, String] = matchList.size match {
     case 1 => calcChecksum(matchList.head.path)
     case 0 => s"""no files for $fullPath found""".failNel[String]
     case _ => s"""multiple files for $fullPath found""".failNel[String]
   }
 
-  def matchSimplePath(fullPath: String): ValidationNEL[String, String]  = calcChecksum(fullPath)
+  def matchSimplePath(fullPath: String): ValidationNel[String, String]  = calcChecksum(fullPath)
 
-  def calcChecksum(file: String): ValidationNEL[String, String] = {
+  def calcChecksum(file: String): ValidationNel[String, String] = {
     val digest = MessageDigest.getInstance(algorithm)
 
     FileSystem.createFile(file) match {
@@ -506,16 +506,16 @@ case class FileCountRule(rootPath: ArgProvider, file: ArgProvider, pathSubstitut
     }
   }
 
-  def matchWildcardPaths(matchList: PathSet[Path],fullPath: String): ValidationNEL[String, Int] = matchList.size.successNel[String]
+  def matchWildcardPaths(matchList: PathSet[Path],fullPath: String): ValidationNel[String, Int] = matchList.size.successNel[String]
 
-  def matchSimplePath(fullPath: String): ValidationNEL[String, Int]  = 1.successNel[String]  // file found so ok
+  def matchSimplePath(fullPath: String): ValidationNel[String, Int]  = 1.successNel[String]  // file found so ok
 }
 
 trait FileWildcardSearch[T] {
 
   val pathSubstitutions: List[(String,String)]
-  def matchWildcardPaths(matchList: PathSet[Path],fullPath: String): ValidationNEL[String, T]
-  def matchSimplePath(fullPath: String): ValidationNEL[String, T]
+  def matchWildcardPaths(matchList: PathSet[Path],fullPath: String): ValidationNel[String, T]
+  def matchSimplePath(fullPath: String): ValidationNel[String, T]
 
   val wildcardPath = (p: Path, matchPath: String) => p.descendants( p.matcher( matchPath))
   val wildcardFile = (p: Path, matchPath: String) => p.children( p.matcher( "**/" +matchPath))
@@ -615,7 +615,7 @@ trait FileWildcardSearch[T] {
 
   }
 
-  def search(filePaths: (String, String)): ValidationNEL[String, T] = {
+  def search(filePaths: (String, String)): ValidationNel[String, T] = {
     try {
       val fullPath = new FileSystem( None, filePaths._1 + filePaths._2, pathSubstitutions).expandBasePath
       val (basePath, matchPath) = findBase(fullPath)
@@ -629,7 +629,7 @@ trait FileWildcardSearch[T] {
 
       def pathString = s"${filePaths._1} (localfile: $fullPath)"
 
-      def findMatches(wc: (Path, String) => PathSet[Path] ): ValidationNEL[String, T] = {
+      def findMatches(wc: (Path, String) => PathSet[Path] ): ValidationNel[String, T] = {
         path match {
           case Some(p) =>  matchWildcardPaths( wc(p, matchPath ), fullPath )
           case None => "no file".failNel[T]

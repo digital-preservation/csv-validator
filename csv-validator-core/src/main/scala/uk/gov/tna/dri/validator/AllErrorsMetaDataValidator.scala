@@ -8,13 +8,13 @@
 package uk.gov.tna.dri.validator
 
 import uk.gov.tna.dri.schema._
-import scalaz._
-import Scalaz._
+import scalaz._, Scalaz._
 import uk.gov.tna.dri.metadata.Cell
 import uk.gov.tna.dri.metadata.Row
 import uk.gov.tna.dri.schema.TotalColumns
 import scala.Some
 import uk.gov.tna.dri.schema.Optional
+import scalaz.Digit._3
 
 trait AllErrorsMetaDataValidator extends MetaDataValidator {
 
@@ -58,12 +58,12 @@ trait AllErrorsMetaDataValidator extends MetaDataValidator {
     def isWarningDirective: Boolean = columnDefinition.directives.contains(Warning())
     def isOptionDirective: Boolean = columnDefinition.directives.contains(Optional())
 
-    def convert2Warnings( results:Rule#RuleValidation[Any]): MetaDataValidation[Any] = {
-      results.fail.map{errorList => errorList.map(errorText => WarningMessage(errorText))}.validation
+    def convert2Warnings(results:Rule#RuleValidation[Any]): MetaDataValidation[Any] = {
+      results.leftMap(_.map(WarningMessage))
     }
 
-    def convert2Errors( results:Rule#RuleValidation[Any]): MetaDataValidation[Any] = {
-      results.fail.map{errorList => errorList.map(errorText => ErrorMessage(errorText))}.validation
+    def convert2Errors(results:Rule#RuleValidation[Any]): MetaDataValidation[Any] = {
+      results.leftMap(_.map(ErrorMessage))
     }
 
     if (row.cells(columnIndex).value.trim.isEmpty && isOptionDirective) true.successNel
