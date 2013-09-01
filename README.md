@@ -25,6 +25,7 @@ Schema holds true for the CSV file. The validaton tool is written in Scala 2.10 
 Use Case
 --------
 TNA (The National Archives) receive Metadata along with Collections of Digitised or Born-Digital Collections. Whilst TNA typically process Metadata in XML and RDF, it was recognised that it was too difficult and/or expensive for many suppliers to produce the desired metadata in XML and/or RDF, as such it was decided that Metadata would be received in CSV format.
+
 Our experience shows that when suppliers are asked to produce metadata in XML or RDF there are several possible barriers:
 
 * Many content/document repository systems only export metadata in CSV, or generate XML or RDF in a non-desirable format which would then have to be transformed (at further cost).
@@ -48,7 +49,7 @@ TNA set exacting requirements on the Metadata that they expect and the format of
 
 * TNA could use the same tool to ensure Metadata compliance automatically.
  
-* Although ot of primary concern, it was recognised that this tool would also have value for anyone working with CSV as a data/metadata transfer medium.
+* Although not of primary concern, it was recognised that this tool would also have value for anyone working with CSV as a data/metadata transfer medium.
 
 Philosophy
 ----------
