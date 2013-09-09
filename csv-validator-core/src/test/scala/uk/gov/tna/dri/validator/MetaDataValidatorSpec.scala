@@ -1042,6 +1042,16 @@ class MetaDataValidatorSpec extends Specification {
       validate(metaData, schema) must beLike { case Success(_) => ok }
     }
 
+    "succeed for simple if with combinator" in {
+      val schema =
+        """version 1.0
+           @totalColumns 1 @noHeader
+           col1: if(starts("Tom") or starts("Joe"), ends("Bloggs") )
+        """
+      val metaData ="Joe Bloggs"
+      validate(metaData, schema) must beLike { case Success(_) => ok }
+    }
+
     "succeed for simple if where condition is true" in {
       val schema =
         """version 1.0

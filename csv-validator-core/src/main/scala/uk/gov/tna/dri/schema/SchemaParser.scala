@@ -91,7 +91,10 @@ trait SchemaParser extends RegexParsers {
 
   def columnDirective = positioned(optional | ignoreCase | warning)
 
-  def rule = positioned( and | or | nonConditionalRule | conditionalRule)
+  def rule = positioned(  combinatorialAndNonConditionalRule | conditionalRule)
+
+  def combinatorialAndNonConditionalRule = (and | or | nonConditionalRule)
+
 
   // def nonConditionalRule = unaryRule
   def nonConditionalRule = opt( "$" ~> columnIdentifier <~ "/") ~ unaryRule ^^ { case explicitColumn ~ rule => rule.explicitColumn = explicitColumn; rule }
@@ -111,7 +114,7 @@ trait SchemaParser extends RegexParsers {
 
   def and: Parser[AndRule] = nonConditionalRule ~ "and" ~ rule  ^^  { case lhs ~ _ ~ rhs =>  AndRule(lhs, rhs) }
 
-  def ifExpr: Parser[IfRule] = (("if(" ~> white ~> nonConditionalRule <~ white <~ "," <~ white) ~ (rep1(rule)) ~ opt((white ~> "," ~> white ~> rep1(rule))) <~ white <~ ")" ^^ {
+  def ifExpr: Parser[IfRule] = (("if(" ~> white ~> combinatorialAndNonConditionalRule <~ white <~ "," <~ white) ~ (rep1(rule)) ~ opt((white ~> "," ~> white ~> rep1(rule))) <~ white <~ ")" ^^ {
     case cond ~ bdy ~ optBdy => IfRule(cond, bdy, optBdy)
   }) | failure("Invalid rule")
 
