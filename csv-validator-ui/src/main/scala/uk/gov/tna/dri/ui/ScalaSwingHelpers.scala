@@ -103,7 +103,7 @@ object ScalaSwingHelpers {
    * @param action The action function to invoke
    */
   def onClick(action: => Unit) : Reactions.Reaction = {
-    case _: ButtonClicked =>
+    case evt: ButtonClicked =>
       action
   }
 

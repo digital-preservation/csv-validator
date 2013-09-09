@@ -17,6 +17,7 @@ import swing.GridBagPanel.Anchor
 import uk.gov.tna.dri.ui.DesignGridImplicits._
 import scala.swing.PopupMenuImplicits._
 import ScalaSwingHelpers._
+import java.awt.Cursor
 
 /**
  * Simple GUI for the CSV Validator
@@ -38,15 +39,22 @@ object CsvValidatorUi extends SimpleSwingApplication {
     contents = new ContentPanel(new SettingsPanel)
   }
 
-  private def validate(csvFilePath: String, csvSchemaFilePath: String, failOnFirstError: Boolean, pathSubstitutions: List[(String, String)], output: TextComponent) {
-    output.text = ""
+  private def displayWait(suspendUi: => Unit, action: (String => Unit) => Unit, output: String => Unit, resumeUi: => Unit) {
     try {
-      output.text = MetaDataValidatorCommandLineApp.processMetaData(csvFilePath, csvSchemaFilePath, failOnFirstError, pathSubstitutions)._1
+      suspendUi
+      action(output)
     } catch {
       case e: Throwable =>
-        output.text = e.toString
+        output(e.toString)
         e.printStackTrace()
+    } finally {
+      resumeUi
     }
+  }
+
+  private def validate(csvFilePath: String, csvSchemaFilePath: String, failOnFirstError: Boolean, pathSubstitutions: List[(String, String)])(output: String => Unit) {
+    output("")
+    output(MetaDataValidatorCommandLineApp.processMetaData(csvFilePath, csvSchemaFilePath, failOnFirstError, pathSubstitutions)._1)
   }
 
   /**
@@ -92,7 +100,23 @@ object CsvValidatorUi extends SimpleSwingApplication {
     scrollPane.viewportView = txtArReport
 
     private val btnValidate = new Button("Validate")
-    btnValidate.reactions += onClick(validate(txtCsvFile.text, txtCsvSchemaFile.text, settingsPanel.failOnFirstError, settingsPanel.pathSubstitutions, txtArReport))
+
+    val outputToReport: String => Unit = {
+      txtArReport.text = _
+    }
+
+    btnValidate.reactions += onClick(displayWait(
+      suspendUi = {
+        btnValidate.enabled = false
+        this.peer.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR))
+      },
+      action = validate(txtCsvFile.text, txtCsvSchemaFile.text, settingsPanel.failOnFirstError, settingsPanel.pathSubstitutions),
+      output = outputToReport,
+      resumeUi = {
+        btnValidate.enabled = true
+        this.peer.setCursor(Cursor.getDefaultCursor)
+      }
+    ))
 
     private val separator2 = new Separator
 
