@@ -13,6 +13,7 @@ import uk.gov.tna.dri.schema.{Schema, SchemaParser}
 import scalaz.{Success => SuccessZ, Failure => FailureZ, _}
 import Scalaz._
 import scala.App
+import resource._
 import uk.gov.tna.dri.schema.Validator.{JWarningMessage, JFailMessage, JErrorMessage}
 import java.util
 
@@ -152,8 +153,28 @@ trait MetaDataValidatorApp extends SchemaParser {
   this: MetaDataValidator =>
 
   def validate(metaDataFile: String, schema: Schema): MetaDataValidation[Any] = {
-     validate(new FileReader(metaDataFile), schema)
+    withReader(metaDataFile) {
+      reader =>
+        validate(reader, schema)
+    }
   }
 
-  def parseSchema(schemaFilePath: String): ValidationNel[FailMessage, Schema] = parseAndValidate(new FileReader(schemaFilePath))
+  def parseSchema(schemaFilePath: String): ValidationNel[FailMessage, Schema] = {
+    withReader(schemaFilePath) {
+      reader =>
+        parseAndValidate(reader)
+    }
+  }
+
+  private def withReader[B](file: String)(fn: FileReader => B): B = {
+    managed(new FileReader(file)).map {
+      reader =>
+        fn(reader)
+    }.either match {
+      case Left(ioError) =>
+        throw ioError(0)
+      case Right(result) =>
+        result
+    }
+  }
 }
