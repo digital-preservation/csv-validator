@@ -39,7 +39,14 @@ object CsvValidatorUi extends SimpleSwingApplication {
   }
 
   private def validate(csvFilePath: String, csvSchemaFilePath: String, failOnFirstError: Boolean, pathSubstitutions: List[(String, String)], output: TextComponent) {
-    output.text = MetaDataValidatorCommandLineApp.processMetaData(csvFilePath, csvSchemaFilePath, failOnFirstError, pathSubstitutions)._1
+    output.text = ""
+    try {
+      output.text = MetaDataValidatorCommandLineApp.processMetaData(csvFilePath, csvSchemaFilePath, failOnFirstError, pathSubstitutions)._1
+    } catch {
+      case e: Throwable =>
+        output.text = e.toString
+        e.printStackTrace()
+    }
   }
 
   /**
