@@ -8,9 +8,10 @@
 package uk.gov.tna.dri.ui
 
 import scala.swing._
+import resource._
 import javax.swing._
 import net.java.dev.designgridlayout._
-import java.io.{File, PrintWriter}
+import java.io.{FileOutputStream, FileInputStream, File, PrintWriter}
 import table.DefaultTableModel
 import uk.gov.tna.dri.validator.MetaDataValidatorCommandLineApp
 import swing.GridBagPanel.Anchor
@@ -18,6 +19,7 @@ import uk.gov.tna.dri.ui.DesignGridImplicits._
 import scala.swing.PopupMenuImplicits._
 import ScalaSwingHelpers._
 import java.awt.Cursor
+import java.util.Properties
 
 /**
  * Simple GUI for the CSV Validator
@@ -72,6 +74,38 @@ object CsvValidatorUi extends SimpleSwingApplication {
     }
   }
 
+  case class Settings(lastCsvPath: File, lastCsvSchemaPath: File, lastReportPath: File)
+
+  lazy val settingsFile = new File(System.getProperty("user.home") + "/.csv-validator/csv-validator.properties")
+  lazy val userDir = new File(System.getProperty("user.dir"))
+
+  private def loadSettings: Option[Settings] = {
+    if(settingsFile.exists()) {
+      val props = new Properties
+      managed(new FileInputStream(settingsFile)).map {
+        is =>
+          props.load(is)
+          Settings(new File(props.getProperty("last.csv.path")), new File(props.getProperty("last.csv.schema.path")), new File(props.getProperty("last.report.path")))
+      }.opt
+    } else {
+      None
+    }
+  }
+
+  private def saveSettings(settings: Settings) {
+    if(!settingsFile.exists) {
+      settingsFile.getParentFile.mkdirs
+    }
+    val props = new Properties
+    props.setProperty("last.csv.path", settings.lastCsvPath.getAbsolutePath)
+    props.setProperty("last.csv.schema.path", settings.lastCsvSchemaPath.getAbsolutePath)
+    props.setProperty("last.report.path", settings.lastReportPath.getAbsolutePath)
+    managed(new FileOutputStream(settingsFile)).map {
+      os =>
+        props.store(os, "CSV Validator")
+    }.opt.getOrElse(Unit)
+  }
+
   /**
    * The main UI of the application
    *
@@ -83,15 +117,48 @@ object CsvValidatorUi extends SimpleSwingApplication {
 
     private val lblCsvFile = new Label("CSV file:")
     private val txtCsvFile = new TextField(30)
-    private val csvFileChooser = new FileChooser
+    private val csvFileChooser = new FileChooser(loadSettings match {
+      case Some(s) =>
+        s.lastCsvPath
+      case None =>
+        userDir
+    })
     private val btnChooseCsvFile = new Button("...")
-    btnChooseCsvFile.reactions += onClick(chooseFile(csvFileChooser, txtCsvFile, btnChooseCsvFile))
+
+    btnChooseCsvFile.reactions += onClick {
+      chooseFile(csvFileChooser, txtCsvFile, btnChooseCsvFile)
+      updateLastPath(csvFileChooser, {
+        path =>
+          loadSettings match {
+            case Some(s) =>
+              s.copy(lastCsvPath = path)
+            case None =>
+              Settings(path, path, path)
+          }
+      })
+    }
 
     private val lblCsvSchemaFile = new Label("CSV Schema file:")
     private val txtCsvSchemaFile = new TextField(30)
-    private val csvSchemaFileChooser = new FileChooser
+    private val csvSchemaFileChooser = new FileChooser(loadSettings match {
+      case Some(s) =>
+        s.lastCsvSchemaPath
+      case None =>
+        userDir
+    })
     private val btnChooseCsvSchemaFile = new Button("...")
-    btnChooseCsvSchemaFile.reactions += onClick(chooseFile(csvSchemaFileChooser, txtCsvSchemaFile, btnChooseCsvSchemaFile))
+    btnChooseCsvSchemaFile.reactions += onClick {
+      chooseFile(csvSchemaFileChooser, txtCsvSchemaFile, btnChooseCsvSchemaFile)
+      updateLastPath(csvSchemaFileChooser, {
+        path =>
+          loadSettings match {
+            case Some(s) =>
+              s.copy(lastCsvSchemaPath = path)
+            case None =>
+              Settings(path, path, path)
+          }
+      })
+    }
 
     private val separator1 = new Separator
 
@@ -123,9 +190,25 @@ object CsvValidatorUi extends SimpleSwingApplication {
     private val btnClose = new Button("Close")
     btnClose.reactions += onClick(quit)
 
-    private val reportFileChooser = new FileChooser
+    private val reportFileChooser = new FileChooser(loadSettings match {
+      case Some(s) =>
+        s.lastReportPath
+      case None =>
+        userDir
+    })
     private val btnSave = new Button("Save")
-    btnSave.reactions += onClick(chooseFile(reportFileChooser, saveToFile(txtArReport.text, _), btnSave))
+    btnSave.reactions += onClick {
+      chooseFile(reportFileChooser, saveToFile(txtArReport.text, _), btnSave)
+      updateLastPath(reportFileChooser, {
+        path =>
+          loadSettings match {
+            case Some(s) =>
+              s.copy(lastReportPath = path)
+            case None =>
+              Settings(path, path, path)
+          }
+      })
+    }
 
     layout.row.grid(lblCsvFile).add(txtCsvFile, 5).add(btnChooseCsvFile)
     layout.row.grid(lblCsvSchemaFile).add(txtCsvSchemaFile, 5).add(btnChooseCsvSchemaFile)
@@ -139,6 +222,14 @@ object CsvValidatorUi extends SimpleSwingApplication {
     layout.row.center.fill.add(separator2)
 
     layout.row.right.withOwnRowWidth.add(btnSave).add(btnClose)
+  }
+
+  def updateLastPath(fileChooser: FileChooser, sink: File => Settings) {
+    Option(fileChooser.selectedFile) match {
+      case Some(selection) =>
+        saveSettings(sink(selection.getParentFile))
+      case None =>
+    }
   }
 
   /**

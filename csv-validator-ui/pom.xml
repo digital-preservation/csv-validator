@@ -87,7 +87,12 @@
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-swing</artifactId>
-            <version>2.10.0</version>
+            <version>${scala.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.jsuereth</groupId>
+            <artifactId>scala-arm_2.10</artifactId>
+            <version>1.3</version>
         </dependency>
         <dependency>
             <groupId>net.java.dev.designgridlayout</groupId>
