@@ -1,4 +1,4 @@
-CSV uk.gov.tna.dri.csv.validator.api.java.CsvValidator
+CSV Validator
 =============
 
 A Schema Language and Validation Tool for CSV (Comma Separated Value) files.
