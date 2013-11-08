@@ -68,10 +68,10 @@
     </scm>
 
     <properties>
-        <contact.email>digitalpreservation@nationalarchives.gov.uk</contact.email>
         <scala.version>2.10.0</scala.version>
         <java.version>1.6</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <contact.email>digitalpreservation@nationalarchives.gov.uk</contact.email>
     </properties>
 
     <build>
@@ -158,11 +158,18 @@
                 <inherited>true</inherited>
                 <configuration>
                     <header>csv-validator-parent/MPL2-template.txt</header>
-                    <failIfMissing>false</failIfMissing>  <!--TODO enable -->
+                    <failIfMissing>true</failIfMissing>
                     <aggregate>true</aggregate>
                     <strictCheck>true</strictCheck>
+                    <properties>
+                        <organisation>${project.organization.name}</organisation>
+                        <email>${contact.email}</email>
+                        <url>${project.organization.url}</url>
+                    </properties>
                     <excludes>
                         <exclude>**/pom.xml</exclude>
+                        <exclude>**/*.sbt</exclude>
+                        <exclude>**/project/**</exclude>
                         <exclude>**/csv-schema-grammar.ebnf</exclude>
                         <exclude>**/README.md</exclude>
                         <exclude>**/LICENSE</exclude>
