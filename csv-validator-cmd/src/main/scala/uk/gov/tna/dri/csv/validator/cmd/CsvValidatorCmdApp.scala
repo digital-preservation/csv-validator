@@ -8,12 +8,11 @@
 package uk.gov.tna.dri.csv.validator.cmd
 
 import scalaz.{Success => SuccessZ, Failure => FailureZ, _}
-import Scalaz._
 import scala.App
 import uk.gov.tna.dri.csv.validator._
-import uk.gov.tna.dri.csv.validator.api.CsvValidator.createValidator
-import uk.gov.tna.dri.csv.validator.Util._
+import uk.gov.tna.dri.csv.validator.api.CsvValidator.{SubstitutePath, createValidator}
 import scalax.file.Path
+import scopt.Read
 
 object  SystemExits {
   val ValidCsv = 0
@@ -28,24 +27,32 @@ object CsvValidatorCmdApp extends App {
   println(exitMsg)
   System.exit(exitCode)
 
+  case class Config(failFast: Boolean = false, substitutePaths: List[SubstitutePath] = List.empty[SubstitutePath], csvPath: Path = Path.fromString("."), csvSchemaPath: Path = Path.fromString("."))
+
   def run(args: Array[String]): (String,Int) = {
 
-    val result = for {
-      ((metaDataFile, schemaFile), remainderArgs) <- findFiles(args.toList)
-      (failFast, remainderArgs1) <- findFailFast(remainderArgs)
-      (pathSubstitutionsList, remainderArgs2) <- findPaths(remainderArgs1)
-      (_,_) <- unknownParams(remainderArgs2)
-    } yield  {
-      processMetaData(metaDataFile, schemaFile, failFast, pathSubstitutionsList)
+    implicit val pathRead: Read[Path] = Read.reads { Path.fromString(_) }
+
+    val parser = new scopt.OptionParser[Config]("validate") {
+        head("CSV Validator - Command Line")
+        opt[Boolean]('f', "fail-fast") optional() action { (x,c) => c.copy(failFast = x) } text("Stops on the first validation error rather than reporting all errors")
+        opt[SubstitutePath]('p', "path") optional() unbounded() action { (x,c) => c.copy(substitutePaths = c.substitutePaths :+ x) } text("Allows you to substitute a file path (or part of) in the CSV for a different file path")
+        arg[Path]("<csv-path>") validate { x => if(x.exists && x.canRead) success else failure("Cannot access CSV file: " + x.path) } action { (x,c) => c.copy(csvPath = x) } text("The path to the CSV file to validate")
+        arg[Path]("<csv-schema-path>") validate { x => if(x.exists && x.canRead) success else failure("Cannot access CSV Schema file: " + x.path) } action { (x,c) => c.copy(csvSchemaPath = x) } text("The path to the CSV Schema file to use for validation")
+        help("help") text("Prints this usage text")
     }
 
-    result match {
-      case Right(r) => (r._1, r._2)
-      case Left(errMsg) => (errMsg, SystemExits.IncorrectArguments)
+    //parse the command line arguments
+    parser.parse(args, new Config()) map {
+      config =>
+        processMetaData(config.csvPath, config.csvSchemaPath, config.failFast, config.substitutePaths)
+    } getOrElse {
+      //arguments are bad, usage message will have been displayed
+      ("", SystemExits.IncorrectArguments)
     }
   }
 
-  def processMetaData(metaDataFile: Path, schemaFile: Path, failFast: Boolean, pathSubstitutionsList: List[(String,String)] ): (String,Int) = {
+  def processMetaData(metaDataFile: Path, schemaFile: Path, failFast: Boolean, pathSubstitutionsList: List[SubstitutePath] ): (String,Int) = {
     val validator = createValidator(failFast, pathSubstitutionsList)
     validator.parseSchema(schemaFile) match {
       case FailureZ(errors) => (prettyPrint(errors), SystemExits.InvalidSchema)
@@ -56,46 +63,6 @@ object CsvValidatorCmdApp extends App {
         }
     }
   }
-
-  def findFailFast(args: List[String]): Either[String, (Boolean, List[String])] = {
-    val (flags, remainder) = args.partition( a => a.startsWith("--fail-fast") || a == "-f")
-    Right((!flags.isEmpty, remainder ))
-  }
-
-
-  def findFiles(args: List[String]): Either[String, ((Path,Path), List[String])] = {
-    if ( args.length < 2)   Left(usage)
-    else {
-      val files = args.takeRight(2).map(Path.fromString(_))
-      checkFilesReadable(files) match {
-        case FailureZ(errors) => Left(prettyPrint(errors))
-        case SuccessZ(_) =>
-          val (metaDataFile: Path, schemaFile: Path) = (files(0),files(1))
-          Right((metaDataFile, schemaFile), args.dropRight(2))
-      }
-    }
-  }
-
-  def findPaths(argsList: List[String]): Either[String, (List[(String,String)], List[String])] = {
-    def filterPaths(argsWithIndex: List[(String,Int)]) = argsWithIndex.sliding(3).filter{  i => i(0)._1 == "--path"}.map( x => (x(1), x(2))).toList
-    def removePathArgs(argsWithIndex: List[(String,Int)], path:List[((String,Int),(String,Int))]) = argsWithIndex.filter{ i =>  path.filter{pf => pf._1 == i || pf._2 == i}.isEmpty }
-
-    if ( argsList.isEmpty ) Right(List.empty,argsList)
-    else if (argsList.length < 3 ) { if( argsList.contains("--path")) Left("Missing param to --path" + EOL + usage) else Right(List.empty,argsList) }
-    else {
-      val argsWithIndex = argsList.zipWithIndex
-      val path = filterPaths(argsWithIndex)
-      val remaining = removePathArgs(argsWithIndex, path)
-      Right(path.map( i => (i._1._1, i._2._1) ), remaining.unzip._1.filterNot(_ == "--path"))
-    }
-  }
-
-  private def unknownParams(args: List[String]): Either[String, (List[(String,String)], List[String])] =
-    if (!args.isEmpty) Left(s"Unknown parameter ${args.mkString(", ")}")
-    else Right(List.empty, args)
-
-
-  private def usage = """Usage: validate [--fail-fast] [--path <from> <to>]* <meta-data file path> <uk.gov.tna.dri.csv.validator.schema file path>"""
 
   private def prettyPrint(l: NonEmptyList[FailMessage]): String = l.list.map{i =>
     i match {

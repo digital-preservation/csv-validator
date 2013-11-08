@@ -83,34 +83,6 @@ class CsvValidatorCmdAppSpec extends Specification {
     pending
   }
 
-  "Given a list of args" should {
-    "be able to find all the paths" in {
-      CsvValidatorCmdApp.findPaths( List("--path", "hello", "world")) mustEqual Right( (List( ("hello", "world") ), List()))
-    }
-
-    "be able to find the path and return remainders" in {
-      CsvValidatorCmdApp.findPaths( List("123", "--path", "hello", "world", "xyz")) mustEqual Right( (List( ("hello", "world") ), List("123", "xyz")))
-    }
-
-    "be able to find multiple paths and return remainders" in {
-      CsvValidatorCmdApp.findPaths( List("123", "--path", "hello", "world", "xyz", "--path", "hello2", "world2")) mustEqual Right( (List( ("hello", "world"), ("hello2", "world2") ), List("123", "xyz")))
-    }
-
-
-    "be able to handle a missing value" in {
-      CsvValidatorCmdApp.findPaths( List("--path", "hello" )) mustEqual Left("Missing param to --path" + EOL + "Usage: validate [--fail-fast] [--path <from> <to>]* <meta-data file path> <uk.gov.tna.dri.csv.validator.schema file path>")
-    }
-
-    "find the --fail-fast option" in {
-      CsvValidatorCmdApp.findFailFast( List("--fail-fast", "hello", "world")) mustEqual Right( true, List("hello", "world"))
-    }
-
-    "find find the metafile and uk.gov.tna.dri.csv.validator.schema" in {
-      CsvValidatorCmdApp.findFiles( List("--fail-fast", basePath + "metaData.csv", basePath + "uk.gov.tna.dri.csv.validator.schema.txt")) mustEqual Right( (basePath + "metaData.csv", basePath + "uk.gov.tna.dri.csv.validator.schema.txt"), List("--fail-fast"))
-    }
-  }
-
-
   "Command line app" should {
 
     "have exit code 0 when validation successful" in {
