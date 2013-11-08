@@ -45,4 +45,4 @@ Instead of using `validate` simply use `validate.bat`
 Building from Source Code
 -------------------------
 
-We are using the Maven build system, executing `mvn package` will proudce a distribution of the command line application in both `target/csv-validator-cmd-?` and `target/csv-validator-cmd-?.zip`. Note the '?' will be replaced by the version number of the product.
+We are using the Maven build system, executing `mvn package` will produce a distribution of the command line application in both `target/csv-validator-cmd-?-application` and `target/csv-validator-cmd-?-application.zip`. Note the '?' will be replaced by the version number of the product.

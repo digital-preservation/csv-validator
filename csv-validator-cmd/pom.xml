@@ -70,7 +70,6 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <appendAssemblyId>false</appendAssemblyId>
                     <descriptors>
                         <descriptor>src/main/assembly/appassembler-output.xml</descriptor>
                     </descriptors>
