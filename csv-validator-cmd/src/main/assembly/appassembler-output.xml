@@ -1,0 +1,51 @@
+<assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0 http://maven.apache.org/xsd/assembly-1.1.0.xsd">
+  <id>appassembler-output</id>
+  <formats>
+    <format>dir</format>
+    <format>zip</format>
+  </formats>
+
+  <includeBaseDirectory>true</includeBaseDirectory>
+  
+  <fileSets>
+    
+    <!-- add the unix shell file in th bin folder, and set the execute bit -->
+    <fileSet>
+      <directory>${project.build.directory}/appassembler</directory>
+      <includes>
+        <include>bin/${project.artifactId}</include>
+      </includes>
+      <fileMode>755</fileMode>
+      <outputDirectory>/</outputDirectory>
+    </fileSet>
+    
+    <!-- add any other scripts from the bin folder, e.g. windows scripts -->
+    <fileSet>
+      <directory>${project.build.directory}/appassembler/bin</directory>
+      <excludes>
+        <exclude>bin/${project.artifactId}</exclude>
+      </excludes>
+      <outputDirectory>/bin</outputDirectory>
+    </fileSet>
+
+    <!-- add all other folders, but not the bin folder as we have done this above -->
+    <fileSet>
+      <directory>${project.build.directory}/appassembler</directory>
+      <excludes>
+        <exclude>bin</exclude>
+      </excludes>
+      <outputDirectory>/</outputDirectory>
+    </fileSet>
+    
+  </fileSets>
+  
+  <files>
+    <file>
+      <source>../LICENSE</source>
+      <outputDirectory>/</outputDirectory>
+    </file>
+  </files>
+  
+</assembly>

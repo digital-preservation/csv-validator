@@ -129,6 +129,16 @@
                     <version>0.4.2</version>
                 </plugin>
                 <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>appassembler-maven-plugin</artifactId>
+                    <version>1.6</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-assembly-plugin</artifactId>
+                    <version>2.4</version>
+                </plugin>
+                <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-release-plugin</artifactId>
                     <version>2.4.2</version>
@@ -153,11 +163,12 @@
                     <strictCheck>true</strictCheck>
                     <excludes>
                         <exclude>**/pom.xml</exclude>
-                        <exclude>csv-uk.gov.tna.dri.csv.validator.schema-grammar.ebnf</exclude>
-                        <exclude>README.md</exclude>
-                        <exclude>**.txt</exclude>
-                        <exclude>**.csv</exclude>
-                        <exclude>**.jp2</exclude>
+                        <exclude>**/csv-schema-grammar.ebnf</exclude>
+                        <exclude>**/README.md</exclude>
+                        <exclude>**/LICENSE</exclude>
+                        <exclude>**/*.txt</exclude>
+                        <exclude>**/*.csv</exclude>
+                        <exclude>**/*.jp2</exclude>
                     </excludes>
                     <encoding>${project.build.sourceEncoding}</encoding>
                 </configuration>
