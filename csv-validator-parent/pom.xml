@@ -158,7 +158,7 @@
                 <inherited>true</inherited>
                 <configuration>
                     <header>csv-validator-parent/MPL2-template.txt</header>
-                    <failIfMissing>true</failIfMissing>
+                    <failIfMissing>false</failIfMissing> <!-- TODO enable -->
                     <aggregate>true</aggregate>
                     <strictCheck>true</strictCheck>
                     <properties>
@@ -290,6 +290,17 @@
             </plugin>
         </plugins>
     </build>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>sonatype-releases</id>
+            <url>http://oss.sonatype.org/content/repositories/releases</url>
+        </pluginRepository>
+        <pluginRepository>
+            <id>clojars.org</id>
+            <url>http://clojars.org/repo</url>
+        </pluginRepository>
+    </pluginRepositories>
 
     <dependencyManagement>
         <dependencies>
