@@ -24,6 +24,7 @@ import scalaz.{Success => SuccessZ, Failure => FailureZ}
 import java.util.regex.{Pattern, Matcher}
 import scala.Some
 import uk.gov.tna.dri.csv.validator.{UNIX_FILE_SEPARATOR, WINDOWS_FILE_SEPARATOR, FILE_SEPARATOR, URI_PATH_SEPARATOR}
+import uk.gov.tna.dri.csv.validator.api.CsvValidator.SubstitutePath
 
 abstract class Rule(name: String, val argProviders: ArgProvider*) extends Positional {
 
@@ -466,8 +467,8 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
   }
 }
 
-case class FileCountRule(rootPath: ArgProvider, file: ArgProvider, pathSubstitutions: List[(String,String)] = List.empty) extends Rule("fileCount", rootPath, file) with FileWildcardSearch[Int] {
-  def this(file: ArgProvider, pathSubstitutions: List[(String,String)] = List.empty) = this(Literal(None), file, pathSubstitutions)
+case class FileCountRule(rootPath: ArgProvider, file: ArgProvider, pathSubstitutions: List[SubstitutePath] = List.empty) extends Rule("fileCount", rootPath, file) with FileWildcardSearch[Int] {
+  def this(file: ArgProvider, pathSubstitutions: List[SubstitutePath] = List.empty) = this(Literal(None), file, pathSubstitutions)
   def this(rootPath: Literal, file: Literal) = this(rootPath, file,  List.empty)
 
   def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
@@ -497,11 +498,11 @@ case class FileCountRule(rootPath: ArgProvider, file: ArgProvider, pathSubstitut
     else s"""$ruleName(file(${rootPath.toError}, ${file.toError}))"""
   }
 
-  private def filename(columnIndex: Int, row: Row, schema: Schema): (String,String) = {  // return (base,path)
+  private def filename(columnIndex: Int, row: Row, schema: Schema): (FilePathBase, FileName) = {
     val f = file.referenceValue(columnIndex, row, schema).get
 
     rootPath.referenceValue(columnIndex, row, schema) match {
-      case None => ("",f)
+      case None => ("", f)
       case Some(r: String) if r.endsWith("/") => (r, f)
       case Some(r) => (r + "/", f)
     }
@@ -514,8 +515,8 @@ case class FileCountRule(rootPath: ArgProvider, file: ArgProvider, pathSubstitut
 
 trait FileWildcardSearch[T] {
 
-  val pathSubstitutions: List[(String,String)]
-  def matchWildcardPaths(matchList: PathSet[Path],fullPath: String): ValidationNel[String, T]
+  val pathSubstitutions: List[SubstitutePath]
+  def matchWildcardPaths(matchList: PathSet[Path], fullPath: String): ValidationNel[String, T]
   def matchSimplePath(fullPath: String): ValidationNel[String, T]
 
   val wildcardPath = (p: Path, matchPath: String) => p.descendants( p.matcher( matchPath))
@@ -616,7 +617,7 @@ trait FileWildcardSearch[T] {
 
   }
 
-  def search(filePaths: (String, String)): ValidationNel[String, T] = {
+  def search(filePaths: (FilePathBase, FileName)): ValidationNel[String, T] = {
     try {
       val fullPath = new FileSystem( None, filePaths._1 + filePaths._2, pathSubstitutions).expandBasePath
       val (basePath, matchPath) = findBase(fullPath)
@@ -658,14 +659,22 @@ trait FileWildcardSearch[T] {
         }
       }
 
-      if ( basePathExists) s"""incorrect basepath $pathString found""".failNel[T]
-      else if (wildcardNotInRoot ) s"""root $pathString should not contain wildcards""".failNel[T]
-      else if (matchUsesWildDirectory) findMatches(wildcardPath)
-      else if (matchUsesWildFiles)  findMatches(wildcardFile)
-      else if (!fileExists)  s"""file "$fullPath" not found""".failNel[T]
-      else matchSimplePath(basePath+System.getProperty("file.separator")+matchPath)
+      if(basePathExists) {
+        s"""incorrect basepath $pathString found""".failNel[T]
+      } else if(wildcardNotInRoot ) {
+        s"""root $pathString should not contain wildcards""".failNel[T]
+      } else if(matchUsesWildDirectory) {
+        findMatches(wildcardPath)
+      } else if(matchUsesWildFiles) {
+        findMatches(wildcardFile)
+      } else if(!fileExists) {
+        s"""file "$fullPath" not found""".failNel[T]
+      } else {
+        matchSimplePath(basePath + System.getProperty("file.separator") + matchPath)
+      }
     } catch {
-      case err:Throwable => err.getMessage.failNel[T]
+      case err:Throwable =>
+        err.getMessage.failNel[T]
     }
   }
 }

@@ -19,4 +19,8 @@ package object schema {
   val PositiveIntegerRegex = "[0-9]+"
   val UkDateFormat = "dd/MM/YYYY"
   val PartUkDateRegex = """(([0\?][1-9\?])|([1-2\?][0-9\?])|([3\?][0-1\?])|\*)\/(January|February|March|April|May|June|July|August|September|October|November|December|\?|\*)\/([0-9\?]{4}|\*)"""
+
+
+  type FilePathBase = String
+  type FileName = String
 }
