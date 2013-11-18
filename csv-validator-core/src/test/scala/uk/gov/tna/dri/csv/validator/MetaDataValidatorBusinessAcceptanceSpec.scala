@@ -14,9 +14,9 @@ import uk.gov.tna.dri.csv.validator.schema.Schema
 import uk.gov.tna.dri.csv.validator.api.CsvValidator
 import scalax.file.Path
 
-class MetaDataValidatorBusinessAcceptanceSpec extends Specification {
+class MetaDataValidatorBusinessAcceptanceSpec extends Specification with TestResources {
 
-  val basePath = "src/test/resources/uk/gov/tna/dri/validator/acceptance/dp/"
+  val base = resourcePath("acceptance/dp")
 
   val v: CsvValidator = new CsvValidator with AllErrorsMetaDataValidator { val pathSubstitutions = List[(String,String)]() }
   import v.{validate, parseSchema}
@@ -26,13 +26,13 @@ class MetaDataValidatorBusinessAcceptanceSpec extends Specification {
   "Regex rule" should {
 
     "succeed" in {
-      validate(Path.fromString(basePath) / "regexRulePassMetaData.csv", parse(basePath + "regexRuleSchema.txt")) must beLike {
+      validate(Path.fromString(base) / "regexRulePassMetaData.csv", parse(base + "/regexRuleSchema.txt")) must beLike {
         case Success(_) => ok
       }
     }
 
     "fail" in {
-      validate(Path.fromString(basePath) / "regexRuleFailMetaData.csv", parse(basePath + "regexRuleSchema.txt")) must beLike {
+      validate(Path.fromString(base) / "regexRuleFailMetaData.csv", parse(base + "/regexRuleSchema.txt")) must beLike {
         case Failure(_) => ok
       }
     }

@@ -320,6 +320,11 @@
                 <version>0.4.2</version>
             </dependency>
             <dependency>
+                <groupId>com.github.scala-incubator.io</groupId>
+                <artifactId>scala-io-core_2.10</artifactId>
+                <version>0.4.2</version>
+            </dependency>
+            <dependency>
                 <groupId>com.jsuereth</groupId>
                 <artifactId>scala-arm_2.10</artifactId>
                 <version>1.3</version>

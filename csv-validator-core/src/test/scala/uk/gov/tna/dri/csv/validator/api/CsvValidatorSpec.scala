@@ -8,20 +8,18 @@
  */
 package uk.gov.tna.dri.csv.validator.api
 
+import java.io.StringReader
 import org.specs2.mutable.Specification
 import scalaz._
-import uk.gov.tna.dri.csv.validator.EOL
+import uk.gov.tna.dri.csv.validator.{TestResources, EOL, SchemaMessage, AllErrorsMetaDataValidator}
 import uk.gov.tna.dri.csv.validator.schema.Schema
-import java.io.StringReader
-import uk.gov.tna.dri.csv.validator.{SchemaMessage, AllErrorsMetaDataValidator}
 import scalax.file.Path
+import uk.gov.tna.dri.csv.validator.api.CsvValidator.SubstitutePath
 
-class CsvValidatorSpec extends Specification {
+class CsvValidatorSpec extends Specification with TestResources {
 
-  val basePath = "src/test/resources/uk/gov/tna/dri/validator/"
-
-  "Parsing uk.gov.tna.dri.csv.validator.schema" should {
-    val app = new CsvValidator with AllErrorsMetaDataValidator { val pathSubstitutions = List[(String,String)]() }
+  "Parsing schema" should {
+    val app = new CsvValidator with AllErrorsMetaDataValidator { val pathSubstitutions = List[SubstitutePath]() }
 
     "report position on parse fail" in {
 
@@ -34,7 +32,7 @@ class CsvValidatorSpec extends Specification {
       app.parseAndValidate(new StringReader(schema)) must beLike {
         case Failure(msgs) =>
           msgs.list mustEqual List(SchemaMessage(
-          "[3.7] failure: Invalid uk.gov.tna.dri.csv.validator.schema text" + EOL
+          "[3.7] failure: Invalid schema text" + EOL
           + EOL
           + """Name: regox("A")""" + EOL
           + EOL
@@ -48,14 +46,14 @@ class CsvValidatorSpec extends Specification {
 
     def parse(filePath: String): Schema = app.parseSchema(Path.fromString(filePath)) fold (f => throw new IllegalArgumentException(f.toString()), s => s)
 
-    "succeed for valid uk.gov.tna.dri.csv.validator.schema and metadata file" in {
-      app.validate(Path.fromString(basePath) / "metaData.csv", parse(basePath + "uk.gov.tna.dri.csv.validator.schema.txt")) must beLike {
+    "succeed for valid schema and metadata file" in {
+      app.validate(Path.fromString(baseResourcePkgPath) / "metaData.csv", parse(baseResourcePkgPath + "/schema.txt")) must beLike {
         case Success(_) => ok
       }
     }
 
-    "succeed for valid @totalColumns in uk.gov.tna.dri.csv.validator.schema and metadata file" in {
-      app.validate(Path.fromString(basePath) / "metaData.csv", parse(basePath + "uk.gov.tna.dri.csv.validator.schema.txt")) must beLike {
+    "succeed for valid @totalColumns in schema and metadata file" in {
+      app.validate(Path.fromString(baseResourcePkgPath) / "metaData.csv", parse(baseResourcePkgPath + "/schema.txt")) must beLike {
         case Success(_) => ok
       }
     }

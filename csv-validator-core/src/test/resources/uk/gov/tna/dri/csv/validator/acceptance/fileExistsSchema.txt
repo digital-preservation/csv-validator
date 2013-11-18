@@ -2,4 +2,4 @@ version 1.0
 @totalColumns 3
 Name:
 Age:
-PasswordFile: fileExists("src/test/resources/uk/gov/tna/dri/validator/acceptance")
+PasswordFile: fileExists("$$acceptancePath$$")

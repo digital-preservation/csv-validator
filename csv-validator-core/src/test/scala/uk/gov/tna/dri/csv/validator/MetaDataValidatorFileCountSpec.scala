@@ -14,7 +14,7 @@ import java.io.{Reader, StringReader}
 import scalaz.Success
 import scalaz.Failure
 
-class MetaDataValidatorFileCountSpec extends Specification {
+class MetaDataValidatorFileCountSpec extends Specification with TestResources {
 
   implicit def stringToStringReader(s: String): StringReader = new StringReader(s.replaceAll("\n\\s+", "\n"))
 
@@ -34,16 +34,16 @@ class MetaDataValidatorFileCountSpec extends Specification {
 
   import TestMetaDataValidator._
 
-  "FileCount with path/filename in uk.gov.tna.dri.csv.validator.schema" should {
-    "succeed when it find the one file" in {
+  "FileCount with path/filename in schema" should {
+    "succeed when it finds the one file" in {
       val schema =
         """version 1.0
            @totalColumns 2 @noHeader
            File:
-           Count: fileCount(file("src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema/checksum.txt"))
+           Count: fileCount(file("""" + checksumPath + """"))
         """
 
-      val metaData = """src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema/checksum.txt,1"""
+      val metaData = s"$checksumPath,1"
 
       validate(metaData, schema) must beLike { case Success(_) => ok }
     }
@@ -53,10 +53,10 @@ class MetaDataValidatorFileCountSpec extends Specification {
         """version 1.0
            @totalColumns 2 @noHeader
            File:
-           Count: fileCount(file("src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema/checksum.txt"))
+           Count: fileCount(file("""" + checksumPath + """"))
         """
 
-      val metaData = """src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema/checksum.txt,"1""""
+      val metaData = checksumPath + ""","1""""
 
       validate(metaData, schema) must beLike { case Success(_) => ok }
     }
@@ -66,10 +66,10 @@ class MetaDataValidatorFileCountSpec extends Specification {
         """version 1.0
            @totalColumns 2 @noHeader
            File:
-           Count: fileCount(file("src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema/checksum.txt")) @optional
+           Count: fileCount(file("""" + checksumPath + """")) @optional
         """
 
-      val metaData = """src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema/checksum.txt,"""
+      val metaData = s"$checksumPath,"
 
       validate(metaData, schema) must beLike { case Success(_) => ok }
     }
@@ -79,26 +79,29 @@ class MetaDataValidatorFileCountSpec extends Specification {
         """version 1.0
            @totalColumns 2 @noHeader
            File:
-           Count: fileCount(file("src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema/checksum.txt")) @optional
+           Count: fileCount(file("""" + checksumPath +  """")) @optional
         """
 
-      val metaData = """src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema/checksum.txt,1"""
+      val metaData = s"$checksumPath,1"
 
       validate(metaData, schema) must beLike { case Success(_) => ok }
     }
 
     "fail when file does not exist" in {
+
+      val wrongPath = resourcePath("schema/WRONG.txt")
+
       val schema =
         """version 1.0
            @totalColumns 2 @noHeader
            File:
-           Count: fileCount(file("src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema/WRONG.txt"))
+           Count: fileCount(file("""" + wrongPath + """"))
         """
 
-      val metaData = """src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema/checksum.txt,1"""
+      val metaData = s"$checksumPath,1"
 
       validate(metaData, schema) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""fileCount(file("src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema/WRONG.txt")) file "src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema/WRONG.txt" not found for line: 1, column: Count, value: "1""""))
+        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""fileCount(file("""" + wrongPath + """")) file """" + wrongPath + """" not found for line: 1, column: Count, value: "1""""))
       }
     }
 
@@ -107,26 +110,25 @@ class MetaDataValidatorFileCountSpec extends Specification {
         """version 1.0
            @totalColumns 2 @noHeader
            File:
-           Count: fileCount(file("src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema/checksum.txt"))
+           Count: fileCount(file("""" + checksumPath + """"))
         """
 
-      val metaData = """src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema/checksum.txt,2"""
+      val metaData = s"$checksumPath,2"
 
       validate(metaData, schema) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""fileCount(file("src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema/checksum.txt")) found 1 file(s) for line: 1, column: Count, value: "2""""))
+        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""fileCount(file("""" + checksumPath + """")) found 1 file(s) for line: 1, column: Count, value: "2""""))
       }
     }
-
-
   }
 
-  "FileCount with rootpath and filename in uk.gov.tna.dri.csv.validator.schema" should {
+  "FileCount with rootpath and filename in schema" should {
+
     "succeed when files found does match given cross referenced value" in {
       val schema =
         """version 1.0
            @totalColumns 2 @noHeader
            File:
-           Count: fileCount(file("src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema", "checksum.txt"))
+           Count: fileCount(file("""" + schemaPath + """", "checksum.txt"))
         """
 
       val metaData = """ABC,1"""
@@ -139,25 +141,25 @@ class MetaDataValidatorFileCountSpec extends Specification {
         """version 1.0
            @totalColumns 2 @noHeader
            File:
-           Count: fileCount(file("src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema", "checksum.txt"))
+           Count: fileCount(file("""" + schemaPath + """", "checksum.txt"))
         """
 
       val metaData = """ABC,99"""
 
       validate(metaData, schema) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""fileCount(file("src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema", "checksum.txt")) found 1 file(s) for line: 1, column: Count, value: "99""""))
+        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""fileCount(file("""" + schemaPath + """", "checksum.txt")) found 1 file(s) for line: 1, column: Count, value: "99""""))
       }
     }
   }
 
-  "FileCount with root in uk.gov.tna.dri.csv.validator.schema and file in metadata" should {
+  "FileCount with root in schema and file in metadata" should {
 
     "succeed when fileCount does match given root & cross referenced string value" in {
       val schema =
         """version 1.0
            @totalColumns 2 @noHeader
            File:
-           Count: fileCount(file("src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema", $File))
+           Count: fileCount(file("""" + schemaPath + """", $File))
         """
 
       val metaData = """checksum.txt,1"""
@@ -165,7 +167,7 @@ class MetaDataValidatorFileCountSpec extends Specification {
       validate(metaData, schema) must beLike { case Success(_) => ok }
     }
 
-    "fail when incorrect root given in uk.gov.tna.dri.csv.validator.schema for root" in {
+    "fail when incorrect root given in schema for root" in {
       val schema =
         """version 1.0
            @totalColumns 2 @noHeader
@@ -192,7 +194,7 @@ class MetaDataValidatorFileCountSpec extends Specification {
            Count: fileCount(file($File))
         """
 
-      val metaData = """src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema/checksum.txt,1"""
+      val metaData = s"$checksumPath,1"
 
       validate(metaData, schema) must beLike { case Success(_) => ok }
     }
@@ -205,7 +207,7 @@ class MetaDataValidatorFileCountSpec extends Specification {
            Count: fileCount(file($File))
         """
 
-      val metaData = """src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema/checksum.txt,rubbish"""
+      val metaData = s"$checksumPath,rubbish"
 
       validate(metaData, schema) must beLike {
         case Failure(messages) => messages.list mustEqual List(ErrorMessage("""fileCount(file($File)) 'rubbish' is not a number for line: 1, column: Count, value: "rubbish""""))
@@ -225,7 +227,7 @@ class MetaDataValidatorFileCountSpec extends Specification {
            Count: fileCount(file($Root, $File))
         """
 
-      val metaData = """src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema,checksum.txt,1"""
+      val metaData = s"$schemaPath,checksum.txt,1"
 
       validate(metaData, schema) must beLike { case Success(_) => ok }
     }
@@ -258,12 +260,13 @@ class MetaDataValidatorFileCountSpec extends Specification {
            Count: fileCount(file($Root, $File))
         """
 
-      val metaData = """src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema,**/checksum.txt,1"""
+      val metaData = s"$schemaPath,**/checksum.txt,1"
 
       validate(metaData, schema) must beLike { case Success(_) => ok }
     }
 
     "succeed when finding multiple files in sub directories using a '**' wildcard" in {
+
       val schema =
         """version 1.0
            @totalColumns 3 @noHeader
@@ -272,11 +275,10 @@ class MetaDataValidatorFileCountSpec extends Specification {
            Count: fileCount(file($Root, $File))
         """
 
-      val metaData = """src/test/resources/uk/gov/tna/dri/fileCountTestFiles/threeFilesinSubDir,**/*.jp2,3"""
+      val metaData = s"$threeFilesInSubDirPath,**/*.jp2,3"
 
       validate(metaData, schema) must beLike { case Success(_) => ok }
     }
-
 
     "succeed when only 1 file is found using a '*' wildcard" in {
       val schema =
@@ -287,7 +289,7 @@ class MetaDataValidatorFileCountSpec extends Specification {
            Count: fileCount(file($Root, $File))
         """
 
-      val metaData = """src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema,checksum.*,1"""
+      val metaData = s"$schemaPath,checksum.*,1"
 
       validate(metaData, schema) must beLike { case Success(_) => ok }
     }
@@ -301,20 +303,21 @@ class MetaDataValidatorFileCountSpec extends Specification {
            Count: fileCount(file($Root, $File))
         """
 
-      val metaData = """src/test/resources/uk/gov/tna/dri/**,checksum.*,1"""
+      val searchPath = s"$baseResourcePkgPath/**"
+
+      val metaData = s"$searchPath,checksum.*,1"
 
       validate(metaData, schema) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""fileCount(file($Root, $File)) root src/test/resources/uk/gov/tna/dri/**/ (localfile: src/test/resources/uk/gov/tna/dri/**/checksum.*) should not contain wildcards for line: 1, column: Count, value: "1""""))
+        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""fileCount(file($Root, $File)) root """ + searchPath + """/ (localfile: """ + searchPath + """/checksum.*) should not contain wildcards for line: 1, column: Count, value: "1""""))
       }
     }
-
 
     "succeed with more than 1 files" in {
       val schema =
         """version 1.0
            @totalColumns 2 @noHeader
            File:
-           Count: fileCount(file("src/test/resources/uk/gov/tna/dri/fileCountTestFiles/threeFiles/", $File))
+           Count: fileCount(file("""" + threeFilesPath + """", $File))
         """
 
       val metaData = """**/*.jp2,"3""""

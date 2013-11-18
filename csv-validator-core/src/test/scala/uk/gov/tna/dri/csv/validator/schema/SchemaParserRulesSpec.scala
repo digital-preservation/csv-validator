@@ -112,7 +112,7 @@ class SchemaParserRulesSpec extends Specification {
                       @totalColumns 1
                       Name: fileExists /root/path"""
 
-      parse(new StringReader(schema)) must beLike { case Failure("Invalid uk.gov.tna.dri.csv.validator.schema text", _) => ok }
+      parse(new StringReader(schema)) must beLike { case Failure("Invalid schema text", _) => ok }
     }
 
     "succeed for or rule" in {
@@ -132,7 +132,7 @@ class SchemaParserRulesSpec extends Specification {
            @totalColumns 1
            Country: or in("England")"""
 
-      parse(new StringReader(schema)) must beLike { case Failure("Invalid uk.gov.tna.dri.csv.validator.schema text", _) => ok }
+      parse(new StringReader(schema)) must beLike { case Failure("Invalid schema text", _) => ok }
     }
 
     "fail for or rule with no rhs" in {
@@ -150,7 +150,7 @@ class SchemaParserRulesSpec extends Specification {
            @totalColumns 1
            Country: or"""
 
-      parse(new StringReader(schema)) must beLike { case Failure("Invalid uk.gov.tna.dri.csv.validator.schema text", _) => ok }
+      parse(new StringReader(schema)) must beLike { case Failure("Invalid schema text", _) => ok }
     }
 
     "succeed for two 'or' rules" in {

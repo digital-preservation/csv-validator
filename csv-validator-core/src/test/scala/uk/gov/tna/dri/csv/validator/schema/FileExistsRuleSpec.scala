@@ -11,10 +11,18 @@ package uk.gov.tna.dri.csv.validator.schema
 import org.specs2.mutable.Specification
 import scalaz.{Failure, Success}
 import uk.gov.tna.dri.csv.validator.metadata.{Cell, Row}
+import uk.gov.tna.dri.csv.validator.api.CsvValidator.SubstitutePath
+import uk.gov.tna.dri.csv.validator.TestResources
+import uk.gov.tna.dri.csv.validator.FILE_SEPARATOR
 
-class FileExistsRuleSpec extends Specification{
+class FileExistsRuleSpec extends Specification with TestResources {
 
-  val emptyPathSubstitutions = List[(String,String)]()
+  val relMustExistForRulePath = relResourcePath("mustExistForRule.txt")
+
+  val segments = relMustExistForRulePath.split('/')
+  val relPath = (segments.slice(0, segments.length - 3).reduceLeft(_ + '/' + _), segments.slice(segments.length - 3, segments.length).reduceLeft(_ + '/' + _))
+
+  val emptyPathSubstitutions = List[SubstitutePath]()
 
   "FileExistsRule" should {
 
@@ -34,15 +42,15 @@ class FileExistsRuleSpec extends Specification{
     }
 
     "succeed for file that exists with no root file path" in {
-      FileExistsRule(emptyPathSubstitutions).evaluate(0, Row(List(Cell("src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema/mustExistForRule.txt")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must be_==(Success(true))
+      FileExistsRule(emptyPathSubstitutions).evaluate(0, Row(List(Cell(relMustExistForRulePath)), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must be_==(Success(true))
     }
 
     "succeed for file that exists with root file path" in {
-      FileExistsRule(emptyPathSubstitutions,Literal(Some("src/test/resources/uk/gov/tna/"))).evaluate(0, Row(List(Cell("dri/uk.gov.tna.dri.csv.validator.schema/mustExistForRule.txt")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must be_==(Success(true))
+      FileExistsRule(emptyPathSubstitutions,Literal(Some(relPath._1 + FILE_SEPARATOR))).evaluate(0, Row(List(Cell(relPath._2)), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must be_==(Success(true))
     }
 
-    "succeed for root file path without final file seperator and file without initial file separator" in {
-      FileExistsRule(emptyPathSubstitutions, Literal(Some("src/test/resources/uk/gov/tna"))).evaluate(0, Row(List(Cell("dri/uk.gov.tna.dri.csv.validator.schema/mustExistForRule.txt")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must be_==(Success(true))
+    "succeed for root file path without final file separator and file without initial file separator" in {
+      FileExistsRule(emptyPathSubstitutions, Literal(Some(relPath._1))).evaluate(0, Row(List(Cell(relPath._2)), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must be_==(Success(true))
     }
   }
 
@@ -50,22 +58,22 @@ class FileExistsRuleSpec extends Specification{
     val emptyPathSubstitutions =  List[(String,String)]()
 
     "succeed when checking that a file exists" in {
-      FileSystem(Some("src/test/resources/uk/gov/tna/"), "dri/uk.gov.tna.dri.csv.validator.schema/mustExistForRule.txt", emptyPathSubstitutions ).exists must beTrue
+      FileSystem(Some(relPath._1 + FILE_SEPARATOR), relPath._2, emptyPathSubstitutions ).exists must beTrue
     }
 
     "succeed when checking that a file does NOT exist" in {
-      FileSystem(Some("src/test/resources/uk/gov/tna/"), "dri/uk.gov.tna.dri.csv.validator.schema/NOTAFILE.txt", emptyPathSubstitutions ).exists must beFalse
+      FileSystem(Some(relPath._1 + FILE_SEPARATOR), "dri/schema/NOTAFILE.txt", emptyPathSubstitutions ).exists must beFalse
     }
 
     "succeed with help from substitutions to fix path" in {
       val pathSubstitutions =  List[(String,String)](
-        ("bob", "src/test")
+        ("bob", relBaseResourcePkgPath)
       )
-      FileSystem(Some("bob/resources/uk/gov/tna/"), "dri/uk.gov.tna.dri.csv.validator.schema/mustExistForRule.txt", pathSubstitutions ).exists must beTrue
+      FileSystem(Some("bob/"), "mustExistForRule.txt", pathSubstitutions ).exists must beTrue
     }
 
-    "succeed with windows file seperators" in {
-      FileSystem(Some("src\\test\\resources\\uk\\gov\\tna\\"), "dri\\uk.gov.tna.dri.csv.validator.schema\\mustExistForRule.txt", emptyPathSubstitutions ).exists must beTrue
+    "succeed with windows file separators" in {
+      FileSystem(Some(relPath._1.replace('/', '\\')), relPath._2.replace('/', '\\'), emptyPathSubstitutions ).exists must beTrue
     }
 
     "succeed even when the filename contains %20 spaces" in {
@@ -77,10 +85,10 @@ class FileExistsRuleSpec extends Specification{
           "/HOME"
 
       val pathSubstitutions =  List[(String,String)](
-        (substitute, sys.props("user.dir"))
+        (substitute, baseResourcePkgPath)
       )
 
-      FileSystem(Some("file:///HOME/src/test/resources/uk/gov/tna/"), "dri/uk.gov.tna.dri.csv.validator.schema/must%20Exist%20With%20Spaces%20For%20Rule.txt", pathSubstitutions ).exists must beTrue
+      FileSystem(Some("file:///HOME/"), "must%20Exist%20With%20Spaces%20For%20Rule.txt", pathSubstitutions ).exists must beTrue
     }
 
     "succeed when joining strings with missing '/'" in {

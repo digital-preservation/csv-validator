@@ -13,25 +13,26 @@ import scalaz._
 import uk.gov.tna.dri.csv.validator.schema.Schema
 import uk.gov.tna.dri.csv.validator.api.CsvValidator
 import scalax.file.Path
+import uk.gov.tna.dri.csv.validator.api.CsvValidator.SubstitutePath
 
-class MetaDataValidatorBigFileSpec extends Specification {
+class MetaDataValidatorBigFileSpec extends Specification with TestResources {
 
-  val basePath = "src/test/resources/uk/gov/tna/dri/validator/acceptance/"
+  val base = acceptancePath
 
   "Big file" should {
 
     "succeed with no stack overflow for all errors" in {
-      val v = new CsvValidator with AllErrorsMetaDataValidator { val pathSubstitutions = List[(String,String)]() }
+      val v = new CsvValidator with AllErrorsMetaDataValidator { val pathSubstitutions = List[SubstitutePath]() }
       def parse(filePath: String): Schema = v.parseSchema(Path.fromString(filePath)) fold (f => throw new IllegalArgumentException(f.toString()), s => s)
 
-      v.validate(Path.fromString(basePath) / "bigMetaData.csv", parse(basePath + "bigSchema.txt")) must beLike { case Success(_) => ok }
+      v.validate(Path.fromString(base) / "bigMetaData.csv", parse(base + "/bigSchema.txt")) must beLike { case Success(_) => ok }
     }
 
     "succeed with no stack overflow for fail fast" in {
-      val v = new CsvValidator with FailFastMetaDataValidator { val pathSubstitutions = List[(String,String)]() }
+      val v = new CsvValidator with FailFastMetaDataValidator { val pathSubstitutions = List[SubstitutePath]() }
       def parse(filePath: String): Schema = v.parseSchema(Path.fromString(filePath)) fold (f => throw new IllegalArgumentException(f.toString()), s => s)
 
-      v.validate(Path.fromString(basePath) / "bigMetaData.csv", parse(basePath + "bigSchema.txt")) must beLike { case Success(_) => ok }
+      v.validate(Path.fromString(base) / "bigMetaData.csv", parse(base + "/bigSchema.txt")) must beLike { case Success(_) => ok }
     }
   }
 }

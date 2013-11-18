@@ -15,7 +15,7 @@ import scalaz.Success
 import uk.gov.tna.dri.csv.validator.schema.Schema
 import scalaz.Failure
 
-class MetaDataValidatorChecksumSpec extends Specification {
+class MetaDataValidatorChecksumSpec extends Specification with TestResources {
 
   implicit def stringToStringReader(s: String): StringReader = new StringReader(s.replaceAll("\n\\s+", "\n"))
 
@@ -35,16 +35,17 @@ class MetaDataValidatorChecksumSpec extends Specification {
 
   import TestMetaDataValidator._
 
-  "Checksum with path/filename in uk.gov.tna.dri.csv.validator.schema" should {
+
+  "Checksum with path/filename in schema" should {
     "succeed when calculated algorithm does match given value" in {
       val schema =
         """version 1.0
            @totalColumns 2 @noHeader
            File:
-           MD5: checksum(file("src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema/checksum.txt"), "MD5")
+           MD5: checksum(file("""" + checksumPath + """"), "MD5")
         """
 
-      val metaData = """src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema/checksum.txt,232762380299115da6995e4c4ac22fa2"""
+      val metaData = s"$checksumPath,232762380299115da6995e4c4ac22fa2"
 
       validate(metaData, schema) must beLike { case Success(_) => ok }
     }
@@ -54,24 +55,24 @@ class MetaDataValidatorChecksumSpec extends Specification {
         """version 1.0
            @totalColumns 2 @noHeader
            File:
-           MD5: checksum(file("src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema/checksum.txt"), "MD5")
+           MD5: checksum(file("""" + checksumPath + """"), "MD5")
         """
 
-      val metaData = """src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema/checksum.txt,wrong"""
+      val metaData = s"$checksumPath,wrong"
 
       validate(metaData, schema) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""checksum(file("src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema/checksum.txt"), "MD5") file "src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema/checksum.txt" checksum match fails for line: 1, column: MD5, value: "wrong". Computed checksum value:"232762380299115da6995e4c4ac22fa2""""))
+        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""checksum(file("""" + checksumPath + """"), "MD5") file """" + checksumPath + """" checksum match fails for line: 1, column: MD5, value: "wrong". Computed checksum value:"232762380299115da6995e4c4ac22fa2""""))
       }
     }
   }
 
-  "Checksum with rootpath and filename in uk.gov.tna.dri.csv.validator.schema" should {
+  "Checksum with rootpath and filename in schema" should {
     "succeed when calculated algorithm does match given cross referenced string value" in {
       val schema =
         """version 1.0
            @totalColumns 2 @noHeader
            File:
-           MD5: checksum(file("src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema", "checksum.txt"), "MD5")
+           MD5: checksum(file("""" + schemaPath + """", "checksum.txt"), "MD5")
         """
 
       val metaData = """ABC,232762380299115da6995e4c4ac22fa2"""
@@ -84,25 +85,25 @@ class MetaDataValidatorChecksumSpec extends Specification {
         """version 1.0
            @totalColumns 2 @noHeader
            File:
-           MD5: checksum(file("src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema", "checksum.txt"), "MD5")
+           MD5: checksum(file("""" + schemaPath + """", "checksum.txt"), "MD5")
         """
 
       val metaData = """ABC,wrong"""
 
       validate(metaData, schema) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""checksum(file("src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema", "checksum.txt"), "MD5") file "src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema/checksum.txt" checksum match fails for line: 1, column: MD5, value: "wrong". Computed checksum value:"232762380299115da6995e4c4ac22fa2""""))
+        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""checksum(file("""" + schemaPath + """", "checksum.txt"), "MD5") file """" + checksumPath + """" checksum match fails for line: 1, column: MD5, value: "wrong". Computed checksum value:"232762380299115da6995e4c4ac22fa2""""))
       }
     }
   }
 
-  "Checksum with root in uk.gov.tna.dri.csv.validator.schema and file in metadata" should {
+  "Checksum with root in schema and file in metadata" should {
 
     "succeed when calculated algorithm does match given root & cross referenced string value" in {
       val schema =
         """version 1.0
            @totalColumns 2 @noHeader
            File:
-           MD5: checksum(file("src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema", $File), "MD5")
+           MD5: checksum(file("""" + schemaPath + """", $File), "MD5")
         """
 
       val metaData = """checksum.txt,232762380299115da6995e4c4ac22fa2"""
@@ -110,7 +111,7 @@ class MetaDataValidatorChecksumSpec extends Specification {
       validate(metaData, schema) must beLike { case Success(_) => ok }
     }
 
-    "fail when incorrect root given in uk.gov.tna.dri.csv.validator.schema for root" in {
+    "fail when incorrect root given in schema for root" in {
       val schema =
         """version 1.0
            @totalColumns 2 @noHeader
@@ -135,7 +136,7 @@ class MetaDataValidatorChecksumSpec extends Specification {
            MD5: checksum(file($File), "MD5")
         """
 
-      val metaData = """src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema/checksum.txt,232762380299115da6995e4c4ac22fa2"""
+      val metaData = s"$checksumPath,232762380299115da6995e4c4ac22fa2"
 
       validate(metaData, schema) must beLike { case Success(_) => ok }
     }
@@ -148,10 +149,10 @@ class MetaDataValidatorChecksumSpec extends Specification {
            MD5: checksum(file($File), "MD5")
         """
 
-      val metaData = """src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema/checksum.txt,rubbish"""
+      val metaData = s"$checksumPath,rubbish"
 
       validate(metaData, schema) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""checksum(file($File), "MD5") file "src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema/checksum.txt" checksum match fails for line: 1, column: MD5, value: "rubbish". Computed checksum value:"232762380299115da6995e4c4ac22fa2""""))
+        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""checksum(file($File), "MD5") file """" + checksumPath + """" checksum match fails for line: 1, column: MD5, value: "rubbish". Computed checksum value:"232762380299115da6995e4c4ac22fa2""""))
       }
     }
   }
@@ -161,13 +162,13 @@ class MetaDataValidatorChecksumSpec extends Specification {
         """version 1.0
            @totalColumns 2 @noHeader
            File:
-           MD5: checksum(file("src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema", $File), "MD5")
+           MD5: checksum(file("""" + schemaPath + """", $File), "MD5")
         """
 
       val metaData = """checksum.txt,rubbish"""
 
       validate(metaData, schema) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""checksum(file("src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema", $File), "MD5") file "src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema/checksum.txt" checksum match fails for line: 1, column: MD5, value: "rubbish". Computed checksum value:"232762380299115da6995e4c4ac22fa2""""))
+        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""checksum(file("""" + schemaPath + """", $File), "MD5") file """" + checksumPath + """" checksum match fails for line: 1, column: MD5, value: "rubbish". Computed checksum value:"232762380299115da6995e4c4ac22fa2""""))
       }
     }
   }
@@ -183,7 +184,7 @@ class MetaDataValidatorChecksumSpec extends Specification {
            MD5: checksum(file($Root, $File), "MD5")
         """
 
-      val metaData = """src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema,checksum.txt,232762380299115da6995e4c4ac22fa2"""
+      val metaData = s"$schemaPath,checksum.txt,232762380299115da6995e4c4ac22fa2"
 
       validate(metaData, schema) must beLike { case Success(_) => ok }
     }
@@ -216,7 +217,7 @@ class MetaDataValidatorChecksumSpec extends Specification {
            MD5: checksum(file($Root, $File), "MD5")
         """
 
-      val metaData = """src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema,**/checksum.txt,232762380299115da6995e4c4ac22fa2"""
+      val metaData = s"$schemaPath,**/checksum.txt,232762380299115da6995e4c4ac22fa2"
 
       validate(metaData, schema) must beLike { case Success(_) => ok }
     }
@@ -230,7 +231,7 @@ class MetaDataValidatorChecksumSpec extends Specification {
            MD5: checksum(file($Root, $File), "MD5")
         """
 
-      val metaData = """src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema,checksum.*,232762380299115da6995e4c4ac22fa2"""
+      val metaData = s"$schemaPath,checksum.*,232762380299115da6995e4c4ac22fa2"
 
       validate(metaData, schema) must beLike { case Success(_) => ok }
     }
@@ -244,10 +245,12 @@ class MetaDataValidatorChecksumSpec extends Specification {
            MD5: checksum(file($Root, $File), "MD5")
         """
 
-      val metaData = """src/test/resources/uk/gov/tna/dri/**,checksum.*,232762380299115da6995e4c4ac22fa2"""
+      val searchPath = s"$baseResourcePkgPath/**"
+
+      val metaData = s"$searchPath,checksum.*,232762380299115da6995e4c4ac22fa2"
 
       validate(metaData, schema) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""checksum(file($Root, $File), "MD5") root src/test/resources/uk/gov/tna/dri/**/ (localfile: src/test/resources/uk/gov/tna/dri/**/checksum.*) should not contain wildcards for line: 1, column: MD5, value: "232762380299115da6995e4c4ac22fa2""""))
+        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""checksum(file($Root, $File), "MD5") root """ + searchPath + """/ (localfile: """ + searchPath + """/checksum.*) should not contain wildcards for line: 1, column: MD5, value: "232762380299115da6995e4c4ac22fa2""""))
       }
     }
 
@@ -257,13 +260,13 @@ class MetaDataValidatorChecksumSpec extends Specification {
         """version 1.0
            @totalColumns 2 @noHeader
            File:
-           MD5: checksum(file("src/test/resources/uk/gov/tna/dri/fileCountTestFiles/threeFiles/", $File), "MD5")
+           MD5: checksum(file("""" + threeFilesPath + """", $File), "MD5")
         """
 
       val metaData = """**/*.jp2,"232762380299115da6995e4c4ac22fa2""""
 
       validate(metaData, schema) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""checksum(file("src/test/resources/uk/gov/tna/dri/fileCountTestFiles/threeFiles/", $File), "MD5") multiple files for src/test/resources/uk/gov/tna/dri/fileCountTestFiles/threeFiles/**/*.jp2 found for line: 1, column: MD5, value: "232762380299115da6995e4c4ac22fa2""""))
+        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""checksum(file("""" + threeFilesPath + """", $File), "MD5") multiple files for """ + threeFilesPath + """/**/*.jp2 found for line: 1, column: MD5, value: "232762380299115da6995e4c4ac22fa2""""))
       }
     }
 
@@ -294,7 +297,7 @@ class MetaDataValidatorChecksumSpec extends Specification {
            MD5: checksum(file($File), "MD5")
         """
 
-      val metaData = """src/test/resources/uk/gov/tna/dri/uk.gov.tna.dri.csv.validator.schema/checksum.txt,232762380299115da6995e4c4ac22fa2"""
+      val metaData = s"$checksumPath,232762380299115da6995e4c4ac22fa2"
 
       validate(metaData, schema) must beLike { case Success(_) => ok }
     }

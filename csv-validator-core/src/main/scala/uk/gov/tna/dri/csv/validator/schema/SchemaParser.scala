@@ -82,7 +82,7 @@ trait SchemaParser extends RegexParsers {
 
   def columnDefinition = ((columnIdentifier <~ ":") ~ rep(rule) ~ rep(columnDirective) <~ (endOfColumnDefinition | comment) ^^ {
     case id ~ rules ~ columnDirectives => ColumnDefinition(id, rules, columnDirectives)
-  }).withFailureMessage("Invalid uk.gov.tna.dri.csv.validator.schema text")
+  }).withFailureMessage("Invalid schema text")
 
   def comment: Parser[Any] = singleLineComment | multiLineComment
 
@@ -206,7 +206,7 @@ trait SchemaParser extends RegexParsers {
 
   def ignoreCase = "@ignoreCase" ^^^ IgnoreCase()
 
-  private def endOfColumnDefinition: Parser[Any] = whiteSpace ~ (eol | endOfInput | failure("Invalid uk.gov.tna.dri.csv.validator.schema text"))
+  private def endOfColumnDefinition: Parser[Any] = whiteSpace ~ (eol | endOfInput | failure("Invalid schema text"))
 
   private def endOfInput: Parser[Any] = new Parser[Any] {
     def apply(input: Input) = {
