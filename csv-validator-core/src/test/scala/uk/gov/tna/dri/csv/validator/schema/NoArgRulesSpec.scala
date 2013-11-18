@@ -50,8 +50,8 @@ class NoArgRulesSpec extends Specification {
     "fail if cell has an invalid uri" in {
 
       val uriRule = UriRule()
-      uriRule.evaluate(0, Row(List(Cell("http://http://datagov.nationalarchives.gov.uk/66/WO/409/9999/0/aaaaaaaa-aaaa-4aaa-9eee-0123456789ab")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must beLike {
-        case Failure(messages) => messages.head mustEqual """uri fails for line: 1, column: column1, value: "http://http://datagov.nationalarchives.gov.uk/66/WO/409/9999/0/aaaaaaaa-aaaa-4aaa-9eee-0123456789ab""""
+      uriRule.evaluate(0, Row(List(Cell("""http:\\http:\\datagov.nationalarchives.gov.uk\66\WO\409\9999\0\aaaaaaaa-aaaa-4aaa-9eee-0123456789ab""")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must beLike {
+        case Failure(messages) => messages.head mustEqual """uri fails for line: 1, column: column1, value: "http:\\http:\\datagov.nationalarchives.gov.uk\66\WO\409\9999\0\aaaaaaaa-aaaa-4aaa-9eee-0123456789ab""""
       }
     }
   }
