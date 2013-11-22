@@ -239,7 +239,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
     "fail if all the rules are not" in {
       validate(Path.fromString(base) / "standardRulesFailMetaData.csv", parse(base + "/standardRulesSchema.txt")) must beLike {
-        case Failure(errors) => errors.list.toString() mustEqual """List(ErrorMessage(uri fails for line: 1, column: uri, value: "http//datagov.nationalarchives.gov.uk/66/WO/409/9999/0/aaaaaaaa-aaaa-4aaa-9eee-0123456789ab"), ErrorMessage(xDateTime fails for line: 1, column: xDateTime, value: "2002-999-30T09:00:10"), ErrorMessage(xDate fails for line: 1, column: xDate, value: "02-99-30"), ErrorMessage(ukDate fails for line: 1, column: ukDate, value: "99/00/0009"), ErrorMessage(xTime fails for line: 1, column: xTime, value: "99:00:889"), ErrorMessage(uuid4 fails for line: 1, column: uuid4, value: "aaaaaaaab-aaaab-4aaa-9eee-0123456789ab"), ErrorMessage(positiveInteger fails for line: 1, column: positiveInteger, value: "12-0912459"))"""
+        case Failure(errors) => errors.list.toString() mustEqual """List(ErrorMessage(uri fails for line: 1, column: uri, value: "http:##datagov.nationalarchives.gov.uk#66#WO#409#9999#0#aaaaaaaa-aaaa-4aaa-9eee-0123456789ab"), ErrorMessage(xDateTime fails for line: 1, column: xDateTime, value: "2002-999-30T09:00:10"), ErrorMessage(xDate fails for line: 1, column: xDate, value: "02-99-30"), ErrorMessage(ukDate fails for line: 1, column: ukDate, value: "99/00/0009"), ErrorMessage(xTime fails for line: 1, column: xTime, value: "99:00:889"), ErrorMessage(uuid4 fails for line: 1, column: uuid4, value: "aaaaaaaab-aaaab-4aaa-9eee-0123456789ab"), ErrorMessage(positiveInteger fails for line: 1, column: positiveInteger, value: "12-0912459"))"""
 
       }
     }
