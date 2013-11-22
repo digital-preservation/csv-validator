@@ -182,7 +182,7 @@ trait SchemaParser extends RegexParsers {
   def fileExists = ("fileExists(" ~> fileArgProvider <~ ")" ^^ { s => FileExistsRule(pathSubstitutions, s) }).withFailureMessage("fileExists rule has an invalid file path") |
     "fileExists" ^^^ { FileExistsRule( pathSubstitutions ) } | failure("Invalid fileExists rule")
 
-  def rootFilePath: Parser[String] = """[a-zA-Z/-_\.\d\\:]+""".r
+  def rootFilePath: Parser[String] = """[\^&'@\{\}\[\]\,\$=!\-#\(\)%\.\+~_a-zA-Z0-9\s\\/:]+""".r    //Characters taken from http://support.microsoft.com/kb/177506 and added '/' and '\' and ':'
 
   def checksum = "checksum(" ~> file ~ (white ~ "," ~ white) ~ algorithmExpr <~ ")" ^^ { case files ~ _ ~ algorithm => ChecksumRule(files._1.getOrElse(Literal(None)), files._2, algorithm, pathSubstitutions) }
 
