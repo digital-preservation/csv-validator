@@ -10,7 +10,6 @@ package uk.gov.nationalarchives.csv.validator.cmd
 
 import scala.Array
 import org.specs2.mutable.Specification
-import uk.gov.nationalarchives.csv.validator.EOL
 
 class CsvValidatorCmdAppSpec extends Specification with TestResources {
 
@@ -41,19 +40,19 @@ class CsvValidatorCmdAppSpec extends Specification with TestResources {
 
     "fail if metadata file is unreadable" in {
       CsvValidatorCmdApp.run(Array("nonExistentMetaData.csv", schemaPath)) must beLike {
-        case (errMsg,errCode) => errMsg mustEqual "Unable to read file : nonExistentMetaData.csv"
+        case (errMsg,errCode) => errCode mustEqual SystemExits.IncorrectArguments
       }
     }
 
     "fail if schema file is unreadable" in {
       CsvValidatorCmdApp.run(Array(metadataPath, "nonExistentSchema.txt")) must beLike {
-        case (errMsg,errCode) => errMsg mustEqual "Unable to read file : nonExistentSchema.txt"
+        case (errMsg,errCode) => errCode mustEqual SystemExits.IncorrectArguments
       }
     }
 
     "fail if both metadata and schema file are unreadable" in {
       CsvValidatorCmdApp.run(Array("nonExistentmetaData.csv", "nonExistentSchema.txt")) must beLike {
-        case (errMsg,errCode) => errMsg mustEqual "Unable to read file : nonExistentmetaData.csv" + EOL + "Unable to read file : nonExistentSchema.txt"
+        case (errMsg,errCode) => errCode mustEqual SystemExits.IncorrectArguments
       }
     }
 
@@ -67,15 +66,21 @@ class CsvValidatorCmdAppSpec extends Specification with TestResources {
   "Fail fast and file args" should {
 
     "return true and the file names for fail fast" in {
-      CsvValidatorCmdApp.run(Array("--fail-fast", "someMetaData.csv", "someSchema.txt")) mustEqual ("Unable to read file : someMetaData.csv" + EOL + "Unable to read file : someSchema.txt",1)
+      CsvValidatorCmdApp.run(Array("--fail-fast", "someMetaData.csv", "someSchema.txt")) must beLike {
+        case (errMsg, errCode) => errCode mustEqual SystemExits.IncorrectArguments
+      }
     }
 
     "return true and the file names for fail fast short form" in {
-      CsvValidatorCmdApp.run(Array("-f", "someMetaData.csv", "someSchema.txt")) mustEqual ("Unable to read file : someMetaData.csv" + EOL + "Unable to read file : someSchema.txt",1)
+      CsvValidatorCmdApp.run(Array("-f", "someMetaData.csv", "someSchema.txt")) must beLike {
+        case (errMsg, errCode) => errCode mustEqual SystemExits.IncorrectArguments
+      }
     }
 
     "return false and the file names for no fail fast" in {
-      CsvValidatorCmdApp.run(Array("someMetaData.csv", "someSchema.txt")) mustEqual ("Unable to read file : someMetaData.csv" + EOL + "Unable to read file : someSchema.txt",1)
+      CsvValidatorCmdApp.run(Array("someMetaData.csv", "someSchema.txt")) must beLike {
+        case (errMsg, errCode) => errCode mustEqual SystemExits.IncorrectArguments
+      }
     }
   }
 
@@ -86,8 +91,8 @@ class CsvValidatorCmdAppSpec extends Specification with TestResources {
 
     //    "handle --path option" in {
     //      val commandLine = List[String](
-    //        "--path", "c:", "",
-    //        "--path", """file://c:""", """file://""",
+    //        "--path:c:=",
+    //        "--path:file://c:=file://",
     //        "--fail-fast"
     //      )
     //      CsvValidatorCmdApp.findSubstitutionPaths(commandLine) mustEqual Success(List( ("c:", ""), ("file://c:", "file://")) )
@@ -102,7 +107,7 @@ class CsvValidatorCmdAppSpec extends Specification with TestResources {
     }
 
     //    "have exit code 0 when validation --path successful" in {
-    //      CsvValidatorCmdApp.run(Array( "--path", "c:", "", basePath + "metaData.csv", basePath + "schema.txt"))._2 mustEqual 0
+    //      CsvValidatorCmdApp.run(Array( "--path:c: " + basePath + "metaData.csv", basePath + "schema.txt"))._2 mustEqual 0
     //    }
 
     "have exit code 1 when the command line arguments are wrong" in {
@@ -110,7 +115,7 @@ class CsvValidatorCmdAppSpec extends Specification with TestResources {
     }
 
     "have exit code 1 when the --path is missing one args " in {
-      CsvValidatorCmdApp.run(Array("--path", "c:", metadataPath, schemaPath))._2 mustEqual 1
+      CsvValidatorCmdApp.run(Array("--path:c:", metadataPath, schemaPath))._2 mustEqual 1
     }
 
     "have exit code 1 when the --path is missing both args " in {
