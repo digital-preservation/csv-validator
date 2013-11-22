@@ -1,0 +1,9 @@
+version 1.0
+@totalColumns 7 @noHeader
+uri: uri
+xDateTime: xDateTime
+xDate: xDate
+ukDate: ukDate
+xTime: xTime
+uuid4: uuid4
+positiveInteger: positiveInteger
