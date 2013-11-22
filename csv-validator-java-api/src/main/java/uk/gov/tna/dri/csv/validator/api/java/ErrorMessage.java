@@ -8,6 +8,9 @@
  */
 package uk.gov.tna.dri.csv.validator.api.java;
 
+/**
+ * Error Message (failure)
+ */
 public class ErrorMessage extends FailMessage {
 
     public ErrorMessage(final String message) {

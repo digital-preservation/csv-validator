@@ -8,9 +8,15 @@
  */
 package uk.gov.tna.dri.csv.validator.api.java;
 
+/**
+ * Abstract type for CSV Schema Parser and CSV Validation errors
+ */
 public abstract class FailMessage {
     private final String message;
 
+    /**
+     * @param message The failure message
+     */
     public FailMessage(final String message) {
         this.message = message;
     }

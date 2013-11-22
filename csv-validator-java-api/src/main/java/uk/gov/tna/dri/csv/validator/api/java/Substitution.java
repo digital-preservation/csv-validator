@@ -9,21 +9,37 @@
 package uk.gov.tna.dri.csv.validator.api.java;
 
 /**
- * A path substitution line for file access where cvs given paths need to be replaced.
+ * Path substitutions are used where part of a
+ * file path is to be replaced by something else
+ *
+ * Useful for when CSV files have hard-coded absolute paths
+ * to files that accompany the CSV file
  */
 public class Substitution {
     private final String from;
     private final String to;
 
+    /**
+     * Path Substitution
+     *
+     * @param from Part of a path to replace
+     * @param to The replacement to place into the path
+     */
     public Substitution(final String from, final String to) {
         this.from = from;
         this.to = to;
     }
 
+    /**
+     * Substitution from
+     */
     public String getFrom() {
         return from;
     }
 
+    /**
+     * Substitution to
+     */
     public String getTo() {
         return to;
     }

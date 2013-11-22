@@ -14,41 +14,65 @@ import scalaz.{Success => SuccessZ, Failure => FailureZ, _}
 import uk.gov.tna.dri.csv.validator.{FailMessage => SFailMessage, WarningMessage => SWarningMessage, ErrorMessage => SErrorMessage, SchemaMessage => SSchemaMessage}
 import uk.gov.tna.dri.csv.validator.Util._
 import uk.gov.tna.dri.csv.validator.api.CsvValidator.createValidator
+import java.io.{Reader => JReader}
 
+/**
+ * Simple bridge from Java API to Scala API
+ */
 object CsvValidatorJavaBridge {
 
-    def validate(metaDataFile: String, schemaFile: String, failFast: Boolean, pathSubstitutionsList: JList[Substitution] ): JList[FailMessage] = {
+  def validate(csvDataFile: String, csvSchemaFile: String, failFast: Boolean, pathSubstitutionsList: JList[Substitution]): JList[FailMessage] = {
 
-      import scala.collection.JavaConverters._
+    import scala.collection.JavaConverters._
 
-      val pathSubs: List[(String,String)] = pathSubstitutionsList.asScala.map( x => (x.getFrom, x.getTo)).toList
+    val pathSubs: List[(String,String)] = pathSubstitutionsList.asScala.map( x => (x.getFrom, x.getTo)).toList
 
-      def asJavaMessage(f: SFailMessage): FailMessage = f match {
-        case SWarningMessage(msg) => new WarningMessage(msg).asInstanceOf[FailMessage]
-        case SErrorMessage(msg) => new ErrorMessage(msg).asInstanceOf[FailMessage]
-        case SSchemaMessage(msg) => new ErrorMessage(msg).asInstanceOf[FailMessage]
-      }
+    val pMetaDataFile = Path.fromString(csvDataFile)
+    val pSchemaFile = Path.fromString(csvSchemaFile)
 
-      val pMetaDataFile = Path.fromString(metaDataFile)
-      val pSchemaFile = Path.fromString(schemaFile)
+    checkFilesReadable(pMetaDataFile :: pSchemaFile :: Nil) match {
+      case FailureZ(errors) =>
+        errors.list.map{ asJavaMessage(_) }.asJava
 
-      checkFilesReadable(pMetaDataFile :: pSchemaFile :: Nil) match {
-        case FailureZ(errors) =>
-          errors.list.map{ asJavaMessage(_) }.asJava
+      case SuccessZ(_) =>
+        val validator = createValidator(failFast, pathSubs)
+        validator.parseSchema(pSchemaFile) match {
 
-        case SuccessZ(_) =>
-          val validator = createValidator(failFast, pathSubs)
-          validator.parseSchema(pSchemaFile) match {
+          case FailureZ(errors) =>
+            errors.list.map(asJavaMessage(_)).asJava
 
-            case FailureZ(errors) =>
-              errors.list.map(asJavaMessage(_)).asJava
-
-            case SuccessZ(schema) =>
-              validator.validate(pMetaDataFile, schema) match {
-                case FailureZ(errors) => errors.list.map(asJavaMessage(_)).asJava
-                case SuccessZ(_) => new JArrayList[FailMessage]
-              }
-          }
-      }
+          case SuccessZ(schema) =>
+            validator.validate(pMetaDataFile, schema) match {
+              case FailureZ(errors) => errors.list.map(asJavaMessage(_)).asJava
+              case SuccessZ(_) => new JArrayList[FailMessage]
+            }
+        }
     }
+  }
+
+  def validate(csvData: JReader, csvSchema: JReader, failFast: Boolean, pathSubstitutionsList: JList[Substitution]): JList[FailMessage] = {
+
+    import scala.collection.JavaConverters._
+
+    val pathSubs: List[(String,String)] = pathSubstitutionsList.asScala.map( x => (x.getFrom, x.getTo)).toList
+
+    val validator = createValidator(failFast, pathSubs)
+    validator.parseSchema(csvSchema) match {
+
+      case FailureZ(errors) =>
+        errors.list.map(asJavaMessage(_)).asJava
+
+      case SuccessZ(schema) =>
+        validator.validate(csvData, schema) match {
+          case FailureZ(errors) => errors.list.map(asJavaMessage(_)).asJava
+          case SuccessZ(_) => new JArrayList[FailMessage]
+        }
+    }
+  }
+
+  private def asJavaMessage(f: SFailMessage): FailMessage = f match {
+    case SWarningMessage(msg) => new WarningMessage(msg).asInstanceOf[FailMessage]
+    case SErrorMessage(msg) => new ErrorMessage(msg).asInstanceOf[FailMessage]
+    case SSchemaMessage(msg) => new ErrorMessage(msg).asInstanceOf[FailMessage]
+  }
 }
