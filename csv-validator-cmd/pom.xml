@@ -40,6 +40,19 @@
                 </executions>
             </plugin>
             <plugin>
+                <groupId>com.mmakowski</groupId>
+                <artifactId>maven-specs2-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>verify</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>run-specs</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>appassembler-maven-plugin</artifactId>
                 <executions>
@@ -57,7 +70,7 @@
                     <programs>
                         <program>
                             <id>validate</id>
-                            <mainClass>uk.gov.tna.dri.csv.validator.cmd.CsvValidatorCmdApp</mainClass>
+                            <mainClass>uk.gov.nationalarchives.csv.validator.cmd.CsvValidatorCmdApp</mainClass>
                         </program>
                     </programs>
                 </configuration>

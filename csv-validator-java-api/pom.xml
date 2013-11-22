@@ -72,9 +72,9 @@
                     <links>
                         <link>${project.url}</link>
                     </links>
-                    <packagesheader>CSV uk.gov.tna.dri.csv.validator.api.java.CsvValidator Packages</packagesheader>
-                    <doctitle>CSV uk.gov.tna.dri.csv.validator.api.java.CsvValidator ${project.version}</doctitle>
-                    <windowtitle>CSV uk.gov.tna.dri.csv.validator.api.java.CsvValidator ${project.version}</windowtitle>
+                    <packagesheader>CSV uk.gov.nationalarchives.csv.validator.api.java.CsvValidator Packages</packagesheader>
+                    <doctitle>CSV uk.gov.nationalarchives.csv.validator.api.java.CsvValidator ${project.version}</doctitle>
+                    <windowtitle>CSV uk.gov.nationalarchives.csv.validator.api.java.CsvValidator ${project.version}</windowtitle>
                     <bottom>
                         <![CDATA[
                             Copyright &copy; ${project.inceptionYear}-{currentYear} <a href="${project.organization.url}">${project.organization.name}</a>. All Rights Reserved

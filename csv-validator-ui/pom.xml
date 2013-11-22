@@ -57,7 +57,7 @@
                     <programs>
                         <program>
                             <id>validate-gui</id>
-                            <mainClass>uk.gov.tna.dri.csv.validator.ui.CsvValidatorUi</mainClass>
+                            <mainClass>uk.gov.nationalarchives.csv.validator.ui.CsvValidatorUi</mainClass>
                         </program>
                     </programs>
                 </configuration>

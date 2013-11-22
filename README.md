@@ -9,7 +9,7 @@ A start on the documentation is below, but more will follow soon...
 
 Approach
 --------
-Firstly, we have defined a Grammar which describes a language for expressing rules to validate a CSV file. We call such an expression of this language a CSVS (CSV Schema). The grammar itself is described in [EBNF](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_Form) and is available in the [csv-uk.gov.tna.dri.csv.validator.schema-grammar.ebnf](blob/master/csv-uk.gov.tna.dri.csv.validator.schema-grammar.ebnf) file.
+Firstly, we have defined a Grammar which describes a language for expressing rules to validate a CSV file. We call such an expression of this language a CSVS (CSV Schema). The grammar itself is described in [EBNF](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_Form) and is available in the [csvschema-grammar.ebnf](blob/master/csv-schema-grammar.ebnf) file.
 
 Secondly, we built an implementation that will take a CSV Schema and a CSV file and assert that each rule in the CSV 
 Schema holds true for the CSV file. The validaton tool is written in Scala 2.10 and may be used as:
