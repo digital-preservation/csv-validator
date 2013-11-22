@@ -76,7 +76,7 @@ class FileCountSpec extends Specification with TestResources {
       ("bob", baseResourcePkgPath)
     )
 
-    val fileCountRule = new FileCountRule(Literal(Some("""bob/checksum.txt""")), pathSubstitutions)
+    val fileCountRule = new FileCountRule(Literal(Some("""bob/checksum.csvs""")), pathSubstitutions)
     val expectedFileCount = "1"
     fileCountRule.evaluate(0, Row(List(Cell(expectedFileCount)), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition("column1")))) mustEqual Success(true)
   }

@@ -89,7 +89,7 @@ class MetaDataValidatorFileCountSpec extends Specification with TestResources {
 
     "fail when file does not exist" in {
 
-      val wrongPath = resourcePath("schema/WRONG.txt")
+      val wrongPath = resourcePath("schema/WRONG.csvs")
 
       val schema =
         """version 1.0
@@ -128,7 +128,7 @@ class MetaDataValidatorFileCountSpec extends Specification with TestResources {
         """version 1.0
            @totalColumns 2 @noHeader
            File:
-           Count: fileCount(file("""" + schemaPath + """", "checksum.txt"))
+           Count: fileCount(file("""" + schemaPath + """", "checksum.csvs"))
         """
 
       val metaData = """ABC,1"""
@@ -141,13 +141,13 @@ class MetaDataValidatorFileCountSpec extends Specification with TestResources {
         """version 1.0
            @totalColumns 2 @noHeader
            File:
-           Count: fileCount(file("""" + schemaPath + """", "checksum.txt"))
+           Count: fileCount(file("""" + schemaPath + """", "checksum.csvs"))
         """
 
       val metaData = """ABC,99"""
 
       validate(metaData, schema) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""fileCount(file("""" + schemaPath + """", "checksum.txt")) found 1 file(s) for line: 1, column: Count, value: "99""""))
+        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""fileCount(file("""" + schemaPath + """", "checksum.csvs")) found 1 file(s) for line: 1, column: Count, value: "99""""))
       }
     }
   }
@@ -162,7 +162,7 @@ class MetaDataValidatorFileCountSpec extends Specification with TestResources {
            Count: fileCount(file("""" + schemaPath + """", $File))
         """
 
-      val metaData = """checksum.txt,1"""
+      val metaData = """checksum.csvs,1"""
 
       validate(metaData, schema) must beLike { case Success(_) => ok }
     }
@@ -175,10 +175,10 @@ class MetaDataValidatorFileCountSpec extends Specification with TestResources {
            Count: fileCount(file("invalid/path/to/root", $File))
         """
 
-      val metaData = """checksum.txt,99"""
+      val metaData = """checksum.csvs,99"""
 
       validate(metaData, schema) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""fileCount(file("invalid/path/to/root", $File)) incorrect basepath invalid/path/to/root/ (localfile: invalid/path/to/root/checksum.txt) found for line: 1, column: Count, value: "99""""))
+        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""fileCount(file("invalid/path/to/root", $File)) incorrect basepath invalid/path/to/root/ (localfile: invalid/path/to/root/checksum.csvs) found for line: 1, column: Count, value: "99""""))
       }
     }
   }
@@ -227,7 +227,7 @@ class MetaDataValidatorFileCountSpec extends Specification with TestResources {
            Count: fileCount(file($Root, $File))
         """
 
-      val metaData = s"$schemaPath,checksum.txt,1"
+      val metaData = s"$schemaPath,checksum.csvs,1"
 
       validate(metaData, schema) must beLike { case Success(_) => ok }
     }
@@ -241,10 +241,10 @@ class MetaDataValidatorFileCountSpec extends Specification with TestResources {
            Count: fileCount(file($Root,$File))
         """
 
-      val metaData = """invalid/path/to/root,checksum.txt,99"""
+      val metaData = """invalid/path/to/root,checksum.csvs,99"""
 
       validate(metaData, schema) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""fileCount(file($Root, $File)) incorrect basepath invalid/path/to/root/ (localfile: invalid/path/to/root/checksum.txt) found for line: 1, column: Count, value: "99""""))
+        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""fileCount(file($Root, $File)) incorrect basepath invalid/path/to/root/ (localfile: invalid/path/to/root/checksum.csvs) found for line: 1, column: Count, value: "99""""))
       }
     }
   }
@@ -260,7 +260,7 @@ class MetaDataValidatorFileCountSpec extends Specification with TestResources {
            Count: fileCount(file($Root, $File))
         """
 
-      val metaData = s"$schemaPath,**/checksum.txt,1"
+      val metaData = s"$schemaPath,**/checksum.csvs,1"
 
       validate(metaData, schema) must beLike { case Success(_) => ok }
     }

@@ -37,7 +37,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
   import TestMetaDataValidator._
 
-  val mustExistForRulePath = resourcePath("schema/mustExistForRule.txt")
+  val mustExistForRulePath = resourcePath("schema/mustExistForRule.csvs")
 
   "Validation" should {
 
@@ -1024,7 +1024,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
            Count: fileCount(file("""" + schemaPath + """", $File))
         """
 
-      val metaData = """checksum.txt,1"""
+      val metaData = """checksum.csvs,1"""
 
       validate(metaData, schema) must beLike { case Success(_) => ok }
     }

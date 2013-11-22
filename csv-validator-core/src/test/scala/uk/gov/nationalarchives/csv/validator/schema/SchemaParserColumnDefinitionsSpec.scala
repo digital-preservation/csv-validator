@@ -25,7 +25,7 @@ class SchemaParserColumnDefinitionsSpec extends Specification {
 
     "succeed for valid schema with all possible column definitions" in {
       val columnDefinitions = List(new ColumnDefinition("column1"),new ColumnDefinition("column2"),new ColumnDefinition("column3"),
-        new ColumnDefinition("."),new ColumnDefinition("_-co.l"),new ColumnDefinition("0.a-B-z_Z"),new ColumnDefinition("-abc.txt"))
+        new ColumnDefinition("."),new ColumnDefinition("_-co.l"),new ColumnDefinition("0.a-B-z_Z"),new ColumnDefinition("-abc.csvs"))
 
       val schema = """version 1.0
                       @totalColumns 7
@@ -35,7 +35,7 @@ class SchemaParserColumnDefinitionsSpec extends Specification {
                       .:
                       _-co.l:
                       0.a-B-z_Z:
-                      -abc.txt:"""
+                      -abc.csvs:"""
 
       parse(new StringReader(schema)) must beLike { case Success(schemaResult, _) => schemaResult mustEqual Schema(List(TotalColumns(7)), columnDefinitions) }
     }

@@ -17,7 +17,7 @@ import uk.gov.nationalarchives.csv.validator.FILE_SEPARATOR
 
 class FileExistsRuleSpec extends Specification with TestResources {
 
-  val relMustExistForRulePath = relResourcePath("mustExistForRule.txt")
+  val relMustExistForRulePath = relResourcePath("mustExistForRule.csvs")
 
   val segments = relMustExistForRulePath.split('/')
   val relPath = (segments.slice(0, segments.length - 3).reduceLeft(_ + '/' + _), segments.slice(segments.length - 3, segments.length).reduceLeft(_ + '/' + _))
@@ -62,14 +62,14 @@ class FileExistsRuleSpec extends Specification with TestResources {
     }
 
     "succeed when checking that a file does NOT exist" in {
-      FileSystem(Some(relPath._1 + FILE_SEPARATOR), "dri/schema/NOTAFILE.txt", emptyPathSubstitutions ).exists must beFalse
+      FileSystem(Some(relPath._1 + FILE_SEPARATOR), "dri/schema/NOTAFILE.csvs", emptyPathSubstitutions ).exists must beFalse
     }
 
     "succeed with help from substitutions to fix path" in {
       val pathSubstitutions =  List[(String,String)](
         ("bob", relBaseResourcePkgPath)
       )
-      FileSystem(Some("bob/"), "mustExistForRule.txt", pathSubstitutions ).exists must beTrue
+      FileSystem(Some("bob/"), "mustExistForRule.csvs", pathSubstitutions ).exists must beTrue
     }
 
     "succeed with windows file separators" in {
@@ -88,32 +88,32 @@ class FileExistsRuleSpec extends Specification with TestResources {
         (substitute, baseResourcePkgPath)
       )
 
-      FileSystem(Some("file:///HOME/"), "must%20Exist%20With%20Spaces%20For%20Rule.txt", pathSubstitutions ).exists must beTrue
+      FileSystem(Some("file:///HOME/"), "must%20Exist%20With%20Spaces%20For%20Rule.csvs", pathSubstitutions ).exists must beTrue
     }
 
     "succeed when joining strings with missing '/'" in {
-      val f = FileSystem(Some("file:///root"), "file.txt", emptyPathSubstitutions )
-      f.jointPath mustEqual "file:///root/file.txt"
+      val f = FileSystem(Some("file:///root"), "file.csvs", emptyPathSubstitutions )
+      f.jointPath mustEqual "file:///root/file.csvs"
     }
 
     "succeed when joining strings with both having '/'" in {
-      val f = FileSystem(Some("file:///root/"), "/file.txt", emptyPathSubstitutions )
-      f.jointPath mustEqual "file:///root/file.txt"
+      val f = FileSystem(Some("file:///root/"), "/file.csvs", emptyPathSubstitutions )
+      f.jointPath mustEqual "file:///root/file.csvs"
     }
 
     "succeed when joining strings with base only having '/'" in {
-      val f = FileSystem(Some("file:///root"), "/file.txt", emptyPathSubstitutions )
-      f.jointPath mustEqual "file:///root/file.txt"
+      val f = FileSystem(Some("file:///root"), "/file.csvs", emptyPathSubstitutions )
+      f.jointPath mustEqual "file:///root/file.csvs"
     }
 
     "succeed when joining strings with file only having '/'" in {
-      val f = FileSystem(Some("file:///root/"), "file.txt", emptyPathSubstitutions )
-      f.jointPath mustEqual "file:///root/file.txt"
+      val f = FileSystem(Some("file:///root/"), "file.csvs", emptyPathSubstitutions )
+      f.jointPath mustEqual "file:///root/file.csvs"
     }
 
     "succeed when joining strings with file only having '/'" in {
-      val f = FileSystem(None, "file.txt", emptyPathSubstitutions )
-      f.jointPath mustEqual "file.txt"
+      val f = FileSystem(None, "file.csvs", emptyPathSubstitutions )
+      f.jointPath mustEqual "file.csvs"
     }
   }
 
@@ -123,8 +123,8 @@ class FileExistsRuleSpec extends Specification with TestResources {
       val pathSubstitutions =  List[(String,String)](
         ("Q", "X")
       )
-      val f = FileSystem(Some("file:///a/b/c/d/e/"), "file.txt", pathSubstitutions )
-      f.expandBasePath  mustEqual  "file:///a/b/c/d/e/file.txt"
+      val f = FileSystem(Some("file:///a/b/c/d/e/"), "file.csvs", pathSubstitutions )
+      f.expandBasePath  mustEqual  "file:///a/b/c/d/e/file.csvs"
     }
 
     "succeed with first substitution replacement" in {
@@ -132,8 +132,8 @@ class FileExistsRuleSpec extends Specification with TestResources {
         ("a", "Z"),
         ("Q", "X")
       )
-      val f = FileSystem(Some("file:///a/b/c/d/e/"), "file.txt", pathSubstitutions )
-      f.expandBasePath  mustEqual  "file:///Z/b/c/d/e/file.txt"
+      val f = FileSystem(Some("file:///a/b/c/d/e/"), "file.csvs", pathSubstitutions )
+      f.expandBasePath  mustEqual  "file:///Z/b/c/d/e/file.csvs"
 
     }
 
@@ -142,8 +142,8 @@ class FileExistsRuleSpec extends Specification with TestResources {
         ("P", "Z"),
         ("c", "X")
       )
-      val f = FileSystem(Some("file:///a/b/c/d/e/"), "file.txt", pathSubstitutions )
-      f.expandBasePath  mustEqual  "file:///a/b/X/d/e/file.txt"
+      val f = FileSystem(Some("file:///a/b/c/d/e/"), "file.csvs", pathSubstitutions )
+      f.expandBasePath  mustEqual  "file:///a/b/X/d/e/file.csvs"
     }
 
     "succeed with only first substitution replacement" in {
@@ -151,8 +151,8 @@ class FileExistsRuleSpec extends Specification with TestResources {
         ("a", "Z"),
         ("c", "X")
       )
-      val f = FileSystem(Some("file:///a/b/c/d/e/"), "file.txt", pathSubstitutions )
-      f.expandBasePath  mustEqual  "file:///Z/b/c/d/e/file.txt"
+      val f = FileSystem(Some("file:///a/b/c/d/e/"), "file.csvs", pathSubstitutions )
+      f.expandBasePath  mustEqual  "file:///Z/b/c/d/e/file.csvs"
     }
   }
 }

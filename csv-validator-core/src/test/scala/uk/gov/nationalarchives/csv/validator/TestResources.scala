@@ -40,5 +40,5 @@ trait TestResources {
   val threeFilesPath = resourcePath("fileCountTestFiles/threeFiles")
 
   val schemaPath = resourcePath("schema")
-  val checksumPath = resourcePath("schema/checksum.txt")
+  val checksumPath = resourcePath("schema/checksum.csvs")
 }

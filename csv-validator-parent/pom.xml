@@ -174,8 +174,9 @@
                         <exclude>**/csv-schema-grammar.ebnf</exclude>
                         <exclude>**/README.md</exclude>
                         <exclude>**/LICENSE</exclude>
+                        <exclude>**/*.csvs</exclude>
+                        <exclude>**/*.csv</exclude>git
                         <exclude>**/*.txt</exclude>
-                        <exclude>**/*.csv</exclude>
                         <exclude>**/*.jp2</exclude>
                     </excludes>
                     <encoding>${project.build.sourceEncoding}</encoding>

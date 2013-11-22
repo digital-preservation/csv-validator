@@ -73,7 +73,7 @@ This is worth stressing as it was something we had to keep site of ourselves dur
 
 Schema Reference
 ================
-Examples of CSV Schema can be found in the test cases of the csv-core module. See the *.txt files in [acceptance/](tree/master/csv-validator-core/src/test/resources/uk/gov/tna/dri/validator/acceptance/).
+Examples of CSV Schema can be found in the test cases of the csv-core module. See the *.csvs files in [acceptance/](tree/master/csv-validator-core/src/test/resources/uk/gov/tna/dri/validator/acceptance/).
 
 
 Global Directives

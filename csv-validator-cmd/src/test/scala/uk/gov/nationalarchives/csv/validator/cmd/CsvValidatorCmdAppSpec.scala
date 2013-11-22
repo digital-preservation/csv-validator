@@ -13,11 +13,11 @@ import org.specs2.mutable.Specification
 
 class CsvValidatorCmdAppSpec extends Specification with TestResources {
 
-  val schemaPath = relResourcePath("schema.txt")
+  val schemaPath = relResourcePath("schema.csvs")
   val metadataPath = relResourcePath("metaData.csv")
-  val badSchemaPath = relResourcePath("badSchema.txt")
+  val badSchemaPath = relResourcePath("badSchema.csvs")
   val standardRulesFailPath = relResourcePath("acceptance/standardRulesFailMetaData.csv")
-  val standardRulesSchemaPath = relResourcePath("acceptance/standardRulesSchema.txt")
+  val standardRulesSchemaPath = relResourcePath("acceptance/standardRulesSchema.csvs")
 
   "Check arguments" should {
     "give usage message when no arguments supplied" in {
@@ -33,7 +33,7 @@ class CsvValidatorCmdAppSpec extends Specification with TestResources {
     }
 
     //    "give usage message when too many arguments supplied" in {
-    //      CsvValidatorCmdApp.run(List("somMetaData.csv", "someSchema.txt", "something extra").toArray) must beLike {
+    //      CsvValidatorCmdApp.run(List("somMetaData.csv", "someSchema.csvs", "something extra").toArray) must beLike {
     //        case (errMsg,errCode) => errCode mustEqual SystemExits.IncorrectArguments
     //      }
     //    }
@@ -45,13 +45,13 @@ class CsvValidatorCmdAppSpec extends Specification with TestResources {
     }
 
     "fail if schema file is unreadable" in {
-      CsvValidatorCmdApp.run(Array(metadataPath, "nonExistentSchema.txt")) must beLike {
+      CsvValidatorCmdApp.run(Array(metadataPath, "nonExistentSchema.csvs")) must beLike {
         case (errMsg,errCode) => errCode mustEqual SystemExits.IncorrectArguments
       }
     }
 
     "fail if both metadata and schema file are unreadable" in {
-      CsvValidatorCmdApp.run(Array("nonExistentmetaData.csv", "nonExistentSchema.txt")) must beLike {
+      CsvValidatorCmdApp.run(Array("nonExistentmetaData.csv", "nonExistentSchema.csvs")) must beLike {
         case (errMsg,errCode) => errCode mustEqual SystemExits.IncorrectArguments
       }
     }
@@ -66,19 +66,19 @@ class CsvValidatorCmdAppSpec extends Specification with TestResources {
   "Fail fast and file args" should {
 
     "return true and the file names for fail fast" in {
-      CsvValidatorCmdApp.run(Array("--fail-fast", "someMetaData.csv", "someSchema.txt")) must beLike {
+      CsvValidatorCmdApp.run(Array("--fail-fast", "someMetaData.csv", "someSchema.csvs")) must beLike {
         case (errMsg, errCode) => errCode mustEqual SystemExits.IncorrectArguments
       }
     }
 
     "return true and the file names for fail fast short form" in {
-      CsvValidatorCmdApp.run(Array("-f", "someMetaData.csv", "someSchema.txt")) must beLike {
+      CsvValidatorCmdApp.run(Array("-f", "someMetaData.csv", "someSchema.csvs")) must beLike {
         case (errMsg, errCode) => errCode mustEqual SystemExits.IncorrectArguments
       }
     }
 
     "return false and the file names for no fail fast" in {
-      CsvValidatorCmdApp.run(Array("someMetaData.csv", "someSchema.txt")) must beLike {
+      CsvValidatorCmdApp.run(Array("someMetaData.csv", "someSchema.csvs")) must beLike {
         case (errMsg, errCode) => errCode mustEqual SystemExits.IncorrectArguments
       }
     }
@@ -107,7 +107,7 @@ class CsvValidatorCmdAppSpec extends Specification with TestResources {
     }
 
     //    "have exit code 0 when validation --path successful" in {
-    //      CsvValidatorCmdApp.run(Array( "--path:c: " + basePath + "metaData.csv", basePath + "schema.txt"))._2 mustEqual 0
+    //      CsvValidatorCmdApp.run(Array( "--path:c: " + basePath + "metaData.csv", basePath + "schema.csvs"))._2 mustEqual 0
     //    }
 
     "have exit code 1 when the command line arguments are wrong" in {
