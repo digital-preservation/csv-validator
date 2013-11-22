@@ -7,6 +7,7 @@
         <groupId>org.sonatype.oss</groupId>
         <artifactId>oss-parent</artifactId>
         <version>7</version>
+        <relativePath/>
     </parent>
 
     <groupId>uk.gov.nationalarchives</groupId>
@@ -157,7 +158,7 @@
                 <artifactId>license-maven-plugin</artifactId>
                 <inherited>true</inherited>
                 <configuration>
-                    <header>csv-validator-parent/MPL2-template.txt</header>
+                    <header>${project.parent.relativePath}/MPL2-template.txt</header>
                     <failIfMissing>true</failIfMissing>
                     <aggregate>true</aggregate>
                     <strictCheck>true</strictCheck>
