@@ -13,6 +13,9 @@
     <artifactId>csv-validator-cmd</artifactId>
     <packaging>jar</packaging>
 
+    <name>csv-validator-cmd</name>
+    <description>Command Line Tool for CSV Validation</description>
+
     <build>
         <plugins>
             <plugin>

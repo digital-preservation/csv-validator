@@ -13,6 +13,9 @@
     <artifactId>csv-validator-java-api</artifactId>
     <packaging>jar</packaging>
 
+    <name>csv-validator-java-api</name>
+    <description>Java API for CSV Validation Library</description>
+
     <build>
         <plugins>
             <plugin>

@@ -13,6 +13,9 @@
     <artifactId>csv-validator-core</artifactId>
     <packaging>jar</packaging>
 
+    <name>csv-validator-core</name>
+    <description>CSV Validation Library</description>
+
     <build>
 
         <plugins>
