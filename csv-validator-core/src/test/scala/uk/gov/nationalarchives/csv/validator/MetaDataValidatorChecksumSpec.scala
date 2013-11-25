@@ -23,8 +23,10 @@ class MetaDataValidatorChecksumSpec extends Specification with TestResources {
     val schemaParser = new SchemaParser() {
       val pathSubstitutions = List[(String,String)]()
       override def parse(reader: Reader): ParseResult[Schema] = super.parse(reader) match {
-        case s@Success(schema: Schema, _) => s
-        case NoSuccess(message, next) => throw new RuntimeException(message)
+        case s @ Success(schema: Schema, _) =>
+          s
+        case NoSuccess(message, next) =>
+          throw new RuntimeException(s"failed to parse schema [${next.pos.line}:${next.pos.column}}]\n$message\n${next.pos.longString}")
       }
     }
 
@@ -40,9 +42,9 @@ class MetaDataValidatorChecksumSpec extends Specification with TestResources {
     "succeed when calculated algorithm does match given value" in {
       val schema =
         """version 1.0
-           @totalColumns 2 @noHeader
-           File:
-           MD5: checksum(file("""" + checksumPath + """"), "MD5")
+        @totalColumns 2 @noHeader
+        File:
+        MD5: checksum(file("""" + checksumPath + """"), "MD5")
         """
 
       val metaData = s"$checksumPath,232762380299115da6995e4c4ac22fa2"
