@@ -14,13 +14,14 @@ import uk.gov.nationalarchives.csv.validator.metadata.{Cell, Row}
 import uk.gov.nationalarchives.csv.validator.api.CsvValidator.SubstitutePath
 import uk.gov.nationalarchives.csv.validator.TestResources
 import uk.gov.nationalarchives.csv.validator.FILE_SEPARATOR
+import uk.gov.nationalarchives.csv.validator.Util.FileSystem
 
 class FileExistsRuleSpec extends Specification with TestResources {
 
   val relMustExistForRulePath = relResourcePath("mustExistForRule.csvs")
 
-  val segments = relMustExistForRulePath.split('/')
-  val relPath = (segments.slice(0, segments.length - 3).reduceLeft(_ + '/' + _), segments.slice(segments.length - 3, segments.length).reduceLeft(_ + '/' + _))
+  val segments = relMustExistForRulePath.split(FILE_SEPARATOR)
+  val relPath = (segments.slice(0, segments.length - 3).reduceLeft(_ + FILE_SEPARATOR + _), segments.slice(segments.length - 3, segments.length).reduceLeft(_ + FILE_SEPARATOR + _))
 
   val emptyPathSubstitutions = List[SubstitutePath]()
 
