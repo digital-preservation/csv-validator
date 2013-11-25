@@ -137,7 +137,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
     val schemaPath = Path.fromString(base) / "fileExistsSchema.csvs"
     val schemaTemplate = schemaPath.lines(includeTerminator = true).mkString
-    val schema = schemaTemplate.replaceAll("""\$\$acceptancePath\$\$""", base)
+    val schema = schemaTemplate.replace("$$acceptancePath$$", base)
 
     "ensure the file exists on the file system" in {
       validate(Path.fromString(base) / "fileExistsPassMetaData.csv", parse(new StringReader(schema))) must beLike {
@@ -149,7 +149,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
       val csvPath = Path.fromString(base) / "fileExistsCrossRefPassMetaData.csv"
       val csvTemplate = csvPath.lines(includeTerminator = true).mkString
-      val csv = csvTemplate.replaceAll("""\$\$acceptancePath\$\$""", base)
+      val csv = csvTemplate.replace("$$acceptancePath$$", base)
 
       validateR(new StringReader(csv), parse(base + "/fileExistsCrossRefSchema.csvs")) must beLike {
         case Success(_) => ok
