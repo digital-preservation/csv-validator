@@ -15,6 +15,7 @@ import scalaz.{ValidationNel, Failure, Scalaz, Success}
 import uk.gov.nationalarchives.csv.validator.TestResources
 import uk.gov.nationalarchives.csv.validator.FILE_SEPARATOR
 import java.io.File
+import uk.gov.nationalarchives.csv.validator.Util.TypedPath
 
 class FileCountSpec extends Specification with TestResources {
 
@@ -103,7 +104,7 @@ class FileCountSpec extends Specification with TestResources {
 
     "fail if an invalid relavtive basePath is given" in {
       wildCard.search( ("WRONGPATH/dri/fileCountTestFiles/threeFiles/","file1.jp2") ) must beLike {
-        case Failure(m) => m.list mustEqual List("""incorrect basepath WRONGPATH/dri/fileCountTestFiles/threeFiles/ (localfile: WRONGPATH/dri/fileCountTestFiles/threeFiles/file1.jp2) found""")
+        case Failure(m) => m.list mustEqual List("""incorrect basepath WRONGPATH/dri/fileCountTestFiles/threeFiles/ (localfile: """ + TypedPath("WRONGPATH/dri/fileCountTestFiles/threeFiles/file1.jp2").toPlatform + """) found""")
       }
     }
 
@@ -170,13 +171,13 @@ class FileCountSpec extends Specification with TestResources {
 
     "fail if an invalid relative basePath is given" in {
       wildCard.search( ("WRONGPATH/dri/fileCountTestFiles/threeFiles/","file1.jp2") ) must beLike {
-        case Failure(m) => m.list mustEqual List("""incorrect basepath WRONGPATH/dri/fileCountTestFiles/threeFiles/ (localfile: WRONGPATH/dri/fileCountTestFiles/threeFiles/file1.jp2) found""")
+        case Failure(m) => m.list mustEqual List("""incorrect basepath WRONGPATH/dri/fileCountTestFiles/threeFiles/ (localfile: """ + TypedPath("WRONGPATH/dri/fileCountTestFiles/threeFiles/file1.jp2").toPlatform + """) found""")
       }
     }
 
     "fail if an invalid relative basePath is given" in {
       wildCard.search( ("src/test/dri/fileCountTestFiles/threeFiles/","xfile.jp2") ) must beLike {
-        case Failure(m) => m.list mustEqual List("""incorrect basepath src/test/dri/fileCountTestFiles/threeFiles/ (localfile: src/test/dri/fileCountTestFiles/threeFiles/xfile.jp2) found""")
+        case Failure(m) => m.list mustEqual List("""incorrect basepath src/test/dri/fileCountTestFiles/threeFiles/ (localfile: """ + TypedPath("src/test/dri/fileCountTestFiles/threeFiles/xfile.jp2").toPlatform + """) found""")
       }
     }
 
