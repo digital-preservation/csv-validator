@@ -619,7 +619,7 @@ trait FileWildcardSearch[T] {
 
   def search(filePaths: (FilePathBase, FileName)): ValidationNel[String, T] = {
     try {
-      val fullPath = new FileSystem( None, filePaths._1 + filePaths._2, pathSubstitutions).expandBasePath
+      val fullPath = new FileSystem(None, filePaths._1 + filePaths._2, pathSubstitutions).expandBasePath
       val (basePath, matchPath) = findBase(fullPath)
 
       val path: Option[Path] = {
@@ -668,7 +668,7 @@ trait FileWildcardSearch[T] {
       } else if(matchUsesWildFiles) {
         findMatches(wildcardFile)
       } else if(!fileExists) {
-        s"""file "$fullPath" not found""".failNel[T]
+        s"""file "${TypedPath(fullPath).toPlatform}" not found""".failNel[T]
       } else {
         matchSimplePath(basePath + System.getProperty("file.separator") + matchPath)
       }
