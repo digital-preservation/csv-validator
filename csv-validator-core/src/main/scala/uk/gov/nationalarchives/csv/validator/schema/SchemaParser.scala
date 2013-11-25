@@ -35,7 +35,8 @@ trait SchemaParser extends RegexParsers {
 
   val number: Parser[BigDecimal] = """(-|\+)*[0-9]*+(\.[0-9]*)?""".r ^^ { BigDecimal(_) }
 
-  val stringRegex = """([^"\p{Cntrl}\\]|\\[\\'"bfnrt]|\\u[a-fA-F0-9]{4})*""".r
+  //val stringRegex = """([^"\p{Cntrl}\\]|\\[\\'"bfnrt]|\\u[a-fA-F0-9]{4})*""".r
+  val stringRegex = """([^"\p{Cntrl}]|\\[\\'"bfnrt]|\\u[a-fA-F0-9]{4})*""".r     //allow un-escaped '\'
 
   val Regex = """([(]")(.*?)("[)])""".r
 
