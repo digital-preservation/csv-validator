@@ -337,8 +337,8 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
     "succeed with valid file path where fileExists rule prepends root path to the filename" in {
 
-      val segments = mustExistForRulePath.split('/')
-      val relPath = (segments.slice(0, segments.length - 2).reduceLeft(_ + '/' + _), segments.slice(segments.length - 2, segments.length).reduceLeft(_ + '/' + _))
+      val segments = mustExistForRulePath.split(FILE_SEPARATOR)
+      val relPath = (segments.slice(0, segments.length - 2).reduceLeft(_ + FILE_SEPARATOR + _), segments.slice(segments.length - 2, segments.length).reduceLeft(_ + FILE_SEPARATOR + _))
 
       val schema =
         """version 1.0
