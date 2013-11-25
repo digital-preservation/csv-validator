@@ -80,16 +80,12 @@ class ChecksumRuleSpec extends Specification with TestResources {
 
     "succeed when substitutions is not at the start of the path" in {
       val pathSubstitutions =  List[(String,String)](
-        ("bob", relBasePath)
+        ("bob", basePath)
       )
 
-      val checksumRule = new ChecksumRule(Literal(Some("""file://bob/uk/gov/nationalarchives/csv/validator/schema/checksum.csvs""")), "MD5", pathSubstitutions)
-
-      checksumRule.evaluate(0, Row(List(Cell("232762380299115da6995e4c4ac22fa2")), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition("column1")))) must beLike {
-        case Failure(m) => m.list mustEqual List("""checksum(file("file://bob/uk/gov/nationalarchives/csv/validator/schema/checksum.csvs"), "MD5") file "file://""" + relBasePath + """/uk/gov/nationalarchives/csv/validator/schema/checksum.csvs" not found for line: 1, column: column1, value: "232762380299115da6995e4c4ac22fa2"""")
-      }
+      val checksumRule = new ChecksumRule(Literal(Some("""file:///bob/uk/gov/nationalarchives/csv/validator/schema/checksum.csvs""")), "MD5", pathSubstitutions)
+      checksumRule.evaluate(0, Row(List(Cell("232762380299115da6995e4c4ac22fa2")), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition("column1")))) mustEqual Success(true)
     }
-
 
   }
 }

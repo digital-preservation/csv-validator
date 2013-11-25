@@ -34,6 +34,8 @@ trait TestResources {
   def relBaseResourcePkgPath : String = new File(relBasePath, spec.getClass.getPackage.getName.replace('.', '/')).getPath
   def relResourcePath(resource: String) : String = new File(relBaseResourcePkgPath, resource).getPath
 
+  def toUriPath(path: String) = path.replace('\\', '/')
+
   val acceptancePath = resourcePath("acceptance")
 
   val threeFilesInSubDirPath = resourcePath("fileCountTestFiles/threeFilesinSubDir")
