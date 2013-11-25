@@ -419,9 +419,12 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
     val f = file.referenceValue(columnIndex, row, schema).get
 
     rootPath.referenceValue(columnIndex, row, schema) match {
-      case None => ("",f)
-      case Some(r: String) if r.endsWith("/") => (r, f)
-      case Some(r) => (r + "/", f)
+      case None =>
+        ("", f)
+      case Some(r: String) if(r.charAt(r.length - 1) == TypedPath(r).separator) =>
+        (r, f)
+      case Some(r) =>
+        (r + TypedPath(r).separator, f)
     }
   }
 
