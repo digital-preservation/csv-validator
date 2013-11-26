@@ -3,6 +3,8 @@ CSV Validator
 
 A Schema Language and Validation Tool for CSV (Comma Separated Value) files.
 
+[![Build Status](https://travis-ci.org/digital-preservation/csv-validator.png?branch=master)](https://travis-ci.org/digital-preservation/csv-validator)
+
 Released under the [Mozilla Public Licence version 2.0](http://www.mozilla.org/MPL/2.0/).
 
 A start on the documentation is below, but more will follow soon...
