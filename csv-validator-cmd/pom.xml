@@ -1,6 +1,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -10,14 +10,13 @@
         <relativePath>../csv-validator-parent</relativePath>
     </parent>
 
-    <artifactId>csv-validator-core</artifactId>
+    <artifactId>csv-validator-cmd</artifactId>
     <packaging>jar</packaging>
 
-    <name>csv-validator-core</name>
-    <description>CSV Validation Library</description>
+    <name>csv-validator-cmd</name>
+    <description>Command Line Tool for CSV Validation</description>
 
     <build>
-
         <plugins>
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
@@ -41,24 +40,6 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>analyze</id>
-                        <goals>
-                            <goal>analyze-only</goal>
-                        </goals>
-                        <configuration>
-                            <failOnWarning>true</failOnWarning>
-                            <usedDependencies>
-                                <usedDependency>org.joda:joda-convert</usedDependency>
-                            </usedDependencies>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <groupId>com.mmakowski</groupId>
                 <artifactId>maven-specs2-plugin</artifactId>
                 <executions>
@@ -71,6 +52,45 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>appassembler-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>assemble</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <includeConfigurationDirectoryInClasspath>false</includeConfigurationDirectoryInClasspath>
+                    <repositoryLayout>flat</repositoryLayout>
+                    <repositoryName>lib</repositoryName>
+                    <programs>
+                        <program>
+                            <id>validate</id>
+                            <mainClass>uk.gov.nationalarchives.csv.validator.cmd.CsvValidatorCmdApp</mainClass>
+                        </program>
+                    </programs>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <descriptors>
+                        <descriptor>src/main/assembly/appassembler-output.xml</descriptor>
+                    </descriptors>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
@@ -78,6 +98,11 @@
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.scopt</groupId>
+            <artifactId>scopt_2.10</artifactId>
+            <version>3.1.0</version>
         </dependency>
         <dependency>
             <groupId>org.scalaz</groupId>
@@ -88,33 +113,15 @@
             <artifactId>scala-io-file_2.10</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.github.scala-incubator.io</groupId>
-            <artifactId>scala-io-core_2.10</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.jsuereth</groupId>
-            <artifactId>scala-arm_2.10</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>joda-time</groupId>
-            <artifactId>joda-time</artifactId>
-            <version>2.3</version>
-        </dependency>
-        <dependency>
-            <groupId>org.joda</groupId>
-            <artifactId>joda-convert</artifactId>
-            <version>1.5</version>
-        </dependency>
-        <dependency>
-            <groupId>net.sf.opencsv</groupId>
-            <artifactId>opencsv</artifactId>
-            <version>2.3</version>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>csv-validator-core</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.specs2</groupId>
             <artifactId>specs2_2.10</artifactId>
-            <version>2.3.3</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
+
 </project>

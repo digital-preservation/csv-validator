@@ -10,11 +10,11 @@
         <relativePath>../csv-validator-parent</relativePath>
     </parent>
 
-    <artifactId>csv-validator-core</artifactId>
+    <artifactId>csv-validator-ui</artifactId>
     <packaging>jar</packaging>
 
-    <name>csv-validator-core</name>
-    <description>CSV Validation Library</description>
+    <name>csv-validator-java-api</name>
+    <description>Simple GUI Tool for CSV Validation</description>
 
     <build>
 
@@ -23,7 +23,6 @@
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
                 <configuration>
-                    <scalaVersion>${scala.version}</scalaVersion>
                     <recompileMode>incremental</recompileMode>   <!-- NOTE: incremental compilation although faster requires passing to MAVEN_OPTS="-XX:MaxPermSize=128m" -->
                     <useZincServer>true</useZincServer>          <!-- NOTE: if you have Zinc server installed and running, you can get faster compilation by enabling this -->
                     <javacArgs>
@@ -34,42 +33,50 @@
                 <executions>
                     <execution>
                         <goals>
-                            <goal>testCompile</goal>
                             <goal>compile</goal>
+                            <goal>testCompile</goal>
                         </goals>
                     </execution>
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>appassembler-maven-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>analyze</id>
+                        <phase>package</phase>
                         <goals>
-                            <goal>analyze-only</goal>
+                            <goal>assemble</goal>
                         </goals>
-                        <configuration>
-                            <failOnWarning>true</failOnWarning>
-                            <usedDependencies>
-                                <usedDependency>org.joda:joda-convert</usedDependency>
-                            </usedDependencies>
-                        </configuration>
                     </execution>
                 </executions>
+                <configuration>
+                    <includeConfigurationDirectoryInClasspath>false</includeConfigurationDirectoryInClasspath>
+                    <repositoryLayout>flat</repositoryLayout>
+                    <repositoryName>lib</repositoryName>
+                    <programs>
+                        <program>
+                            <id>validate-gui</id>
+                            <mainClass>uk.gov.nationalarchives.csv.validator.ui.CsvValidatorUi</mainClass>
+                        </program>
+                    </programs>
+                </configuration>
             </plugin>
             <plugin>
-                <groupId>com.mmakowski</groupId>
-                <artifactId>maven-specs2-plugin</artifactId>
+                <artifactId>maven-assembly-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>verify</id>
-                        <phase>verify</phase>
+                        <phase>package</phase>
                         <goals>
-                            <goal>run-specs</goal>
+                            <goal>single</goal>
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <descriptors>
+                        <descriptor>src/main/assembly/appassembler-output.xml</descriptor>
+                    </descriptors>
+                </configuration>
             </plugin>
         </plugins>
     </build>
@@ -80,41 +87,34 @@
             <artifactId>scala-library</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.scalaz</groupId>
-            <artifactId>scalaz-core_2.10</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.github.scala-incubator.io</groupId>
-            <artifactId>scala-io-file_2.10</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.github.scala-incubator.io</groupId>
-            <artifactId>scala-io-core_2.10</artifactId>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-swing</artifactId>
+            <version>${scala.version}</version>
         </dependency>
         <dependency>
             <groupId>com.jsuereth</groupId>
             <artifactId>scala-arm_2.10</artifactId>
         </dependency>
         <dependency>
-            <groupId>joda-time</groupId>
-            <artifactId>joda-time</artifactId>
-            <version>2.3</version>
+            <groupId>com.github.scala-incubator.io</groupId>
+            <artifactId>scala-io-file_2.10</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.joda</groupId>
-            <artifactId>joda-convert</artifactId>
-            <version>1.5</version>
+            <groupId>net.java.dev.designgridlayout</groupId>
+            <artifactId>designgridlayout</artifactId>
+            <version>1.11</version>
         </dependency>
         <dependency>
-            <groupId>net.sf.opencsv</groupId>
-            <artifactId>opencsv</artifactId>
-            <version>2.3</version>
+            <groupId>org.swinglabs.swingx</groupId>
+            <artifactId>swingx-core</artifactId>
+            <version>1.6.5-1</version>
         </dependency>
+
+        <!-- TODO should depend on csv-validator-core and NOT csv-validator-cmd -->
         <dependency>
-            <groupId>org.specs2</groupId>
-            <artifactId>specs2_2.10</artifactId>
-            <version>2.3.3</version>
-            <scope>test</scope>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>csv-validator-cmd</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 </project>

@@ -19,6 +19,9 @@
     <modules>
         <module>csv-validator-parent</module>
         <module>csv-validator-core</module>
+        <module>csv-validator-cmd</module>
+        <module>csv-validator-ui</module>
+        <module>csv-validator-java-api</module>
     </modules>
 
 </project>
