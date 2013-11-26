@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="shortcut icon" href="images/favicon.png">
+
+    <title>CSV Schema and Validator</title>
+
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
+
+    <!-- Custom styles for this template -->
+    <link href="css/tna.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <!-- Wrap all page content here -->
+    <div id="wrap">
+
+      <!-- Fixed navbar -->
+      <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+        <div class="container">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="http://www.nationalarchives.gov.uk" title="Go to the The National Archives homepage"><img src="images/logo-white.png" alt="The National Archives" id="logo"> Digital Preservation</a>
+          </div>
+          <div class="collapse navbar-collapse">
+            <ul class="nav navbar-nav navbar-right">
+              <li class="active"><a href="#">Home</a></li>
+              <li><a href="#about">About</a></li>
+              <li><a href="#contact">Contact</a></li>
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown <b class="caret"></b></a>
+                <ul class="dropdown-menu">
+                  <li><a href="#">Action</a></li>
+                  <li><a href="#">Another action</a></li>
+                  <li><a href="#">Something else here</a></li>
+                  <li class="divider"></li>
+                  <li class="dropdown-header">Nav header</li>
+                  <li><a href="#">Separated link</a></li>
+                  <li><a href="#">One more separated link</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+
+      <!-- Begin page content -->
+      <div class="container">
+
+        <div class="page-header">
+          <h1>CSV Schema and Validator</h1>
+        </div>
+        <p class="lead">A text based schema language for describing data in CSV files (<code>CSV Schema</code>), and a Validator which validates a CSV file against a CSV Schema (<code>CSV Validator</code>). All released as Open Source under the <a href="http://www.mozilla.org/MPL/2.0/">Mozilla Public Licence version 2.0</a>.</p>
+        <div id="toc"></div>
+        <div>
+            <h2>Overview</h2>
+            <p>Firstly, we defined a Grammar which describes a language for expressing rules to validate a CSV file. We call such an expression of this language a <code>CSV Schema</code>. The grammar itself is more formally described in <code>EBNF</code> and is available in the file <a href="https://raw.github.com/adamretter/csv-validator/master/csv-schema-grammar.ebnf">csv-schema-grammar.ebnf</a>.</p>
+            <p>Secondly, we implemented a Validator that will take a CSV Schema and a CSV file, validate that the CSV Schema is valid and then assert that each rule in the CSV Schema holds true for the CSV file. The Validator is predominantly written in Scala 2.10 and run's on any platform with a Java Virtual Machine (JVM). The Validator toolset provides:
+            <ol>
+                <li>A stand-alone command line tool.</li>
+                <li>A desktop application (we provide a simple Swing GUI).</li>
+                <li>A library that can be embedded into your own Scala project.</li>
+                <li>A library that can be embedded into your own Java project, as we also provide native Java 6 interfaces.</li>
+            </ol>
+            <p>The Schema and Validator can really be considered seperately, if you are not authoring CSV Schema you need only understand how to run the Validator!</p>
+            <div>
+                <h3>Background</h3>
+                <p>TNA (The National Archives) receive Metadata along with Collections of Digitised or Born-Digital Collections. Whilst TNA typically process Metadata in XML and RDF, it was recognised that it was too difficult and/or expensive for many suppliers to produce the desired metadata in XML and/or RDF, as such it was decided that Metadata would be received in CSV format.</p>
+                <p>Our experience shows that when suppliers are asked to produce metadata in XML or RDF there are several possible barriers:
+                    <ul>
+                        <li>Many content/document repository systems only export metadata in CSV, or generate XML or RDF in a non-desirable format which would then have to be transformed (at further cost).</li>
+                        <li>Lack of technical knowledge in either XML or RDF.</li>
+                        <li>Lack of experience of tools for producing and validating XML or RDF.</li>
+                        <li>Cost. Installing new software tools comes at a severe cost for those OGDs that have outsourced their IT support.</li>
+                        <li>Best/Worst case, most suppliers already have Microsoft Excel (or an equivalent) installed which they know how to use to produce a CSV file.</li>
+                    </ul>
+                </p>
+                <p>TNA set exacting requirements on the Metadata that they expect and the format of that Metadata. Such constraints enable them to automatically process it, as the semantics of the metadata are already defined. Whilst previous bespoke tools have been developed in the past for validating data in various CSV files, it was felt that a generic open tool which could be shared with suppliers would offer several benefits:
+                    <ul>
+                        <li>A common CSV Schema language, would enable TNA to absolutely define required Metadata formats.</li>
+                        <li>Developed CSV Schemas could be shared with suppliers and other archival sector organisations.</li>
+                        <li>Suppliers could validate Metadata before sending it to TNA. Hopefully reducing mistakes and therefore costs to both parties.</li>
+                        <li>TNA could use the same tool to ensure Metadata compliance automatically.</li>
+                        <li>Although not of primary concern, it was recognised that this tool would also have value for anyone working with CSV as a data/metadata transfer medium.</li>
+                    </ul>
+                </p>
+            </div>
+            <div>
+                <h3>Philosophy</h3>
+                <p>A few bullet-points that will try and help to explain our thinking in the design of both the CSV Schema Language and the Validation Tool implementation:
+                    <ul>
+                        <li>Simple CSV Schema Language. A DSL (Domain Specifc Language) was desired that could be expressed in plain text and should be simple enough that Metadata experts could easily write it without having to know a programming language or data/document modelling language such as XML or RDF. Note, the CSV Schema Language is NOT itself expressed in CSV, it is expressed in a simple text format.</li>
+
+                        <li>Context is King! Schema rules are written for each column of the CSV file. Each set of column rules is then asserted against each row of the CSV file in turn. Each rule in the CSV Schema operates on the current context (e.g. defined Column and parsed Row), unless otherwise specified. Hopefully this makes the rules short and concise.</li>
+
+                        <li>Streaming. Often the Metadata files that we receive are very large as they contain many records about a Collection which itself can be huge. The CSV Schema Language was designed with an eye to being able to write a Validation tool which could read the CSV file as a stream. Few steps require mnenomization of data from the CSV file, and where they do this is limited and should be easily optimisable to keep memory use to a minimum.</li>
+
+                        <li>Sane Defaults. We try to do the right thing by default, CSV files and their bretheren (Tab Separated Values etc.) can come in many shapes and sizes, by default we parse CSV according to RFC 4180, of course we allow you to customize this behaviour in the CSV Schema.</li>
+
+                        <li>CSV Schema is NOT a Programming Language. This is worth stressing as it was something we had to keep site of ourselves during development; CSV Schema is a simple data definition and validation language for CSV!</li>
+                    </ul>
+                </p>
+            </div>
+            <div>
+                <h2>CSV Schema Language</h2>
+                <p>The CSV Schema Language is defined in the CSV Schema Language 1.0 specification, available here TODO</p>
+            </div>
+            <div>
+                <h2>CSV Validator GUI Application</h2>
+                <p>TODO useage instructions and screenshots</p>
+            </div>
+            <div>
+                <h2>CSV Validator Command Line Tool</h2>
+                <p>TODO useage instructions and screenshots</p>
+            </div>
+            <div>
+                <h2>For Software Developers</h2>
+                <p>TODO point to GitHub README.md</p>
+            </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="footer">
+      <div class="container">
+        <p class="text-muted credit">Copyright © 2013 <a href="http://nationalarchives.gov.uk">The National Archives</a>.</p>
+      </div>
+    </div>
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+    <script src="http://netdna.bootstrapcdn.com/bootstrap/3.0.2/js/bootstrap.min.js"></script>
+    <script src="js/jquery.toc.min.js"></script>
+    <script language="JavaScript">
+    <!--
+        $(document).ready(function(){
+            $('#toc').toc({
+                'selectors': 'h2,h3' //elements to use as headings
+            });
+        });
+    -->
+    </script>
+  </body>
+</html>
