@@ -314,7 +314,7 @@
             <dependency>
                 <groupId>org.scalaz</groupId>
                 <artifactId>scalaz-core_2.10</artifactId>
-                <version>7.0.4</version>
+                <version>7.0.5</version>
             </dependency>
             <dependency>
                 <groupId>com.github.scala-incubator.io</groupId>
