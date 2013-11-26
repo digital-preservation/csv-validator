@@ -1,0 +1,9 @@
+language: scala
+scala:
+        - 2.10.0
+script: "mvn test verify" 
+jdk:
+        - openjdk6
+        - openjdk7
+        - oraclejdk7
+#        - oraclejdk8   # not yet supported by Scala Compiler
