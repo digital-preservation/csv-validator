@@ -65,7 +65,7 @@ trait SchemaParser extends RegexParsers {
 
   def parse(reader: Reader) = parseAll(schema, reader)
 
-  def schema = version ~ globalDirectives ~ rep1((rep(comment) ~> columnDefinitions) <~ rep(comment)) ^^ { case v ~ g ~ c => Schema(g, c) }
+  def schema = version ~ globalDirectives ~ rep1((rep(comment) ~> columnDefinitions) <~ rep(comment)) <~ opt("""[\r\n]+""".r) ^^ { case v ~ g ~ c => Schema(g, c) }
 
   def version: Parser[String] = ("version " ~> Schema.version <~ eol).withFailureMessage(s"version ${Schema.version} missing or incorrect")
 
