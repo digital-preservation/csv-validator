@@ -28,6 +28,7 @@ trait SchemaParser extends RegexParsers {
   val eol = """\r?\n""".r
 
   val columnIdentifier: Parser[String] = """\s*[0-9a-zA-Z_\-.]+""".r withFailureMessage("Column identifier invalid")
+  val quotedColumnIdentifier: Parser[String] = ("\"" ~> """[^"]+""".r <~ "\"").withFailureMessage("Quoted column identifier invalid")
 
   val positiveNumber: Parser[String] = """[1-9][0-9]*""".r
 
@@ -81,7 +82,7 @@ trait SchemaParser extends RegexParsers {
 
   def columnDefinitions = (positioned(columnDefinition))
 
-  def columnDefinition = ((columnIdentifier <~ ":") ~ rep(rule) ~ rep(columnDirective) <~ (endOfColumnDefinition | comment) ^^ {
+  def columnDefinition = ((((columnIdentifier) | (quotedColumnIdentifier)) <~ ":") ~ rep(rule) ~ rep(columnDirective) <~ (endOfColumnDefinition | comment) ^^ {
     case id ~ rules ~ columnDirectives => ColumnDefinition(id, rules, columnDirectives)
   }).withFailureMessage("Invalid schema text")
 
@@ -99,7 +100,7 @@ trait SchemaParser extends RegexParsers {
 
 
   // def nonConditionalRule = unaryRule
-  def nonConditionalRule = opt( "$" ~> columnIdentifier <~ "/") ~ unaryRule ^^ { case explicitColumn ~ rule => rule.explicitColumn = explicitColumn; rule }
+  def nonConditionalRule = opt( columnRef <~ "/") ~ unaryRule ^^ { case explicitColumn ~ rule => rule.explicitColumn = explicitColumn; rule }
 
   def conditionalRule = ifExpr
 
@@ -139,7 +140,7 @@ trait SchemaParser extends RegexParsers {
 
   def uniqueExpr: Parser[UniqueRule] = "unique" ^^^ UniqueRule()
 
-  def uniqueMultiExpr: Parser[UniqueMultiRule] = "unique(" ~ white ~ "$" ~> columnIdentifier ~ rep( white ~ ',' ~ "$" ~> columnIdentifier ) <~ ")" ^^ { s => UniqueMultiRule( s._1 :: s._2 ) }
+  def uniqueMultiExpr: Parser[UniqueMultiRule] = "unique(" ~ white ~> columnRef ~ rep( white ~ ',' ~> columnRef ) <~ ")" ^^ { s => UniqueMultiRule( s._1 :: s._2 ) }
 
   def uri: Parser[UriRule] = "uri" ^^^ UriRule()
 
@@ -181,9 +182,11 @@ trait SchemaParser extends RegexParsers {
 
   def positiveInteger: Parser[PositiveIntegerRule] = "positiveInteger" ^^^ PositiveIntegerRule()
 
-  def argProvider: Parser[ArgProvider] = "$" ~> columnIdentifier ^^ { s => ColumnReference(s) } | '\"' ~> stringRegex <~ '\"' ^^ {s => Literal(Some(s)) }
+  def columnRef: Parser[String] = "$" ~> (columnIdentifier | quotedColumnIdentifier)
 
-  def fileArgProvider: Parser[ArgProvider] = "$" ~> columnIdentifier ^^ { s => ColumnReference(s) } | '\"' ~> rootFilePath <~ '\"' ^^ {s => Literal(Some(s)) }
+  def argProvider: Parser[ArgProvider] = columnRef ^^ { s => ColumnReference(s) } | '\"' ~> stringRegex <~ '\"' ^^ {s => Literal(Some(s)) }
+
+  def fileArgProvider: Parser[ArgProvider] = columnRef ^^ { s => ColumnReference(s) } | '\"' ~> rootFilePath <~ '\"' ^^ {s => Literal(Some(s)) }
 
   def fileExists = ("fileExists(" ~> fileArgProvider <~ ")" ^^ { s => FileExistsRule(pathSubstitutions, s) }).withFailureMessage("fileExists rule has an invalid file path") |
     "fileExists" ^^^ { FileExistsRule( pathSubstitutions ) } | failure("Invalid fileExists rule")

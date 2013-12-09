@@ -40,10 +40,39 @@ class SchemaParserColumnDefinitionsSpec extends Specification {
       parse(new StringReader(schema)) must beLike { case Success(schemaResult, _) => schemaResult mustEqual Schema(List(TotalColumns(7)), columnDefinitions) }
     }
 
-    "fail if colunm ident contains an in valid char ie not 0-9 a-z A-Z . - _" in {
+    "succeed for valid schema with all possible quoted column definitions" in {
+      val columnDefinitions = List(new ColumnDefinition("column1"),new ColumnDefinition("column2"),new ColumnDefinition("column 3"),
+        new ColumnDefinition("column 4/5"), new ColumnDefinition("."),new ColumnDefinition("_-co.l"),
+        new ColumnDefinition("0.a-B-z_Z"),new ColumnDefinition("-abc.csvs"))
+
+      val schema = """version 1.0
+                      @totalColumns 8
+                      "column1":
+                      "column2":
+                      "column 3":
+                      "column 4/5":
+                      ".":
+                      "_-co.l":
+                      "0.a-B-z_Z":
+                      "-abc.csvs":"""
+
+      parse(new StringReader(schema)) must beLike { case Success(schemaResult, _) => schemaResult mustEqual Schema(List(TotalColumns(8)), columnDefinitions) }
+    }
+
+    "fail if column ident contains an invalid char ie not 0-9 a-z A-Z . - _" in {
       val schema = """version 1.0
       @totalColumns 1
       column1':"""
+      parse(new StringReader(schema)) must beLike {
+        case Failure(messages, _) => messages mustEqual "Invalid schema text"
+      }
+    }
+
+    "fail if quoted column ident contains a quote" in {
+      val schema = """version 1.0
+      @totalColumns 2
+      "column "1":
+      "column "2":"""
       parse(new StringReader(schema)) must beLike {
         case Failure(messages, _) => messages mustEqual "Invalid schema text"
       }

@@ -39,8 +39,9 @@ Comment                     ::=     SingleLineComment | MultiLineComment
 SingleLineComment           ::=     "//" NonBreakingChar*
 MultiLineComment            ::=     "/*" Char* "*/"
 
-ColumnDefinition            ::=     ColumnIdentifier ":" ColumnValidationExpr* ColumnDirectives
+ColumnDefinition            ::=     (ColumnIdentifier | QuotedColumnIdentifier) ":" ColumnValidationExpr* ColumnDirectives
 ColumnIdentifier            ::=     IntegerLiteral | Ident
+QuotedColumnIdentifier      ::=     "\"" NonDoubleQuoteChar "\""
 
 ColumnValidationExpr        ::=     NonConditionalExpr | ConditionalExpr
 
@@ -104,7 +105,7 @@ FileNameExpr                ::=     StringLiteral
 
 StringProvider              ::=     ColumnRef | StringLiteral
 
-ColumnRef                   ::=     "$" ColumnIdentifier
+ColumnRef                   ::=     "$" (ColumnIdentifier | QuotedColumnIdentifier)
 
 CombinatorialExpr           ::=     OrExpr | AndExpr
 OrExpr                      ::=     ColumnValidatonExpr ("or" ColumnValidationExpr)*
@@ -149,7 +150,8 @@ IntegerLiteral                          ::=     Integer
 CharacterLiteral                        ::=     "'" NonBreakingChar "'"
 StringLiteral                           ::=     "\"" NonBreakingChar+ "\""
 WildcardLiteral                         ::=     "*" 
-Ident                                           /* [A-Za-z0-9\-_\.]+ */
+Ident                                   ::=     /* [A-Za-z0-9\-_\.]+ */
+NonDoubleQuoteChar                      ::=     /* [^"]+ */
 
 Number                                          /* Any Real Number expressed as an Integer or Decimal */
 Integer                                         /* Any Non-Fractional and Non-Decimal Number */
