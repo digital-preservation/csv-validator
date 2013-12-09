@@ -187,7 +187,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
     }
   }
 
-  "validate uk.gov.nationalarchives.csv.validator.schema" should {
+  "validate schema" should {
 
     "fail with duplicate column ids" in {
       parseSchema(Path.fromString(base) / "duplicateColumnIdsFailSchema.csvs" ) must beLike {
