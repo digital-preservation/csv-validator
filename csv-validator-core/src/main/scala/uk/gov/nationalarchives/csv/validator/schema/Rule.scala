@@ -226,6 +226,18 @@ case class EndsRule(endsValue: ArgProvider) extends Rule("ends", endsValue) {
   }
 }
 
+case class EmptyRule() extends Rule("empty") {
+   def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
+     cellValue.isEmpty
+   }
+}
+
+case class NotEmptyRule() extends Rule("notEmpty") {
+  def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
+    !cellValue.isEmpty
+  }
+}
+
 //case class UriRule() extends PatternRule("uri", UriRegex)
 case class UriRule() extends Rule("uri") {
   def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {

@@ -105,6 +105,7 @@ trait SchemaParser extends RegexParsers {
 
   def unaryRule =
     parenthesesRule | in | is | isNot | starts | ends |
+    empty | notEmpty |
     uniqueMultiExpr | uniqueExpr |
     regex | uuid4 | uri | xDateTimeRange | xDateTime | xDateRange | xDate | ukDateRange | ukDate | partUkDate | xTimeRange | xTime |
     fileExists | checksum | fileCount |
@@ -131,6 +132,10 @@ trait SchemaParser extends RegexParsers {
   def starts = "starts(" ~> argProvider <~ ")" ^^ { StartsRule }
 
   def ends = "ends(" ~> argProvider <~ ")" ^^ { EndsRule }
+
+  def empty = "empty" ^^^ EmptyRule()
+
+  def notEmpty = "notEmpty" ^^^ NotEmptyRule()
 
   def uniqueExpr: Parser[UniqueRule] = "unique" ^^^ UniqueRule()
 

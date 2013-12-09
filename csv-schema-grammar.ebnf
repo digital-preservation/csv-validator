@@ -46,7 +46,7 @@ ColumnValidationExpr        ::=     NonConditionalExpr | ConditionalExpr
 
 NonConditionalExpr          ::=     SingleExpr | ExternalSingleExpr | CombinatorialExpr | ParenthesizedExpr
 
-SingleExpr                  ::=     (ExplicitContextExpr)? IsExpr | NotExpr | InExpr | StarstWithExpr | EndsWithExpr | RegExpExpr | RangeExpr | LengthExpr | NotEmptyExpr | UniqueExpr | UriExpr | XsdDateTimeExpr | XsdDateExpr | UkDateExpr | XsdTimeExpr | Uuid4Expr | PositiveIntegerExpr
+SingleExpr                  ::=     (ExplicitContextExpr)? IsExpr | NotExpr | InExpr | StarstWithExpr | EndsWithExpr | RegExpExpr | RangeExpr | LengthExpr | EmptyExpr | NotEmptyExpr | UniqueExpr | UriExpr | XsdDateTimeExpr | XsdDateExpr | UkDateExpr | XsdTimeExpr | Uuid4Expr | PositiveIntegerExpr
 
 ExplicitContextExpr         ::=     ColumnRef "/"
 
@@ -66,6 +66,7 @@ RangeExpr                   ::=     "range(" NumericLiteral "," NumericLiteral "
 */
 
 LengthExpr                  ::=     "length(" (PositiveIntegerOrAny ",")? PositiveIntegerOrAny ")"                 
+EmptyExpr                   ::=     "empty"
 NotEmptyExpr                ::=     "notEmpty"
 UniqueExpr	                ::=     "unique" ("(" ColumnRef ("," ColumnRef)* ")")?
 UriExpr                     ::=     "uri"
