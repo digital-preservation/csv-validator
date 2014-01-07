@@ -21,43 +21,43 @@ GlobalDirectives            ::= (
     | (SeparatorDirective? TotalColumnsDirective? (NoHeaderDirective | IgnoreColumnNameCaseDirective)? QuotedDirective?) 
 )
 
-DirectivePrefix             ::=     "@"
+DirectivePrefix                 ::=     "@"
 
-SeparatorDirective          ::=     DirectivePrefix "separator" (TABExpr | SeparatorChar)
-QuotedDirective             ::=     DirectivePrefix "quoted"
-TotalColumnsDirective       ::=     DirectivePrefix "totalColumns" PositiveNonZeroIntegerLiteral
-NoHeaderDirective           ::=     DirectivePrefix "noHeader"
-IgnoreColumnNameCase        ::=     DirectivePrefix "ignoreColumnNameCase"
+SeparatorDirective              ::=     DirectivePrefix "separator" (TABExpr | SeparatorChar)
+QuotedDirective                 ::=     DirectivePrefix "quoted"
+TotalColumnsDirective           ::=     DirectivePrefix "totalColumns" PositiveNonZeroIntegerLiteral
+NoHeaderDirective               ::=     DirectivePrefix "noHeader"
+IgnoreColumnNameCaseDirective   ::=     DirectivePrefix "ignoreColumnNameCase"
 
-TABExpr                     ::=     "TAB" ("(" IntegerLiteral ")")?
-SeparatorChar               ::=     CharacterLiteral
+TABExpr                         ::=     "TAB" ("(" IntegerLiteral ")")?
+SeparatorChar                   ::=     CharacterLiteral
 
-Body                        ::=     BodyPart+
-BodyPart                    ::=     ((Comment* ColumnDefinition) | (ColumnDefinition Comment*))
+Body                            ::=     BodyPart+
+BodyPart                        ::=     ((Comment* ColumnDefinition) | (ColumnDefinition Comment*))
 
-Comment                     ::=     SingleLineComment | MultiLineComment
-SingleLineComment           ::=     "//" NonBreakingChar*
-MultiLineComment            ::=     "/*" Char* "*/"
+Comment                         ::=     SingleLineComment | MultiLineComment
+SingleLineComment               ::=     "//" NonBreakingChar*
+MultiLineComment                ::=     "/*" Char* "*/"
 
-ColumnDefinition            ::=     (ColumnIdentifier | QuotedColumnIdentifier) ":" ColumnValidationExpr* ColumnDirectives
-ColumnIdentifier            ::=     IntegerLiteral | Ident
-QuotedColumnIdentifier      ::=     "\"" NonDoubleQuoteChar "\""
+ColumnDefinition                ::=     (ColumnIdentifier | QuotedColumnIdentifier) ":" ColumnValidationExpr* ColumnDirectives
+ColumnIdentifier                ::=     IntegerLiteral | Ident
+QuotedColumnIdentifier          ::=     "\"" NonDoubleQuoteChar "\""
 
-ColumnValidationExpr        ::=     NonConditionalExpr | ConditionalExpr
+ColumnValidationExpr            ::=     NonConditionalExpr | ConditionalExpr
 
-NonConditionalExpr          ::=     SingleExpr | ExternalSingleExpr | CombinatorialExpr | ParenthesizedExpr
+NonConditionalExpr              ::=     SingleExpr | ExternalSingleExpr | CombinatorialExpr | ParenthesizedExpr
 
-SingleExpr                  ::=     (ExplicitContextExpr)? IsExpr | NotExpr | InExpr | StarstWithExpr | EndsWithExpr | RegExpExpr | RangeExpr | LengthExpr | EmptyExpr | NotEmptyExpr | UniqueExpr | UriExpr | XsdDateTimeExpr | XsdDateExpr | UkDateExpr | XsdTimeExpr | Uuid4Expr | PositiveIntegerExpr
+SingleExpr                      ::=     (ExplicitContextExpr)? IsExpr | NotExpr | InExpr | StarstWithExpr | EndsWithExpr | RegExpExpr | RangeExpr | LengthExpr | EmptyExpr | NotEmptyExpr | UniqueExpr | UriExpr | XsdDateTimeExpr | XsdDateExpr | UkDateExpr | XsdTimeExpr | Uuid4Expr | PositiveIntegerExpr
 
-ExplicitContextExpr         ::=     ColumnRef "/"
+ExplicitContextExpr             ::=     ColumnRef "/"
 
-IsExpr                      ::=     "is(" StringProvider ")"
-NotExpr                     ::=     "not(" StringProvider ")"
-InExpr                      ::=     "in(" StringProvider ")"
-StartsWithExpr              ::=     "starts(" StringProvider ")"
-EndsWithExpr                ::=     "ends(" StringProvider ")"
-RegExpExpr                  ::=     "regex(" StringLiteral ")"
-RangeExpr                   ::=     "range(" NumericLiteral "," NumericLiteral ")"                                     /* range is inclusive */
+IsExpr                          ::=     "is(" StringProvider ")"
+NotExpr                         ::=     "not(" StringProvider ")"
+InExpr                          ::=     "in(" StringProvider ")"
+StartsWithExpr                  ::=     "starts(" StringProvider ")"
+EndsWithExpr                    ::=     "ends(" StringProvider ")"
+RegExpExpr                      ::=     "regex(" StringLiteral ")"
+RangeExpr                       ::=     "range(" NumericLiteral "," NumericLiteral ")"                                     /* range is inclusive */
 
 /* length has 4 forms. 
     1) length(n) ensures the value is: the exact length n (absolute length)
@@ -66,63 +66,63 @@ RangeExpr                   ::=     "range(" NumericLiteral "," NumericLiteral "
     4) length(n1, n2) ensures the value is: longer than or equal to n1 AND shorter than or equal to n2 (minumum and maximum lengths)
 */
 
-LengthExpr                  ::=     "length(" (PositiveIntegerOrAny ",")? PositiveIntegerOrAny ")"                 
-EmptyExpr                   ::=     "empty"
-NotEmptyExpr                ::=     "notEmpty"
-UniqueExpr	                ::=     "unique" ("(" ColumnRef ("," ColumnRef)* ")")?
-UriExpr                     ::=     "uri"
+LengthExpr                      ::=     "length(" (PositiveIntegerOrAny ",")? PositiveIntegerOrAny ")"                 
+EmptyExpr                       ::=     "empty"
+NotEmptyExpr                    ::=     "notEmpty"
+UniqueExpr	                    ::=     "unique" ("(" ColumnRef ("," ColumnRef)* ")")?
+UriExpr                         ::=     "uri"
 
-PositiveIntegerOrAny        ::=     PositiveIntegerLiteral | WildcardLiteral
+PositiveIntegerOrAny            ::=     PositiveIntegerLiteral | WildcardLiteral
 
-XsdDateTimeExpr             ::=     "xDateTime" ("(" fromXsdDateTimeExpr "," toXsdDateTimeExpr ")")?            
-XsdDateExpr                 ::=     "xDate" ("(" fromXsdDateExpr "," toXsdDateExpr ")")?
-XsdTimeExpr                 ::=     "xTime" ("(" fromXsdTimeExpr "," toXsdTimeExpr ")")?
-UkDateExpr                  ::=     "ukDate" ("(" fromUkDateExpr "," toUkDateExpr ")")?
-DateExpr                    ::=     "date(" StringProvider "," StringProvider "," StringProvider ("," fromXsdDateExpr "," toXsdDateExpr)? ")"       /* first arg is year, second arg is month, third arg is day, optional fourth and fifth args are range */
-PartialUkDateExpr           ::=     "partUkDate"                                                                                                    /* DD/MMMM/YYYY, '?' used to indicate an illegible symbol in Day or Year or a completely illegible month, and '*' to indicate a missing value */
-PartialDateExpr             ::=     "partDate(" StringProvider "," StringProvider "," StringProvider ")"                                            /* first arg is year, second arg is month, third arg is day. Follows rules of PartialUkDateExpr */
+XsdDateTimeExpr                 ::=     "xDateTime" ("(" fromXsdDateTimeExpr "," toXsdDateTimeExpr ")")?            
+XsdDateExpr                     ::=     "xDate" ("(" fromXsdDateExpr "," toXsdDateExpr ")")?
+XsdTimeExpr                     ::=     "xTime" ("(" fromXsdTimeExpr "," toXsdTimeExpr ")")?
+UkDateExpr                      ::=     "ukDate" ("(" fromUkDateExpr "," toUkDateExpr ")")?
+DateExpr                        ::=     "date(" StringProvider "," StringProvider "," StringProvider ("," fromXsdDateExpr "," toXsdDateExpr)? ")"       /* first arg is year, second arg is month, third arg is day, optional fourth and fifth args are range */
+PartialUkDateExpr               ::=     "partUkDate"                                                                                                    /* DD/MMMM/YYYY, '?' used to indicate an illegible symbol in Day or Year or a completely illegible month, and '*' to indicate a missing value */
+PartialDateExpr                 ::=     "partDate(" StringProvider "," StringProvider "," StringProvider ")"                                            /* first arg is year, second arg is month, third arg is day. Follows rules of PartialUkDateExpr */
 
-fromXsdDateTimeExpr         ::=     XsdDateTimeStringLiteral
-toXsdDateTimeExpr           ::=     XsdDateTimeStringLiteral
-fromXsdDateExpr             ::=     XsdDateStringLiteral
-toXsdDateExpr               ::=     XsdDateStringLiteral
-fromXsdTimeExpr             ::=     XsdTimeStringLiteral
-toXsdTimeExpr               ::=     XsdTimeStringLiteral
-fromUkDateExpr              ::=     UkDateStringLiteral
-toUkDateExpr                ::=     UkDateStringLiteral
+fromXsdDateTimeExpr             ::=     XsdDateTimeStringLiteral
+toXsdDateTimeExpr               ::=     XsdDateTimeStringLiteral
+fromXsdDateExpr                 ::=     XsdDateStringLiteral
+toXsdDateExpr                   ::=     XsdDateStringLiteral
+fromXsdTimeExpr                 ::=     XsdTimeStringLiteral
+toXsdTimeExpr                   ::=     XsdTimeStringLiteral
+fromUkDateExpr                  ::=     UkDateStringLiteral
+toUkDateExpr                    ::=     UkDateStringLiteral
 
-Uuid4Expr                   ::=     "uuid4"
-PositiveIntegerExpr         ::=     "positiveInteger"           /* [0-9]+ */
+Uuid4Expr                       ::=     "uuid4"
+PositiveIntegerExpr             ::=     "positiveInteger"           /* [0-9]+ */
 
 /* External expressions cause the checking of a value against some external source or process */
-ExternalSingleExpr          ::=     (ExplicitContextExpr)? FileExistsExpr | ChecksumExpr | FileCountExpr
+ExternalSingleExpr              ::=     (ExplicitContextExpr)? FileExistsExpr | ChecksumExpr | FileCountExpr
 
-FileExistsExpr              ::=     "fileExists" ("(" StringProvider ")")?                                              /* optional path to prepend to this cell with filename in */
-ChecksumExpr                ::=     "checksum(" FileExpr "," StringLiteral ")"                                          /* first arg is file expr, second arg is algorithm to use for checksum */
-FileCountExpr               ::=     "fileCount(" FileExpr ")"
-FileExpr                    ::=     "file(" (StringProvider ",")? (ColumnRef | FileNameExpr) ")"                        /* first (optional) arg is path (or ColumnRef of path) to prepend to second arg, second arg is reference to column containing filename, of a FileNameExpr */
-FileNameExpr                ::=     StringLiteral
+FileExistsExpr                  ::=     "fileExists" ("(" StringProvider ")")?                                              /* optional path to prepend to this cell with filename in */
+ChecksumExpr                    ::=     "checksum(" FileExpr "," StringLiteral ")"                                          /* first arg is file expr, second arg is algorithm to use for checksum */
+FileCountExpr                   ::=     "fileCount(" FileExpr ")"
+FileExpr                        ::=     "file(" (StringProvider ",")? (ColumnRef | FileNameExpr) ")"                        /* first (optional) arg is path (or ColumnRef of path) to prepend to second arg, second arg is reference to column containing filename, of a FileNameExpr */
+FileNameExpr                    ::=     StringLiteral
 
-StringProvider              ::=     ColumnRef | StringLiteral
+StringProvider                  ::=     ColumnRef | StringLiteral
 
-ColumnRef                   ::=     "$" (ColumnIdentifier | QuotedColumnIdentifier)
+ColumnRef                       ::=     "$" (ColumnIdentifier | QuotedColumnIdentifier)
 
-CombinatorialExpr           ::=     OrExpr | AndExpr
-OrExpr                      ::=     ColumnValidatonExpr ("or" ColumnValidationExpr)*
-AndExpr                     ::=     ColumnValidationExpr ("and" ColumnValidationExpr)*
+CombinatorialExpr               ::=     OrExpr | AndExpr
+OrExpr                          ::=     ColumnValidatonExpr ("or" ColumnValidationExpr)*
+AndExpr                         ::=     ColumnValidationExpr ("and" ColumnValidationExpr)*
 
-ParenthesizedExpr           ::=     "(" ColumnValidationExpr ")"
+ParenthesizedExpr               ::=     "(" ColumnValidationExpr ")"
 
-ConditionalExpr             ::=     IfExpr
+ConditionalExpr                 ::=     IfExpr
 
-IfExpr                      ::=     "if(" NonConditionalExpr "," ThenExpr ("," ElseExpr)? ")"                           /* if with optional else */
-ThenExpr                    ::=     ColumnValidationExpr
-ElseExpr                    ::=     ColumnValidationExpr
+IfExpr                          ::=     "if(" NonConditionalExpr "," ThenExpr ("," ElseExpr)? ")"                           /* if with optional else */
+ThenExpr                        ::=     ColumnValidationExpr
+ElseExpr                        ::=     ColumnValidationExpr
 
 
 /* Column Directives modify the behaviour of ColumnValidatonExpr(s) */
 /* There are only three global directives (see the first line below), but they can appear in any of three orders, the following complexity deals with that */
-ColumnDirectives            ::=     (
+ColumnDirectives                ::=     (
     (IgnoreCaseDirective? MatchIsFalseDirective? OptionalDirective?)
     | (MatchIsFalseDirective? IgnoreCaseDirective? OptionalDirective?)
     | (OptionalDirective? IgnoreCaseDirective? MatchIsFalseDirective?)
@@ -132,26 +132,26 @@ ColumnDirectives            ::=     (
 ) WarningDirective?
 
 
-IgnoreCaseDirective         ::=     DirectivePrefix "ignoreCase"
-MatchIsFalseDirective       ::=     DirectivePrefix "matchIsFalse"
-OptionalDirective           ::=     DirectivePrefix "optional"
-WarningDirective            ::=     DirectivePrefix "warning"
+IgnoreCaseDirective             ::=     DirectivePrefix "ignoreCase"
+MatchIsFalseDirective           ::=     DirectivePrefix "matchIsFalse"
+OptionalDirective               ::=     DirectivePrefix "optional"
+WarningDirective                ::=     DirectivePrefix "warning"
 
 
 /* Lexical */
-XsdDateTimeStringLiteral                ::=     "\"" -?[0-9]{4}-(((0(1|3|5|7|8)|1(0|2))-(0[1-9]|(1|2)[0-9]|3[0-1]))|((0(4|6|9)|11)-(0[1-9]|(1|2)[0-9]|30))|(02-(0[1-9]|(1|2)[0-9])))T([0-1][0-9]|2[0-4]):(0[0-9]|[1-5][0-9]):(0[0-9]|[1-5][0-9])(\.[0-999])?((\+|-)(0[1-9]|1[0-9]|2[0-4]):(0[0-9]|[1-5][0-9])|Z)? "\""
-XsdDateStringLiteral                    ::=     "\"" -?[0-9]{4}-(((0(1|3|5|7|8)|1(0|2))-(0[1-9]|(1|2)[0-9]|3[0-1]))|((0(4|6|9)|11)-(0[1-9]|(1|2)[0-9]|30))|(02-(0[1-9]|(1|2)[0-9])))((\+|-)(0[1-9]|1[0-9]|2[0-4]):(0[0-9]|[1-5][0-9])|Z)? "\""
-XsdTimeStringLiteral                    ::=     "\"" ([0-1][0-9]|2[0-4]):(0[0-9]|[1-5][0-9]):(0[0-9]|[1-5][0-9])(\.[0-999])?((\+|-)(0[1-9]|1[0-9]|2[0-4]):(0[0-9]|[1-5][0-9])|Z)? "\""
-UkDateStringLiteral                     ::=     "\"" (((0[1-9]|(1|2)[0-9]|3[0-1])\/(0(1|3|5|7|8)|1(0|2)))|((0[1-9]|(1|2)[0-9]|30)\/(0(4|6|9)|11))|((0[1-9]|(1|2)[0-9])\/02))\/[0-9]{4} "\""
-PositiveNonZeroIntegerLiteral           ::=     [1-9][0-9]*         /* A Natural Number - i.e. IntegerLiteral constrained by [1-9][0-9]* */
-PositiveIntegerLiteral                  ::=     [0-9]+              /* A Natural Number or Zero - i.e. IntegerLiteral constrained by [0-9]+ */
-NumericLiteral                          ::=     Number
-IntegerLiteral                          ::=     Integer
-CharacterLiteral                        ::=     "'" NonBreakingChar "'"
-StringLiteral                           ::=     "\"" NonBreakingChar+ "\""
-WildcardLiteral                         ::=     "*" 
-Ident                                   ::=     /* [A-Za-z0-9\-_\.]+ */
-NonDoubleQuoteChar                      ::=     /* [^"]+ */
+XsdDateTimeStringLiteral        ::=     "\"" -?[0-9]{4}-(((0(1|3|5|7|8)|1(0|2))-(0[1-9]|(1|2)[0-9]|3[0-1]))|((0(4|6|9)|11)-(0[1-9]|(1|2)[0-9]|30))|(02-(0[1-9]|(1|2)[0-9])))T([0-1][0-9]|2[0-4]):(0[0-9]|[1-5][0-9]):(0[0-9]|[1-5][0-9])(\.[0-999])?((\+|-)(0[1-9]|1[0-9]|2[0-4]):(0[0-9]|[1-5][0-9])|Z)? "\""
+XsdDateStringLiteral            ::=     "\"" -?[0-9]{4}-(((0(1|3|5|7|8)|1(0|2))-(0[1-9]|(1|2)[0-9]|3[0-1]))|((0(4|6|9)|11)-(0[1-9]|(1|2)[0-9]|30))|(02-(0[1-9]|(1|2)[0-9])))((\+|-)(0[1-9]|1[0-9]|2[0-4]):(0[0-9]|[1-5][0-9])|Z)? "\""
+XsdTimeStringLiteral            ::=     "\"" ([0-1][0-9]|2[0-4]):(0[0-9]|[1-5][0-9]):(0[0-9]|[1-5][0-9])(\.[0-999])?((\+|-)(0[1-9]|1[0-9]|2[0-4]):(0[0-9]|[1-5][0-9])|Z)? "\""
+UkDateStringLiteral             ::=     "\"" (((0[1-9]|(1|2)[0-9]|3[0-1])\/(0(1|3|5|7|8)|1(0|2)))|((0[1-9]|(1|2)[0-9]|30)\/(0(4|6|9)|11))|((0[1-9]|(1|2)[0-9])\/02))\/[0-9]{4} "\""
+PositiveNonZeroIntegerLiteral   ::=     [1-9][0-9]*         /* A Natural Number - i.e. IntegerLiteral constrained by [1-9][0-9]* */
+PositiveIntegerLiteral          ::=     [0-9]+              /* A Natural Number or Zero - i.e. IntegerLiteral constrained by [0-9]+ */
+NumericLiteral                  ::=     Number
+IntegerLiteral                  ::=     Integer
+CharacterLiteral                ::=     "'" NonBreakingChar "'"
+StringLiteral                   ::=     "\"" NonBreakingChar+ "\""
+WildcardLiteral                 ::=     "*" 
+Ident                           ::=     /* [A-Za-z0-9\-_\.]+ */
+NonDoubleQuoteChar              ::=     /* [^"]+ */
 
 Number                                          /* Any Real Number expressed as an Integer or Decimal */
 Integer                                         /* Any Non-Fractional and Non-Decimal Number */
