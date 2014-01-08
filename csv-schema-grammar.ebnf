@@ -121,7 +121,8 @@ ElseExpr                        ::=     ColumnValidationExpr
 
 
 /* Column Directives modify the behaviour of ColumnValidatonExpr(s) */
-/* There are only three global directives (see the first line below), but they can appear in any of three orders, the following complexity deals with that */
+/* There are four column directives, the first three can appear in any order, the following complexity deals with that,
+the warning directive must always be last, if used*/
 ColumnDirectives                ::=     (
     (IgnoreCaseDirective? MatchIsFalseDirective? OptionalDirective?)
     | (MatchIsFalseDirective? IgnoreCaseDirective? OptionalDirective?)
