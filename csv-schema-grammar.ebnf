@@ -39,8 +39,9 @@ Comment                         ::=     SingleLineComment | MultiLineComment
 SingleLineComment               ::=     "//" NonBreakingChar*
 MultiLineComment                ::=     "/*" Char* "*/"
 
-ColumnDefinition                ::=     (ColumnIdentifier | QuotedColumnIdentifier) ":" ColumnValidationExpr* ColumnDirectives
+ColumnDefinition                ::=     (ColumnIdentifier | QuotedColumnIdentifier) ":" ColumnRule
 ColumnIdentifier                ::=     IntegerLiteral | Ident
+ColumnRule                      ::=     ColumnValidationExpr* ColumnDirectives
 QuotedColumnIdentifier          ::=     "\"" NonDoubleQuoteChar "\""
 
 ColumnValidationExpr            ::=     NonConditionalExpr | ConditionalExpr
