@@ -41,8 +41,8 @@ MultiLineComment                ::=     "/*" Char* "*/"
 
 ColumnDefinition                ::=     (ColumnIdentifier | QuotedColumnIdentifier) ":" ColumnRule
 ColumnIdentifier                ::=     IntegerLiteral | Ident
-ColumnRule                      ::=     ColumnValidationExpr* ColumnDirectives
 QuotedColumnIdentifier          ::=     "\"" NonDoubleQuoteChar "\""
+ColumnRule                      ::=     ColumnValidationExpr* ColumnDirectives
 
 ColumnValidationExpr            ::=     NonConditionalExpr | ConditionalExpr
 
