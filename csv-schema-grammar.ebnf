@@ -48,7 +48,7 @@ ColumnValidationExpr            ::=     NonConditionalExpr | ConditionalExpr
 
 NonConditionalExpr              ::=     SingleExpr | ExternalSingleExpr | CombinatorialExpr | ParenthesizedExpr
 
-SingleExpr                      ::=     (ExplicitContextExpr)? IsExpr | NotExpr | InExpr | StarstWithExpr | EndsWithExpr | RegExpExpr | RangeExpr | LengthExpr | EmptyExpr | NotEmptyExpr | UniqueExpr | UriExpr | XsdDateTimeExpr | XsdDateExpr | UkDateExpr | XsdTimeExpr | Uuid4Expr | PositiveIntegerExpr
+SingleExpr                      ::=     (ExplicitContextExpr)? IsExpr | NotExpr | InExpr | StartsWithExpr | EndsWithExpr | RegExpExpr | RangeExpr | LengthExpr | EmptyExpr | NotEmptyExpr | UniqueExpr | UriExpr | XsdDateTimeExpr | XsdDateExpr | UkDateExpr | XsdTimeExpr | Uuid4Expr | PositiveIntegerExpr
 
 ExplicitContextExpr             ::=     ColumnRef "/"
 
