@@ -70,7 +70,7 @@ RangeExpr                       ::=     "range(" NumericLiteral "," NumericLiter
 LengthExpr                      ::=     "length(" (PositiveIntegerOrAny ",")? PositiveIntegerOrAny ")"                 
 EmptyExpr                       ::=     "empty"
 NotEmptyExpr                    ::=     "notEmpty"
-UniqueExpr	                    ::=     "unique" ("(" ColumnRef ("," ColumnRef)* ")")?
+UniqueExpr                      ::=     "unique" ("(" ColumnRef ("," ColumnRef)* ")")?
 UriExpr                         ::=     "uri"
 
 PositiveIntegerOrAny            ::=     PositiveIntegerLiteral | WildcardLiteral
