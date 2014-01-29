@@ -46,14 +46,14 @@ object CsvValidatorCmdApp extends App {
     //parse the command line arguments
     parser.parse(args, new Config()) map {
       config =>
-        processMetaData(config.csvPath, config.csvSchemaPath, config.failFast, config.substitutePaths)
+        validate(config.csvPath, config.csvSchemaPath, config.failFast, config.substitutePaths)
     } getOrElse {
       //arguments are bad, usage message will have been displayed
       ("", SystemExits.IncorrectArguments)
     }
   }
 
-  def processMetaData(metaDataFile: Path, schemaFile: Path, failFast: Boolean, pathSubstitutionsList: List[SubstitutePath]): (String,Int) = {
+  def validate(metaDataFile: Path, schemaFile: Path, failFast: Boolean, pathSubstitutionsList: List[SubstitutePath]): (String,Int) = {
     val validator = createValidator(failFast, pathSubstitutionsList)
     validator.parseSchema(schemaFile) match {
       case FailureZ(errors) => (prettyPrint(errors), SystemExits.InvalidSchema)

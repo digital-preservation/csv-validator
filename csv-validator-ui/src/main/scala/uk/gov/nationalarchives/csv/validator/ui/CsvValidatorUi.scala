@@ -58,7 +58,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
 
   private def validate(csvFilePath: String, csvSchemaFilePath: String, failOnFirstError: Boolean, pathSubstitutions: List[(String, String)])(output: String => Unit) {
     output("")
-    output(CsvValidatorCmdApp.processMetaData(Path.fromString(csvFilePath), Path.fromString(csvSchemaFilePath)    , failOnFirstError, pathSubstitutions)._1)
+    output(CsvValidatorCmdApp.validate(Path.fromString(csvFilePath), Path.fromString(csvSchemaFilePath)    , failOnFirstError, pathSubstitutions)._1)
   }
 
   /**
