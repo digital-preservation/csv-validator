@@ -15,6 +15,7 @@ import java.util.regex.{Matcher, Pattern}
 import java.net.URI
 import scala.util.Try
 import java.io.File
+import java.net.URLDecoder
 
 
 object Util {
@@ -103,7 +104,7 @@ object Util {
 
 
   object FileSystem {
-    def createFile(filename: String): Try[File] =  Try{ if( filename.startsWith("file:")) new File( new URI(file2PlatformIndependent(filename))) else  new File( filename )}
+    def createFile(filename: String): Try[File] =  Try{ if( filename.startsWith("file:")) new File( new URI(file2PlatformIndependent(filename))) else  new File( URLDecoder.decode(filename) )}
 
     def replaceSpaces(file: String): String = file.replace(" ", "%20")
 
