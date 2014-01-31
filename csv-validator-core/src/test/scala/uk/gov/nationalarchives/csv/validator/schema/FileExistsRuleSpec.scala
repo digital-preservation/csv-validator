@@ -92,6 +92,14 @@ class FileExistsRuleSpec extends Specification with TestResources {
       FileSystem(Some("file:///HOME/"), "must%20Exist%20With%20Spaces%20For%20Rule.csvs", pathSubstitutions ).exists must beTrue
     }
 
+  "succeed when the filename contains %20 spaces and the path is not a URI and already complete" in {
+
+      val pathSubstitutions =  List[(String,String)](
+      )
+
+      FileSystem(None, baseResourcePkgPath + "/must%20Exist%20With%20Spaces%20For%20Rule.csvs", pathSubstitutions ).exists must beTrue
+    }
+
     "succeed when joining strings with missing '/'" in {
       val f = FileSystem(Some("file:///root"), "file.csvs", emptyPathSubstitutions )
       f.jointPath mustEqual "file:///root/file.csvs"
