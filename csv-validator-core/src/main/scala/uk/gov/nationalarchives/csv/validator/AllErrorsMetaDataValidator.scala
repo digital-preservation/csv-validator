@@ -32,7 +32,6 @@ trait AllErrorsMetaDataValidator extends MetaDataValidator {
       }
     }
 
-    //val v = for (row <- rows) yield validateRow(row, schema)
     val v = validateRows()
     v.sequence[MetaDataValidation, Any]
   }

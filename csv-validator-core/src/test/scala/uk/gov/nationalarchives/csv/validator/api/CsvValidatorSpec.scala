@@ -47,13 +47,13 @@ class CsvValidatorSpec extends Specification with TestResources {
     def parse(filePath: String): Schema = app.parseSchema(Path.fromString(filePath)) fold (f => throw new IllegalArgumentException(f.toString()), s => s)
 
     "succeed for valid schema and metadata file" in {
-      app.validate(Path.fromString(baseResourcePkgPath) / "metaData.csv", parse(baseResourcePkgPath + "/schema.csvs")) must beLike {
+      app.validate(Path.fromString(baseResourcePkgPath) / "metaData.csv", parse(baseResourcePkgPath + "/schema.csvs"), None) must beLike {
         case Success(_) => ok
       }
     }
 
     "succeed for valid @totalColumns in schema and metadata file" in {
-      app.validate(Path.fromString(baseResourcePkgPath) / "metaData.csv", parse(baseResourcePkgPath + "/schema.csvs")) must beLike {
+      app.validate(Path.fromString(baseResourcePkgPath) / "metaData.csv", parse(baseResourcePkgPath + "/schema.csvs"), None) must beLike {
         case Success(_) => ok
       }
     }

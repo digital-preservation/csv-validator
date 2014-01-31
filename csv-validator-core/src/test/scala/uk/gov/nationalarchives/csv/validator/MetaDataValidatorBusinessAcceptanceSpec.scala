@@ -26,13 +26,13 @@ class MetaDataValidatorBusinessAcceptanceSpec extends Specification with TestRes
   "Regex rule" should {
 
     "succeed" in {
-      validate(Path.fromString(base) / "regexRulePassMetaData.csv", parse(base + "/regexRuleSchema.csvs")) must beLike {
+      validate(Path.fromString(base) / "regexRulePassMetaData.csv", parse(base + "/regexRuleSchema.csvs"), None) must beLike {
         case Success(_) => ok
       }
     }
 
     "fail" in {
-      validate(Path.fromString(base) / "regexRuleFailMetaData.csv", parse(base + "/regexRuleSchema.csvs")) must beLike {
+      validate(Path.fromString(base) / "regexRuleFailMetaData.csv", parse(base + "/regexRuleSchema.csvs"), None) must beLike {
         case Failure(_) => ok
       }
     }

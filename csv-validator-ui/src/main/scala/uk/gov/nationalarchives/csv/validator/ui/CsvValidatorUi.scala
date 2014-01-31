@@ -22,6 +22,7 @@ import ScalaSwingHelpers._
 import java.awt.Cursor
 import java.util.Properties
 import scalax.file.Path
+import uk.gov.nationalarchives.csv.validator.ProgressCallback
 
 /**
  * Simple GUI for the CSV Validator
@@ -56,9 +57,15 @@ object CsvValidatorUi extends SimpleSwingApplication {
     }
   }
 
-  private def validate(csvFilePath: String, csvSchemaFilePath: String, failOnFirstError: Boolean, pathSubstitutions: List[(String, String)])(output: String => Unit) {
+  private def validate(csvFilePath: String, csvSchemaFilePath: String, failOnFirstError: Boolean, pathSubstitutions: List[(String, String)], progress: Option[ProgressCallback])(output: String => Unit) {
     output("")
-    output(CsvValidatorCmdApp.validate(Path.fromString(csvFilePath), Path.fromString(csvSchemaFilePath)    , failOnFirstError, pathSubstitutions)._1)
+    output(CsvValidatorCmdApp.validate(
+      Path.fromString(csvFilePath),
+      Path.fromString(csvSchemaFilePath),
+      failOnFirstError,
+      pathSubstitutions,
+      progress
+    )._1)
   }
 
   /**
@@ -170,6 +177,14 @@ object CsvValidatorUi extends SimpleSwingApplication {
 
     private val btnValidate = new Button("Validate")
 
+    private val progressBar = new ProgressBar()
+    progressBar.visible = false
+    private val progress = new ProgressCallback {
+      override def update(complete: this.type#Percentage) {
+        progressBar.value = complete.toInt
+      }
+    }
+
     val outputToReport: String => Unit = {
       txtArReport.text = _
     }
@@ -178,12 +193,16 @@ object CsvValidatorUi extends SimpleSwingApplication {
       suspendUi = {
         btnValidate.enabled = false
         this.peer.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR))
+        this.progressBar.value = 0
+        this.progressBar.visible = true
+
       },
-      action = validate(txtCsvFile.text, txtCsvSchemaFile.text, settingsPanel.failOnFirstError, settingsPanel.pathSubstitutions),
+      action = validate(txtCsvFile.text, txtCsvSchemaFile.text, settingsPanel.failOnFirstError, settingsPanel.pathSubstitutions, Some(progress)),
       output = outputToReport,
       resumeUi = {
         btnValidate.enabled = true
         this.peer.setCursor(Cursor.getDefaultCursor)
+        //this.progressBar.visible = false
       }
     ))
 
@@ -218,6 +237,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
     layout.row.center.fill.add(settingsPanel)
 
     layout.row.center.fill.add(btnValidate)
+    layout.row.center.fill.add(progressBar)
 
     layout.row.center.fill.add(separator1)
     layout.row.center.fill.add(scrollPane)

@@ -46,7 +46,7 @@ class MetaDataValidatorFileCountSpec extends Specification with TestResources {
 
       val metaData = s"$checksumPath,1"
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "succeed when the file count is quoted" in {
@@ -59,7 +59,7 @@ class MetaDataValidatorFileCountSpec extends Specification with TestResources {
 
       val metaData = checksumPath + ""","1""""
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "succeed if column count is optional and missing" in {
@@ -72,7 +72,7 @@ class MetaDataValidatorFileCountSpec extends Specification with TestResources {
 
       val metaData = s"$checksumPath,"
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "succeed if column count is optional and present" in {
@@ -85,7 +85,7 @@ class MetaDataValidatorFileCountSpec extends Specification with TestResources {
 
       val metaData = s"$checksumPath,1"
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "fail when file does not exist" in {
@@ -101,7 +101,7 @@ class MetaDataValidatorFileCountSpec extends Specification with TestResources {
 
       val metaData = s"$checksumPath,1"
 
-      validate(metaData, schema) must beLike {
+      validate(metaData, schema, None) must beLike {
         case Failure(messages) => messages.list mustEqual List(ErrorMessage("""fileCount(file("""" + wrongPath + """")) file """" + wrongPath + """" not found for line: 1, column: Count, value: "1""""))
       }
     }
@@ -116,7 +116,7 @@ class MetaDataValidatorFileCountSpec extends Specification with TestResources {
 
       val metaData = s"$checksumPath,2"
 
-      validate(metaData, schema) must beLike {
+      validate(metaData, schema, None) must beLike {
         case Failure(messages) => messages.list mustEqual List(ErrorMessage("""fileCount(file("""" + checksumPath + """")) found 1 file(s) for line: 1, column: Count, value: "2""""))
       }
     }
@@ -134,7 +134,7 @@ class MetaDataValidatorFileCountSpec extends Specification with TestResources {
 
       val metaData = """ABC,1"""
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "fail when files found does match given cross referenced value" in {
@@ -147,7 +147,7 @@ class MetaDataValidatorFileCountSpec extends Specification with TestResources {
 
       val metaData = """ABC,99"""
 
-      validate(metaData, schema) must beLike {
+      validate(metaData, schema, None) must beLike {
         case Failure(messages) => messages.list mustEqual List(ErrorMessage("""fileCount(file("""" + schemaPath + """", "checksum.csvs")) found 1 file(s) for line: 1, column: Count, value: "99""""))
       }
     }
@@ -165,7 +165,7 @@ class MetaDataValidatorFileCountSpec extends Specification with TestResources {
 
       val metaData = """checksum.csvs,1"""
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "fail when incorrect root given in schema for root" in {
@@ -178,7 +178,7 @@ class MetaDataValidatorFileCountSpec extends Specification with TestResources {
 
       val metaData = """checksum.csvs,99"""
 
-      validate(metaData, schema) must beLike {
+      validate(metaData, schema, None) must beLike {
         case Failure(messages) => messages.list mustEqual List(ErrorMessage("""fileCount(file("invalid/path/to/root", $File)) incorrect basepath invalid/path/to/root/ (localfile: """ + TypedPath("invalid/path/to/root/checksum.csvs").toPlatform + """) found for line: 1, column: Count, value: "99""""))
       }
     }
@@ -197,7 +197,7 @@ class MetaDataValidatorFileCountSpec extends Specification with TestResources {
 
       val metaData = s"$checksumPath,1"
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "fail when files found for a crossed reference does not match given value" in {
@@ -210,7 +210,7 @@ class MetaDataValidatorFileCountSpec extends Specification with TestResources {
 
       val metaData = s"$checksumPath,rubbish"
 
-      validate(metaData, schema) must beLike {
+      validate(metaData, schema, None) must beLike {
         case Failure(messages) => messages.list mustEqual List(ErrorMessage("""fileCount(file($File)) 'rubbish' is not a number for line: 1, column: Count, value: "rubbish""""))
       }
     }
@@ -230,7 +230,7 @@ class MetaDataValidatorFileCountSpec extends Specification with TestResources {
 
       val metaData = s"$schemaPath,checksum.csvs,1"
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "fail when incorrect root given in metadata" in {
@@ -244,7 +244,7 @@ class MetaDataValidatorFileCountSpec extends Specification with TestResources {
 
       val metaData = """invalid/path/to/root,checksum.csvs,99"""
 
-      validate(metaData, schema) must beLike {
+      validate(metaData, schema, None) must beLike {
         case Failure(messages) => messages.list mustEqual List(ErrorMessage("""fileCount(file($Root, $File)) incorrect basepath invalid/path/to/root/ (localfile: """ + TypedPath("invalid/path/to/root/checksum.csvs").toPlatform + """) found for line: 1, column: Count, value: "99""""))
       }
     }
@@ -263,7 +263,7 @@ class MetaDataValidatorFileCountSpec extends Specification with TestResources {
 
       val metaData = s"$schemaPath,**/checksum.csvs,1"
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "succeed when finding multiple files in sub directories using a '**' wildcard" in {
@@ -278,7 +278,7 @@ class MetaDataValidatorFileCountSpec extends Specification with TestResources {
 
       val metaData = s"$threeFilesInSubDirPath,**/*.jp2,3"
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "succeed when only 1 file is found using a '*' wildcard" in {
@@ -292,7 +292,7 @@ class MetaDataValidatorFileCountSpec extends Specification with TestResources {
 
       val metaData = s"$schemaPath,checksum.*,1"
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "fail if the optional root contains wildcards" in {
@@ -308,7 +308,7 @@ class MetaDataValidatorFileCountSpec extends Specification with TestResources {
 
       val metaData = s"$searchPath,checksum.*,1"
 
-      validate(metaData, schema) must beLike {
+      validate(metaData, schema, None) must beLike {
         case Failure(messages) =>
           messages.list mustEqual List(ErrorMessage("""fileCount(file($Root, $File)) root """ + searchPath + """/ (localfile: """ + searchPath + FILE_SEPARATOR + """checksum.*) should not contain wildcards for line: 1, column: Count, value: "1""""))
       }
@@ -324,7 +324,7 @@ class MetaDataValidatorFileCountSpec extends Specification with TestResources {
 
       val metaData = """**/*.jp2,"3""""
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "fail when no files found" in {
@@ -337,7 +337,7 @@ class MetaDataValidatorFileCountSpec extends Specification with TestResources {
 
       val metaData = """**/*.jp2,2"""
 
-      validate(metaData, schema) must beLike {
+      validate(metaData, schema, None) must beLike {
         case Failure(messages) => messages.list mustEqual List(ErrorMessage("""fileCount(file("src/test/resources/this/is/incorrect", $File)) incorrect basepath src/test/resources/this/is/incorrect/ (localfile: """ + TypedPath("src/test/resources/this/is/incorrect/**/*.jp2").toPlatform + """) found for line: 1, column: Count, value: "2""""))
       }
     }

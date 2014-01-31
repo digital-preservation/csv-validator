@@ -11,7 +11,7 @@ package uk.gov.nationalarchives.csv.validator.api.java
 import java.util.{List => JList, ArrayList => JArrayList}
 import scalax.file.Path
 import scalaz.{Success => SuccessZ, Failure => FailureZ, _}
-import uk.gov.nationalarchives.csv.validator.{FailMessage => SFailMessage, WarningMessage => SWarningMessage, ErrorMessage => SErrorMessage, SchemaMessage => SSchemaMessage}
+import uk.gov.nationalarchives.csv.validator.{ProgressCallback => SProgressCallback, FailMessage => SFailMessage, WarningMessage => SWarningMessage, ErrorMessage => SErrorMessage, SchemaMessage => SSchemaMessage}
 import uk.gov.nationalarchives.csv.validator.Util._
 import uk.gov.nationalarchives.csv.validator.api.CsvValidator.createValidator
 import java.io.{Reader => JReader}
@@ -21,7 +21,17 @@ import java.io.{Reader => JReader}
  */
 object CsvValidatorJavaBridge {
 
-  def validate(csvDataFile: String, csvSchemaFile: String, failFast: Boolean, pathSubstitutionsList: JList[Substitution]): JList[FailMessage] = {
+  def validate(csvDataFile: String, csvSchemaFile: String, failFast: Boolean, pathSubstitutionsList: JList[Substitution]): JList[FailMessage] =
+    validate(csvDataFile, csvSchemaFile, failFast, pathSubstitutionsList, None)
+
+  def validate(csvDataFile: String, csvSchemaFile: String, failFast: Boolean, pathSubstitutionsList: JList[Substitution], progress: ProgressCallback): JList[FailMessage] = {
+    val sProgressCallback = new SProgressCallback {
+      override def update(complete: this.type#Percentage) = progress.update(complete)
+    }
+    validate(csvDataFile, csvSchemaFile, failFast, pathSubstitutionsList, Some(sProgressCallback))
+  }
+
+  private def validate(csvDataFile: String, csvSchemaFile: String, failFast: Boolean, pathSubstitutionsList: JList[Substitution], progress: Option[SProgressCallback]): JList[FailMessage] = {
 
     import scala.collection.JavaConverters._
 
@@ -42,7 +52,7 @@ object CsvValidatorJavaBridge {
             errors.list.map(asJavaMessage(_)).asJava
 
           case SuccessZ(schema) =>
-            validator.validate(pMetaDataFile, schema) match {
+            validator.validate(pMetaDataFile, schema, progress) match {
               case FailureZ(errors) => errors.list.map(asJavaMessage(_)).asJava
               case SuccessZ(_) => new JArrayList[FailMessage]
             }
@@ -50,7 +60,17 @@ object CsvValidatorJavaBridge {
     }
   }
 
-  def validate(csvData: JReader, csvSchema: JReader, failFast: Boolean, pathSubstitutionsList: JList[Substitution]): JList[FailMessage] = {
+  def validate(csvData: JReader, csvSchema: JReader, failFast: Boolean, pathSubstitutionsList: JList[Substitution]): JList[FailMessage] =
+    validate(csvData, csvSchema, failFast, pathSubstitutionsList, None)
+
+  def validate(csvData: JReader, csvSchema: JReader, failFast: Boolean, pathSubstitutionsList: JList[Substitution], progress: ProgressCallback): JList[FailMessage] = {
+    val sProgressCallback = new SProgressCallback {
+      override def update(complete: this.type#Percentage) = progress.update(complete)
+    }
+    validate(csvData, csvSchema, failFast, pathSubstitutionsList, Some(sProgressCallback))
+  }
+
+  private def validate(csvData: JReader, csvSchema: JReader, failFast: Boolean, pathSubstitutionsList: JList[Substitution], progress: Option[SProgressCallback]): JList[FailMessage] = {
 
     import scala.collection.JavaConverters._
 
@@ -63,7 +83,7 @@ object CsvValidatorJavaBridge {
         errors.list.map(asJavaMessage(_)).asJava
 
       case SuccessZ(schema) =>
-        validator.validate(csvData, schema) match {
+        validator.validate(csvData, schema, progress) match {
           case FailureZ(errors) => errors.list.map(asJavaMessage(_)).asJava
           case SuccessZ(_) => new JArrayList[FailMessage]
         }
