@@ -25,21 +25,39 @@ trait FailFastMetaDataValidator extends MetaDataValidator {
 
   val pathSubstitutions: List[(String,String)]
 
-  def validateRows(rows: List[Row], schema: Schema): MetaDataValidation[Any] = {
+  def validateRows(rows: Iterator[Row], schema: Schema): MetaDataValidation[Any] = {
 
-    def containsErrors(e:MetaDataValidation[Any]): Boolean = e.fold(_.list.exists(_.isInstanceOf[ErrorMessage]), _ => false)
+    def containsErrors(e: MetaDataValidation[Any]): Boolean = e.fold(_.list.exists(_.isInstanceOf[ErrorMessage]), _ => false)
 
-//    @tailrec
-    def validateRows(rows: List[Row]): MetaDataValidation[Any] = rows match {
-      case Nil => true.successNel[FailMessage]
-      case r :: tail =>  validateRow(r, schema) match {
-        case e@Failure(messages) =>
-          if( containsErrors(e)) e else validateRows(tail).leftMap(_ append messages)
-        case _ => validateRows(tail)
+//  @tailrec
+//    def validateRows(rows: Iterator[Row]): MetaDataValidation[Any] = rows match {
+//      case Nil => true.successNel[FailMessage]
+//      case r :: tail =>  validateRow(r, schema) match {
+//        case e @ Failure(messages) =>
+//          if( containsErrors(e)) e else validateRows(tail).leftMap(_ append messages)
+//        case _ => validateRows(tail)
+//      }
+//    }
+
+    def validateRows(): MetaDataValidation[Any] = {
+      if(!rows.hasNext) {
+        true.successNel[FailMessage]
+      } else {
+        val row = rows.next()
+        validateRow(row, schema) match {
+          case e @ Failure(messages) =>
+            if(containsErrors(e)) {
+              e
+            } else {
+              validateRows().leftMap(_ append messages)
+            }
+          case _ =>
+            validateRows()
+        }
       }
     }
 
-    validateRows(rows)
+    validateRows()
   }
 
   private def validateRow(row: Row, schema: Schema): MetaDataValidation[Any] = {

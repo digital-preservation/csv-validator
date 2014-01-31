@@ -9,11 +9,11 @@
 package uk.gov.nationalarchives.csv.validator.api
 
 import uk.gov.nationalarchives.csv.validator.schema.{Schema, SchemaParser}
-import scalaz._
+import scalaz._, Scalaz._
 import java.io.{Reader => JReader, FileReader => JFileReader}
 import resource._
 import scalax.file.Path
-import uk.gov.nationalarchives.csv.validator.{AllErrorsMetaDataValidator, FailFastMetaDataValidator, FailMessage, MetaDataValidator}
+import uk.gov.nationalarchives.csv.validator._
 
 object CsvValidator {
 
