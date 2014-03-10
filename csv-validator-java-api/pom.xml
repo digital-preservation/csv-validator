@@ -16,6 +16,12 @@
     <name>csv-validator-java-api</name>
     <description>Java API for CSV Validation Library</description>
 
+    <scm>
+        <connection>scm:git:https://github.com/digital-preservation/csv-validator.git</connection>
+        <developerConnection>scm:git:https://github.com/digital-preservation/csv-validator.git</developerConnection>
+        <url>scm:git:https://github.com/digital-preservation/csv-validator.git</url>
+    </scm>
+
     <build>
         <plugins>
             <plugin>

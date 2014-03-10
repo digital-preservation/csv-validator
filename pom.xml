@@ -15,7 +15,13 @@
     <packaging>pom</packaging>
 
     <name>csv-validator</name>
-    
+
+    <scm>
+        <connection>scm:git:https://github.com/digital-preservation/csv-validator.git</connection>
+        <developerConnection>scm:git:https://github.com/digital-preservation/csv-validator.git</developerConnection>
+        <url>scm:git:https://github.com/digital-preservation/csv-validator.git</url>
+    </scm>
+
     <modules>
         <module>csv-validator-parent</module>
         <module>csv-validator-core</module>
