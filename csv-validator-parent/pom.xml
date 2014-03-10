@@ -33,9 +33,6 @@
             <name>Jim Collins</name>
         </developer>
         <developer>
-            <name>Alex Green</name>
-        </developer>
-        <developer>
             <name>Andy Hicks</name>
         </developer>
         <developer>
@@ -48,6 +45,12 @@
     <contributors>
         <contributor>
             <name>Nicola Welch</name>
+        </contributor>
+        <contributor>
+            <name>Alex Green</name>
+        </contributor>
+        <contributor>
+            <name>David Underdown</name>
         </contributor>
         <contributor>
             <name>Eric Torreborre</name>
@@ -69,7 +72,7 @@
     </scm>
 
     <properties>
-        <scala.version>2.10.0</scala.version>
+        <scala.version>2.10.3</scala.version>
         <java.version>1.6</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <contact.email>digitalpreservation@nationalarchives.gov.uk</contact.email>
@@ -82,7 +85,7 @@
                 <plugin>
                     <groupId>com.mycila</groupId>
                     <artifactId>license-maven-plugin</artifactId>
-                    <version>2.5</version>
+                    <version>2.6</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -132,7 +135,7 @@
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>appassembler-maven-plugin</artifactId>
-                    <version>1.6</version>
+                    <version>1.7</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -142,12 +145,12 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-release-plugin</artifactId>
-                    <version>2.4.2</version>
+                    <version>2.5</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-gpg-plugin</artifactId>
-                    <version>1.4</version>
+                    <version>1.5</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -314,7 +317,7 @@
             <dependency>
                 <groupId>org.scalaz</groupId>
                 <artifactId>scalaz-core_2.10</artifactId>
-                <version>7.0.5</version>
+                <version>7.0.6</version>
             </dependency>
             <dependency>
                 <groupId>com.github.scala-incubator.io</groupId>
@@ -334,7 +337,7 @@
             <dependency>
                 <groupId>org.specs2</groupId>
                 <artifactId>specs2_2.10</artifactId>
-                <version>2.3.4</version>
+                <version>2.3.10</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>

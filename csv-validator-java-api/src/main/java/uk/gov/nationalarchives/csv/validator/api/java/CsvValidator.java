@@ -63,6 +63,23 @@ public class CsvValidator {
     }
 
     /**
+     * Validate a CSV file against a CSV schema file
+     *
+     * @param csvFilename filename of the CSV file
+     * @param csvSchemaFilename Filename of the CSV schema file
+     * @param failFast  true if you want to stop processing on the first error found,
+     *                  false if you want to fine all errors
+     * @param pathSubstitutions list of substitutions for file paths
+     * @param progress A callback to receive progress updates on the validation
+     *                 process
+     *
+     * @return empty list of (if there are no errors), or list of error strings.
+     */
+    public static List<FailMessage> validate(final String csvFilename, final String csvSchemaFilename, final boolean failFast, final List<Substitution> pathSubstitutions, final ProgressCallback progress) {
+        return CsvValidatorJavaBridge.validate(csvFilename, csvSchemaFilename, failFast, pathSubstitutions, progress);
+    }
+
+    /**
      * Validate CSV data against a CSV schema
      *
      * @param csvData CSV data
@@ -75,6 +92,23 @@ public class CsvValidator {
      */
     public static List<FailMessage> validate(final Reader csvData, final Reader csvSchema, final boolean failFast, final List<Substitution> pathSubstitutions) {
         return CsvValidatorJavaBridge.validate(csvData, csvSchema, failFast, pathSubstitutions);
+    }
+
+    /**
+     * Validate CSV data against a CSV schema
+     *
+     * @param csvData CSV data
+     * @param csvSchema CSV schema
+     * @param failFast  true if you want to stop processing on the first error found,
+     *                  false if you want to fine all errors
+     * @param pathSubstitutions list of substitutions for file paths
+     * @param progress A callback to receive progress updates on the validation
+     *                 process
+     *
+     * @return empty list of (if there are no errors), or list of error strings.
+     */
+    public static List<FailMessage> validate(final Reader csvData, final Reader csvSchema, final boolean failFast, final List<Substitution> pathSubstitutions, final ProgressCallback progress) {
+        return CsvValidatorJavaBridge.validate(csvData, csvSchema, failFast, pathSubstitutions, progress);
     }
 }
 

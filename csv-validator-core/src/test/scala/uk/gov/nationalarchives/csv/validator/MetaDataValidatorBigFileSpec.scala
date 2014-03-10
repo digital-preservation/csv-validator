@@ -25,14 +25,14 @@ class MetaDataValidatorBigFileSpec extends Specification with TestResources {
       val v = new CsvValidator with AllErrorsMetaDataValidator { val pathSubstitutions = List[SubstitutePath]() }
       def parse(filePath: String): Schema = v.parseSchema(Path.fromString(filePath)) fold (f => throw new IllegalArgumentException(f.toString()), s => s)
 
-      v.validate(Path.fromString(base) / "bigMetaData.csv", parse(base + "/bigSchema.csvs")) must beLike { case Success(_) => ok }
+      v.validate(Path.fromString(base) / "bigMetaData.csv", parse(base + "/bigSchema.csvs"), None) must beLike { case Success(_) => ok }
     }
 
     "succeed with no stack overflow for fail fast" in {
       val v = new CsvValidator with FailFastMetaDataValidator { val pathSubstitutions = List[SubstitutePath]() }
       def parse(filePath: String): Schema = v.parseSchema(Path.fromString(filePath)) fold (f => throw new IllegalArgumentException(f.toString()), s => s)
 
-      v.validate(Path.fromString(base) / "bigMetaData.csv", parse(base + "/bigSchema.csvs")) must beLike { case Success(_) => ok }
+      v.validate(Path.fromString(base) / "bigMetaData.csv", parse(base + "/bigSchema.csvs"), None) must beLike { case Success(_) => ok }
     }
   }
 }

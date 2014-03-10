@@ -14,13 +14,25 @@ import uk.gov.nationalarchives.csv.validator.metadata.Cell
 import uk.gov.nationalarchives.csv.validator.metadata.Row
 import uk.gov.nationalarchives.csv.validator.schema.Warning
 import uk.gov.nationalarchives.csv.validator.schema.TotalColumns
-import scala.Some
 import uk.gov.nationalarchives.csv.validator.schema.Optional
+import scala.annotation.tailrec
 
 trait AllErrorsMetaDataValidator extends MetaDataValidator {
 
-  def validateRows(rows: List[Row], schema: Schema): MetaDataValidation[Any] = {
-    val v = for (row <- rows) yield validateRow(row, schema)
+  def validateRows(rows: Iterator[Row], schema: Schema): MetaDataValidation[Any] = {
+
+    @tailrec
+    def validateRows(results: List[MetaDataValidation[Any]] = List.empty[MetaDataValidation[Any]]) : List[MetaDataValidation[Any]] = {
+      if(!rows.hasNext) {
+        results.reverse
+      } else {
+        val row = rows.next()
+        val result = validateRow(row, schema)
+        validateRows(result :: results)
+      }
+    }
+
+    val v = validateRows()
     v.sequence[MetaDataValidation, Any]
   }
 

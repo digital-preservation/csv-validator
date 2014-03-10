@@ -9,11 +9,10 @@
 package uk.gov.nationalarchives.csv.validator.api
 
 import uk.gov.nationalarchives.csv.validator.schema.{Schema, SchemaParser}
-import scalaz._
-import java.io.{Reader => JReader, FileReader => JFileReader}
-import resource._
+import scalaz._, Scalaz._
 import scalax.file.Path
-import uk.gov.nationalarchives.csv.validator.{AllErrorsMetaDataValidator, FailFastMetaDataValidator, FailMessage, MetaDataValidator}
+import uk.gov.nationalarchives.csv.validator._
+import java.io.{Reader => JReader}
 
 object CsvValidator {
 
@@ -33,10 +32,10 @@ object CsvValidator {
 trait CsvValidator extends SchemaParser {
   this: MetaDataValidator =>
 
-  def validate(metaDataFile: Path, schema: Schema): MetaDataValidation[Any] = {
+  def validate(metaDataFile: Path, schema: Schema, progress: Option[ProgressCallback]): MetaDataValidation[Any] = {
     withReader(metaDataFile) {
       reader =>
-        validate(reader, schema)
+        validateKnownRows(reader, schema, progress.map(p => ProgressFor(countRows(metaDataFile), p)))
     }
   }
 
@@ -48,16 +47,4 @@ trait CsvValidator extends SchemaParser {
   }
 
   def parseSchema(schema: JReader): ValidationNel[FailMessage, Schema] = parseAndValidate(schema)
-
-  private def withReader[B](file: Path)(fn: JFileReader => B): B = {
-    managed(new JFileReader(file.path)).map {
-      reader =>
-        fn(reader)
-    }.either match {
-      case Left(ioError) =>
-        throw ioError(0)
-      case Right(result) =>
-        result
-    }
-  }
 }

@@ -166,7 +166,8 @@ case class RegexRule(regex: String) extends Rule("regex") {
   }
 }
 
-case class FileExistsRule(pathSubstitutions: List[(String,String)], rootPath: ArgProvider = Literal(None) ) extends Rule("fileExists", rootPath) {
+//TODO note the use of `Seq(rootPath): _*` when extending Rule, this is to workaround this bug https://issues.scala-lang.org/browse/SI-7436. This pattern is repeated below!
+case class FileExistsRule(pathSubstitutions: List[(String,String)], rootPath: ArgProvider = Literal(None) ) extends Rule("fileExists", Seq(rootPath): _*) {
   def valid(filePath: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = {
     val ruleValue = rootPath.referenceValue(columnIndex, row, schema)
 
@@ -181,7 +182,7 @@ case class FileExistsRule(pathSubstitutions: List[(String,String)], rootPath: Ar
   override def toError = s"""$ruleName""" + (if (rootPath == Literal(None)) "" else s"""(${rootPath.toError})""")
 }
 
-case class InRule(inValue: ArgProvider) extends Rule("in", inValue) {
+case class InRule(inValue: ArgProvider) extends Rule("in", Seq(inValue): _*) {
   def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
     val ruleValue = inValue.referenceValue(columnIndex, row, schema)
 
@@ -190,7 +191,7 @@ case class InRule(inValue: ArgProvider) extends Rule("in", inValue) {
   }
 }
 
-case class IsRule(isValue: ArgProvider) extends Rule("is", isValue) {
+case class IsRule(isValue: ArgProvider) extends Rule("is", Seq(isValue): _*) {
   def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
     val ruleValue = isValue.referenceValue(columnIndex, row, schema)
 
@@ -199,7 +200,7 @@ case class IsRule(isValue: ArgProvider) extends Rule("is", isValue) {
   }
 }
 
-case class IsNotRule(isNotValue: ArgProvider) extends Rule("isNot", isNotValue) {
+case class IsNotRule(isNotValue: ArgProvider) extends Rule("isNot", Seq(isNotValue): _*) {
   def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
     val ruleValue = isNotValue.referenceValue(columnIndex, row, schema)
 
@@ -208,7 +209,7 @@ case class IsNotRule(isNotValue: ArgProvider) extends Rule("isNot", isNotValue) 
   }
 }
 
-case class StartsRule(startsValue: ArgProvider) extends Rule("starts", startsValue) {
+case class StartsRule(startsValue: ArgProvider) extends Rule("starts", Seq(startsValue): _*) {
   def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
     val ruleValue = startsValue.referenceValue(columnIndex, row, schema)
 
@@ -217,7 +218,7 @@ case class StartsRule(startsValue: ArgProvider) extends Rule("starts", startsVal
   }
 }
 
-case class EndsRule(endsValue: ArgProvider) extends Rule("ends", endsValue) {
+case class EndsRule(endsValue: ArgProvider) extends Rule("ends", Seq(endsValue): _*) {
   def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
     val ruleValue = endsValue.referenceValue(columnIndex, row, schema)
 
@@ -401,7 +402,7 @@ case class UniqueMultiRule( columns: List[String] ) extends Rule("unique(") {
   }
 }
 
-case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: String, pathSubstitutions: List[(String,String)]) extends Rule("checksum", rootPath, file) with FileWildcardSearch[String] {
+case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: String, pathSubstitutions: List[(String,String)]) extends Rule("checksum", Seq(rootPath, file): _*) with FileWildcardSearch[String] {
   def this(file: ArgProvider, algorithm: String, pathSubstitutions: List[(String,String)]) = this(Literal(None), file, algorithm, pathSubstitutions)
   def this(file: ArgProvider, algorithm: String) = this(Literal(None), file, algorithm, List[(String,String)]())
 
@@ -484,7 +485,7 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
   }
 }
 
-case class FileCountRule(rootPath: ArgProvider, file: ArgProvider, pathSubstitutions: List[SubstitutePath] = List.empty) extends Rule("fileCount", rootPath, file) with FileWildcardSearch[Int] {
+case class FileCountRule(rootPath: ArgProvider, file: ArgProvider, pathSubstitutions: List[SubstitutePath] = List.empty) extends Rule("fileCount", Seq(rootPath, file): _*) with FileWildcardSearch[Int] {
   def this(file: ArgProvider, pathSubstitutions: List[SubstitutePath] = List.empty) = this(Literal(None), file, pathSubstitutions)
   def this(rootPath: Literal, file: Literal) = this(rootPath, file,  List.empty)
 

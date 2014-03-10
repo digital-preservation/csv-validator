@@ -54,7 +54,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
            col1, col2
         """
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "fail for incorrect number of total columns for multiple lines" in {
@@ -72,7 +72,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
            col1, col2, col3
         """
 
-      validate(metaData, schema) must beLike {
+      validate(metaData, schema, None) must beLike {
         case Failure(messages) => messages.list mustEqual List(ErrorMessage("Expected @totalColumns of 3 and found 2 on line 2"), ErrorMessage("Missing value at line: 2, column: column3"))
       }
     }
@@ -90,7 +90,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
            abcd,uii
         """
 
-      validate(metaData, schema) must beLike {
+      validate(metaData, schema, None) must beLike {
         case Failure(messages) => messages.list mustEqual List (
           ErrorMessage("""regex("[a-c]*") fails for line: 1, column: second, value: "xxxy""""),
           ErrorMessage("""regex("[3-8]*") fails for line: 2, column: first, value: "abcd""""),
@@ -111,7 +111,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
            someMore,12
         """
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "fail for a single rule" in {
@@ -124,7 +124,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
       val metaData = "c11,c12"
 
-      validate(metaData, schema) should beLike {
+      validate(metaData, schema, None) should beLike {
         case Failure(messages) => messages.list mustEqual List(ErrorMessage("""regex("C11") fails for line: 1, column: Col1, value: "c11""""))
       }
     }
@@ -139,7 +139,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
       val metaData = "1"
 
-      validate(metaData, schema) should beLike {
+      validate(metaData, schema, None) should beLike {
         case Failure(messages) => messages.list mustEqual List(ErrorMessage("Expected @totalColumns of 2 and found 1 on line 1"), ErrorMessage("Missing value at line: 1, column: Col2"))
       }
     }
@@ -153,7 +153,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
       val metaData = """Scooby"""
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "fail when at least one regex fails for multiple regex provided in a column definition" in {
@@ -165,7 +165,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
       val metaData = """Scooby"""
 
-      validate(metaData, schema) must beLike {
+      validate(metaData, schema, None) must beLike {
         case Failure(messages) => messages.list mustEqual List(ErrorMessage("""regex("^T.+") fails for line: 1, column: c1, value: "Scooby""""), ErrorMessage("""regex("^X.+") fails for line: 1, column: c1, value: "Scooby""""))
       }
     }
@@ -183,7 +183,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
            someMore,dog
         """
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "succeed for InRule as column reference" in {
@@ -197,7 +197,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val metaData =
         """blah_mustBeIn_blah,mustBeIn
            blah_andMustBeIn,andMustBeIn"""
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "fail for InRule as column reference where case does not match" in {
@@ -212,7 +212,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
         """blah_MUSTBEIN_blah,mustBeIn
            blah_andMustBeIn,andMustBeIn"""
 
-      validate(metaData, schema) should beLike {
+      validate(metaData, schema, None) should beLike {
         case Failure(messages) => messages.list mustEqual List(ErrorMessage("""in($col1) fails for line: 1, column: col2WithRule, value: "mustBeIn""""))
       }
     }
@@ -229,7 +229,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
         """blah_MUSTBEIN_blah,mustBeIn
            blah_andMustBeIn,andMustBeIn"""
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "succeed when @optional is given for an empty cell" in {
@@ -243,7 +243,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
       val metaData = "1, , 3"
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "fail when @optional is given for non empty cell with a failing rule" in {
@@ -257,7 +257,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
       val metaData = "1,a,3"
 
-      validate(metaData, schema) should beLike {
+      validate(metaData, schema, None) should beLike {
         case Failure(messages) => messages.list mustEqual List(ErrorMessage("""regex("[0-9]") fails for line: 1, column: Col2, value: "a""""))
       }
     }
@@ -277,7 +277,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
            1,a,,4
         """
 
-      validate(metaData, schema) should beLike {
+      validate(metaData, schema, None) should beLike {
         case Failure(messages) => messages.list mustEqual List(
           ErrorMessage("""regex("[0-9]") fails for line: 1, column: Col3, value: """""),
           ErrorMessage("""regex("[0-9]") fails for line: 2, column: Col2, value: "a""""),
@@ -294,7 +294,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
       val metaData = """SCOOBY"""
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "ignore case with in rule succeeds if value contains regex characters" in {
@@ -306,7 +306,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
       val metaData ="""[Abc"""
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "fail to ignore case of a given regex when not providing @ignoreCase" in {
@@ -318,7 +318,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
       val metaData = "SCOOBY"
 
-      validate(metaData, schema) should beLike {
+      validate(metaData, schema, None) should beLike {
         case Failure(messages) => messages.list mustEqual List(ErrorMessage("""regex("[a-z]+") fails for line: 1, column: Col1, value: "SCOOBY""""))
       }
     }
@@ -332,7 +332,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
       val metaData = mustExistForRulePath
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "succeed with valid file path where fileExists rule prepends root path to the filename" in {
@@ -348,7 +348,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
       val metaData = relPath._2
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "fail for non existent file path" in {
@@ -360,7 +360,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
       val metaData = "some/non/existent/file"
 
-      validate(metaData, schema) must beLike {
+      validate(metaData, schema, None) must beLike {
         case Failure(messages) => messages.list mustEqual List(ErrorMessage("fileExists fails for line: 1, column: FirstColumn, value: \"some/non/existent/file\""))
       }
     }
@@ -378,7 +378,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
            someMore,dog
         """
 
-      validate(metaData, schema) must beLike {
+      validate(metaData, schema, None) must beLike {
         case Failure(messages) => messages.list mustEqual List(ErrorMessage("""in("dog") fails for line: 1, column: col2WithRule, value: "thisisrubbish""""))
       }
     }
@@ -396,7 +396,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
            someMore,thisisrubbish
         """
 
-      validate(metaData, schema) must beLike {
+      validate(metaData, schema, None) must beLike {
         case Failure(messages) => messages.list mustEqual List(ErrorMessage("""in("dog") fails for line: 1, column: col2WithRule, value: "thisisrubbish""""))
       }
     }
@@ -410,7 +410,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
       val metaData = ""
 
-      validate(metaData, schema) must beLike {
+      validate(metaData, schema, None) must beLike {
         case Failure(messages) => messages.list mustEqual List(ErrorMessage("metadata file is empty"))
       }
 
@@ -425,7 +425,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
       val metaData = "Name"
 
-      validate(metaData, schema) must beLike {
+      validate(metaData, schema, None) must beLike {
         case Failure(messages) => messages.list mustEqual List(ErrorMessage("metadata file has a header but no data"))
       }
     }
@@ -442,7 +442,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
            That
         """
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "fail when neither side of or rule passes" in {
@@ -454,7 +454,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
       val metaData = "SomethingElse"
 
-      validate(metaData, schema) must beLike {
+      validate(metaData, schema, None) must beLike {
         case Failure(messages) => messages.list mustEqual List(ErrorMessage("""in("This") or in("That") fails for line: 1, column: ThisOrThat, value: "SomethingElse""""))
       }
     }
@@ -471,7 +471,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
            red
         """
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "succeed for 'is' rule" in {
@@ -483,7 +483,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
       val metaData = "UK"
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "succeed for 'is' cross reference rule" in {
@@ -496,7 +496,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
       val metaData = "United Kingdom,United Kingdom"
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "succeed for 2 'is' rule" in {
@@ -508,7 +508,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
       val metaData = "UK"
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "fail for 'is' rule that is not matched" in {
@@ -520,7 +520,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
       val metaData = "UK"
 
-      validate(metaData, schema) must beLike {
+      validate(metaData, schema, None) must beLike {
         case Failure(messages) => messages.list mustEqual List(ErrorMessage("""is("France") fails for line: 1, column: Country, value: "UK""""))
       }
     }
@@ -535,7 +535,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
       val metaData = "United,United Kingdom"
 
-      validate(metaData, schema) must beLike {
+      validate(metaData, schema, None) must beLike {
         case Failure(messages) => messages.list mustEqual List(ErrorMessage("""is($MyCountry) fails for line: 1, column: Country, value: "United""""))
       }
     }
@@ -549,7 +549,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
       val metaData = "United Kingdom"
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "succeed for 'isNot' cross reference rule" in {
@@ -562,7 +562,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
       val metaData = "United Kingdom,United States"
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "succeed for 2 'isNot' rule" in {
@@ -574,7 +574,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
       val metaData = "United Kingdom"
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "fail for 'isNot' rule that is not matched" in {
@@ -586,7 +586,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
       val metaData = "United Kingdom"
 
-      validate(metaData, schema) must beLike {
+      validate(metaData, schema, None) must beLike {
         case Failure(messages) => messages.list mustEqual List(ErrorMessage("""isNot("United Kingdom") fails for line: 1, column: Country, value: "United Kingdom""""))
       }
     }
@@ -601,7 +601,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
       val metaData = "United Kingdom,United Kingdom"
 
-      validate(metaData, schema) must beLike {
+      validate(metaData, schema, None) must beLike {
         case Failure(messages) => messages.list mustEqual List(ErrorMessage("""isNot($MyCountry) fails for line: 1, column: Country, value: "United Kingdom""""))
       }
     }
@@ -615,7 +615,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
       val metaData = "United Kingdom"
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "succeed for 'starts' cross reference rule" in {
@@ -628,7 +628,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
       val metaData = "United Kingdom,United"
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "succeed for 2 'starts' rule" in {
@@ -640,7 +640,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
       val metaData = "United Kingdom"
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "fail for 'starts' rule that is not matched" in {
@@ -652,7 +652,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
       val metaData = "United Kingdom"
 
-      validate(metaData, schema) must beLike {
+      validate(metaData, schema, None) must beLike {
         case Failure(messages) => messages.list mustEqual List(ErrorMessage("""starts("united") fails for line: 1, column: Country, value: "United Kingdom""""))
       }
     }
@@ -667,7 +667,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
       val metaData = "United,United Kingdom"
 
-      validate(metaData, schema) must beLike {
+      validate(metaData, schema, None) must beLike {
         case Failure(messages) => messages.list mustEqual List(ErrorMessage("""starts($MyCountry) fails for line: 1, column: Country, value: "United""""))
       }
     }
@@ -681,7 +681,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
       val metaData = "United Kingdom"
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "succeed for 'ends' cross reference rule" in {
@@ -694,7 +694,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
       val metaData = "United Kingdom,Kingdom"
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "succeed for 2 'ends' rule" in {
@@ -706,7 +706,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
       val metaData = "United Kingdom"
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "fail for 'ends' rule that is not matched" in {
@@ -717,7 +717,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
       val metaData = "United Kingdom"
 
-      validate(metaData, schema) must beLike {
+      validate(metaData, schema, None) must beLike {
         case Failure(messages) => messages.list mustEqual List(ErrorMessage("""ends("kingdom") fails for line: 1, column: Country, value: "United Kingdom""""))
       }
     }
@@ -732,7 +732,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
       val metaData = "United Kingdom,States"
 
-      validate(metaData, schema) must beLike {
+      validate(metaData, schema, None) must beLike {
         case Failure(messages) => messages.list mustEqual List(ErrorMessage("""ends($MyCountry) fails for line: 1, column: Country, value: "United Kingdom""""))
       }
     }
@@ -751,7 +751,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
            Andy,50
         """
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "fail for multiple duplicates for unique rule" in {
@@ -770,7 +770,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
            Jim
         """
 
-      validate(metaData, schema) must beLike {
+      validate(metaData, schema, None) must beLike {
         case Failure(messages) => messages.list mustEqual List(ErrorMessage("unique fails for line: 4, column: Name, value: \"Jim\" (original at line: 2)"),ErrorMessage("unique fails for line: 5, column: Name, value: \"Jim\" (original at line: 2)"))
       }
     }
@@ -792,7 +792,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
            Andy,50,ED9
         """
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
 
@@ -810,7 +810,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
            http://datagov.nationalarchives.gov.uk/66/WO/409/5678/1333/12345678-abcd-4abc-8123-ffffffffffff
         """
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "succeed for valid xDateTime (if you can guess the dates without google see me for a prize)" in {
@@ -826,7 +826,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
            1966-07-30T00:00:00
         """
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "succeed for valid xDate (no prizes for the dates this time)" in {
@@ -842,7 +842,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
            1963-11-22
         """
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "succeed for valid UK Date" in {
@@ -858,7 +858,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
            12/12/2013
         """
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
 
@@ -877,7 +877,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
         """
 //  */  -- to keep intellij happy (Not a scala error)
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "succeed for valid Xsd Time" in {
@@ -888,7 +888,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val metaData =
         """09:11:10"""
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "succeed for valid uuid 4 rule" in {
@@ -902,7 +902,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
            aa11bb33-1234-4abc-a123-ffffffffffff
         """
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "succeed for valid positive integer" in {
@@ -916,7 +916,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
            123456789
         """
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
 
@@ -934,7 +934,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
            Jim,50
         """
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "fail when values outside range" in {
@@ -951,7 +951,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
            Jim,50
         """
 
-      validate(metaData, schema) must beLike {
+      validate(metaData, schema, None) must beLike {
         case Failure(messages) => messages.list mustEqual List(ErrorMessage("range(18,65) fails for line: 1, column: Age, value: \"10\""),ErrorMessage("range(18,65) fails for line: 3, column: Age, value: \"96\""))
       }
     }
@@ -969,7 +969,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
            Timmy
         """
 
-      validate(metaData, schema) must beLike {
+      validate(metaData, schema, None) must beLike {
         case Failure(messages) => messages.list mustEqual List(ErrorMessage("length(*,3) fails for line: 3, column: Name, value: \"Benny\""),ErrorMessage("length(*,3) fails for line: 5, column: Name, value: \"Timmy\""))
       }
     }
@@ -983,7 +983,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
         """Hello
         """
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
 
@@ -998,7 +998,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
            World
         """
 
-      validate(metaData, schema) must beLike {
+      validate(metaData, schema, None) must beLike {
         case Failure(messages) => messages.list mustEqual List(ErrorMessage("""(length(5) and length(*,*)) and is("Hello") fails for line: 2, column: Name, value: "World""""))
       }
     }
@@ -1013,7 +1013,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
       val metaData = s"$checksumPath,232762380299115da6995e4c4ac22fa2"
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "succeed when fileCount matches given root & cross referenced file" in {
@@ -1026,7 +1026,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
       val metaData = """checksum.csvs,1"""
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "succeed column id with A-Z a-z 0-9 - _ ." in {
@@ -1036,7 +1036,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
            Na123-me._:
         """
       val metaData ="Joe Bloggs"
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "succeed for simple if where condition is not true" in {
@@ -1046,7 +1046,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
            col1: if(starts("Jim"), ends("ogsf") )
         """
       val metaData ="Joe Bloggs"
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "succeed for simple if with combinator" in {
@@ -1056,7 +1056,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
            col1: if(starts("Tom") or starts("Joe"), ends("Bloggs") )
         """
       val metaData ="Joe Bloggs"
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "succeed for simple if where condition is true" in {
@@ -1066,7 +1066,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
            col1: if(starts("Joe"), ends("oggs") )
         """
       val metaData ="Joe Bloggs"
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "fail for simple if where condition is true and expr is false" in {
@@ -1076,7 +1076,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
            col1: if(starts("Joe"), ends("Joe") )
         """
       val metaData ="Joe Bloggs"
-      validate(metaData, schema) must beLike {
+      validate(metaData, schema, None) must beLike {
         case Failure(messages) => messages.list mustEqual List(ErrorMessage("""ends("Joe") fails for line: 1, column: col1, value: "Joe Bloggs""""))
       }
     }
@@ -1088,7 +1088,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
            col1: if(starts("Jim"), ends("Joe") , ends("oggs")  )
         """
       val metaData ="Joe Bloggs"
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "fail for simple if where condition is false and else expr is false" in {
@@ -1098,7 +1098,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
            col1: if(starts("ogs"), ends("oggs") , ends("Joe"))
         """
       val metaData ="Joe Bloggs"
-      validate(metaData, schema) must beLike {
+      validate(metaData, schema, None) must beLike {
         case Failure(messages) => messages.list mustEqual List(ErrorMessage("""ends("Joe") fails for line: 1, column: col1, value: "Joe Bloggs""""))
       }
     }
@@ -1110,7 +1110,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
            col1: if(starts("Joe"), ends("oggs") , ends("Joe"))
         """
       val metaData ="Joe Bloggs"
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "succeed for nested if where condition is true" in {
@@ -1120,7 +1120,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
            col1: if(starts("Joe"), if( starts("Bloggs"), length(4), length(1, 20) ) )
         """
       val metaData ="Joe Bloggs"
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "fail for nested if where condition is true" in {
@@ -1130,7 +1130,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
            col1: if(starts("Joe"), if( starts("Joe"), length(4), length(1, 20) ) )
         """
       val metaData ="Joe Bloggs"
-      validate(metaData, schema) must beLike {
+      validate(metaData, schema, None) must beLike {
         case Failure(messages) => messages.list mustEqual List(ErrorMessage("""length(4) fails for line: 1, column: col1, value: "Joe Bloggs""""))
       }
     }
@@ -1142,7 +1142,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
            col1: if(starts("Bloggs"), if( starts("Joe"), length(4), length(1, 20) ) , if( starts("Joe"), length(4, 20), length(4) ) )
         """
       val metaData ="Joe Bloggs"
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
 
@@ -1153,7 +1153,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
            col1: starts("Dath") and ends("Vader")
         """
       val metaData ="Dath Vader"
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "succeed with parentheses creating a match, same as below with () difference" in {
@@ -1163,7 +1163,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
            col1: is("True") or (is("True") and is("False"))
         """
       val metaData ="True"
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
     "fail with parentheses creating a failed match, same example as above, only () difference" in {
@@ -1173,7 +1173,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
            col1: (is("True") or is("True")) and is("False")
         """
       val metaData ="True"
-      validate(metaData, schema) must beLike {
+      validate(metaData, schema, None) must beLike {
         case Failure(messages) => messages.list mustEqual List(ErrorMessage("""(is("True") or is("True")) and is("False") fails for line: 1, column: col1, value: "True""""))
       }
     }
@@ -1192,7 +1192,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
            Yoda,900
         """
 
-      validate(metaData, schema) must beLike { case Success(_) => ok }
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
   }
