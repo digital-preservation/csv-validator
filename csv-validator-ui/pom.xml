@@ -110,10 +110,15 @@
             <version>1.6.5-1</version>
         </dependency>
 
-        <!-- TODO should depend on csv-validator-core and NOT csv-validator-cmd -->
+        <!-- TODO should depend on just csv-validator-core and NOT csv-validator-cmd -->
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>csv-validator-cmd</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>csv-validator-core</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
