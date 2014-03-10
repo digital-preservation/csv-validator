@@ -13,7 +13,7 @@
     <artifactId>csv-validator-ui</artifactId>
     <packaging>jar</packaging>
 
-    <name>csv-validator-java-api</name>
+    <name>csv-validator-ui</name>
     <description>Simple GUI Tool for CSV Validation</description>
 
     <build>
