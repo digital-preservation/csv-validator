@@ -39,8 +39,16 @@
                 <executions>
                     <execution>
                         <goals>
+                            <goal>add-source</goal>
                             <goal>testCompile</goal>
                             <goal>compile</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>scala-doc-jar</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>doc-jar</goal>
                         </goals>
                     </execution>
                 </executions>
