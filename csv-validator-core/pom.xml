@@ -64,9 +64,6 @@
                         </goals>
                         <configuration>
                             <failOnWarning>true</failOnWarning>
-                            <usedDependencies>
-                                <usedDependency>org.joda:joda-convert</usedDependency>
-                            </usedDependencies>
                         </configuration>
                     </execution>
                 </executions>
@@ -111,12 +108,7 @@
         <dependency>
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
-            <version>2.3</version>
-        </dependency>
-        <dependency>
-            <groupId>org.joda</groupId>
-            <artifactId>joda-convert</artifactId>
-            <version>1.5</version>
+            <version>1.6</version>
         </dependency>
         <dependency>
             <groupId>net.sf.opencsv</groupId>

@@ -10,7 +10,7 @@ package uk.gov.nationalarchives.csv.validator.schema
 
 import scalax.file.{PathSet, Path}
 import scalaz._, Scalaz._
-import java.io.{BufferedInputStream, FileInputStream, File}
+import java.io.{BufferedInputStream, FileInputStream}
 import scala.util.parsing.input.Positional
 import scala.collection.mutable
 import java.security.MessageDigest
@@ -18,12 +18,10 @@ import uk.gov.nationalarchives.csv.validator.metadata.Row
 import util.Try
 import annotation.tailrec
 import java.net.{URISyntaxException, URI}
-import org.joda.time.{Interval, LocalTime, DateTime}
-import org.joda.time.format.{DateTimeFormatter, DateTimeFormatterBuilder, ISODateTimeFormat, DateTimeFormat}
+import org.joda.time.{Interval, DateTime}
+import org.joda.time.format.{DateTimeFormatterBuilder, ISODateTimeFormat, DateTimeFormat}
 import scalaz.{Success => SuccessZ, Failure => FailureZ}
-import java.util.regex.{Pattern, Matcher}
 import scala.Some
-import uk.gov.nationalarchives.csv.validator.{UNIX_FILE_SEPARATOR, WINDOWS_FILE_SEPARATOR, FILE_SEPARATOR, URI_PATH_SEPARATOR}
 import uk.gov.nationalarchives.csv.validator.api.CsvValidator.SubstitutePath
 import uk.gov.nationalarchives.csv.validator.Util.{TypedPath, FileSystem}
 
@@ -256,7 +254,8 @@ trait DateParser {
 }
 
 object IsoDateTimeParser extends DateParser {
-  def parse(dateStr: String): Try[DateTime] = Try(DateTime.parse(dateStr))
+  val isoDateTimeFormatter = ISODateTimeFormat.dateTimeParser().withOffsetParsed()
+  def parse(dateStr: String): Try[DateTime] = Try(isoDateTimeFormatter.parseDateTime(dateStr))
 }
 
 object XsdDateParser extends DateParser {
@@ -267,11 +266,12 @@ object XsdDateParser extends DateParser {
         .appendTimeZoneOffset("Z", true, 2, 4).toParser
     ).toFormatter
 
-  def parse(dateStr: String): Try[DateTime] = Try(DateTime.parse(dateStr, xsdDateFormatter))
+  def parse(dateStr: String): Try[DateTime] = Try(xsdDateFormatter.parseDateTime(dateStr))
 }
 
 object IsoTimeParser extends DateParser {
-  def parse(dateStr: String): Try[DateTime] = Try(DateTime.parse(dateStr, ISODateTimeFormat.timeParser))
+  val isoTimeFormatter = ISODateTimeFormat.timeParser
+  def parse(dateStr: String): Try[DateTime] = Try(isoTimeFormatter.parseDateTime(dateStr))
 }
 
 object UkDateParser extends DateParser {
