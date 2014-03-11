@@ -46,7 +46,7 @@
                     </execution>
                     <execution>
                         <id>scala-doc-jar</id>
-                        <phase>verify</phase>
+                        <phase>package</phase>
                         <goals>
                             <goal>doc-jar</goal>
                         </goals>
