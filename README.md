@@ -7,7 +7,7 @@ A Schema Language and Validation Tool for CSV (Comma Separated Value) files.
 
 Released under the [Mozilla Public Licence version 2.0](http://www.mozilla.org/MPL/2.0/).
 
-A start on the documentation is below, but more will follow soon...
+A brief introduction follows before, but a [more comprehensive user guide is available in GitHub pages] (https://digital-preservation.github.io/csv-validator/), along with a more [complete sepcification the CSV Schema language] (https://digital-preservation.github.io/csv-validator/csv-schema-1.0.html).
 
 Approach
 --------
