@@ -73,14 +73,14 @@
         <div>
             <h2>Overview</h2>
             <p>Firstly, we defined a Grammar which describes a language for expressing rules to validate a CSV file. We call such an expression of this language a <code>CSV Schema</code>. The grammar itself is more formally described in <code>EBNF</code> and is available in the file <a href="https://raw.github.com/adamretter/csv-validator/master/csv-schema-grammar.ebnf">csv-schema-grammar.ebnf</a>.</p>
-            <p>Secondly, we implemented a Validator that will take a CSV Schema and a CSV file, validate that the CSV Schema is valid and then assert that each rule in the CSV Schema holds true for the CSV file. The Validator is predominantly written in Scala 2.10 and run's on any platform with a Java Virtual Machine (JVM). The Validator toolset provides:
+            <p>Secondly, we implemented a Validator that will take a CSV Schema and a CSV file, verify that the CSV Schema itself is syntactically correct and then assert that each rule in the CSV Schema holds true for the CSV file. The Validator is predominantly written in Scala 2.10 and run's on any platform with a Java Virtual Machine (JVM). The Validator toolset provides:
             <ol>
                 <li>A stand-alone command line tool.</li>
                 <li>A desktop application (we provide a simple Swing GUI).</li>
                 <li>A library that can be embedded into your own Scala project.</li>
                 <li>A library that can be embedded into your own Java project, as we also provide native Java 6 interfaces.</li>
             </ol>
-            <p>The Schema and Validator can really be considered seperately, if you are not authoring CSV Schema you need only understand how to run the Validator!</p>
+            <p>The Schema and Validator can really be considered separately, if you are not authoring CSV Schema you need only understand how to run the Validator!</p>
             <div>
                 <h3>Background</h3>
                 <p>The National Archives receive Metadata along with Collections of Digitised or Born-Digital Collections. Whilst The National Archives typically process Metadata in XML and RDF, it was recognised that it was too difficult and/or expensive for many suppliers to produce the desired metadata in XML and/or RDF, as such it was decided that Metadata would be received in CSV format.</p>
@@ -110,6 +110,17 @@
 				It is suggested that the extension .csvs be used for CSV Schema Language Files.
 				</p>
             </div>
+			<div>
+				<h2>Installing the CSV Validator</h2>
+				<p>
+				The latest release build is automatically published from <a href="https://github.com/digital-preservation/csv-validator">the source code repository on GitHub</a>, 
+				to Maven Central <a href="http://search.maven.org/#search%7Cga%7C1%7Ccsv-validator">currently (11 March 2014), Version 1.0, Release Candidate 2 (1.0-RC2)</a>.
+				</p>
+				<img src="images/Maven-Central.png" alt="Screenshot showing packages in maven Central" id="MavenCentral">
+				<p>
+				To install, download the appropriate application.zip file for either csv-validator-ui (for the GUI Application) or csv-validator-cmd (for the Command Line Application).
+				</p>
+			</div>
             <div>
                 <h2>CSV Validator GUI Application</h2>
 				<div>
@@ -118,7 +129,7 @@
 					In order to run the CSV Validator via the GUI, navigate to the directory where you installed csv-validator, and then to the bin subdirectory and run either:
 					<ol>
 						<li>validate-gui.bat on Windows operating systems, or;</li>
-						<li>validate-gui shell script on Unix/Linux/Apple.</li>
+						<li>validate-gui shell script on Unix/Linux.</li>
 					</ol>
 					You should then see the following:
 					</p>
@@ -164,7 +175,7 @@
 						If there are no validation errors the whole CSV file will be validated and return <code>PASS</code>.
 						You should be aware that the CSV Schema can declare that some validation tests will produce only validation warnings, rather than validation errors. 
 						A validation warning will not stop validation, even with "Fail on first error" set.
-						This setting is equivalent to using the --failfast flag when <a href="#toc7">running via the Command Line</a>.
+						This setting is equivalent to using the -f or --failfast flags when <a href="#toc7">running via the Command Line</a>.
 						</p>
 					</div>
 					<div>
@@ -265,7 +276,26 @@ batch_code,department,series,piece,item,ordinal,file_uuid,file_path,file_checksu
             </div>
             <div>
                 <h2>CSV Validator Command Line Tool</h2>
-                <p>TODO useage instructions and screenshots</p>
+                <p>
+				<pre>
+				Usage: validate [options] &lt;csv-path&gt; &lt;csv-schema-path&gt;
+				
+				options:
+				-f &lt;value&gt; | --fail-fast &lt;value&gt;
+					Stops on the first validation error rather than reporting all errors
+				-p:&lt;key&gt;=&lt;value&gt; | --path:&lt;key&gt;=&lt;value&gt;
+					Allows you to substitute a file path (or part of) in the CSV for a different file path
+					
+				&lt;csv-path&gt;
+					The path to the CSV file to validate
+					
+				&lt;csv-schema-path&gt;
+					The path to the CSV Schema file to use for validation
+					
+				--help
+					Prints this usage text
+				</pre>
+				</p>
             </div>
             <div>
                 <h2>For Software Developers</h2>
