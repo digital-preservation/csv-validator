@@ -106,7 +106,7 @@
             <div>
                 <h2>CSV Schema Language</h2>
                 <p>
-				The CSV Schema Language is defined in the <a href="./csv-validator/csv-schema-1.0.html">CSV Schema Language 1.0 specification</a>. 
+				The CSV Schema Language is defined in the <a href="./csv-schema-1.0.html">CSV Schema Language 1.0 specification</a>. 
 				It is suggested that the extension .csvs be used for CSV Schema Language Files.
 				</p>
             </div>
@@ -147,7 +147,7 @@
 					While in the most straightforward cases, you can validate a CSV file immediately after supplying the filepaths, in many instances you will need to supply Settings options. 
 					To open up Settings, click on the downward facing double arrow below the file dialogue buttons (highlighted below):
 					</p>
-					<img src="images/highlight-settings-arrow.png" alt="Part of GUI, showing completed CSV file text box" id="GUI-detail4">
+					<img src="images/highlight-settings-arrow.png" alt="Part of GUI, highlighting Settings box" id="GUI-detail4">
 					<p>
 					Having opened up Settings, you will see that there are two main groups:
 						<ol>
@@ -155,12 +155,12 @@
 							<li>Path Substitutions</li>
 						</ol>
 					</p>
-					<img src="images/settings-opened.png" alt="Part of GUI, showing completed CSV file text box" id="GUI-detail5">
+					<img src="images/settings-opened.png" alt="Part of GUI, showing opened Settings section" id="GUI-detail5">
 					<div>
 						<h4>Fail on first error</h4>
 						<p>
 						With this setting selected, validation will terminate when the first 
-						<a href="./csv-schema-1.0.html#validation-errors">validation error</a> is encountered in the CSV file.  
+						<a href="./csv-schema-1.0.html#validation-errors">Validation Error</a> is encountered in the CSV file.  
 						If there are no validation errors the whole CSV file will be validated and return <code>PASS</code>.
 						You should be aware that the CSV Schema can declare that some validation tests will produce only validation warnings, rather than validation errors. 
 						A validation warning will not stop validation, even with "Fail on first error" set.
@@ -246,8 +246,20 @@
 batch_code,department,series,piece,item,ordinal,file_uuid,file_path,file_checksum,resource_uri,scan_operator,scan_id,scan_location,scan_native_format,scan_timestamp,image_resolution,image_width,image_height,image_tonal_resolution,image_format,image_colour_space,process_location,jp2_creation_timestamp,uuid_timestamp,embed_timestamp,image_split,image_split_other_uuid,image_split_operator,image_split_timestamp,image_crop,image_crop_operator,image_crop_timestamp,image_deskew,image_deskew_operator,image_deskew_timestamp,QA-code,comments,transcribed_volume_number,transcribed_birth_date_day,transcribed_birth_date_month,transcribed_birth_date_year,transcribed_official_number
 <br />
 ^" id="versionDeclErr">
+					</div>
+					<div>
+						<h4>Validation Errors</h4>
 						<p>
+						When <a href="./csv-schema-1.0.html#validation-errors">Validation Errors</a> occur they will be reported in the output pane on the completion of validation. 
+						The report will be prefixed "Error:  " and will then show the Validation Rule where the error has occurred, the line and data column from the CSV file where the 
+						error has occurred, the actual data present in the file, and for rules such as checksum validation, what the computed value the data was.
+						The line number refers to data lines only, so if the CSV file contains a header row, you may need to subtract 1 from the row number when examining the data in 
+						your text editor/spreadsheet application to match up the row numbers with the data.
 						</p>
+						<img src="images/validation-error-checksum-mismatches.png" alt="Error:   checksum(file($file_path), "SHA-256") file "file:///ADM_362/3/1/1_0001.jp2" checksum match fails for line: 3, column: file_checksum, value: "51a9b200723be95a76b99740561d6fac0e035033609a4da1c8ce38403429576e". Computed checksum value:"e3c88425f1a3bd72e888fa2ea1e76b810edfb2812a163269c0126b6cddab32e5"
+" id="checksumErr1">
+						<img src="images/validation-error-checksum-mismatches2.png" alt="Error:   checksum(file($file_path), "SHA-256") file "file:///ADM_362/3/1/1_0001.jp2" checksum match fails for line: 3, column: file_checksum, value: "51a9b200723be95a76b99740561d6fac0e035033609a4da1c8ce38403429576e". Computed checksum value:"e3c88425f1a3bd72e888fa2ea1e76b810edfb2812a163269c0126b6cddab32e5"
+" id="checksumErr2">
 					</div>	
 				</div>
             </div>
