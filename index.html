@@ -233,9 +233,11 @@
 					<h3>Validating a CSV file and understanding program output</h3>
 					<p>
 					Having selected a CSV file and schema, and chosen which settings (if any) to apply, validation is performed by clicking the large "Validate" button. 
-					Output is only written to the report pane (below the "Validate" button) when all rows have been validated.  If checksum verifcation is being performed, 
-					this can take a considerable amount of time, as each file described in the CSV file has to be read in full in order to calculate the checksum. 
-					The mouse pointer will change to the egg-timer (or equivalent) while validation is taking place.
+					As of Version 1.0-RC2, there is a progress bar (but due to a threading issue) that and output to the report pane (below the "Validate" button) is currently only 
+					updated when all rows have been validated (<a href="https://github.com/digital-preservation/csv-validator/issues/34">Issue #34 has been raised to address this). 
+					If checksum verifcation is being performed, the validation can take a considerable amount of time, as each file described in the CSV file has to be read in full 
+					in order to calculate the checksum. The mouse pointer will change to the egg-timer (or equivalent) while validation is taking place.
+					You should also note that information already in the output pane is currently not cleared when a new validation run is started (it is only overwritten on completion).
 					</p>
 					<p>
 					If the data is completely clean, and validates perfectly against the schema, the only output returned to the output pane will be <code>PASS</code>.
@@ -266,8 +268,9 @@ batch_code,department,series,piece,item,ordinal,file_uuid,file_path,file_checksu
 						<h4>Validation Errors</h4>
 						<p>
 						When <a href="./csv-schema-1.0.html#validation-errors">Validation Errors</a> occur they will be reported in the output pane on the completion of validation. 
-						The report will be prefixed "Error:  " and will then show the Validation Rule where the error has occurred, the line and data column from the CSV file where the 
-						error has occurred, the actual data present in the file, and for rules such as checksum validation, what the computed value the data was.
+						The report will be prefixed <code>Error:  </code> and will then show the Validation Rule where the error has occurred, 
+						the line and data column from the CSV file where the error has occurred, the actual data present in the file, and for rules such as checksum validation, 
+						what the computed value of the data was.
 						The line number refers to data lines only, so if the CSV file contains a header row, you may see an apparent discrepancy in the line numbers displayed when you view 
 						the data in a text editor or spreadsheet program, compared to the line number indicated by the csv-validator.
 						</p>
