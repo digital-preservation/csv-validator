@@ -191,7 +191,7 @@
 						reference to other file system resources outside the CSV file being validated. However, it is likely that after transfer the drive letter or mount point (at least) 
 						will have changed from the original.  Path Substitutions allow us to overcome this at validation time by effectively performing a simple find-and-replace within the 
 						file during validation which maps the supplied filepath to the equivalent on the system where validation is actually taking place. 
-						It is also important to note that the CSV Validator expects filepaths to be supplied as file URIs.
+						It is also important to note that the CSV Validator expects filepaths to be supplied as file URIs (so on Windows systems, you may need to reverse the slashes).
 						</p>
 						<div>
 							<h5>Creating Path Substitutions</h5>
@@ -213,6 +213,9 @@
 							the "From:" and "To:" boxes respectively, and click OK.  This gives:
 							</p>
 							<img src="images/settings-with-entered-substituion.png" alt="Popup window for entering substitution 'find-and-replace'" id="GUI-detail8">
+							<p>
+							Creating a Path Substitution in this way is equivalent to running via the Command Line with the -p or --path flags and supplying a key:value pair.
+							</p>
 						</div>
 						<div>
 							<h5>Editing Path Substitutions</h5>
@@ -248,10 +251,10 @@
 						</p>
 						<img src="images/bad-totalColumns-dir.png" alt="@totalColumns = 41 but number of columns defined = 42 at line: 2, column: 1" id="totalColumnsErr">
 						<p>
-						Or, if the Version Declaration has been omitted from the schema; or you accidentally switch over the input filepaths in the validator, 
-						and put the filepath for the CSV data file into the field for the schema and vice versa, 
+						Or, if the Version Declaration has been omitted from the schema, or is incorrect,
 						you will see a schema error saying that the <a href="./csv-schema-1.0.html#version-declaration">Version Declaration</a> is not present
-						(eg <code>[1.1] failure: version 1.0 missing or incorrect</code>):
+						(eg <code>[1.1] failure: version 1.0 missing or incorrect</code>).  You will also see this if youaccidentally switch over the input filepaths in the validator, 
+						and put the filepath for the CSV data file into the field for the schema and vice versa:
 						</p>
 						<img src="images/version-declaration-error.png" alt="[1.1] failure: version 1.0 missing or incorrect
 <br />
@@ -265,8 +268,8 @@ batch_code,department,series,piece,item,ordinal,file_uuid,file_path,file_checksu
 						When <a href="./csv-schema-1.0.html#validation-errors">Validation Errors</a> occur they will be reported in the output pane on the completion of validation. 
 						The report will be prefixed "Error:  " and will then show the Validation Rule where the error has occurred, the line and data column from the CSV file where the 
 						error has occurred, the actual data present in the file, and for rules such as checksum validation, what the computed value the data was.
-						The line number refers to data lines only, so if the CSV file contains a header row, you may need to subtract 1 from the row number when examining the data in 
-						your text editor/spreadsheet application to match up the row numbers with the data.
+						The line number refers to data lines only, so if the CSV file contains a header row, you may see an apparent discrepancy in the line numbers displayed when you view 
+						the data in a text editor or spreadsheet program, compared to the line number indicated by the csv-validator.
 						</p>
 						<img src="images/validation-error-checksum-mismatches.png" alt="Error:   checksum(file($file_path), "SHA-256") file "file:///ADM_362/3/1/1_0001.jp2" checksum match fails for line: 3, column: file_checksum, value: "51a9b200723be95a76b99740561d6fac0e035033609a4da1c8ce38403429576e". Computed checksum value:"e3c88425f1a3bd72e888fa2ea1e76b810edfb2812a163269c0126b6cddab32e5"
 " id="checksumErr1">
