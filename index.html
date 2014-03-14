@@ -107,12 +107,13 @@
                 <h2>CSV Schema Language</h2>
                 <p>
 				The CSV Schema Language is defined in the <a href="./csv-schema-1.0.html">CSV Schema Language 1.0 specification</a>. 
-				It is suggested that the extension .csvs be used for CSV Schema Language Files.
+				It is suggested that the extension .csvs be used for CSV Schema Language files.
 				</p>
             </div>
 			<div>
 				<h2>Installing the CSV Validator</h2>
 				<p>
+				The core of the CSV Validator is written in Scala 2.10, Scala runs in the Java Virtual Machine, so requires Java 6 to be installed on your computer in order to run. 
 				The latest release build is automatically published from <a href="https://github.com/digital-preservation/csv-validator">the source code repository on GitHub</a>, 
 				to Maven Central <a href="http://search.maven.org/#search%7Cga%7C1%7Ccsv-validator">currently (11 March 2014), Version 1.0, Release Candidate 2 (1.0-RC2)</a>.
 				</p>
@@ -226,7 +227,7 @@
 							</p>
 							<img src="images/edit-file-substitution.png" alt="Editing substitution" id="GUI-detail9">
 							<p>
-							Hit &lt;Enter&gt; or click on the other side of the substitution to complete the edit.
+							Hit &lt;Enter&gt; or &lt;Tab&gt;, or click on the other side of the substitution, to complete the edit.
 							</p>
 						</div>
 					</div>
@@ -280,6 +281,10 @@ batch_code,department,series,piece,item,ordinal,file_uuid,file_path,file_checksu
 " id="checksumErr1">
 						<img src="images/validation-error-checksum-mismatches2.png" alt="Error:   checksum(file($file_path), "SHA-256") file "file:///ADM_362/3/1/1_0001.jp2" checksum match fails for line: 3, column: file_checksum, value: "51a9b200723be95a76b99740561d6fac0e035033609a4da1c8ce38403429576e". Computed checksum value:"e3c88425f1a3bd72e888fa2ea1e76b810edfb2812a163269c0126b6cddab32e5"
 " id="checksumErr2">
+						<p>
+						The next image shows a more varied selection of Validation Errors, and demonstrates that the basic format of the error messages is consistent:
+						</p>
+						<img src="images/validation-errors-various.png" alt="Various validation errors, beginning, 'Error:   ' are demonstrated" id="varValErrs">
 					</div>	
 				</div>
             </div>
