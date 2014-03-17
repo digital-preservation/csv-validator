@@ -22,6 +22,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
   implicit def stringToSchema(s: String): Schema = {
     val schemaParser = new SchemaParser() {
       val pathSubstitutions = List[(String,String)]()
+      val enforceCaseSensitivePathChecks = false
       override def parse(reader: Reader): ParseResult[Schema] = {
         super.parse(reader) match {
           case s @ Success(schema: Schema, _) => s

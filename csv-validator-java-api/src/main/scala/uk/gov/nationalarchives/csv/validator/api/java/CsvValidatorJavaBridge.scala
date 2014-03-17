@@ -21,17 +21,17 @@ import java.io.{Reader => JReader}
  */
 object CsvValidatorJavaBridge {
 
-  def validate(csvDataFile: String, csvSchemaFile: String, failFast: Boolean, pathSubstitutionsList: JList[Substitution]): JList[FailMessage] =
-    validate(csvDataFile, csvSchemaFile, failFast, pathSubstitutionsList, None)
+  def validate(csvDataFile: String, csvSchemaFile: String, failFast: Boolean, pathSubstitutionsList: JList[Substitution], enforceCaseSensitivePathChecks: Boolean): JList[FailMessage] =
+    validate(csvDataFile, csvSchemaFile, failFast, pathSubstitutionsList, enforceCaseSensitivePathChecks, None)
 
-  def validate(csvDataFile: String, csvSchemaFile: String, failFast: Boolean, pathSubstitutionsList: JList[Substitution], progress: ProgressCallback): JList[FailMessage] = {
+  def validate(csvDataFile: String, csvSchemaFile: String, failFast: Boolean, pathSubstitutionsList: JList[Substitution], enforceCaseSensitivePathChecks: Boolean, progress: ProgressCallback): JList[FailMessage] = {
     val sProgressCallback = new SProgressCallback {
       override def update(complete: this.type#Percentage) = progress.update(complete)
     }
-    validate(csvDataFile, csvSchemaFile, failFast, pathSubstitutionsList, Some(sProgressCallback))
+    validate(csvDataFile, csvSchemaFile, failFast, pathSubstitutionsList, enforceCaseSensitivePathChecks, Some(sProgressCallback))
   }
 
-  private def validate(csvDataFile: String, csvSchemaFile: String, failFast: Boolean, pathSubstitutionsList: JList[Substitution], progress: Option[SProgressCallback]): JList[FailMessage] = {
+  private def validate(csvDataFile: String, csvSchemaFile: String, failFast: Boolean, pathSubstitutionsList: JList[Substitution], enforceCaseSensitivePathChecks: Boolean, progress: Option[SProgressCallback]): JList[FailMessage] = {
 
     import scala.collection.JavaConverters._
 
@@ -45,7 +45,7 @@ object CsvValidatorJavaBridge {
         errors.list.map{ asJavaMessage(_) }.asJava
 
       case SuccessZ(_) =>
-        val validator = createValidator(failFast, pathSubs)
+        val validator = createValidator(failFast, pathSubs, enforceCaseSensitivePathChecks)
         validator.parseSchema(pSchemaFile) match {
 
           case FailureZ(errors) =>
@@ -60,23 +60,23 @@ object CsvValidatorJavaBridge {
     }
   }
 
-  def validate(csvData: JReader, csvSchema: JReader, failFast: Boolean, pathSubstitutionsList: JList[Substitution]): JList[FailMessage] =
-    validate(csvData, csvSchema, failFast, pathSubstitutionsList, None)
+  def validate(csvData: JReader, csvSchema: JReader, failFast: Boolean, pathSubstitutionsList: JList[Substitution], enforceCaseSensitivePathChecks: Boolean): JList[FailMessage] =
+    validate(csvData, csvSchema, failFast, pathSubstitutionsList, enforceCaseSensitivePathChecks, None)
 
-  def validate(csvData: JReader, csvSchema: JReader, failFast: Boolean, pathSubstitutionsList: JList[Substitution], progress: ProgressCallback): JList[FailMessage] = {
+  def validate(csvData: JReader, csvSchema: JReader, failFast: Boolean, pathSubstitutionsList: JList[Substitution], enforceCaseSensitivePathChecks: Boolean, progress: ProgressCallback): JList[FailMessage] = {
     val sProgressCallback = new SProgressCallback {
       override def update(complete: this.type#Percentage) = progress.update(complete)
     }
-    validate(csvData, csvSchema, failFast, pathSubstitutionsList, Some(sProgressCallback))
+    validate(csvData, csvSchema, failFast, pathSubstitutionsList, enforceCaseSensitivePathChecks, Some(sProgressCallback))
   }
 
-  private def validate(csvData: JReader, csvSchema: JReader, failFast: Boolean, pathSubstitutionsList: JList[Substitution], progress: Option[SProgressCallback]): JList[FailMessage] = {
+  private def validate(csvData: JReader, csvSchema: JReader, failFast: Boolean, pathSubstitutionsList: JList[Substitution],  enforceCaseSensitivePathChecks: Boolean, progress: Option[SProgressCallback]): JList[FailMessage] = {
 
     import scala.collection.JavaConverters._
 
     val pathSubs: List[(String,String)] = pathSubstitutionsList.asScala.map( x => (x.getFrom, x.getTo)).toList
 
-    val validator = createValidator(failFast, pathSubs)
+    val validator = createValidator(failFast, pathSubs, enforceCaseSensitivePathChecks)
     validator.parseSchema(csvSchema) match {
 
       case FailureZ(errors) =>

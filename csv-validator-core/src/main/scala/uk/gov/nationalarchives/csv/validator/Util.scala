@@ -14,8 +14,9 @@ import Scalaz._
 import java.util.regex.{Matcher, Pattern}
 import java.net.URI
 import scala.util.Try
-import java.io.File
+import java.io.{FilenameFilter, File}
 import java.net.URLDecoder
+import scala.annotation.tailrec
 
 
 object Util {
@@ -119,6 +120,36 @@ object Util {
     def convertPath2Platform(filename: String): String = {
       if ( filename.startsWith("file:/"))  replaceSpaces(filename) else file2PlatformIndependent( filename )
     }
+
+    def file2PatformDependent(file: String) : String = TypedPath(file).toPlatform.toString
+
+    /**
+     * Checks that a filepath exactly matches
+     * the file path available on disk
+     *
+     * This ensures case-sensitivity
+     * and is useful on platforms such as
+     * Windows NTFS which are case-insensitive,
+     * where new File("test.txt").exists
+     * and new File("TEST.TXT").exists
+     * may both return true when there is
+     * only one file.
+     */
+    @tailrec
+    final def caseSensitivePathMatchesFs(f: File): Boolean = {
+
+      val parent = Option(f.getAbsoluteFile.getParentFile)
+      parent match {
+        case None =>
+          true //used to exit
+
+        case Some(p) =>
+          val foundChild = p.list(new FilenameFilter {
+            def accept(dir: File, name: String): Boolean = name == f.getName
+          })
+          foundChild.nonEmpty && caseSensitivePathMatchesFs(p)
+      }
+    }
   }
 
   case class FileSystem(basePath: Option[String], file: String, pathSubstitutions: List[(String,String)] ) {
@@ -161,9 +192,16 @@ object Util {
       }
     }
 
-    def exists: Boolean = {
+    def exists(enforceCaseSensitivePathChecks: Boolean = false): Boolean = {
       FileSystem.createFile(FileSystem.convertPath2Platform(substitutePath(jointPath))) match {
-        case scala.util.Success(f) => f.exists
+        case scala.util.Success(f) => {
+          val exists = f.exists
+          if(exists && enforceCaseSensitivePathChecks) {
+            FileSystem.caseSensitivePathMatchesFs(f)
+          } else {
+            exists
+          }
+        }
         case scala.util.Failure(_) => false
       }
     }

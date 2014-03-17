@@ -55,11 +55,12 @@ public class CsvValidator {
      * @param failFast  true if you want to stop processing on the first error found,
      *                  false if you want to fine all errors
      * @param pathSubstitutions list of substitutions for file paths
+     * @param enforceCaseSensitivePathChecks Enforces case-sensitive file path checks
      *
      * @return empty list of (if there are no errors), or list of error strings.
      */
-    public static List<FailMessage> validate(final String csvFilename, final String csvSchemaFilename, final boolean failFast, final List<Substitution> pathSubstitutions) {
-        return CsvValidatorJavaBridge.validate(csvFilename, csvSchemaFilename, failFast, pathSubstitutions);
+    public static List<FailMessage> validate(final String csvFilename, final String csvSchemaFilename, final boolean failFast, final List<Substitution> pathSubstitutions, final Boolean enforceCaseSensitivePathChecks) {
+        return CsvValidatorJavaBridge.validate(csvFilename, csvSchemaFilename, failFast, pathSubstitutions, enforceCaseSensitivePathChecks);
     }
 
     /**
@@ -72,11 +73,12 @@ public class CsvValidator {
      * @param pathSubstitutions list of substitutions for file paths
      * @param progress A callback to receive progress updates on the validation
      *                 process
+     * @param enforceCaseSensitivePathChecks Enforces case-sensitive file path checks
      *
      * @return empty list of (if there are no errors), or list of error strings.
      */
-    public static List<FailMessage> validate(final String csvFilename, final String csvSchemaFilename, final boolean failFast, final List<Substitution> pathSubstitutions, final ProgressCallback progress) {
-        return CsvValidatorJavaBridge.validate(csvFilename, csvSchemaFilename, failFast, pathSubstitutions, progress);
+    public static List<FailMessage> validate(final String csvFilename, final String csvSchemaFilename, final boolean failFast, final List<Substitution> pathSubstitutions, final Boolean enforceCaseSensitivePathChecks, final ProgressCallback progress) {
+        return CsvValidatorJavaBridge.validate(csvFilename, csvSchemaFilename, failFast, pathSubstitutions, enforceCaseSensitivePathChecks, progress);
     }
 
     /**
@@ -87,11 +89,12 @@ public class CsvValidator {
      * @param failFast  true if you want to stop processing on the first error found,
      *                  false if you want to fine all errors
      * @param pathSubstitutions list of substitutions for file paths
+     * @param enforceCaseSensitivePathChecks Enforces case-sensitive file path checks
      *
      * @return empty list of (if there are no errors), or list of error strings.
      */
-    public static List<FailMessage> validate(final Reader csvData, final Reader csvSchema, final boolean failFast, final List<Substitution> pathSubstitutions) {
-        return CsvValidatorJavaBridge.validate(csvData, csvSchema, failFast, pathSubstitutions);
+    public static List<FailMessage> validate(final Reader csvData, final Reader csvSchema, final boolean failFast, final List<Substitution> pathSubstitutions, final Boolean enforceCaseSensitivePathChecks) {
+        return CsvValidatorJavaBridge.validate(csvData, csvSchema, failFast, pathSubstitutions, enforceCaseSensitivePathChecks);
     }
 
     /**
@@ -104,11 +107,12 @@ public class CsvValidator {
      * @param pathSubstitutions list of substitutions for file paths
      * @param progress A callback to receive progress updates on the validation
      *                 process
+     * @param enforceCaseSensitivePathChecks Enforces case-sensitive file path checks
      *
      * @return empty list of (if there are no errors), or list of error strings.
      */
-    public static List<FailMessage> validate(final Reader csvData, final Reader csvSchema, final boolean failFast, final List<Substitution> pathSubstitutions, final ProgressCallback progress) {
-        return CsvValidatorJavaBridge.validate(csvData, csvSchema, failFast, pathSubstitutions, progress);
+    public static List<FailMessage> validate(final Reader csvData, final Reader csvSchema, final boolean failFast, final List<Substitution> pathSubstitutions, final Boolean enforceCaseSensitivePathChecks, final ProgressCallback progress) {
+        return CsvValidatorJavaBridge.validate(csvData, csvSchema, failFast, pathSubstitutions, enforceCaseSensitivePathChecks, progress);
     }
 }
 

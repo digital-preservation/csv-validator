@@ -45,6 +45,8 @@ trait SchemaParser extends RegexParsers {
 
   val pathSubstitutions: List[(String,String)]
 
+  val enforceCaseSensitivePathChecks: Boolean
+
   def parseAndValidate(reader: Reader): ValidationNel[FailMessage, Schema] = {
 
     //TODO following function works around a deficiency in scala.util.parsing.combinator.Parsers{$Error, $Failure} that use hard-coded Unix EOL in Scala 2.10.0
@@ -188,12 +190,12 @@ trait SchemaParser extends RegexParsers {
 
   def fileArgProvider: Parser[ArgProvider] = columnRef ^^ { s => ColumnReference(s) } | '\"' ~> rootFilePath <~ '\"' ^^ {s => Literal(Some(s)) }
 
-  def fileExists = ("fileExists(" ~> fileArgProvider <~ ")" ^^ { s => FileExistsRule(pathSubstitutions, s) }).withFailureMessage("fileExists rule has an invalid file path") |
-    "fileExists" ^^^ { FileExistsRule( pathSubstitutions ) } | failure("Invalid fileExists rule")
+  def fileExists = ("fileExists(" ~> fileArgProvider <~ ")" ^^ { s => FileExistsRule(pathSubstitutions, enforceCaseSensitivePathChecks, s) }).withFailureMessage("fileExists rule has an invalid file path") |
+    "fileExists" ^^^ { FileExistsRule( pathSubstitutions, enforceCaseSensitivePathChecks ) } | failure("Invalid fileExists rule")
 
   def rootFilePath: Parser[String] = """[\^&'@\{\}\[\]\,\$=!\-#\(\)%\.\+~_a-zA-Z0-9\s\\/:]+""".r    //Characters taken from http://support.microsoft.com/kb/177506 and added '/' and '\' and ':'
 
-  def checksum = "checksum(" ~> file ~ (white ~ "," ~ white) ~ algorithmExpr <~ ")" ^^ { case files ~ _ ~ algorithm => ChecksumRule(files._1.getOrElse(Literal(None)), files._2, algorithm, pathSubstitutions) }
+  def checksum = "checksum(" ~> file ~ (white ~ "," ~ white) ~ algorithmExpr <~ ")" ^^ { case files ~ _ ~ algorithm => ChecksumRule(files._1.getOrElse(Literal(None)), files._2, algorithm, pathSubstitutions, enforceCaseSensitivePathChecks) }
 
   def fileCount = "fileCount(" ~> file <~ ")" ^^ { case a  => FileCountRule(a._1.getOrElse(Literal(None)), a._2, pathSubstitutions) }
 

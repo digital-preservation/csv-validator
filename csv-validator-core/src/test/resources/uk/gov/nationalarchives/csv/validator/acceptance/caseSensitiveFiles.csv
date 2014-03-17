@@ -1,0 +1,4 @@
+filename,comment
+caseSensitiveFiles.csv,this one is correct
+casesensitivefiles.csv,this one should fail validation
+CASESENSITIVEFILES.csv, this one should also fail validation
