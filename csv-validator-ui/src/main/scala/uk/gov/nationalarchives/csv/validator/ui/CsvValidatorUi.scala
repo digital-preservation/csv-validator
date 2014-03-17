@@ -268,9 +268,10 @@ object CsvValidatorUi extends SimpleSwingApplication {
 
     private val settingsGroup = new TaskPane("Settings", true)
     private val cbFailOnFirstError = new CheckBox("Fail on first error?")
+    cbFailOnFirstError.tooltip = "Indicates whether to fail on the first error, or whether to collect all errors!"
     private val lblPathSubstitutions = new Label("Path Substitutions")
     private val cbEnforceCaseSensitivePathChecks = new CheckBox("Enforce case-sensitive file path checks?")
-    cbEnforceCaseSensitivePathChecks.tooltip("Performs additional checks to ensure that the case of file-paths in the CSV file match those of the filesystem")
+    cbEnforceCaseSensitivePathChecks.tooltip = "Performs additional checks to ensure that the case of file-paths in the CSV file match those of the filesystem"
 
     private val tblPathSubstitutions = new Table(0, 2) {
       preferredViewportSize = new Dimension(500, 70)
