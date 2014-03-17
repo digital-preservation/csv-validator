@@ -31,27 +31,27 @@ class FileExistsRuleSpec extends Specification with TestResources {
     val globalDirsTwo = List(TotalColumns(2))
 
     "fail for non-existent file" in {
-      FileExistsRule(emptyPathSubstitutions).evaluate(0, Row(List(Cell("some/non/existent/file")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must beLike {
+      FileExistsRule(emptyPathSubstitutions, false).evaluate(0, Row(List(Cell("some/non/existent/file")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must beLike {
         case Failure(messages) => messages.head mustEqual "fileExists fails for line: 1, column: column1, value: \"some/non/existent/file\""
       }
     }
 
     "fail for empty file path" in {
-      FileExistsRule(emptyPathSubstitutions).evaluate(1, Row(List(Cell("abc"), Cell("")), 2), Schema(globalDirsTwo, List(ColumnDefinition("column1"), ColumnDefinition("column2")))) must beLike {
+      FileExistsRule(emptyPathSubstitutions, false).evaluate(1, Row(List(Cell("abc"), Cell("")), 2), Schema(globalDirsTwo, List(ColumnDefinition("column1"), ColumnDefinition("column2")))) must beLike {
         case Failure(messages) => messages.head mustEqual "fileExists fails for line: 2, column: column2, value: \"\""
       }
     }
 
     "succeed for file that exists with no root file path" in {
-      FileExistsRule(emptyPathSubstitutions).evaluate(0, Row(List(Cell(relMustExistForRulePath)), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must be_==(Success(true))
+      FileExistsRule(emptyPathSubstitutions, false).evaluate(0, Row(List(Cell(relMustExistForRulePath)), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must be_==(Success(true))
     }
 
     "succeed for file that exists with root file path" in {
-      FileExistsRule(emptyPathSubstitutions,Literal(Some(relPath._1 + FILE_SEPARATOR))).evaluate(0, Row(List(Cell(relPath._2)), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must be_==(Success(true))
+      FileExistsRule(emptyPathSubstitutions, false, Literal(Some(relPath._1 + FILE_SEPARATOR))).evaluate(0, Row(List(Cell(relPath._2)), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must be_==(Success(true))
     }
 
     "succeed for root file path without final file separator and file without initial file separator" in {
-      FileExistsRule(emptyPathSubstitutions, Literal(Some(relPath._1))).evaluate(0, Row(List(Cell(relPath._2)), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must be_==(Success(true))
+      FileExistsRule(emptyPathSubstitutions,false, Literal(Some(relPath._1))).evaluate(0, Row(List(Cell(relPath._2)), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must be_==(Success(true))
     }
   }
 
@@ -59,22 +59,22 @@ class FileExistsRuleSpec extends Specification with TestResources {
     val emptyPathSubstitutions =  List[(String,String)]()
 
     "succeed when checking that a file exists" in {
-      FileSystem(Some(relPath._1 + FILE_SEPARATOR), relPath._2, emptyPathSubstitutions ).exists must beTrue
+      FileSystem(Some(relPath._1 + FILE_SEPARATOR), relPath._2, emptyPathSubstitutions ).exists() must beTrue
     }
 
     "succeed when checking that a file does NOT exist" in {
-      FileSystem(Some(relPath._1 + FILE_SEPARATOR), "dri/schema/NOTAFILE.csvs", emptyPathSubstitutions ).exists must beFalse
+      FileSystem(Some(relPath._1 + FILE_SEPARATOR), "dri/schema/NOTAFILE.csvs", emptyPathSubstitutions ).exists() must beFalse
     }
 
     "succeed with help from substitutions to fix path" in {
       val pathSubstitutions =  List[(String,String)](
         ("bob", relBaseResourcePkgPath)
       )
-      FileSystem(Some("bob/"), "mustExistForRule.csvs", pathSubstitutions ).exists must beTrue
+      FileSystem(Some("bob/"), "mustExistForRule.csvs", pathSubstitutions ).exists() must beTrue
     }
 
     "succeed with windows file separators" in {
-      FileSystem(Some(relPath._1.replace('/', '\\')), relPath._2.replace('/', '\\'), emptyPathSubstitutions ).exists must beTrue
+      FileSystem(Some(relPath._1.replace('/', '\\')), relPath._2.replace('/', '\\'), emptyPathSubstitutions ).exists() must beTrue
     }
 
     "succeed even when the filename contains %20 spaces" in {
@@ -89,7 +89,7 @@ class FileExistsRuleSpec extends Specification with TestResources {
         (substitute, baseResourcePkgPath)
       )
 
-      FileSystem(Some("file:///HOME/"), "must%20Exist%20With%20Spaces%20For%20Rule.csvs", pathSubstitutions ).exists must beTrue
+      FileSystem(Some("file:///HOME/"), "must%20Exist%20With%20Spaces%20For%20Rule.csvs", pathSubstitutions ).exists() must beTrue
     }
 
   "succeed when the filename contains %20 spaces and the path is not a URI and already complete" in {
@@ -97,7 +97,7 @@ class FileExistsRuleSpec extends Specification with TestResources {
       val pathSubstitutions =  List[(String,String)](
       )
 
-      FileSystem(None, baseResourcePkgPath + "/must%20Exist%20With%20Spaces%20For%20Rule.csvs", pathSubstitutions ).exists must beTrue
+      FileSystem(None, baseResourcePkgPath + "/must%20Exist%20With%20Spaces%20For%20Rule.csvs", pathSubstitutions ).exists() must beTrue
     }
 
     "succeed when joining strings with missing '/'" in {

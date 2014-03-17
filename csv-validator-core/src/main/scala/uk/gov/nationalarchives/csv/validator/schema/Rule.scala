@@ -10,7 +10,7 @@ package uk.gov.nationalarchives.csv.validator.schema
 
 import scalax.file.{PathSet, Path}
 import scalaz._, Scalaz._
-import java.io.{BufferedInputStream, FileInputStream}
+import java.io.{BufferedInputStream, FileInputStream, File}
 import scala.util.parsing.input.Positional
 import scala.collection.mutable
 import java.security.MessageDigest
@@ -24,6 +24,7 @@ import scalaz.{Success => SuccessZ, Failure => FailureZ}
 import scala.Some
 import uk.gov.nationalarchives.csv.validator.api.CsvValidator.SubstitutePath
 import uk.gov.nationalarchives.csv.validator.Util.{TypedPath, FileSystem}
+import resource.managed
 
 abstract class Rule(name: String, val argProviders: ArgProvider*) extends Positional {
 
@@ -165,13 +166,14 @@ case class RegexRule(regex: String) extends Rule("regex") {
 }
 
 //TODO note the use of `Seq(rootPath): _*` when extending Rule, this is to workaround this bug https://issues.scala-lang.org/browse/SI-7436. This pattern is repeated below!
-case class FileExistsRule(pathSubstitutions: List[(String,String)], rootPath: ArgProvider = Literal(None) ) extends Rule("fileExists", Seq(rootPath): _*) {
+case class FileExistsRule(pathSubstitutions: List[(String,String)], enforceCaseSensitivePathChecks: Boolean, rootPath: ArgProvider = Literal(None)) extends Rule("fileExists", Seq(rootPath): _*) {
+
   def valid(filePath: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema) = {
     val ruleValue = rootPath.referenceValue(columnIndex, row, schema)
 
     val fileExists = ruleValue match {
-      case Some(rp) => new FileSystem(rp, filePath, pathSubstitutions).exists
-      case None =>   new FileSystem(filePath, pathSubstitutions).exists
+      case Some(rp) => new FileSystem(rp, filePath, pathSubstitutions).exists(enforceCaseSensitivePathChecks)
+      case None =>   new FileSystem(filePath, pathSubstitutions).exists(enforceCaseSensitivePathChecks)
     }
 
     fileExists
@@ -402,9 +404,9 @@ case class UniqueMultiRule( columns: List[String] ) extends Rule("unique(") {
   }
 }
 
-case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: String, pathSubstitutions: List[(String,String)]) extends Rule("checksum", Seq(rootPath, file): _*) with FileWildcardSearch[String] {
-  def this(file: ArgProvider, algorithm: String, pathSubstitutions: List[(String,String)]) = this(Literal(None), file, algorithm, pathSubstitutions)
-  def this(file: ArgProvider, algorithm: String) = this(Literal(None), file, algorithm, List[(String,String)]())
+case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: String, pathSubstitutions: List[(String,String)], enforceCaseSensitivePathChecks: Boolean = false) extends Rule("checksum", Seq(rootPath, file): _*) with FileWildcardSearch[String] {
+  def this(file: ArgProvider, algorithm: String, pathSubstitutions: List[(String,String)], enforceCaseSensitivePathChecks: Boolean = false) = this(Literal(None), file, algorithm, pathSubstitutions, enforceCaseSensitivePathChecks)
+  def this(file: ArgProvider, algorithm: String, enforceCaseSensitivePathChecks: Boolean = false) = this(Literal(None), file, algorithm, List.empty[(String,String)], enforceCaseSensitivePathChecks)
 
   override def evaluate(columnIndex: Int, row: Row, schema: Schema): RuleValidation[Any] = {
     val columnDefinition = schema.columnDefinitions(columnIndex)
@@ -450,17 +452,35 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
   def matchSimplePath(fullPath: String): ValidationNel[String, String]  = calcChecksum(fullPath)
 
   def calcChecksum(file: String): ValidationNel[String, String] = {
-    val digest = MessageDigest.getInstance(algorithm)
+
+    def checksum(f: File): ValidationNel[String, String] = {
+      val digest = MessageDigest.getInstance(algorithm)
+      managed(new BufferedInputStream(new FileInputStream(f))).map {
+        fileBuffer =>
+          Stream.continually(fileBuffer.read).takeWhile(-1 !=).map(_.toByte).foreach( digest.update(_))
+          digest.digest
+      }.either match {
+        case Right(b) =>
+          hexEncode(b).successNel[String]
+        case Left(ts) =>
+          ts(0).getMessage.failNel[String] //TODO how to extract not just first error?
+      }
+    }
 
     FileSystem.createFile(file) match {
-      case scala.util.Success(f) =>
-        val fileBuffer = new BufferedInputStream( new FileInputStream( f) )
-        Stream.continually(fileBuffer.read).takeWhile(-1 !=).map(_.toByte).foreach( digest.update(_))
-        fileBuffer.close()
-        hexEncode(digest.digest).successNel[String]
+      case scala.util.Success(f) if(f.exists) =>
+        if(enforceCaseSensitivePathChecks) {
+          if(FileSystem.caseSensitivePathMatchesFs(f)) {
+            checksum(f)
+          } else {
+            s"""file "${FileSystem.file2PatformDependent(file)}" not found""".failNel[String]
+          }
+        } else {
+          checksum(f)
+        }
 
       case scala.util.Failure(_) =>
-        s"""file '$file' not found""".failNel[String]
+        s"""file "${FileSystem.file2PatformDependent(file)}" not found""".failNel[String]
     }
   }
 

@@ -57,13 +57,14 @@ object CsvValidatorUi extends SimpleSwingApplication {
     }
   }
 
-  private def validate(csvFilePath: String, csvSchemaFilePath: String, failOnFirstError: Boolean, pathSubstitutions: List[(String, String)], progress: Option[ProgressCallback])(output: String => Unit) {
+  private def validate(csvFilePath: String, csvSchemaFilePath: String, failOnFirstError: Boolean, pathSubstitutions: List[(String, String)], enforceCaseSensitivePathChecks: Boolean, progress: Option[ProgressCallback])(output: String => Unit) {
     output("")
     output(CsvValidatorCmdApp.validate(
       Path.fromString(csvFilePath),
       Path.fromString(csvSchemaFilePath),
       failOnFirstError,
       pathSubstitutions,
+      enforceCaseSensitivePathChecks,
       progress
     )._1)
   }
@@ -197,7 +198,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
         this.progressBar.visible = true
 
       },
-      action = validate(txtCsvFile.text, txtCsvSchemaFile.text, settingsPanel.failOnFirstError, settingsPanel.pathSubstitutions, Some(progress)),
+      action = validate(txtCsvFile.text, txtCsvSchemaFile.text, settingsPanel.failOnFirstError, settingsPanel.pathSubstitutions, settingsPanel.enforceCaseSensitivePathChecks, Some(progress)),
       output = outputToReport,
       resumeUi = {
         btnValidate.enabled = true
@@ -268,6 +269,8 @@ object CsvValidatorUi extends SimpleSwingApplication {
     private val settingsGroup = new TaskPane("Settings", true)
     private val cbFailOnFirstError = new CheckBox("Fail on first error?")
     private val lblPathSubstitutions = new Label("Path Substitutions")
+    private val cbEnforceCaseSensitivePathChecks = new CheckBox("Enforce case-sensitive file path checks?")
+    cbEnforceCaseSensitivePathChecks.tooltip("Performs additional checks to ensure that the case of file-paths in the CSV file match those of the filesystem")
 
     private val tblPathSubstitutions = new Table(0, 2) {
       preferredViewportSize = new Dimension(500, 70)
@@ -298,22 +301,27 @@ object CsvValidatorUi extends SimpleSwingApplication {
 
     private val settingsGroupLayout = new GridBagPanel {
       private val c = new Constraints
+      c.anchor = Anchor.West
       c.gridx = 0
       c.gridy = 0
       layout(cbFailOnFirstError) = c
 
       c.gridx = 0
       c.gridy = 1
+      layout(cbEnforceCaseSensitivePathChecks) = c
+
+      c.gridx = 0
+      c.gridy = 2
       c.insets = new Insets(0,10,0,0)
       layout(lblPathSubstitutions) = c
 
       c.gridx = 0
-      c.gridy = 2
+      c.gridy = 3
       c.gridwidth = 2
       layout(spTblPathSubstitutions) = c
 
       c.gridx = 1
-      c.gridy = 3
+      c.gridy = 4
       c.anchor = Anchor.LastLineEnd
       layout(btnAddPathSubstitution) = c
     }
@@ -323,5 +331,6 @@ object CsvValidatorUi extends SimpleSwingApplication {
 
     def failOnFirstError: Boolean = cbFailOnFirstError.selected
     def pathSubstitutions: List[(String, String)] = tblPathSubstitutions.pathSubstitutions
+    def enforceCaseSensitivePathChecks: Boolean = cbEnforceCaseSensitivePathChecks.selected
   }
 }

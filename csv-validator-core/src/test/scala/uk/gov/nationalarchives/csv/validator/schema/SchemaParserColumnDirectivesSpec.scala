@@ -16,7 +16,7 @@ import uk.gov.nationalarchives.csv.validator.SchemaMessage
 
 class SchemaParserColumnDirectivesSpec extends Specification {
 
-  object TestSchemaParser extends SchemaParser { val pathSubstitutions = List[(String,String)]() }
+  object TestSchemaParser extends SchemaParser { val pathSubstitutions = List[(String,String)](); val enforceCaseSensitivePathChecks = false }
 
   import TestSchemaParser._
 

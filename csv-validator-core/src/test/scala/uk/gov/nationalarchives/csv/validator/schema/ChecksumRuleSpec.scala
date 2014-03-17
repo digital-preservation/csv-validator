@@ -38,7 +38,7 @@ class ChecksumRuleSpec extends Specification with TestResources {
     }
 
     "succeed when calculated algorithm does match given string value - without /" in {
-      val checksumRule = ChecksumRule(Literal(Some(baseResourcePkgPath)), Literal(Some("""checksum.csvs""")), "MD5", emptyPathSubstitutions)
+      val checksumRule = ChecksumRule(Literal(Some(baseResourcePkgPath)), Literal(Some("""checksum.csvs""")), "MD5", emptyPathSubstitutions, false)
 
       checksumRule.evaluate(0, Row(List(Cell("232762380299115da6995e4c4ac22fa2")), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition("column1")))) mustEqual Success(true)
     }
@@ -56,7 +56,7 @@ class ChecksumRuleSpec extends Specification with TestResources {
         ("bob", relBasePath)
       )
 
-      val checksumRule = new ChecksumRule(Literal(Some("""bob/uk/gov/nationalarchives/csv/validator/schema/checksum.csvs""")), "MD5", pathSubstitutions)
+      val checksumRule = new ChecksumRule(Literal(Some("""bob/uk/gov/nationalarchives/csv/validator/schema/checksum.csvs""")), "MD5", pathSubstitutions, false)
       checksumRule.evaluate(0, Row(List(Cell("232762380299115da6995e4c4ac22fa2")), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition("column1")))) mustEqual Success(true)
     }
 

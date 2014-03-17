@@ -28,7 +28,7 @@ object CsvValidatorCmdApp extends App {
   println(exitMsg)
   System.exit(exitCode)
 
-  case class Config(failFast: Boolean = false, substitutePaths: List[SubstitutePath] = List.empty[SubstitutePath], csvPath: Path = Path.fromString("."), csvSchemaPath: Path = Path.fromString("."))
+  case class Config(failFast: Boolean = false, substitutePaths: List[SubstitutePath] = List.empty[SubstitutePath], caseSensitivePaths: Boolean = false, csvPath: Path = Path.fromString("."), csvSchemaPath: Path = Path.fromString("."))
 
   def run(args: Array[String]): (String,Int) = {
 
@@ -38,6 +38,7 @@ object CsvValidatorCmdApp extends App {
         head("CSV Validator - Command Line")
         opt[Boolean]('f', "fail-fast") optional() action { (x,c) => c.copy(failFast = x) } text("Stops on the first validation error rather than reporting all errors")
         opt[SubstitutePath]('p', "path") optional() unbounded() action { (x,c) => c.copy(substitutePaths = c.substitutePaths :+ x) } text("Allows you to substitute a file path (or part of) in the CSV for a different file path")
+        opt[Boolean]('c', "case-sensitive-paths") optional() action { (x,c) => c.copy(caseSensitivePaths = x) } text("Enforces case-sensitive file path checking. Useful when validating on case-insensitive filesystems like Windows NTFS")
         arg[Path]("<csv-path>") validate { x => if(x.exists && x.canRead) success else failure("Cannot access CSV file: " + x.path) } action { (x,c) => c.copy(csvPath = x) } text("The path to the CSV file to validate")
         arg[Path]("<csv-schema-path>") validate { x => if(x.exists && x.canRead) success else failure("Cannot access CSV Schema file: " + x.path) } action { (x,c) => c.copy(csvSchemaPath = x) } text("The path to the CSV Schema file to use for validation")
         help("help") text("Prints this usage text")
@@ -46,15 +47,15 @@ object CsvValidatorCmdApp extends App {
     //parse the command line arguments
     parser.parse(args, new Config()) map {
       config =>
-        validate(config.csvPath, config.csvSchemaPath, config.failFast, config.substitutePaths, None)
+        validate(config.csvPath, config.csvSchemaPath, config.failFast, config.substitutePaths, config.caseSensitivePaths, None)
     } getOrElse {
       //arguments are bad, usage message will have been displayed
       ("", SystemExits.IncorrectArguments)
     }
   }
 
-  def validate(metaDataFile: Path, schemaFile: Path, failFast: Boolean, pathSubstitutionsList: List[SubstitutePath], progress: Option[ProgressCallback]): (String,Int) = {
-    val validator = createValidator(failFast, pathSubstitutionsList)
+  def validate(metaDataFile: Path, schemaFile: Path, failFast: Boolean, pathSubstitutionsList: List[SubstitutePath], enforceCaseSensitivePathChecks: Boolean, progress: Option[ProgressCallback]): (String,Int) = {
+    val validator = createValidator(failFast, pathSubstitutionsList, enforceCaseSensitivePathChecks)
     validator.parseSchema(schemaFile) match {
       case FailureZ(errors) => (prettyPrint(errors), SystemExits.InvalidSchema)
       case SuccessZ(schema) =>

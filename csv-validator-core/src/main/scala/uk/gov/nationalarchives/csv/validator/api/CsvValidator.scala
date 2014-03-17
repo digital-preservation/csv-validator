@@ -20,11 +20,11 @@ object CsvValidator {
   type PathTo = String
   type SubstitutePath = (PathFrom, PathTo)
 
-  def createValidator(failFast: Boolean, pathSubstitutionsList: List[SubstitutePath]) = {
+  def createValidator(failFast: Boolean, pathSubstitutionsList: List[SubstitutePath], enforceCaseSensitivePathChecksSwitch: Boolean) = {
     if(failFast) {
-      new CsvValidator with FailFastMetaDataValidator { val pathSubstitutions = pathSubstitutionsList }
+      new CsvValidator with FailFastMetaDataValidator { val pathSubstitutions = pathSubstitutionsList; val enforceCaseSensitivePathChecks = enforceCaseSensitivePathChecksSwitch }
     } else {
-      new CsvValidator with AllErrorsMetaDataValidator { val pathSubstitutions = pathSubstitutionsList }
+      new CsvValidator with AllErrorsMetaDataValidator { val pathSubstitutions = pathSubstitutionsList; val enforceCaseSensitivePathChecks = enforceCaseSensitivePathChecksSwitch }
     }
   }
 }

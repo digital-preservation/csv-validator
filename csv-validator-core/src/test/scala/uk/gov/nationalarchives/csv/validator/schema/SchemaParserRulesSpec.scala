@@ -19,7 +19,7 @@ class SchemaParserRulesSpec extends Specification {
 
   val emptyPathSubstitutions = List[(String,String)]()
 
-  object TestSchemaParser extends SchemaParser { val pathSubstitutions = List[(String,String)]() }
+  object TestSchemaParser extends SchemaParser { val pathSubstitutions = List[(String,String)](); val enforceCaseSensitivePathChecks = false }
 
   import TestSchemaParser._
 
@@ -76,7 +76,7 @@ class SchemaParserRulesSpec extends Specification {
                       @totalColumns 1
                       Name: fileExists"""
 
-      parse(new StringReader(schema)) must beLike { case Success(Schema(_, List(ColumnDefinition("Name", List(FileExistsRule(emptyPathSubs, Literal(None))), _))), _) => ok }
+      parse(new StringReader(schema)) must beLike { case Success(Schema(_, List(ColumnDefinition("Name", List(FileExistsRule(emptyPathSubs, false, Literal(None))), _))), _) => ok }
     }
 
 //    "fail for file exists rule with empty ()" in {
@@ -93,7 +93,7 @@ class SchemaParserRulesSpec extends Specification {
                       Name: fileExists("some/root/path")"""
 
       parse(new StringReader(schema)) must beLike {
-        case Success(Schema(_, List(ColumnDefinition("Name", List(FileExistsRule(emptyPathSubs, Literal(Some(rootPath)))), _))), _) => {
+        case Success(Schema(_, List(ColumnDefinition("Name", List(FileExistsRule(emptyPathSubs, false, Literal(Some(rootPath)))), _))), _) => {
           rootPath mustEqual "some/root/path"
         }
       }

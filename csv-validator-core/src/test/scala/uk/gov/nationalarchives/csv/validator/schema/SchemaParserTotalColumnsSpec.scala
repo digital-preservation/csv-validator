@@ -13,7 +13,7 @@ import java.io.StringReader
 
 class SchemaParserTotalColumnsSpec extends Specification {
 
-  object TestSchemaParser extends SchemaParser { val pathSubstitutions = List[(String,String)]() }
+  object TestSchemaParser extends SchemaParser { val pathSubstitutions = List[(String,String)](); val enforceCaseSensitivePathChecks = false }
 
   import TestSchemaParser._
 

@@ -23,15 +23,24 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
   val v = new CsvValidator with AllErrorsMetaDataValidator {
     val pathSubstitutions = List[(String,String)]()
+    val enforceCaseSensitivePathChecks = false
 
     def validateR(csv: io.Reader, schema: Schema): this.type#MetaDataValidation[Any] = validate(csv, schema, None)
   }
 
+  val ve = new CsvValidator with AllErrorsMetaDataValidator {
+    val pathSubstitutions = List[(String,String)]()
+    val enforceCaseSensitivePathChecks = true
+  }
+
   import v.{validate, validateR, parseSchema}
+  import ve.{validate => validateE, parseSchema => parseSchemaE}
 
   def parse(filePath: String): Schema = parseSchema(Path.fromString(filePath)) fold (f => throw new IllegalArgumentException(f.toString()), s => s)
+  def parseE(filePath: String): Schema = parseSchemaE(Path.fromString(filePath)) fold (f => throw new IllegalArgumentException(f.toString()), s => s)
 
   def parse(reader: io.Reader): Schema = parseSchema(reader) fold (f => throw new IllegalArgumentException(f.toString()), s => s)
+  def parseE(reader: io.Reader): Schema = parseSchemaE(reader) fold (f => throw new IllegalArgumentException(f.toString()), s => s)
 
   "Regex rule" should {
 
@@ -170,7 +179,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
       val csfSchemaTemplate = csfSchemaPath.lines(includeTerminator = true).mkString
       val csfSchema = csfSchemaTemplate.replace("$$acceptancePath$$", base)
 
-      validate(Path.fromString(base) / "caseSensitiveFiles.csv", parse(new StringReader(csfSchema)), None) must beLike {
+      validateE(Path.fromString(base) / "caseSensitiveFiles.csv", parseE(new StringReader(csfSchema)), None) must beLike {
         case Failure(errors) => errors.list mustEqual List(
           ErrorMessage("""fileExists("$$acceptance$$") fails for line: 2, column: filename, value: "casesensitivefiles.csv"""".replace("$$acceptance$$", base)),
           ErrorMessage("""fileExists("$$acceptance$$") fails for line: 3, column: filename, value: "CASESENSITIVEFILES.csv"""".replace("$$acceptance$$", base))
@@ -187,7 +196,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
       val csfSchemaTemplate = csfSchemaPath.lines(includeTerminator = true).mkString
       val csfSchema = csfSchemaTemplate.replace("$$acceptancePath$$", base)
 
-      validate(Path.fromString(base) / "caseSensitiveFilesChecksum.csv", parse(new StringReader(csfSchema)), None) must beLike {
+      validateE(Path.fromString(base) / "caseSensitiveFilesChecksum.csv", parseE(new StringReader(csfSchema)), None) must beLike {
         case Failure(errors) => errors.list mustEqual List(
           ErrorMessage("""checksum(file("$$acceptance$$", $filename), "MD5") file "$$acceptance$$$$file-sep$$casesensitivefileschecksum.csvs" not found for line: 2, column: checksum, value: "41424313f6052b7f062358ed38640b6e"""".replace("$$acceptance$$", base).replace("$$file-sep$$", FILE_SEPARATOR.toString)),
           ErrorMessage("""checksum(file("$$acceptance$$", $filename), "MD5") file "$$acceptance$$$$file-sep$$CASESENSITIVEFILESCHECKSUM.csvs" not found for line: 3, column: checksum, value: "41424313f6052b7f062358ed38640b6e"""".replace("$$acceptance$$", base).replace("$$file-sep$$", FILE_SEPARATOR.toString))
@@ -197,7 +206,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
   }
 
   "Validate fail fast" should {
-    val app = new CsvValidator with FailFastMetaDataValidator  { val pathSubstitutions = List[(String,String)]() }
+    val app = new CsvValidator with FailFastMetaDataValidator  { val pathSubstitutions = List[(String,String)](); val enforceCaseSensitivePathChecks = false }
 
     "only report first error for invalid @TotalColumns" in {
       app.validate(Path.fromString(base) / "totalColumnsFailMetaData.csv", parse(base + "/totalColumnsSchema.csvs"), None) must beLike {
