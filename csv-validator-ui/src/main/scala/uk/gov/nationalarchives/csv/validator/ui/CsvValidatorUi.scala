@@ -45,15 +45,23 @@ object CsvValidatorUi extends SimpleSwingApplication {
   }
 
   private def displayWait(suspendUi: => Unit, action: (String => Unit) => Unit, output: String => Unit, resumeUi: => Unit) {
-    try {
-      suspendUi
+    import scala.concurrent.{future, Future}
+    import scala.concurrent.ExecutionContext.Implicits.global
+    import scala.util.{Success, Failure}
+
+    suspendUi
+    val fAction: Future[Unit] = future {
       action(output)
-    } catch {
-      case e: Throwable =>
-        output(e.toString)
-        e.printStackTrace()
-    } finally {
-      resumeUi
+    }
+
+    fAction.onComplete {
+      case Success(_) =>
+        Swing.onEDT { resumeUi }
+
+      case Failure(t) =>
+        t.printStackTrace()
+        output(t.toString)
+        Swing.onEDT {resumeUi }
     }
   }
 
@@ -182,12 +190,16 @@ object CsvValidatorUi extends SimpleSwingApplication {
     progressBar.visible = false
     private val progress = new ProgressCallback {
       override def update(complete: this.type#Percentage) {
-        progressBar.value = complete.toInt
+        Swing.onEDT {
+          progressBar.value = complete.toInt
+        }
       }
     }
 
-    val outputToReport: String => Unit = {
-      txtArReport.text = _
+    def outputToReport(data: String) {
+      Swing.onEDT {
+        txtArReport.text = data
+      }
     }
 
     btnValidate.reactions += onClick(displayWait(
