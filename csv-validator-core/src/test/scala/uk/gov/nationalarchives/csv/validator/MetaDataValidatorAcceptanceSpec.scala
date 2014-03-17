@@ -189,8 +189,8 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
       validate(Path.fromString(base) / "caseSensitiveFilesChecksum.csv", parse(new StringReader(csfSchema)), None) must beLike {
         case Failure(errors) => errors.list mustEqual List(
-          ErrorMessage("""checksum(file("$$acceptance$$", $filename), "MD5") file "$$acceptance$$/casesensitivefileschecksum.csvs" not found for line: 2, column: checksum, value: "41424313f6052b7f062358ed38640b6e"""".replace("$$acceptance$$", base)),
-          ErrorMessage("""checksum(file("$$acceptance$$", $filename), "MD5") file "$$acceptance$$/CASESENSITIVEFILESCHECKSUM.csvs" not found for line: 3, column: checksum, value: "41424313f6052b7f062358ed38640b6e"""".replace("$$acceptance$$", base))
+          ErrorMessage("""checksum(file("$$acceptance$$", $filename), "MD5") file "$$acceptance$$$$file-sep$$casesensitivefileschecksum.csvs" not found for line: 2, column: checksum, value: "41424313f6052b7f062358ed38640b6e"""".replace("$$acceptance$$", base).replace("$$file-sep$$", FILE_SEPARATOR.toString)),
+          ErrorMessage("""checksum(file("$$acceptance$$", $filename), "MD5") file "$$acceptance$$$$file-sep$$CASESENSITIVEFILESCHECKSUM.csvs" not found for line: 3, column: checksum, value: "41424313f6052b7f062358ed38640b6e"""".replace("$$acceptance$$", base).replace("$$file-sep$$", FILE_SEPARATOR.toString))
         )
       }
     }
