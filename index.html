@@ -164,10 +164,11 @@
 					</p>
 					<img src="images/highlight-settings-arrow.png" alt="Part of GUI, highlighting Settings box" id="GUI-detail4">
 					<p>
-					Having opened up Settings, you will see that there are two main groups:
+					Having opened up Settings, you will see that there are three sets of options:
 						<ol>
-							<li>Fail on first error?, and;</li>
-							<li>Path Substitutions</li>
+							<li><code>Fail on first error?</code>;</li>
+							<li><code>Enforce case-sensitive filepath checks?</code>, and;</li>
+							<li><code>Path Substitutions</code></li>
 						</ol>
 					</p>
 					<img src="images/settings-opened.png" alt="Part of GUI, showing opened Settings section" id="GUI-detail5">
@@ -179,7 +180,16 @@
 						If there are no validation errors the whole CSV file will be validated and return <code>PASS</code>.
 						You should be aware that the CSV Schema can declare that some validation tests will produce only validation warnings, rather than validation errors. 
 						A validation warning will not stop validation, even with "Fail on first error" set.
-						This setting is equivalent to using the -f or --failfast flags when <a href="#toc7">running via the Command Line</a>.
+						This setting is equivalent to using the -f true or --failfast true options when <a href="#toc7">running via the Command Line</a>.
+						</p>
+					</div>
+					<div>
+						<h4>Enforce case-sensitive filepath checks</h4>
+						<p>
+						With this setting selected, validation treats filepaths as being case sensitive, even if the file system itself is not (e.g. on Windows NTFS). 
+						Without doing this data which appears to validate on a Windows machine may then fail when further processing is carried out on a system where the file system 
+						is case sensitive (e.g. Unix/Linux). 
+						This setting is equivalent to using the -c true or --case-sensitive-paths true options when <a href="#toc7">running via the Command Line</a>.
 						</p>
 					</div>
 					<div>
@@ -312,9 +322,11 @@ batch_code,department,series,piece,item,ordinal,file_uuid,file_path,file_checksu
 				
 				options:
 				-f &lt;value&gt; | --fail-fast &lt;value&gt;
-					Stops on the first validation error rather than reporting all errors
+					Stops on the first validation error rather than reporting all errors if used with value true
 				-p:&lt;key&gt;=&lt;value&gt; | --path:&lt;key&gt;=&lt;value&gt;
 					Allows you to substitute a file path (or part of) in the CSV for a different file path
+				-c &lt;value&gt; | --case-sensitive-paths &lt;value&gt;
+					Enforces case-sensitive file path checking if used with value true. Useful when validating on case-insensitive filesystems like Windows NTFS
 					
 				&lt;csv-path&gt;
 					The path to the CSV file to validate
