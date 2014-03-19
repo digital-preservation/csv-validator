@@ -43,9 +43,24 @@ object CsvValidatorUi extends SimpleSwingApplication {
     super.startup(args)
   }
 
-  def top = new MainFrame {
+  def top = new SJXFrame {
     title = "CSV Validator"
-    contents = new ContentPanel(new SettingsPanel)
+    contents = {
+      val settings = new SettingsPanel
+
+      //handle resizing the main window, when resizing the settings panel
+      settings.settingsGroup.reactions += SJXTaskPane.onViewStateChanged {
+        val newSize = if(settings.settingsGroup.collapsed) {
+          new Dimension(this.size.getWidth.toInt, (this.size.getHeight - settings.size.getHeight).toInt)
+        } else {
+          new Dimension(this.size.getWidth.toInt, (this.size.getHeight + settings.size.getHeight).toInt)
+        }
+        this.size = newSize
+        this.pack()
+      }
+
+      new ContentPanel(settings)
+    }
   }
 
   private def displayWait(suspendUi: => Unit, action: (String => Unit) => Unit, output: String => Unit, resumeUi: => Unit) {
@@ -280,7 +295,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
    * us to break up the code easily, hopefully
    * making it more understandable.
    */
-  private class SettingsPanel extends TaskPaneContainer {
+  private class SettingsPanel extends SJXTaskPaneContainer {
 
     private lazy val CHARACTER_ENCODINGS =
       if(Charset.defaultCharset.name == "UTF-8") {
@@ -289,7 +304,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
         Seq(Charset.forName("UTF-8"), Charset.defaultCharset)
       }
 
-    private val settingsGroup = new TaskPane("Settings", true)
+    val settingsGroup = new SJXTaskPane("Settings", true)
     private val lblCsvEncoding = new Label("CSV Encoding")
     private val cmbCsvEncoding = new ComboBox(CHARACTER_ENCODINGS)
     private val lblCsvSchemaEncoding = new Label("CSV Schema Encoding")
