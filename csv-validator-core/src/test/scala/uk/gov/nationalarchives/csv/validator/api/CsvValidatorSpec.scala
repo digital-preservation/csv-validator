@@ -44,16 +44,16 @@ class CsvValidatorSpec extends Specification with TestResources {
   "Validation" should {
     val app = new CsvValidator with AllErrorsMetaDataValidator { val pathSubstitutions = List[(String,String)](); val enforceCaseSensitivePathChecks = false }
 
-    def parse(filePath: String): Schema = app.parseSchema(Path.fromString(filePath)) fold (f => throw new IllegalArgumentException(f.toString()), s => s)
+    def parse(filePath: String): Schema = app.parseSchema(TextFile(Path.fromString(filePath))) fold (f => throw new IllegalArgumentException(f.toString()), s => s)
 
     "succeed for valid schema and metadata file" in {
-      app.validate(Path.fromString(baseResourcePkgPath) / "metaData.csv", parse(baseResourcePkgPath + "/schema.csvs"), None) must beLike {
+      app.validate(TextFile(Path.fromString(baseResourcePkgPath) / "metaData.csv"), parse(baseResourcePkgPath + "/schema.csvs"), None) must beLike {
         case Success(_) => ok
       }
     }
 
     "succeed for valid @totalColumns in schema and metadata file" in {
-      app.validate(Path.fromString(baseResourcePkgPath) / "metaData.csv", parse(baseResourcePkgPath + "/schema.csvs"), None) must beLike {
+      app.validate(TextFile(Path.fromString(baseResourcePkgPath) / "metaData.csv"), parse(baseResourcePkgPath + "/schema.csvs"), None) must beLike {
         case Success(_) => ok
       }
     }

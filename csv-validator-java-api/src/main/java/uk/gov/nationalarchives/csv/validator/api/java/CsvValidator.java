@@ -9,7 +9,9 @@
 package uk.gov.nationalarchives.csv.validator.api.java;
 
 import java.io.Reader;
+import java.nio.charset.Charset;
 import java.util.List;
+import static uk.gov.nationalarchives.csv.validator.api.CsvValidator$.MODULE$;
 
 /**
  * Validate that a csv file matches a format specified a csv schema.
@@ -50,6 +52,9 @@ public class CsvValidator {
     /**
      * Validate a CSV file against a CSV schema file
      *
+     * Assumes that the encoding of the CSV file and
+     * CSV Schema file are both UTF-8
+     *
      * @param csvFilename filename of the CSV file
      * @param csvSchemaFilename Filename of the CSV schema file
      * @param failFast  true if you want to stop processing on the first error found,
@@ -60,11 +65,32 @@ public class CsvValidator {
      * @return empty list of (if there are no errors), or list of error strings.
      */
     public static List<FailMessage> validate(final String csvFilename, final String csvSchemaFilename, final boolean failFast, final List<Substitution> pathSubstitutions, final Boolean enforceCaseSensitivePathChecks) {
-        return CsvValidatorJavaBridge.validate(csvFilename, csvSchemaFilename, failFast, pathSubstitutions, enforceCaseSensitivePathChecks);
+        return validate(csvFilename, MODULE$.DEFAULT_ENCODING(), csvSchemaFilename, MODULE$.DEFAULT_ENCODING(), failFast, pathSubstitutions, enforceCaseSensitivePathChecks);
     }
 
     /**
      * Validate a CSV file against a CSV schema file
+     *
+     * @param csvFilename filename of the CSV file
+     * @param csvEncoding The charset encoding used in the CSV file
+     * @param csvSchemaFilename Filename of the CSV schema file
+     * @param csvSchemaEncoding The charset encoding used in the CSV Schema file
+     * @param failFast  true if you want to stop processing on the first error found,
+     *                  false if you want to fine all errors
+     * @param pathSubstitutions list of substitutions for file paths
+     * @param enforceCaseSensitivePathChecks Enforces case-sensitive file path checks
+     *
+     * @return empty list of (if there are no errors), or list of error strings.
+     */
+    public static List<FailMessage> validate(final String csvFilename, final Charset csvEncoding, final String csvSchemaFilename, final Charset csvSchemaEncoding, final boolean failFast, final List<Substitution> pathSubstitutions, final Boolean enforceCaseSensitivePathChecks) {
+        return CsvValidatorJavaBridge.validate(csvFilename, csvEncoding, csvSchemaFilename, csvSchemaEncoding, failFast, pathSubstitutions, enforceCaseSensitivePathChecks);
+    }
+
+    /**
+     * Validate a CSV file against a CSV schema file
+     *
+     * Assumes that the encoding of the CSV file and
+     * CSV Schema file are both UTF-8
      *
      * @param csvFilename filename of the CSV file
      * @param csvSchemaFilename Filename of the CSV schema file
@@ -78,7 +104,27 @@ public class CsvValidator {
      * @return empty list of (if there are no errors), or list of error strings.
      */
     public static List<FailMessage> validate(final String csvFilename, final String csvSchemaFilename, final boolean failFast, final List<Substitution> pathSubstitutions, final Boolean enforceCaseSensitivePathChecks, final ProgressCallback progress) {
-        return CsvValidatorJavaBridge.validate(csvFilename, csvSchemaFilename, failFast, pathSubstitutions, enforceCaseSensitivePathChecks, progress);
+        return validate(csvFilename, MODULE$.DEFAULT_ENCODING(), csvSchemaFilename, MODULE$.DEFAULT_ENCODING(), failFast, pathSubstitutions, enforceCaseSensitivePathChecks, progress);
+    }
+
+    /**
+     * Validate a CSV file against a CSV schema file
+     *
+     * @param csvFilename filename of the CSV file
+     * @param csvEncoding The charset encoding used in the CSV file
+     * @param csvSchemaFilename Filename of the CSV schema file
+     * @param csvSchemaEncoding The charset encoding used in the CSV Schema file
+     * @param failFast  true if you want to stop processing on the first error found,
+     *                  false if you want to fine all errors
+     * @param pathSubstitutions list of substitutions for file paths
+     * @param progress A callback to receive progress updates on the validation
+     *                 process
+     * @param enforceCaseSensitivePathChecks Enforces case-sensitive file path checks
+     *
+     * @return empty list of (if there are no errors), or list of error strings.
+     */
+    public static List<FailMessage> validate(final String csvFilename, final Charset csvEncoding, final String csvSchemaFilename, final Charset csvSchemaEncoding, final boolean failFast, final List<Substitution> pathSubstitutions, final Boolean enforceCaseSensitivePathChecks, final ProgressCallback progress) {
+        return CsvValidatorJavaBridge.validate(csvFilename, csvEncoding, csvSchemaFilename, csvSchemaEncoding, failFast, pathSubstitutions, enforceCaseSensitivePathChecks, progress);
     }
 
     /**
