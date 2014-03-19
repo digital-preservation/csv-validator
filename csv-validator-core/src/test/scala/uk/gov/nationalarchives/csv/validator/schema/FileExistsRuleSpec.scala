@@ -19,9 +19,12 @@ import uk.gov.nationalarchives.csv.validator.Util.FileSystem
 class FileExistsRuleSpec extends Specification with TestResources {
 
   val relMustExistForRulePath = relResourcePath("mustExistForRule.csvs")
-
   val segments = relMustExistForRulePath.split(FILE_SEPARATOR)
   val relPath = (segments.slice(0, segments.length - 3).reduceLeft(_ + FILE_SEPARATOR + _), segments.slice(segments.length - 3, segments.length).reduceLeft(_ + FILE_SEPARATOR + _))
+
+  val relMustExistForHashRulePath = relResourcePath("mustExistFor#Rule.csvs")
+  val hashSegments = relMustExistForHashRulePath.split(FILE_SEPARATOR)
+  val hashRelPath = (hashSegments.slice(0, hashSegments.length - 3).reduceLeft(_ + FILE_SEPARATOR + _), hashSegments.slice(hashSegments.length - 3, hashSegments.length).reduceLeft(_ + FILE_SEPARATOR + _))
 
   val emptyPathSubstitutions = List[SubstitutePath]()
 
@@ -53,13 +56,20 @@ class FileExistsRuleSpec extends Specification with TestResources {
     "succeed for root file path without final file separator and file without initial file separator" in {
       FileExistsRule(emptyPathSubstitutions,false, Literal(Some(relPath._1))).evaluate(0, Row(List(Cell(relPath._2)), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must be_==(Success(true))
     }
+
+    "succeed for filename that contains '#' character" in {
+      FileExistsRule(emptyPathSubstitutions, false, Literal(Some(hashRelPath._1 + FILE_SEPARATOR))).evaluate(0, Row(List(Cell(hashRelPath._2)), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must be_==(Success(true))
+    }
   }
 
   "File system translation" should {
-    val emptyPathSubstitutions =  List[(String,String)]()
 
     "succeed when checking that a file exists" in {
       FileSystem(Some(relPath._1 + FILE_SEPARATOR), relPath._2, emptyPathSubstitutions ).exists() must beTrue
+    }
+
+    "succeed when checking that a file with a '#' character in the name exists" in {
+      FileSystem(Some(hashRelPath._1 + FILE_SEPARATOR), hashRelPath._2, emptyPathSubstitutions ).exists() must beTrue
     }
 
     "succeed when checking that a file does NOT exist" in {
@@ -92,12 +102,8 @@ class FileExistsRuleSpec extends Specification with TestResources {
       FileSystem(Some("file:///HOME/"), "must%20Exist%20With%20Spaces%20For%20Rule.csvs", pathSubstitutions ).exists() must beTrue
     }
 
-  "succeed when the filename contains %20 spaces and the path is not a URI and already complete" in {
-
-      val pathSubstitutions =  List[(String,String)](
-      )
-
-      FileSystem(None, baseResourcePkgPath + "/must%20Exist%20With%20Spaces%20For%20Rule.csvs", pathSubstitutions ).exists() must beTrue
+    "succeed when the filename contains %20 spaces and the path is not a URI and already complete" in {
+      FileSystem(None, baseResourcePkgPath + "/must%20Exist%20With%20Spaces%20For%20Rule.csvs", emptyPathSubstitutions ).exists() must beTrue
     }
 
     "succeed when joining strings with missing '/'" in {
