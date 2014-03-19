@@ -29,7 +29,7 @@ TotalColumnsDirective           ::=     DirectivePrefix "totalColumns" PositiveN
 NoHeaderDirective               ::=     DirectivePrefix "noHeader"
 IgnoreColumnNameCaseDirective   ::=     DirectivePrefix "ignoreColumnNameCase"
 
-TABExpr                         ::=     "TAB" ("(" IntegerLiteral ")")?
+TABExpr                         ::=     "TAB" ("(" PositiveNonZeroIntegerLiteral ")")?
 SeparatorChar                   ::=     CharacterLiteral
 
 Body                            ::=     BodyPart+
