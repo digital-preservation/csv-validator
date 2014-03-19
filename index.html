@@ -159,7 +159,9 @@
 				<div>
 					<h3>Using Settings</h3>
 					<p>
-					While in the most straightforward cases, you can validate a CSV file immediately after supplying the filepaths, in many instances you will need to supply Settings options. 
+					While in the most straightforward cases, you can validate a CSV file immediately after supplying the filepaths, 
+					in many instances you will need to supply Settings options. 
+					Using the Settings is equivalent providing options when <a href="#toc7">running via the Command Line</a>. 
 					To open up Settings, click on the downward facing double arrow below the file dialogue buttons (highlighted below):
 					</p>
 					<img src="images/highlight-settings-arrow.png" alt="Part of GUI, highlighting Settings box" id="GUI-detail4">
@@ -316,28 +318,45 @@ batch_code,department,series,piece,item,ordinal,file_uuid,file_path,file_checksu
             </div>
             <div>
                 <h2>CSV Validator Command Line Tool</h2>
-                <p>
-				<pre>
-				Usage: validate [options] &lt;csv-path&gt; &lt;csv-schema-path&gt;
-				
-				options:
-				-f &lt;value&gt; | --fail-fast &lt;value&gt;
-					Stops on the first validation error rather than reporting all errors if used with value true
-				-p:&lt;key&gt;=&lt;value&gt; | --path:&lt;key&gt;=&lt;value&gt;
-					Allows you to substitute a file path (or part of) in the CSV for a different file path
-				-c &lt;value&gt; | --case-sensitive-paths &lt;value&gt;
-					Enforces case-sensitive file path checking if used with value true. Useful when validating on case-insensitive filesystems like Windows NTFS
+				<div>
+					<h3>Starting the CSV Validator at the command line</h3>
+					<p>
+					In order to run the CSV Validator via the command line, set your working directory to the bin subdirectory of the installation directory and execute either:
+					<ol>
+						<li>validate.bat on Windows operating systems, or;</li>
+						<li>validate shell script on Unix/Linux.</li>
+					</ol>
+					Executing without any options or command line parameters should produce the following usage text:
+					</p>
+					<pre>
+					Usage: validate [options] &lt;csv-path&gt; &lt;csv-schema-path&gt;
 					
-				&lt;csv-path&gt;
-					The path to the CSV file to validate
-					
-				&lt;csv-schema-path&gt;
-					The path to the CSV Schema file to use for validation
-					
-				--help
-					Prints this usage text
-				</pre>
-				</p>
+					options:
+					-f &lt;value&gt; | --fail-fast &lt;value&gt;
+						Stops on the first validation error rather than reporting all errors if used with value true
+					-p:&lt;key&gt;=&lt;value&gt; | --path:&lt;key&gt;=&lt;value&gt;
+						Allows you to substitute a file path (or part of) in the CSV for a different file path
+					-c &lt;value&gt; | --case-sensitive-paths &lt;value&gt;
+						Enforces case-sensitive file path checking if used with value true. 
+						Useful when validating on case-insensitive filesystems like Windows NTFS
+						
+					&lt;csv-path&gt;
+						The path to the CSV file to validate
+						
+					&lt;csv-schema-path&gt;
+						The path to the CSV Schema file to use for validation
+						
+					--help
+						Prints this usage text
+					</pre>
+				</div>
+				<div>
+					<h3>Using command line parameters</h3>
+					<p>
+					As a minimum you must supply two command line parameters in order to validate a CSV file.  The first parameter is the path to the CSV file you wish to vaildate, 
+					the second the path to the schema.  If the paths contain spaces, wrap the path in double quotes (").
+					</p>
+				</div>
             </div>
             <div>
                 <h2>For Software Developers</h2>
