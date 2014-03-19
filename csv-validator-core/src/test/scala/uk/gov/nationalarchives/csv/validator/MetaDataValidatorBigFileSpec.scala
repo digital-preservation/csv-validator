@@ -11,7 +11,7 @@ package uk.gov.nationalarchives.csv.validator
 import org.specs2.mutable.Specification
 import scalaz._
 import uk.gov.nationalarchives.csv.validator.schema.Schema
-import uk.gov.nationalarchives.csv.validator.api.CsvValidator
+import uk.gov.nationalarchives.csv.validator.api.{TextFile, CsvValidator}
 import scalax.file.Path
 import uk.gov.nationalarchives.csv.validator.api.CsvValidator.SubstitutePath
 
@@ -23,16 +23,16 @@ class MetaDataValidatorBigFileSpec extends Specification with TestResources {
 
     "succeed with no stack overflow for all errors" in {
       val v = new CsvValidator with AllErrorsMetaDataValidator { val pathSubstitutions = List[SubstitutePath](); val enforceCaseSensitivePathChecks = false }
-      def parse(filePath: String): Schema = v.parseSchema(Path.fromString(filePath)) fold (f => throw new IllegalArgumentException(f.toString()), s => s)
+      def parse(filePath: String): Schema = v.parseSchema(TextFile(Path.fromString(filePath))) fold (f => throw new IllegalArgumentException(f.toString()), s => s)
 
-      v.validate(Path.fromString(base) / "bigMetaData.csv", parse(base + "/bigSchema.csvs"), None) must beLike { case Success(_) => ok }
+      v.validate(TextFile(Path.fromString(base) / "bigMetaData.csv"), parse(base + "/bigSchema.csvs"), None) must beLike { case Success(_) => ok }
     }
 
     "succeed with no stack overflow for fail fast" in {
       val v = new CsvValidator with FailFastMetaDataValidator { val pathSubstitutions = List[SubstitutePath](); val enforceCaseSensitivePathChecks = false }
-      def parse(filePath: String): Schema = v.parseSchema(Path.fromString(filePath)) fold (f => throw new IllegalArgumentException(f.toString()), s => s)
+      def parse(filePath: String): Schema = v.parseSchema(TextFile(Path.fromString(filePath))) fold (f => throw new IllegalArgumentException(f.toString()), s => s)
 
-      v.validate(Path.fromString(base) / "bigMetaData.csv", parse(base + "/bigSchema.csvs"), None) must beLike { case Success(_) => ok }
+      v.validate(TextFile(Path.fromString(base) / "bigMetaData.csv"), parse(base + "/bigSchema.csvs"), None) must beLike { case Success(_) => ok }
     }
   }
 }

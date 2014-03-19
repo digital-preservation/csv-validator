@@ -9,7 +9,7 @@
 package uk.gov.nationalarchives.csv.validator
 
 import scalaz._, Scalaz._
-import java.io.{IOException, Reader => JReader, FileReader => JFileReader, LineNumberReader => JLineNumberReader}
+import java.io.{IOException, Reader => JReader, FileReader => JFileReader, InputStreamReader => JInputStreamReader, FileInputStream => JFileInputStream, LineNumberReader => JLineNumberReader}
 import resource._
 import uk.gov.nationalarchives.csv.validator.schema.{NoHeader, Schema}
 import uk.gov.nationalarchives.csv.validator.metadata.Cell
@@ -18,6 +18,7 @@ import au.com.bytecode.opencsv.{CSVParser, CSVReader}
 import uk.gov.nationalarchives.csv.validator.metadata.Row
 import scalax.file.Path
 import scala.annotation.tailrec
+import uk.gov.nationalarchives.csv.validator.api.TextFile
 
 sealed abstract class FailMessage(val msg:String)
 case class WarningMessage(message:String) extends FailMessage(message)
@@ -86,8 +87,8 @@ trait MetaDataValidator {
 
   def validateRows(rows: Iterator[Row], schema: Schema): MetaDataValidation[Any]
 
-  protected def countRows(file: Path): Int = {
-    withReader(file) {
+  protected def countRows(textFile: TextFile): Int = {
+    withReader(textFile) {
       reader =>
         countRows(reader)
     }
@@ -110,8 +111,8 @@ trait MetaDataValidator {
     } opt) getOrElse -1
   }
 
-  protected def withReader[B](file: Path)(fn: JFileReader => B): B = {
-    managed(new JFileReader(file.path)).map {
+  protected def withReader[B](textFile: TextFile)(fn: JReader => B): B = {
+    managed(new JInputStreamReader(new JFileInputStream(textFile.file.path), textFile.encoding)).map {
       reader =>
         fn(reader)
     }.either match {

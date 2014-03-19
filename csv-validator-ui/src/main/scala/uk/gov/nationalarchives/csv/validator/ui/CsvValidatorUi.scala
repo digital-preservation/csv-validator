@@ -23,9 +23,13 @@ import java.awt.Cursor
 import java.util.Properties
 import scalax.file.Path
 import uk.gov.nationalarchives.csv.validator.ProgressCallback
+import java.nio.charset.Charset
+import uk.gov.nationalarchives.csv.validator.api.TextFile
 
 /**
  * Simple GUI for the CSV Validator
+ *
+ * @author Adam Retter <adam.retter@googlemail.com>
  */
 object CsvValidatorUi extends SimpleSwingApplication {
 
@@ -39,9 +43,24 @@ object CsvValidatorUi extends SimpleSwingApplication {
     super.startup(args)
   }
 
-  def top = new MainFrame {
+  def top = new SJXFrame {
     title = "CSV Validator"
-    contents = new ContentPanel(new SettingsPanel)
+    contents = {
+      val settings = new SettingsPanel
+
+      //handle resizing the main window, when resizing the settings panel
+      settings.settingsGroup.reactions += SJXTaskPane.onViewStateChanged {
+        val newSize = if(settings.settingsGroup.collapsed) {
+          new Dimension(this.size.getWidth.toInt, (this.size.getHeight - settings.size.getHeight).toInt)
+        } else {
+          new Dimension(this.size.getWidth.toInt, (this.size.getHeight + settings.size.getHeight).toInt)
+        }
+        this.size = newSize
+        this.pack()
+      }
+
+      new ContentPanel(settings)
+    }
   }
 
   private def displayWait(suspendUi: => Unit, action: (String => Unit) => Unit, output: String => Unit, resumeUi: => Unit) {
@@ -65,11 +84,11 @@ object CsvValidatorUi extends SimpleSwingApplication {
     }
   }
 
-  private def validate(csvFilePath: String, csvSchemaFilePath: String, failOnFirstError: Boolean, pathSubstitutions: List[(String, String)], enforceCaseSensitivePathChecks: Boolean, progress: Option[ProgressCallback])(output: String => Unit) {
+  private def validate(csvFilePath: String, csvEncoding: Charset, csvSchemaFilePath: String, csvSchemaEncoding: Charset, failOnFirstError: Boolean, pathSubstitutions: List[(String, String)], enforceCaseSensitivePathChecks: Boolean, progress: Option[ProgressCallback])(output: String => Unit) {
     output("")
     output(CsvValidatorCmdApp.validate(
-      Path.fromString(csvFilePath),
-      Path.fromString(csvSchemaFilePath),
+      TextFile(Path.fromString(csvFilePath), csvEncoding),
+      TextFile(Path.fromString(csvSchemaFilePath), csvSchemaEncoding),
       failOnFirstError,
       pathSubstitutions,
       enforceCaseSensitivePathChecks,
@@ -210,7 +229,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
         this.progressBar.visible = true
 
       },
-      action = validate(txtCsvFile.text, txtCsvSchemaFile.text, settingsPanel.failOnFirstError, settingsPanel.pathSubstitutions, settingsPanel.enforceCaseSensitivePathChecks, Some(progress)),
+      action = validate(txtCsvFile.text, settingsPanel.csvEncoding, txtCsvSchemaFile.text, settingsPanel.csvSchemaEncoding, settingsPanel.failOnFirstError, settingsPanel.pathSubstitutions, settingsPanel.enforceCaseSensitivePathChecks, Some(progress)),
       output = outputToReport,
       resumeUi = {
         btnValidate.enabled = true
@@ -276,9 +295,20 @@ object CsvValidatorUi extends SimpleSwingApplication {
    * us to break up the code easily, hopefully
    * making it more understandable.
    */
-  private class SettingsPanel extends TaskPaneContainer {
+  private class SettingsPanel extends SJXTaskPaneContainer {
 
-    private val settingsGroup = new TaskPane("Settings", true)
+    private lazy val CHARACTER_ENCODINGS =
+      if(Charset.defaultCharset.name == "UTF-8") {
+        Seq(Charset.defaultCharset)
+      } else {
+        Seq(Charset.forName("UTF-8"), Charset.defaultCharset)
+      }
+
+    val settingsGroup = new SJXTaskPane("Settings", true)
+    private val lblCsvEncoding = new Label("CSV Encoding")
+    private val cmbCsvEncoding = new ComboBox(CHARACTER_ENCODINGS)
+    private val lblCsvSchemaEncoding = new Label("CSV Schema Encoding")
+    private val cmbCsvSchemaEncoding = new ComboBox(CHARACTER_ENCODINGS)
     private val cbFailOnFirstError = new CheckBox("Fail on first error?")
     cbFailOnFirstError.tooltip = "Indicates whether to fail on the first error, or whether to collect all errors!"
     private val lblPathSubstitutions = new Label("Path Substitutions")
@@ -315,26 +345,43 @@ object CsvValidatorUi extends SimpleSwingApplication {
     private val settingsGroupLayout = new GridBagPanel {
       private val c = new Constraints
       c.anchor = Anchor.West
+
       c.gridx = 0
       c.gridy = 0
-      layout(cbFailOnFirstError) = c
+      layout(lblCsvEncoding) = c
+
+      c.gridx = 1
+      c.gridy = 0
+      layout(cmbCsvEncoding) = c
 
       c.gridx = 0
       c.gridy = 1
-      layout(cbEnforceCaseSensitivePathChecks) = c
+      layout(lblCsvSchemaEncoding) = c
+
+      c.gridx = 1
+      c.gridy = 1
+      layout(cmbCsvSchemaEncoding) = c
 
       c.gridx = 0
       c.gridy = 2
+      layout(cbFailOnFirstError) = c
+
+      c.gridx = 0
+      c.gridy = 3
+      layout(cbEnforceCaseSensitivePathChecks) = c
+
+      c.gridx = 0
+      c.gridy = 4
       c.insets = new Insets(0,10,0,0)
       layout(lblPathSubstitutions) = c
 
       c.gridx = 0
-      c.gridy = 3
+      c.gridy = 5
       c.gridwidth = 2
       layout(spTblPathSubstitutions) = c
 
       c.gridx = 1
-      c.gridy = 4
+      c.gridy = 6
       c.anchor = Anchor.LastLineEnd
       layout(btnAddPathSubstitution) = c
     }
@@ -342,6 +389,8 @@ object CsvValidatorUi extends SimpleSwingApplication {
 
     add(settingsGroup)
 
+    def csvEncoding: Charset = cmbCsvEncoding.selection.item
+    def csvSchemaEncoding: Charset = cmbCsvSchemaEncoding.selection.item
     def failOnFirstError: Boolean = cbFailOnFirstError.selected
     def pathSubstitutions: List[(String, String)] = tblPathSubstitutions.pathSubstitutions
     def enforceCaseSensitivePathChecks: Boolean = cbEnforceCaseSensitivePathChecks.selected

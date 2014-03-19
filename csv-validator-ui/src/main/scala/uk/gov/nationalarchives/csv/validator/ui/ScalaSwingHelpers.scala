@@ -13,6 +13,8 @@ import event.{KeyPressed, Key, ButtonClicked}
 import java.io.File
 import swing.FileChooser.Result
 import swing.GridBagPanel.Anchor
+import java.awt.event.{ActionListener, ActionEvent}
+import java.beans.{PropertyChangeEvent, PropertyChangeListener}
 
 /**
  * Some simple helpers to ease
@@ -117,5 +119,9 @@ object ScalaSwingHelpers {
   def onKeyPressed(key : Key.Value)(action: => Unit) : Reactions.Reaction = {
     case KeyPressed(_, _, key, _) =>
       action
+  }
+
+  def PropertyChangeListener(f: PropertyChangeEvent => Unit) = new PropertyChangeListener {
+    def propertyChange(e: PropertyChangeEvent) { f(e) }
   }
 }

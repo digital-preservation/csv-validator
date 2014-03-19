@@ -13,8 +13,11 @@ import scalaz._, Scalaz._
 import scalax.file.Path
 import uk.gov.nationalarchives.csv.validator._
 import java.io.{Reader => JReader}
+import java.nio.charset.{Charset => JCharset}
 
 object CsvValidator {
+
+  final val DEFAULT_ENCODING: JCharset = JCharset.forName("UTF-8")
 
   type PathFrom = String
   type PathTo = String
@@ -29,22 +32,32 @@ object CsvValidator {
   }
 }
 
+/**
+ * Represent a Text file on disk
+ * that has both a path and a specific
+ * encoding.
+ *
+ * If no encoding is specified, then UTF-8 will
+ * be assumed.
+ */
+case class TextFile(file: Path, encoding: JCharset = CsvValidator.DEFAULT_ENCODING)
+
 trait CsvValidator extends SchemaParser {
   this: MetaDataValidator =>
 
-  def validate(metaDataFile: Path, schema: Schema, progress: Option[ProgressCallback]): MetaDataValidation[Any] = {
-    withReader(metaDataFile) {
+  def validate(csvFile: TextFile, csvSchema: Schema, progress: Option[ProgressCallback]): MetaDataValidation[Any] = {
+    withReader(csvFile) {
       reader =>
-        validateKnownRows(reader, schema, progress.map(p => ProgressFor(countRows(metaDataFile), p)))
+        validateKnownRows(reader, csvSchema, progress.map(p => ProgressFor(countRows(csvFile), p)))
     }
   }
 
-  def parseSchema(schemaFilePath: Path): ValidationNel[FailMessage, Schema] = {
-    withReader(schemaFilePath) {
+  def parseSchema(csvSchemaFile: TextFile): ValidationNel[FailMessage, Schema] = {
+    withReader(csvSchemaFile) {
       reader =>
         parseAndValidate(reader)
     }
   }
 
-  def parseSchema(schema: JReader): ValidationNel[FailMessage, Schema] = parseAndValidate(schema)
+  def parseSchema(csvSchema: JReader): ValidationNel[FailMessage, Schema] = parseAndValidate(csvSchema)
 }
