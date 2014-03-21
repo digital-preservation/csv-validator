@@ -75,7 +75,7 @@ This is worth stressing as it was something we had to keep site of ourselves dur
 
 Schema Reference
 ================
-Examples of CSV Schema can be found in the test cases of the csv-core module. See the *.csvs files in [acceptance/](https://github.com/digital-preservation/csv-validator/tree/master/csv-validator-core/src/test/resources/uk/gov/nationalarchives/csv/validator/acceptance).
+Examples of CSV Schema can be found in the test cases of the csv-core module. See the *.csvs files in [acceptance/](https://github.com/digital-preservation/csv-validator/tree/master/csv-validator-core/src/test/resources/uk/gov/nationalarchives/csv/validator/acceptance).  Live schemas will be added to the [csv-schema](https://github.com/digital-preservation/csv-schema) project as we develop them.  Some example CSV files will also appear there.
 
 
 Global Directives
