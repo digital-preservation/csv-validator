@@ -11,7 +11,7 @@ A brief introduction follows below, but a [more comprehensive user guide is avai
 
 Approach
 --------
-Firstly, we have defined a Grammar which describes a language for expressing rules to validate a CSV file. We call such an expression of this language a CSVS (CSV Schema). The grammar itself is described in [EBNF](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_Form) and is available in the [csvschema-grammar.ebnf](csv-schema-grammar.ebnf) file.
+Firstly, we have defined a Grammar which describes a language for expressing rules to validate a CSV file. We call such an expression of this language a CSVS (CSV Schema). The grammar itself is described in [EBNF](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_Form) and is available in the [csv-schema-grammar.ebnf](csv-schema-grammar.ebnf) file.
 
 Secondly, we built an implementation that will take a CSV Schema and a CSV file and assert that each rule in the CSV 
 Schema holds true for the CSV file. The validaton tool is written in Scala 2.10 and may be used as:
@@ -75,7 +75,7 @@ This is worth stressing as it was something we had to keep site of ourselves dur
 
 Schema Reference
 ================
-Examples of CSV Schema can be found in the test cases of the csv-core module. See the *.csvs files in [acceptance/](tree/master/csv-validator-core/src/test/resources/uk/gov/nationalarchives/csv/validator/acceptance/).
+Examples of CSV Schema can be found in the test cases of the csv-core module. See the *.csvs files in [acceptance/](/tree/master/csv-validator-core/src/test/resources/uk/gov/nationalarchives/csv/validator/acceptance).
 
 
 Global Directives
