@@ -11,7 +11,7 @@ A brief introduction follows below, but a [more comprehensive user guide is avai
 
 Approach
 --------
-Firstly, we have defined a Grammar which describes a language for expressing rules to validate a CSV file. We call such an expression of this language a CSVS (CSV Schema). The grammar itself is described in [EBNF](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_Form) and is available in the [csvschema-grammar.ebnf](blob/master/csv-schema-grammar.ebnf) file.
+Firstly, we have defined a Grammar which describes a language for expressing rules to validate a CSV file. We call such an expression of this language a CSVS (CSV Schema). The grammar itself is described in [EBNF](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_Form) and is available in the [csvschema-grammar.ebnf](csv-schema-grammar.ebnf) file.
 
 Secondly, we built an implementation that will take a CSV Schema and a CSV file and assert that each rule in the CSV 
 Schema holds true for the CSV file. The validaton tool is written in Scala 2.10 and may be used as:
@@ -26,7 +26,7 @@ Schema holds true for the CSV file. The validaton tool is written in Scala 2.10 
 
 Use Case
 --------
-TNA (The National Archives) receive Metadata along with Collections of Digitised or Born-Digital Collections. Whilst TNA typically process Metadata in XML and RDF, it was recognised that it was too difficult and/or expensive for many suppliers to produce the desired metadata in XML and/or RDF, as such it was decided that Metadata would be received in CSV format.
+The National Archives receive Metadata along with Collections of Digitised or Born-Digital Collections. Whilst TNA typically process Metadata in XML and RDF, it was recognised that it was too difficult and/or expensive for many suppliers to produce the desired metadata in XML and/or RDF, as such it was decided that Metadata would be received in CSV format.
 
 Our experience shows that when suppliers are asked to produce metadata in XML or RDF there are several possible barriers:
 
