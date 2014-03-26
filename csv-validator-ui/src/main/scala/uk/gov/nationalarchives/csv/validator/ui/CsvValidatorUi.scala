@@ -19,12 +19,18 @@ import swing.GridBagPanel.Anchor
 import uk.gov.nationalarchives.csv.validator.ui.DesignGridImplicits._
 import scala.swing.PopupMenuImplicits._
 import ScalaSwingHelpers._
-import java.awt.Cursor
+import java.awt.{Font, Cursor}
 import java.util.Properties
 import scalax.file.Path
 import uk.gov.nationalarchives.csv.validator.ProgressCallback
 import java.nio.charset.Charset
 import uk.gov.nationalarchives.csv.validator.api.TextFile
+import java.util.jar.{Manifest, Attributes}
+import java.net.URL
+import scala.swing.Dialog.Message
+import scala.swing.event.ButtonClicked
+import javax.swing
+import scala.swing
 
 /**
  * Simple GUI for the CSV Validator
@@ -60,6 +66,40 @@ object CsvValidatorUi extends SimpleSwingApplication {
       }
 
       new ContentPanel(settings)
+    }
+  }
+
+  private def getShortVersion(): String = {
+    extractFromManifest {
+      attributes =>
+        attributes.getValue("Implementation-Version")
+    }.getOrElse("UNKNOWN")
+  }
+
+  private def getLongVersion(): Seq[(String, String)] = {
+    extractFromManifest {
+      attributes =>
+        Seq(
+          ("Version", attributes.getValue("Implementation-Version")),
+          ("Revision", attributes.getValue("Git-Commit")),
+          ("Build Timestamp", attributes.getValue("Build-Timestamp"))
+        )
+    }.getOrElse(Seq(("Version", "UNKNOWN")))
+  }
+
+  private def extractFromManifest[T](extractor: Attributes => T): Option[T] = {
+    val clazz = getClass()
+    val className = clazz.getSimpleName + ".class"
+    val classPath = clazz.getResource(className).toString()
+    if (!classPath.startsWith("jar")) {
+      None // Class not from JAR
+    } else {
+      val manifestPath = classPath.substring(0, classPath.lastIndexOf("!") + 1) + "/META-INF/MANIFEST.MF"
+      managed(new URL(manifestPath).openStream()).map {
+        is =>
+          val manifest = new Manifest(is)
+          extractor(manifest.getMainAttributes)
+      }.opt
     }
   }
 
@@ -263,6 +303,13 @@ object CsvValidatorUi extends SimpleSwingApplication {
       })
     }
 
+    private val lblVersion = new Label(s"Version: ${getShortVersion()}")
+    lblVersion.listenTo(lblVersion.mouse.clicks)
+    lblVersion.font = lblVersion.font.deriveFont(9)
+    lblVersion.reactions += onClick {
+      Dialog.showMessage(this, getLongVersion().map(x => s"${x._1}: ${x._2}").mkString(System.getProperty("line.separator")), "Version Details")
+    }
+
     layout.row.grid(lblCsvFile).add(txtCsvFile, 5).add(btnChooseCsvFile)
     layout.row.grid(lblCsvSchemaFile).add(txtCsvSchemaFile, 5).add(btnChooseCsvSchemaFile)
 
@@ -276,6 +323,8 @@ object CsvValidatorUi extends SimpleSwingApplication {
     layout.row.center.fill.add(separator2)
 
     layout.row.right.withOwnRowWidth.add(btnSave).add(btnClose)
+
+    layout.row.grid(lblVersion)
   }
 
   def updateLastPath(fileChooser: FileChooser, sink: File => Settings) {
