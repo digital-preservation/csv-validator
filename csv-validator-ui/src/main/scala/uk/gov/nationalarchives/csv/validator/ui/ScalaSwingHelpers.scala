@@ -9,11 +9,11 @@
 package uk.gov.nationalarchives.csv.validator.ui
 
 import swing._
-import event.{KeyPressed, Key, ButtonClicked}
+import scala.swing.event.{MouseClicked, KeyPressed, Key, ButtonClicked}
 import java.io.File
 import swing.FileChooser.Result
 import swing.GridBagPanel.Anchor
-import java.awt.event.{ActionListener, ActionEvent}
+import java.awt.event.{MouseEvent, MouseListener, ActionListener, ActionEvent}
 import java.beans.{PropertyChangeEvent, PropertyChangeListener}
 
 /**
@@ -107,6 +107,9 @@ object ScalaSwingHelpers {
    */
   def onClick(action: => Unit) : Reactions.Reaction = {
     case evt: ButtonClicked =>
+      action
+
+    case evt: MouseClicked =>
       action
   }
 

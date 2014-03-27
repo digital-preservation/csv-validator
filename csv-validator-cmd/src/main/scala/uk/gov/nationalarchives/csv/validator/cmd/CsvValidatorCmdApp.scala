@@ -8,14 +8,19 @@
  */
 package uk.gov.nationalarchives.csv.validator.cmd
 
-import scalaz.{Success => SuccessZ, Failure => FailureZ, _}
+
+import resource.managed
 import scala.App
-import uk.gov.nationalarchives.csv.validator._
-import uk.gov.nationalarchives.csv.validator.api.CsvValidator.{SubstitutePath, createValidator}
 import scalax.file.Path
+import scalaz.{Success => SuccessZ, Failure => FailureZ, _}
 import scopt.Read
+import uk.gov.nationalarchives.csv.validator._
 import uk.gov.nationalarchives.csv.validator.api.{CsvValidator, TextFile}
+import uk.gov.nationalarchives.csv.validator.api.CsvValidator.{SubstitutePath, createValidator}
+import java.net.URL
 import java.nio.charset.Charset
+import java.util.jar.{Attributes, Manifest}
+
 
 object  SystemExits {
   val ValidCsv = 0
@@ -30,7 +35,7 @@ object CsvValidatorCmdApp extends App {
   println(exitMsg)
   System.exit(exitCode)
 
-  case class Config(failFast: Boolean = false, substitutePaths: List[SubstitutePath] = List.empty[SubstitutePath], caseSensitivePaths: Boolean = false, csvPath: Path = Path.fromString("."), csvEncoding: Charset = CsvValidator.DEFAULT_ENCODING, csvSchemaPath: Path = Path.fromString("."), csvSchemaEncoding: Charset = CsvValidator.DEFAULT_ENCODING)
+  case class Config(failFast: Boolean = false, substitutePaths: List[SubstitutePath] = List.empty[SubstitutePath], caseSensitivePaths: Boolean = false, showVersion: Boolean = false, csvPath: Path = Path.fromString("."), csvEncoding: Charset = CsvValidator.DEFAULT_ENCODING, csvSchemaPath: Path = Path.fromString("."), csvSchemaEncoding: Charset = CsvValidator.DEFAULT_ENCODING)
 
   def run(args: Array[String]): (String,Int) = {
 
@@ -38,7 +43,9 @@ object CsvValidatorCmdApp extends App {
     implicit val charsetRead: Read[Charset] = Read.reads { Charset.forName(_) }
 
     val parser = new scopt.OptionParser[Config]("validate") {
-        head("CSV Validator - Command Line")
+        head("CSV Validator - Command Line", getShortVersion())
+        help("help") text("Prints this usage text")
+        //opt[Boolean]("version") action { (x,c) => c.copy(showVersion = x) } text { "Display the version information" } //TODO would be nice if '--version' could be used without specifying CSV+CSVS paths etc //getLongVersion().map(x => s"${x._1}: ${x._2}").foreach(println(_))
         opt[Boolean]('f', "fail-fast") optional() action { (x,c) => c.copy(failFast = x) } text("Stops on the first validation error rather than reporting all errors")
         opt[SubstitutePath]('p', "path") optional() unbounded() action { (x,c) => c.copy(substitutePaths = c.substitutePaths :+ x) } text("Allows you to substitute a file path (or part of) in the CSV for a different file path")
         opt[Boolean]('c', "case-sensitive-paths") optional() action { (x,c) => c.copy(caseSensitivePaths = x) } text("Enforces case-sensitive file path checking. Useful when validating on case-insensitive filesystems like Windows NTFS")
@@ -46,7 +53,6 @@ object CsvValidatorCmdApp extends App {
         opt[Charset]('y', "csv-schema-encoding") optional() action { (x,c) => c.copy(csvSchemaEncoding = x) } text("Defines the charset encoding used in the CSV Schema file")
         arg[Path]("<csv-path>") validate { x => if(x.exists && x.canRead) success else failure(s"Cannot access CSV file: ${x.path}") } action { (x,c) => c.copy(csvPath = x) } text("The path to the CSV file to validate")
         arg[Path]("<csv-schema-path>") validate { x => if(x.exists && x.canRead) success else failure(s"Cannot access CSV Schema file: ${x.path}") } action { (x,c) => c.copy(csvSchemaPath = x) } text("The path to the CSV Schema file to use for validation")
-        help("help") text("Prints this usage text")
     }
 
     //parse the command line arguments
@@ -56,6 +62,40 @@ object CsvValidatorCmdApp extends App {
     } getOrElse {
       //arguments are bad, usage message will have been displayed
       ("", SystemExits.IncorrectArguments)
+    }
+  }
+
+  private def getShortVersion(): String = {
+    extractFromManifest {
+      attributes =>
+        attributes.getValue("Implementation-Version")
+    }.getOrElse("UNKNOWN")
+  }
+
+  private def getLongVersion(): Seq[(String, String)] = {
+    extractFromManifest {
+      attributes =>
+        Seq(
+          ("Version", attributes.getValue("Implementation-Version")),
+          ("Revision", attributes.getValue("Git-Commit")),
+          ("Build Timestamp", attributes.getValue("Build-Timestamp"))
+        )
+    }.getOrElse(Seq(("Version", "UNKNOWN")))
+  }
+
+  private def extractFromManifest[T](extractor: Attributes => T): Option[T] = {
+    val clazz = getClass()
+    val className = clazz.getSimpleName + ".class"
+    val classPath = clazz.getResource(className).toString()
+    if (!classPath.startsWith("jar")) {
+      None // Class not from JAR
+    } else {
+      val manifestPath = classPath.substring(0, classPath.lastIndexOf("!") + 1) + "/META-INF/MANIFEST.MF"
+      managed(new URL(manifestPath).openStream()).map {
+        is =>
+          val manifest = new Manifest(is)
+          extractor(manifest.getMainAttributes)
+      }.opt
     }
   }
 
