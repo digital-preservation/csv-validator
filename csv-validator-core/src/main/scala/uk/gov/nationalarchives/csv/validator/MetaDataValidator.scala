@@ -11,7 +11,7 @@ package uk.gov.nationalarchives.csv.validator
 import scalaz._, Scalaz._
 import java.io.{IOException, Reader => JReader, FileReader => JFileReader, InputStreamReader => JInputStreamReader, FileInputStream => JFileInputStream, LineNumberReader => JLineNumberReader}
 import resource._
-import uk.gov.nationalarchives.csv.validator.schema.{NoHeader, Schema}
+import uk.gov.nationalarchives.csv.validator.schema.{Separator, NoHeader, Schema}
 import uk.gov.nationalarchives.csv.validator.metadata.Cell
 
 import au.com.bytecode.opencsv.{CSVParser, CSVReader}
@@ -53,9 +53,14 @@ trait MetaDataValidator {
 
   def validateKnownRows(csv: JReader, schema: Schema, progress: Option[ProgressFor]): MetaDataValidation[Any] = {
 
+    val separator = schema.globalDirectives.collectFirst {
+      case Separator(sep) =>
+        sep
+    }.getOrElse(CSVParser.DEFAULT_SEPARATOR)
+
     //TODO CSVReader does not appear to be RFC 4180 compliant as it does not support escaping a double-quote with a double-quote between double-quotes
     //we need a better CSV Reader!
-    managed(new CSVReader(csv, CSVParser.DEFAULT_SEPARATOR, CSVParser.DEFAULT_QUOTE_CHARACTER, CSVParser.NULL_CHARACTER)) map {
+    managed(new CSVReader(csv, separator, CSVParser.DEFAULT_QUOTE_CHARACTER, CSVParser.NULL_CHARACTER)) map {
       reader =>
 
         val rowIt = new RowIterator(reader, progress)
