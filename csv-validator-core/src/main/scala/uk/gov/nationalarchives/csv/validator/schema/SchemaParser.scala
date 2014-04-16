@@ -74,9 +74,9 @@ trait SchemaParser extends RegexParsers {
 
   def globalDirectives: Parser[List[GlobalDirective]] = rep(positioned(globalDirective <~ (whiteSpace ~ opt(eol | endOfInput))))
 
-  def globalDirective = totalColumns | noHeaderDirective | ignoreColumnNameCaseDirective
+  def globalDirective = totalColumnsDirective | noHeaderDirective | ignoreColumnNameCaseDirective
 
-  def totalColumns: Parser[TotalColumns] = (("@totalColumns" ~ white) ~> positiveNumber ^^ { posInt => TotalColumns(posInt.toInt) }).withFailureMessage("@totalColumns invalid")
+  def totalColumnsDirective: Parser[TotalColumns] = (("@totalColumns" ~ white) ~> positiveNumber ^^ { posInt => TotalColumns(posInt.toInt) }).withFailureMessage("@totalColumns invalid")
 
   def noHeaderDirective: Parser[NoHeader] = "@noHeader" ~ white ^^^ NoHeader()
 
