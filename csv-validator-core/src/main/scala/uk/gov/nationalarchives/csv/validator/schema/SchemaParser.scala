@@ -79,10 +79,11 @@ trait SchemaParser extends RegexParsers {
 
   def globalDirective = separatorDirective | quotedDirective | totalColumnsDirective | noHeaderDirective | ignoreColumnNameCaseDirective
 
-  def separatorDirective: Parser[Separator] = ("@separator" ~ white) ~> ("TAB" | "'" ~> charRegex <~ "'") ^^ {
-    case "TAB" =>
-      Separator('\t')
+  def separatorDirective: Parser[Separator] = ("@separator" ~ white) ~> (separatorDirectiveTab | separatorDirectiveChar)
 
+  def separatorDirectiveTab: Parser[Separator] = ("TAB" | """'\t'""") ^^^ Separator('\t')
+
+  def separatorDirectiveChar: Parser[Separator] =  "'" ~> charRegex <~ "'" ^^ {
     case charStr =>
       Separator(charStr.toCharArray()(0))
   }

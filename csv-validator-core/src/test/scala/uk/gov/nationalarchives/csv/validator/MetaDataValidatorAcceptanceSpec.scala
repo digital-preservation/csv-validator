@@ -55,6 +55,12 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
       }
     }
 
+    "succeed for '\t' separator" in {
+      validate(TextFile(Path.fromString(base) / "separated2.tsv"), parse(base + "/separated2-1.csvs"), None) must beLike {
+        case Success(_) => ok
+      }
+    }
+
     "with @quoted global directive" should {
       "succeed for '$' separator" in {
         validate(TextFile(Path.fromString(base) / "separated3.dsv"), parse(base + "/separated3.csvs"), None) must beLike {
@@ -64,6 +70,12 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
       "succeed for TAB separator" in {
         validate(TextFile(Path.fromString(base) / "separated4.tsv"), parse(base + "/separated4.csvs"), None) must beLike {
+          case Success(_) => ok
+        }
+      }
+
+      "succeed for '\t' separator" in {
+        validate(TextFile(Path.fromString(base) / "separated4.tsv"), parse(base + "/separated4-1.csvs"), None) must beLike {
           case Success(_) => ok
         }
       }
