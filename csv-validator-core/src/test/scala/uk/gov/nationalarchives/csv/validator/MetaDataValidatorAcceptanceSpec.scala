@@ -54,6 +54,20 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
         case Success(_) => ok
       }
     }
+
+    "with @quoted global directive" should {
+      "succeed for '$' separator" in {
+        validate(TextFile(Path.fromString(base) / "separated3.dsv"), parse(base + "/separated3.csvs"), None) must beLike {
+          case Success(_) => ok
+        }
+      }
+
+      "succeed for TAB separator" in {
+        validate(TextFile(Path.fromString(base) / "separated4.tsv"), parse(base + "/separated4.csvs"), None) must beLike {
+          case Success(_) => ok
+        }
+      }
+    }
   }
 
   "Regex rule" should {

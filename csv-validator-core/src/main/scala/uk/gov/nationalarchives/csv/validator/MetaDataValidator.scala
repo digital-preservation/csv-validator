@@ -11,7 +11,7 @@ package uk.gov.nationalarchives.csv.validator
 import scalaz._, Scalaz._
 import java.io.{IOException, Reader => JReader, FileReader => JFileReader, InputStreamReader => JInputStreamReader, FileInputStream => JFileInputStream, LineNumberReader => JLineNumberReader}
 import resource._
-import uk.gov.nationalarchives.csv.validator.schema.{Separator, NoHeader, Schema}
+import uk.gov.nationalarchives.csv.validator.schema.{Quoted, Separator, NoHeader, Schema}
 import uk.gov.nationalarchives.csv.validator.metadata.Cell
 
 import au.com.bytecode.opencsv.{CSVParser, CSVReader}
@@ -58,7 +58,13 @@ trait MetaDataValidator {
         sep
     }.getOrElse(CSVParser.DEFAULT_SEPARATOR)
 
+    val quote = schema.globalDirectives.collectFirst {
+      case q: Quoted =>
+        CSVParser.DEFAULT_QUOTE_CHARACTER
+    }
+
     //TODO CSVReader does not appear to be RFC 4180 compliant as it does not support escaping a double-quote with a double-quote between double-quotes
+    //TODO CSVReader does not seem to allow you to enable/disable quoted columns
     //we need a better CSV Reader!
     managed(new CSVReader(csv, separator, CSVParser.DEFAULT_QUOTE_CHARACTER, CSVParser.NULL_CHARACTER)) map {
       reader =>
