@@ -29,7 +29,7 @@ TotalColumnsDirective           ::=     DirectivePrefix "totalColumns" PositiveN
 NoHeaderDirective               ::=     DirectivePrefix "noHeader"
 IgnoreColumnNameCaseDirective   ::=     DirectivePrefix "ignoreColumnNameCase"
 
-TABExpr                         ::=     "TAB" ("(" PositiveNonZeroIntegerLiteral ")")?
+TABExpr                         ::=     "TAB" ("(" PositiveNonZeroIntegerLiteral ")")? /*if parameter supplied, TAB is treated as that number of spaces, tather than as Unicode tab character*/
 SeparatorChar                   ::=     CharacterLiteral
 
 Body                            ::=     BodyPart+
