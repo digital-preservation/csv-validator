@@ -77,7 +77,7 @@ trait SchemaParser extends RegexParsers {
 
   def globalDirectives: Parser[List[GlobalDirective]] = rep(positioned(globalDirective <~ (whiteSpace ~ opt(eol | endOfInput))))
 
-  def globalDirective = separatorDirective | totalColumnsDirective | noHeaderDirective | ignoreColumnNameCaseDirective
+  def globalDirective = separatorDirective | quotedDirective | totalColumnsDirective | noHeaderDirective | ignoreColumnNameCaseDirective
 
   def separatorDirective: Parser[Separator] = ("@separator" ~ white) ~> ("TAB" | "'" ~> charRegex <~ "'") ^^ {
     case "TAB" =>
@@ -86,6 +86,8 @@ trait SchemaParser extends RegexParsers {
     case charStr =>
       Separator(charStr.toCharArray()(0))
   }
+
+  def quotedDirective: Parser[Quoted] = "@quoted" ~ white ^^^ Quoted()
 
   def totalColumnsDirective: Parser[TotalColumns] = (("@totalColumns" ~ white) ~> positiveNumber ^^ { posInt => TotalColumns(posInt.toInt) }).withFailureMessage("@totalColumns invalid")
 
