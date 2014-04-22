@@ -413,6 +413,24 @@ batch_code,department,series,piece,item,ordinal,file_uuid,file_path,file_checksu
 				</div>
             </div>
             <div>
+                <h2>Examples</h2>
+                <p>
+				In order to understand how to use the Validator in practice, see the example Schema file, 
+				<a href="http://github.com/digital-preservation/csv-schema/blob/master/digitised_surrogate_tech_acq_metadata_v1_TESTBATCH000.csvs">digitised_surrogate_tech_acq_metadata_v1_TESTBATCH000.csvs</a>,
+				in the GitHub repository <a href="http://github.com/digital-preservation/csv-schema">digital-preservation/csv-schema</a>. 
+				In the <a href="http://github.com/digital-preservation/csv-schema/tree/master/examples">examples</a> subfolder you will find a CSV file, 
+				<a href="http://github.com/digital-preservation/csv-schema/blob/master/examples/digitised_surrogate_tech_acq_metadata_v1_TESTBATCH000.csv">digitised_surrogate_tech_acq_metadata_v1_TESTBATCH000.csv</a>, 
+				which complies with the schema. This CSV file refers to XML files in the folder structure below <a href="http://github.com/digital-preservation/csv-schema/tree/master/examples/TEST_1">TEST_1</a>
+				</p>
+				<p>
+				If you download the csv-schema repository and run the csv-validator (by either of the methods described above), you will find that initially it reports validation errors 
+				as it cannot find the XML files for the fileExists or checksum column validation tests.  If you create a path substitution, replacing file:///TEST_1/ with 
+				file:///&lt;your system path&gt;/TEST_1/ (if you simply placed the repository on your C:\ drive, &lt;your system path&gt; will look something like,
+				c:\csv-schema\examples, but as it's a URL, you should reverse the slashes, c:/csv-schema/examples - in addition if there are any spaces in the path, 
+				you must escape them by replacing them with %20) you should then find that all tests pass.
+				</p>
+            </div>
+            <div>
                 <h2>For Software Developers</h2>
                 <p>TODO point to GitHub README.md</p>
             </div>
