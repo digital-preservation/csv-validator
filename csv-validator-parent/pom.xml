@@ -178,7 +178,7 @@
                         <exclude>**/README.md</exclude>
                         <exclude>**/LICENSE</exclude>
                         <exclude>**/*.csvs</exclude>
-                        <exclude>**/*.csv</exclude>git
+                        <exclude>**/*.csv</exclude>
                         <exclude>**/*.txt</exclude>
                         <exclude>**/*.jp2</exclude>
                     </excludes>
