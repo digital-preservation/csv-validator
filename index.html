@@ -427,7 +427,10 @@ batch_code,department,series,piece,item,ordinal,file_uuid,file_path,file_checksu
 				as it cannot find the XML files for the fileExists or checksum column validation tests.  If you create a path substitution, replacing file:///TEST_1/ with 
 				file:///&lt;your system path&gt;/TEST_1/ (if you simply placed the repository on your C:\ drive, &lt;your system path&gt; will look something like,
 				c:\csv-schema\examples, but as it's a URL, you should reverse the slashes, c:/csv-schema/examples - in addition if there are any spaces in the path, 
-				you must escape them by replacing them with %20) you should then find that all tests pass.
+				you must escape them by replacing them with %20) you should then find that all tests pass.  There is an additional complication that the % character is treated as a
+				special character in Windows scripts, and itself needs to be escaped, so you should actually use %%20 to obtain the desired behaviour (there can be a further complication 
+				if you are calling out from a controlling script to launch the validator ie <code>call validate.bat</code> where the outer script will do a first replacement of the escaped
+				character, and so within the call statement you would actually need to use %%%%20 to obtain the desired behaviour (this is passed to the call statement itself as %%20).
 				</p>
             </div>
             <div>
