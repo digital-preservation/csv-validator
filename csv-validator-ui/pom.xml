@@ -100,17 +100,24 @@
             <artifactId>scala-library</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scala-swing</artifactId>
-            <version>${scala.version}</version>
+            <groupId>org.scala-lang.modules</groupId>
+            <artifactId>scala-swing_${scala.version}</artifactId>
+            <version>1.0.1</version>
         </dependency>
         <dependency>
-            <groupId>com.jsuereth</groupId>
-            <artifactId>scala-arm_2.10</artifactId>
+            <groupId>com.madgag</groupId>
+            <artifactId>scala-arm_${scala.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>com.github.scala-incubator.io</groupId>
-            <artifactId>scala-io-file_2.10</artifactId>
+            <artifactId>scala-io-file_${scala.version}</artifactId>
+            <exclusions>
+                <exclusion>
+                    <!-- see https://github.com/jesseeichar/scala-io/issues/94 -->
+                    <groupId>org.scala-lang.modules</groupId>
+                    <artifactId>scala-parser-combinators_2.11</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>net.java.dev.designgridlayout</groupId>

@@ -58,7 +58,7 @@ class FileCountSpec extends Specification with TestResources {
 
   "fileCount" should {
     "find a match on a directory" in {
-      val fileCountRule = new FileCountRule( Literal(Some(s"$threeFilesPath/**/*.jp2")) )
+      val fileCountRule = new FileCountRule( Literal(Some(s"$threeFilesPath/**/*.jp2")), List.empty )
       val expectedFileCount = "3"
       fileCountRule.evaluate(0, Row(List(Cell(expectedFileCount)), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition("column1")))) mustEqual Success(true)
 

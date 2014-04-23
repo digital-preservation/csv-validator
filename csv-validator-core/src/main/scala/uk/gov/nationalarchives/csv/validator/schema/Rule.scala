@@ -405,8 +405,8 @@ case class UniqueMultiRule( columns: List[String] ) extends Rule("unique(") {
 }
 
 case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: String, pathSubstitutions: List[(String,String)], enforceCaseSensitivePathChecks: Boolean = false) extends Rule("checksum", Seq(rootPath, file): _*) with FileWildcardSearch[String] {
-  def this(file: ArgProvider, algorithm: String, pathSubstitutions: List[(String,String)], enforceCaseSensitivePathChecks: Boolean = false) = this(Literal(None), file, algorithm, pathSubstitutions, enforceCaseSensitivePathChecks)
-  def this(file: ArgProvider, algorithm: String, enforceCaseSensitivePathChecks: Boolean = false) = this(Literal(None), file, algorithm, List.empty[(String,String)], enforceCaseSensitivePathChecks)
+  def this(file: ArgProvider, algorithm: String, pathSubstitutions: List[(String,String)], enforceCaseSensitivePathChecks: Boolean) = this(Literal(None), file, algorithm, pathSubstitutions, enforceCaseSensitivePathChecks)
+  def this(file: ArgProvider, algorithm: String, enforceCaseSensitivePathChecks: Boolean) = this(Literal(None), file, algorithm, List.empty[(String,String)], enforceCaseSensitivePathChecks)
 
   override def evaluate(columnIndex: Int, row: Row, schema: Schema): RuleValidation[Any] = {
     val columnDefinition = schema.columnDefinitions(columnIndex)
@@ -506,7 +506,7 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
 }
 
 case class FileCountRule(rootPath: ArgProvider, file: ArgProvider, pathSubstitutions: List[SubstitutePath] = List.empty) extends Rule("fileCount", Seq(rootPath, file): _*) with FileWildcardSearch[Int] {
-  def this(file: ArgProvider, pathSubstitutions: List[SubstitutePath] = List.empty) = this(Literal(None), file, pathSubstitutions)
+  def this(file: ArgProvider, pathSubstitutions: List[SubstitutePath]) = this(Literal(None), file, pathSubstitutions)
   def this(rootPath: Literal, file: Literal) = this(rootPath, file,  List.empty)
 
   def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {

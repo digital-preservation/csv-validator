@@ -20,7 +20,7 @@
         <developerConnection>scm:git:https://github.com/digital-preservation/csv-validator.git</developerConnection>
         <url>scm:git:https://github.com/digital-preservation/csv-validator.git</url>
       <tag>HEAD</tag>
-  </scm>
+    </scm>
 
     <modules>
         <module>csv-validator-parent</module>
