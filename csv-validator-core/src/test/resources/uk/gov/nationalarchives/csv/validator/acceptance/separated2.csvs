@@ -1,0 +1,6 @@
+version 1.0
+@totalColumns 3
+@separator TAB
+col1: notEmpty
+col2: notEmpty
+col3: notEmpty

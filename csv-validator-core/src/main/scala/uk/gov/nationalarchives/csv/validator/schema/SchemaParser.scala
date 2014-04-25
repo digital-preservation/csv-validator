@@ -36,8 +36,11 @@ trait SchemaParser extends RegexParsers {
 
   val number: Parser[BigDecimal] = """(-|\+)*[0-9]*+(\.[0-9]*)?""".r ^^ { BigDecimal(_) }
 
+  val charPattern = """([^"\p{Cntrl}]|\\[\\'"bfnrt]|\\u[a-fA-F0-9]{4})"""
+
   //val stringRegex = """([^"\p{Cntrl}\\]|\\[\\'"bfnrt]|\\u[a-fA-F0-9]{4})*""".r
-  val stringRegex = """([^"\p{Cntrl}]|\\[\\'"bfnrt]|\\u[a-fA-F0-9]{4})*""".r     //allow un-escaped '\'
+  val stringRegex = s"""$charPattern*""".r     //allow un-escaped '\'
+  val charRegex = charPattern.r
 
   val Regex = """([(]")(.*?)("[)])""".r
 
@@ -74,9 +77,20 @@ trait SchemaParser extends RegexParsers {
 
   def globalDirectives: Parser[List[GlobalDirective]] = rep(positioned(globalDirective <~ (whiteSpace ~ opt(eol | endOfInput))))
 
-  def globalDirective = totalColumns | noHeaderDirective | ignoreColumnNameCaseDirective
+  def globalDirective = separatorDirective | quotedDirective | totalColumnsDirective | noHeaderDirective | ignoreColumnNameCaseDirective
 
-  def totalColumns: Parser[TotalColumns] = (("@totalColumns" ~ white) ~> positiveNumber ^^ { posInt => TotalColumns(posInt.toInt) }).withFailureMessage("@totalColumns invalid")
+  def separatorDirective: Parser[Separator] = ("@separator" ~ white) ~> (separatorDirectiveTab | separatorDirectiveChar)
+
+  def separatorDirectiveTab: Parser[Separator] = ("TAB" | """'\t'""") ^^^ Separator('\t')
+
+  def separatorDirectiveChar: Parser[Separator] =  "'" ~> charRegex <~ "'" ^^ {
+    case charStr =>
+      Separator(charStr.toCharArray()(0))
+  }
+
+  def quotedDirective: Parser[Quoted] = "@quoted" ~ white ^^^ Quoted()
+
+  def totalColumnsDirective: Parser[TotalColumns] = (("@totalColumns" ~ white) ~> positiveNumber ^^ { posInt => TotalColumns(posInt.toInt) }).withFailureMessage("@totalColumns invalid")
 
   def noHeaderDirective: Parser[NoHeader] = "@noHeader" ~ white ^^^ NoHeader()
 

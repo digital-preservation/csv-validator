@@ -7,11 +7,11 @@ A Schema Language and Validation Tool for CSV (Comma Separated Value) files.
 
 Released under the [Mozilla Public Licence version 2.0](http://www.mozilla.org/MPL/2.0/).
 
-A brief introduction follows below, but a [more comprehensive user guide is available in GitHub pages] (https://digital-preservation.github.io/csv-validator/), along with a more [complete specification of the CSV Schema language] (https://digital-preservation.github.io/csv-validator/csv-schema-1.0.html).  Both documents are in development.
+A brief introduction follows below, but a [more comprehensive user guide is available in GitHub pages] (http://digital-preservation.github.io/csv-validator/), along with a more [complete specification of the CSV Schema language] (http://digital-preservation.github.io/csv-validator/csv-schema-1.0.html).  Both documents are in development.
 
 Approach
 --------
-Firstly, we have defined a Grammar which describes a language for expressing rules to validate a CSV file. We call such an expression of this language a CSVS (CSV Schema). The grammar itself is described in [EBNF](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_Form) and is available in the [csvschema-grammar.ebnf](blob/master/csv-schema-grammar.ebnf) file.
+Firstly, we have defined a Grammar which describes a language for expressing rules to validate a CSV file. We call such an expression of this language a CSVS (CSV Schema). The grammar itself is described in [EBNF](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_Form) and is available in the [csv-schema-grammar.ebnf](csv-schema-grammar.ebnf) file.
 
 Secondly, we built an implementation that will take a CSV Schema and a CSV file and assert that each rule in the CSV 
 Schema holds true for the CSV file. The validaton tool is written in Scala 2.10 and may be used as:
@@ -26,7 +26,7 @@ Schema holds true for the CSV file. The validaton tool is written in Scala 2.10 
 
 Use Case
 --------
-TNA (The National Archives) receive Metadata along with Collections of Digitised or Born-Digital Collections. Whilst TNA typically process Metadata in XML and RDF, it was recognised that it was too difficult and/or expensive for many suppliers to produce the desired metadata in XML and/or RDF, as such it was decided that Metadata would be received in CSV format.
+The National Archives receive Metadata along with Collections of Digitised or Born-Digital Collections. Whilst TNA typically process Metadata in XML and RDF, it was recognised that it was too difficult and/or expensive for many suppliers to produce the desired metadata in XML and/or RDF, as such it was decided that Metadata would be received in CSV format.
 
 Our experience shows that when suppliers are asked to produce metadata in XML or RDF there are several possible barriers:
 
@@ -75,7 +75,7 @@ This is worth stressing as it was something we had to keep site of ourselves dur
 
 Schema Reference
 ================
-Examples of CSV Schema can be found in the test cases of the csv-core module. See the *.csvs files in [acceptance/](tree/master/csv-validator-core/src/test/resources/uk/gov/nationalarchives/csv/validator/acceptance/).
+Examples of CSV Schema can be found in the test cases of the csv-core module. See the *.csvs files in [acceptance/](https://github.com/digital-preservation/csv-validator/tree/master/csv-validator-core/src/test/resources/uk/gov/nationalarchives/csv/validator/acceptance).  Live schemas will be added to the [csv-schema](https://github.com/digital-preservation/csv-schema) project as we develop them.  Some example CSV files will also appear there.
 
 
 Global Directives

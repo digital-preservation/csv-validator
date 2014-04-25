@@ -1,0 +1,7 @@
+version 1.0
+@totalColumns 3
+@separator '$'
+@quoted
+col1: notEmpty
+col2: notEmpty
+col3: notEmpty

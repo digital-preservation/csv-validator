@@ -42,6 +42,46 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
   def parse(reader: io.Reader): Schema = parseSchema(reader) fold (f => throw new IllegalArgumentException(f.toString()), s => s)
   def parseE(reader: io.Reader): Schema = parseSchemaE(reader) fold (f => throw new IllegalArgumentException(f.toString()), s => s)
 
+  "@separator global directive" should {
+    "succeed for '$' separator" in {
+      validate(TextFile(Path.fromString(base) / "separated1.dsv"), parse(base + "/separated1.csvs"), None) must beLike {
+        case Success(_) => ok
+      }
+    }
+
+    "succeed for TAB separator" in {
+      validate(TextFile(Path.fromString(base) / "separated2.tsv"), parse(base + "/separated2.csvs"), None) must beLike {
+        case Success(_) => ok
+      }
+    }
+
+    "succeed for '\t' separator" in {
+      validate(TextFile(Path.fromString(base) / "separated2.tsv"), parse(base + "/separated2-1.csvs"), None) must beLike {
+        case Success(_) => ok
+      }
+    }
+
+    "with @quoted global directive" should {
+      "succeed for '$' separator" in {
+        validate(TextFile(Path.fromString(base) / "separated3.dsv"), parse(base + "/separated3.csvs"), None) must beLike {
+          case Success(_) => ok
+        }
+      }
+
+      "succeed for TAB separator" in {
+        validate(TextFile(Path.fromString(base) / "separated4.tsv"), parse(base + "/separated4.csvs"), None) must beLike {
+          case Success(_) => ok
+        }
+      }
+
+      "succeed for '\t' separator" in {
+        validate(TextFile(Path.fromString(base) / "separated4.tsv"), parse(base + "/separated4-1.csvs"), None) must beLike {
+          case Success(_) => ok
+        }
+      }
+    }
+  }
+
   "Regex rule" should {
 
     "succeed for metadata file with column that passes regex rule" in {
