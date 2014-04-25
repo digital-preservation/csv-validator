@@ -9,14 +9,13 @@
 package uk.gov.nationalarchives.csv.validator
 
 import scalaz._, Scalaz._
-import java.io.{IOException, Reader => JReader, FileReader => JFileReader, InputStreamReader => JInputStreamReader, FileInputStream => JFileInputStream, LineNumberReader => JLineNumberReader}
+import java.io.{IOException, Reader => JReader, InputStreamReader => JInputStreamReader, FileInputStream => JFileInputStream, LineNumberReader => JLineNumberReader}
 import resource._
 import uk.gov.nationalarchives.csv.validator.schema.{Quoted, Separator, NoHeader, Schema}
 import uk.gov.nationalarchives.csv.validator.metadata.Cell
 
 import au.com.bytecode.opencsv.{CSVParser, CSVReader}
 import uk.gov.nationalarchives.csv.validator.metadata.Row
-import scalax.file.Path
 import scala.annotation.tailrec
 import uk.gov.nationalarchives.csv.validator.api.TextFile
 
