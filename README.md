@@ -73,110 +73,15 @@ We try to do the right thing by default, CSV files and their bretheren (Tab Sepa
 This is worth stressing as it was something we had to keep site of ourselves during development; CSV Schema is a simple data definition and validation language for CSV!
 
 
-Schema Reference
-================
-Examples of CSV Schema can be found in the test cases of the csv-core module. See the *.csvs files in [acceptance/](https://github.com/digital-preservation/csv-validator/tree/master/csv-validator-core/src/test/resources/uk/gov/nationalarchives/csv/validator/acceptance).  Live schemas will be added to the [csv-schema](https://github.com/digital-preservation/csv-schema) project as we develop them.  Some example CSV files will also appear there.
+Schema Examples
+===============
+Examples of CSV Schema can be found in the test cases of the csv-core module. See the *.csvs files in [acceptance/](https://github.com/digital-preservation/csv-validator/tree/master/csv-validator-core/src/test/resources/uk/gov/nationalarchives/csv/validator/acceptance). Schemas used by the Digital Preservation department at The National Archives are also available in the [csv-schema](https://github.com/digital-preservation/csv-schema) repository.
 
 
-Global Directives
------------------
-Global Directives influence the processing of the CSV file and are applied to the further rules in the CSV Schema.
+Limitations of the CSV Validator Tool
+=====================================
+The CSV Validator does not yet implement the complete CSV Schema 1.0 language. Limitations and missing functionality are:
 
-- - -
-```csvs
-@totalColumns n
-```
-Asserts that the CSV file MUST have `n` columns on each line. Will also be checked against the number of `column validation rules` in the CSV Schema.
-- - -
-```csvs
-@noHeader
-```
-Asserts that the CSV file SHALL NOT have a header line which contains the column names. All `column validation rules` will be asserted from line 1 of the CSV file, rather than line 2.
+* No checking of column names in the CSV Schema is performed against the CSV file; as such `@ignoreColumnNameCase` has no effect.
 
-Comments
---------
-Comments in CSV Schema are the same as those in C++ and Java.
-
-```csvs
-// this is a single line comment
-
-// this is another single line comment
-```
-
-```csvs
-/* this is a multi-line
-comment */
-
-/*
-	This is another multi-line
-	comment
-*/
-```
-
-General Column Validation Rules
--------------------------------
-```csvs
-notEmpty
-```
-Asserts that the value of the current row at the declared column is not-empty. That is to say there must be some value present whatever it is.
-- - -
-```csvs
-length(n)
-```
-Asserts that the value of the current row at the declared column consists of `n` characters.
-
-```csvs
-length(n, *)
-```
-Asserts that the value of the current row at the declared column consists of at least `n` characters.
-
-```csvs
-length(*, n)
-```
-Asserts that the value of the current row at the declared column consists of at most `n` characters.
-
-```csvs
-length(n1, n2)
-```
-Asserts that the value of the current row at the declared column consists of at least `n1` and no more than `n2` characters.
-
-String Column Validation Rules
-------------------------------
-```csvs
-is(string-provider)
-```
-Asserts that the value of the current row at the declared column is that of the `string-provider`. The `string-provider` may be either a String Literal e.g. "some-value" or a reference to another column in the same row e.g. $some-other-column.
-- - - 
-```csvs
-not(string-provider)
-```
-Asserts the inverse of `is`. That is to say that, it asserts that the value of the current row at the declared column is NOT that of the `string-provider`.
-- - -
-```csvs
-in(string-provider)
-```
-Asserts that the value of the current row at the declared column is in the value of the `string-provider`.
-- - -
-```csvs
-starts(string-provider)
-```
-Asserts that the value of the current row at the declared column starts with the value of the `string-provider`.
-- - -
-```csvs
-ends(string-provider)
-```
-Compliment of `starts`. That is to say that, the value of the current row at the declared column ends with the value of the `string-provider`.
-- - -
-```csvs
-regex(string-provider)
-```
-Asserts that the value of the current row at the declared column matches the Regular Expression provided by the value of the `string-provider`.
-
-
-Numeric Column Validation Rules
--------------------------------
-- - -
-```csvs
-range(n1, n2)
-```
-Asserts that the value of the current row at the declared column lies between the numbers `n1` and `n2` inclusive.
+* @matchIsFalse column directive is not yet implemented.
