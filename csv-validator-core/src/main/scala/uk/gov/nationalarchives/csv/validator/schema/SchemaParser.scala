@@ -104,9 +104,9 @@ trait SchemaParser extends RegexParsers {
 
   def comment: Parser[Any] = singleLineComment | multiLineComment
 
-  def singleLineComment: Parser[String] = """//.*\r?\n""".r
+  def singleLineComment: Parser[String] = """//[\S\t ]*(?:\r?\n)?""".r
 
-  def multiLineComment: Parser[String] = """(?:(?:/\*(?:[^*]|(?:\*+[^*/]))*\*+/)|(?://.*))\r?\n""".r
+  def multiLineComment: Parser[String] = """\/\*(?:[^*\r\n]+|(?:\r?\n))*\*\/(?:\r?\n)?""".r
 
   def columnDirective = positioned(optional | ignoreCase | warning)
 
