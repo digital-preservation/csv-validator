@@ -68,6 +68,103 @@ class SchemaParserSpec extends Specification {
                       Age   :     """
       parse(new StringReader(schema)) must beLike { case Success(parsedSchema, _) => parsedSchema mustEqual Schema(List(TotalColumns(2), NoHeader()), List(ColumnDefinition("Name"), ColumnDefinition("Age"))) }
     }
+
+    "succeed for single-line comments" should {
+
+      "placed immediately after the prolog" in {
+        val schema = """version 1.0
+          @totalColumns 2
+          //start of body
+          Name : notEmpty
+          Age : notEmpty
+          """
+        parse(new StringReader(schema)) must beLike { case Success(parsedSchema, _) => parsedSchema mustEqual Schema(List(TotalColumns(2)), List(ColumnDefinition("Name", List(NotEmptyRule()), List()), ColumnDefinition("Age", List(NotEmptyRule()), List()))) }
+      }
+
+      "placed anywhere in the body" in {
+        val schema = """version 1.0
+          @totalColumns 2
+          //start of body
+          Name : notEmpty //inline comment
+          //comment before next rule
+          Age : notEmpty //another inline comment
+                     """
+        parse(new StringReader(schema)) must beLike { case Success(parsedSchema, _) => parsedSchema mustEqual Schema(List(TotalColumns(2)), List(ColumnDefinition("Name", List(NotEmptyRule()), List()), ColumnDefinition("Age", List(NotEmptyRule()), List()))) }
+      }
+
+      "placed at the end of the body (with newline)" in {
+        val schema = """version 1.0
+          @totalColumns 2
+          Name : notEmpty
+          Age : notEmpty
+          //comment at end of body
+                     """
+        parse(new StringReader(schema)) must beLike { case Success(parsedSchema, _) => parsedSchema mustEqual Schema(List(TotalColumns(2)), List(ColumnDefinition("Name", List(NotEmptyRule()), List()), ColumnDefinition("Age", List(NotEmptyRule()), List()))) }
+      }
+
+      "placed at the end of the body (without newline)" in {
+        val schema = """version 1.0
+          @totalColumns 2
+          Name : notEmpty
+          Age : notEmpty
+          //comment at end of body"""
+        parse(new StringReader(schema)) must beLike { case Success(parsedSchema, _) => parsedSchema mustEqual Schema(List(TotalColumns(2)), List(ColumnDefinition("Name", List(NotEmptyRule()), List()), ColumnDefinition("Age", List(NotEmptyRule()), List()))) }
+      }
+
+    }
+
+    "succeed for multi-line comments" should {
+
+      "placed immediately after the prolog" in {
+        val schema = """version 1.0
+          @totalColumns 2
+          /*
+            start of body
+          */
+          Name : notEmpty
+          Age : notEmpty
+                     """
+        parse(new StringReader(schema)) must beLike { case Success(parsedSchema, _) => parsedSchema mustEqual Schema(List(TotalColumns(2)), List(ColumnDefinition("Name", List(NotEmptyRule()), List()), ColumnDefinition("Age", List(NotEmptyRule()), List()))) }
+      }
+
+      "placed anywhere in the body" in {
+        val schema = """version 1.0
+          @totalColumns 2
+          /*
+            start of body
+          */
+          Name : notEmpty /* inline
+          comment */
+          /* comment before next rule */
+          Age : notEmpty /* another inline
+          comment */
+                     """
+        parse(new StringReader(schema)) must beLike { case Success(parsedSchema, _) => parsedSchema mustEqual Schema(List(TotalColumns(2)), List(ColumnDefinition("Name", List(NotEmptyRule()), List()), ColumnDefinition("Age", List(NotEmptyRule()), List()))) }
+      }
+
+      "placed at the end of the body (with newline)" in {
+        val schema = """version 1.0
+          @totalColumns 2
+          Name : notEmpty
+          Age : notEmpty
+          /* comment at
+            end of body */
+                     """
+        parse(new StringReader(schema)) must beLike { case Success(parsedSchema, _) => parsedSchema mustEqual Schema(List(TotalColumns(2)), List(ColumnDefinition("Name", List(NotEmptyRule()), List()), ColumnDefinition("Age", List(NotEmptyRule()), List()))) }
+      }
+
+      "placed at the end of the body (without newline)" in {
+        val schema = """version 1.0
+          @totalColumns 2
+          Name : notEmpty
+          Age : notEmpty
+          /* comment at end
+          of body */"""
+        parse(new StringReader(schema)) must beLike { case Success(parsedSchema, _) => parsedSchema mustEqual Schema(List(TotalColumns(2)), List(ColumnDefinition("Name", List(NotEmptyRule()), List()), ColumnDefinition("Age", List(NotEmptyRule()), List()))) }
+      }
+
+    }
+
   }
 
 
