@@ -106,7 +106,7 @@ trait SchemaParser extends RegexParsers {
 
   def singleLineComment: Parser[String] = """//.*\r?\n""".r
 
-  def multiLineComment: Parser[String] = """((?:/\*(?:[^*]|(?:\*+[^*/]))*\*+/)|(?://.*))\r?\n""".r
+  def multiLineComment: Parser[String] = """(?:(?:/\*(?:[^*]|(?:\*+[^*/]))*\*+/)|(?://.*))\r?\n""".r
 
   def columnDirective = positioned(optional | ignoreCase | warning)
 
