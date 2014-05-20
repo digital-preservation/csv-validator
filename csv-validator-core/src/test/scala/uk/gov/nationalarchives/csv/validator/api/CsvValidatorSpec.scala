@@ -32,7 +32,7 @@ class CsvValidatorSpec extends Specification with TestResources {
       app.parseAndValidate(new StringReader(schema)) must beLike {
         case Failure(msgs) =>
           msgs.list mustEqual List(SchemaMessage(
-          "[3.7] failure: Invalid schema text" + EOL
+          "[3.7] failure: Invalid column definition" + EOL
           + EOL
           + """Name: regox("A")""" + EOL
           + EOL

@@ -64,7 +64,7 @@ class SchemaParserColumnDefinitionsSpec extends Specification {
       @totalColumns 1
       column1':"""
       parse(new StringReader(schema)) must beLike {
-        case Failure(messages, _) => messages mustEqual "Invalid schema text"
+        case Failure(messages, _) => messages mustEqual "Invalid column definition"
       }
     }
 
@@ -74,7 +74,7 @@ class SchemaParserColumnDefinitionsSpec extends Specification {
       "column "1":
       "column "2":"""
       parse(new StringReader(schema)) must beLike {
-        case Failure(messages, _) => messages mustEqual "Invalid schema text"
+        case Failure(messages, _) => messages mustEqual "Invalid column definition"
       }
     }
 
@@ -91,7 +91,7 @@ class SchemaParserColumnDefinitionsSpec extends Specification {
                       @totalColumns 1
                       Last Name """
 
-      parse(new StringReader(schema)) must beLike { case Failure(message, _) => message mustEqual "Invalid schema text" }
+      parse(new StringReader(schema)) must beLike { case Failure(message, _) => message mustEqual "Invalid column definition" }
     }
 
     "succeed for column definition with no rules" in {
@@ -115,7 +115,7 @@ class SchemaParserColumnDefinitionsSpec extends Specification {
                       @totalColumns 1
                       LastName: regex ("[a-z]*") Age"""
 
-      parse(new StringReader(schema)) must beLike { case Failure(message, _) => message mustEqual """Invalid schema text""" }
+      parse(new StringReader(schema)) must beLike { case Failure(message, _) => message mustEqual """Invalid column definition""" }
     }
 
     "fail for extra text after column definition on a line" in {
@@ -125,7 +125,7 @@ class SchemaParserColumnDefinitionsSpec extends Specification {
                       FirstName: dfsdfsdfwe
                       Age:"""
 
-      parse(new StringReader(schema)) must beLike { case Failure(message, _) => message mustEqual "Invalid schema text" }
+      parse(new StringReader(schema)) must beLike { case Failure(message, _) => message mustEqual "Invalid column definition" }
     }
 
     "fail when one invalid column reference" in {

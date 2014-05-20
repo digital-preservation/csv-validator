@@ -57,7 +57,7 @@ class SchemaParserSpec extends Specification {
                       LastName: @IgnoreCase regex ("[a]")"""
 
       parse(new StringReader(schema)) must beLike {
-        case Failure(messages, _) => messages mustEqual "Invalid schema text"
+        case Failure(messages, _) => messages mustEqual "Invalid column definition"
       }
     }
 
@@ -213,7 +213,7 @@ class SchemaParserSpec extends Specification {
                       LastName: WRONGCOLUMN/is("Yoda") or $FirstName/is("Darth")"""
 
       parse(new StringReader(schema)) must beLike {
-        case Failure(messages, _) => messages mustEqual "Invalid schema text"
+        case Failure(messages, _) => messages mustEqual "Invalid column definition"
       }
     }
 

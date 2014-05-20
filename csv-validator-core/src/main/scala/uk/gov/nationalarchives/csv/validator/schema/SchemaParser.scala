@@ -27,11 +27,6 @@ trait SchemaParser extends RegexParsers {
 
   val eol = """\r?\n""".r
 
-  val columnIdentifier: Parser[String] = """\s*[0-9a-zA-Z_\-.]+""".r withFailureMessage("Column identifier invalid")
-  val quotedColumnIdentifier: Parser[String] = ("\"" ~> """[^"]+""".r <~ "\"").withFailureMessage("Quoted column identifier invalid")
-
-  val positiveNumber: Parser[String] = """[1-9][0-9]*""".r
-
   val nonNegativeNumber: Parser[String] = """[0-9]+""".r
 
   val number: Parser[BigDecimal] = """(-|\+)*[0-9]*+(\.[0-9]*)?""".r ^^ { BigDecimal(_) }
@@ -71,36 +66,36 @@ trait SchemaParser extends RegexParsers {
 
   def parse(reader: Reader) = parseAll(schema, reader)
 
-  def schema = version ~ globalDirectives ~ rep1((rep(comment) ~> columnDefinitions) <~ rep(comment)) <~ opt("""[\r\n]+""".r) ^^ { case v ~ g ~ c => Schema(g, c) }
+  def schema = prolog ~ body ^^ {
+    case version ~ globalDirectives ~ columnDefs =>
+      Schema(globalDirectives, columnDefs)
+  }
 
-  def version: Parser[String] = ("version " ~> Schema.version <~ eol).withFailureMessage(s"version ${Schema.version} missing or incorrect")
+  def prolog = versionDecl ~ globalDirectives
+
+  def versionDecl: Parser[String] = ("version " ~> Schema.version <~ eol).withFailureMessage(s"version ${Schema.version} missing or incorrect")
 
   def globalDirectives: Parser[List[GlobalDirective]] = rep(positioned(globalDirective <~ (whiteSpace ~ opt(eol | endOfInput))))
 
-  def globalDirective = separatorDirective | quotedDirective | totalColumnsDirective | noHeaderDirective | ignoreColumnNameCaseDirective
+  def globalDirective = separatorDirective | quotedDirective | totalColumnsDirective | (noHeaderDirective | ignoreColumnNameCaseDirective)
 
-  def separatorDirective: Parser[Separator] = ("@separator" ~ white) ~> (separatorDirectiveTab | separatorDirectiveChar)
+  def separatorDirective: Parser[Separator] = ("@separator" ~ white) ~> (separatorTabExpr | separatorChar)
 
-  def separatorDirectiveTab: Parser[Separator] = ("TAB" | """'\t'""") ^^^ Separator('\t')
+  def separatorTabExpr: Parser[Separator] = ("TAB" | """'\t'""") ^^^ Separator('\t')
 
-  def separatorDirectiveChar: Parser[Separator] =  "'" ~> charRegex <~ "'" ^^ {
-    case charStr =>
-      Separator(charStr.toCharArray()(0))
-  }
+  def separatorChar: Parser[Separator] =  characterLiteral ^^ { Separator(_) }
 
-  def quotedDirective: Parser[Quoted] = "@quoted" ~ white ^^^ Quoted()
+  def quotedDirective: Parser[Quoted] = "@quoted" ^^^ Quoted()
 
-  def totalColumnsDirective: Parser[TotalColumns] = (("@totalColumns" ~ white) ~> positiveNumber ^^ { posInt => TotalColumns(posInt.toInt) }).withFailureMessage("@totalColumns invalid")
+  def totalColumnsDirective: Parser[TotalColumns] = (("@totalColumns" ~ white) ~> positiveNonZeroIntegerLiteral ^^ { TotalColumns(_) } ).withFailureMessage("@totalColumns invalid")
 
-  def noHeaderDirective: Parser[NoHeader] = "@noHeader" ~ white ^^^ NoHeader()
+  def noHeaderDirective: Parser[NoHeader] = "@noHeader" ^^^ NoHeader()
 
-  def ignoreColumnNameCaseDirective: Parser[IgnoreColumnNameCase] = "@ignoreColumnNameCase" ~ white ^^^ IgnoreColumnNameCase()
+  def ignoreColumnNameCaseDirective: Parser[IgnoreColumnNameCase] = "@ignoreColumnNameCase" ^^^ IgnoreColumnNameCase()
 
-  def columnDefinitions = (positioned(columnDefinition))
+  def body = rep1(bodyPart) <~ rep(eol)
 
-  def columnDefinition = ((((columnIdentifier) | (quotedColumnIdentifier)) <~ ":") ~ rep(rule) ~ rep(columnDirective) <~ (endOfColumnDefinition | comment) ^^ {
-    case id ~ rules ~ columnDirectives => ColumnDefinition(id, rules, columnDirectives)
-  }).withFailureMessage("Invalid schema text")
+  def bodyPart = (rep(comment) ~> columnDefinitions) <~ rep(comment)
 
   def comment: Parser[Any] = singleLineComment | multiLineComment
 
@@ -108,9 +103,50 @@ trait SchemaParser extends RegexParsers {
 
   def multiLineComment: Parser[String] = """\/\*(?:[^*\r\n]+|(?:\r?\n))*\*\/(?:\r?\n)?""".r
 
-  def columnDirective = positioned(optional | ignoreCase | warning)
+  def columnDefinitions = (positioned(columnDefinition))
 
-  def rule = positioned(  combinatorialAndNonConditionalRule | conditionalRule)
+  def columnDefinition = ((((columnIdentifier) | (quotedColumnIdentifier)) <~ ":") ~ columnRule <~ (endOfColumnDefinition | comment) ^^ {
+    case id ~ (rules ~ columnDirectives) => ColumnDefinition(id, rules, columnDirectives)
+  }).withFailureMessage("Invalid column definition")
+
+  def columnIdentifier = (positiveNonZeroIntegerLiteral | ident).withFailureMessage("Column identifier invalid") ^^ {
+    _.toString //TODO should be able to remove this `.toString` in favour of `id` field in ColumnDefinition being either NamedId <: String or OffsetId <: Integer, rather than just a String! see columnDefinition parser extractor above
+  }
+
+  def quotedColumnIdentifier = stringLiteral withFailureMessage("Quoted column identifier invalid")
+
+  def columnRule = rep(columnValidationExpr) ~ columnDirectives
+
+  def columnDirectives = rep(positioned(optionalDirective | ignoreCaseDirective | warningDirective))
+
+  def optionalDirective = "@optional" ^^^ Optional()
+
+  def ignoreCaseDirective = "@ignoreCase" ^^^ IgnoreCase()
+
+  def warningDirective = "@warning" ^^^ Warning()
+
+  def columnValidationExpr = positioned(combinatorialAndNonConditionalRule | conditionalRule)
+
+  //TODO update EBNF to use simpler lexical rules
+  //<editor-fold desc="lexical">
+  def stringLiteral = "\"" ~> stringPattern.r <~ "\""
+
+  val stringPattern = """[^"]+"""
+
+  def ident = identPattern.r
+
+  val identPattern = """[A-Za-z0-9\-_\.]+"""
+
+  def positiveNonZeroIntegerLiteral = positiveNonZeroIntegerPattern.r ^^ { _.toInt }
+
+  val positiveNonZeroIntegerPattern = "[1-9][0-9]*"
+
+  def characterLiteral =  "'" ~> nonBreakingChar <~ "'" ^^ { _.head }
+
+  def nonBreakingChar = nonBreakingCharPattern.r
+
+  val nonBreakingCharPattern = """[^\r\n\f]"""
+  //</editor-fold>
 
   def combinatorialAndNonConditionalRule = (and | or | nonConditionalRule)
 
@@ -128,13 +164,13 @@ trait SchemaParser extends RegexParsers {
     fileExists | checksum | fileCount |
     positiveInteger | range | lengthExpr | failure("Invalid rule")
 
-  def parenthesesRule: Parser[ParenthesesRule] = "(" ~> rep1(rule) <~ ")" ^^ { ParenthesesRule(_) } | failure("unmatched paren")
+  def parenthesesRule: Parser[ParenthesesRule] = "(" ~> rep1(columnValidationExpr) <~ ")" ^^ { ParenthesesRule(_) } | failure("unmatched paren")
 
-  def or: Parser[OrRule] = nonConditionalRule ~ "or" ~ rule  ^^ { case lhs ~ _ ~ rhs => OrRule(lhs, rhs) }
+  def or: Parser[OrRule] = nonConditionalRule ~ "or" ~ columnValidationExpr  ^^ { case lhs ~ _ ~ rhs => OrRule(lhs, rhs) }
 
-  def and: Parser[AndRule] = nonConditionalRule ~ "and" ~ rule  ^^  { case lhs ~ _ ~ rhs =>  AndRule(lhs, rhs) }
+  def and: Parser[AndRule] = nonConditionalRule ~ "and" ~ columnValidationExpr  ^^  { case lhs ~ _ ~ rhs =>  AndRule(lhs, rhs) }
 
-  def ifExpr: Parser[IfRule] = (("if(" ~> white ~> combinatorialAndNonConditionalRule <~ white <~ "," <~ white) ~ (rep1(rule)) ~ opt((white ~> "," ~> white ~> rep1(rule))) <~ white <~ ")" ^^ {
+  def ifExpr: Parser[IfRule] = (("if(" ~> white ~> combinatorialAndNonConditionalRule <~ white <~ "," <~ white) ~ (rep1(columnValidationExpr)) ~ opt((white ~> "," ~> white ~> rep1(columnValidationExpr))) <~ white <~ ")" ^^ {
     case cond ~ bdy ~ optBdy => IfRule(cond, bdy, optBdy)
   }) | failure("Invalid rule")
 
@@ -225,13 +261,7 @@ trait SchemaParser extends RegexParsers {
 
   def algorithmExpr: Parser[String] = "\"" ~> stringRegex <~ "\""  ^^ { a => a }
 
-  def optional = "@optional" ^^^ Optional()
-
-  def warning = "@warning" ^^^ Warning()
-
-  def ignoreCase = "@ignoreCase" ^^^ IgnoreCase()
-
-  private def endOfColumnDefinition: Parser[Any] = whiteSpace ~ (eol | endOfInput | failure("Invalid schema text"))
+  private def endOfColumnDefinition: Parser[Any] = whiteSpace ~ (eol | endOfInput | failure("Invalid column definition"))
 
   private def endOfInput: Parser[Any] = new Parser[Any] {
     def apply(input: Input) = {
