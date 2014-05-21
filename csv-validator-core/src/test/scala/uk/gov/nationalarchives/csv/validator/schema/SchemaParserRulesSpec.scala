@@ -30,7 +30,7 @@ class SchemaParserRulesSpec extends Specification {
                       @totalColumns 1
                       LastName: regex("[a]")"""
 
-      parse(new StringReader(schema)) must beLike { case Success(Schema(_, List(ColumnDefinition("LastName", List(RegexRule(r)), _))), _) => r mustEqual "[a]" }
+      parse(new StringReader(schema)) must beLike { case Success(Schema(_, List(ColumnDefinition("LastName", List(RegExpRule(r)), _))), _) => r mustEqual "[a]" }
     }
 
     "fail for an invalid regex" in {
@@ -399,7 +399,7 @@ class SchemaParserRulesSpec extends Specification {
                       Name: regex ("[1-9][a-z]*") in("dog")"""
 
     parse(new StringReader(schema)) must beLike {
-      case Success(Schema(_, List(ColumnDefinition("Name", List(RegexRule(r), InRule(Literal(Some(ir)))), _))), _) => {
+      case Success(Schema(_, List(ColumnDefinition("Name", List(RegExpRule(r), InRule(Literal(Some(ir)))), _))), _) => {
         r mustEqual "[1-9][a-z]*"
         ir mustEqual "dog"
       }
@@ -412,7 +412,7 @@ class SchemaParserRulesSpec extends Specification {
                       Name: in($Name) regex("[1-9][a-z]*")"""
 
     parseAndValidate(new StringReader(schema)) must beLike {
-      case SuccessZ(Schema(_, List(ColumnDefinition("Name", List(InRule(ColumnReference(ir)), RegexRule(r)), _)))) => {
+      case SuccessZ(Schema(_, List(ColumnDefinition("Name", List(InRule(ColumnReference(ir)), RegExpRule(r)), _)))) => {
         r mustEqual "[1-9][a-z]*"
         ir mustEqual "Name"
       }
@@ -460,34 +460,34 @@ class SchemaParserRulesSpec extends Specification {
         |Column: MyCountry: Invalid regex("[a-z*"): at line: 3, column: 12""".stripMargin)) }
   }
 
-  "succeed for 'isNot' text rule" in {
+  "succeed for 'not' text rule" in {
     val schema = """version 1.0
                       @totalColumns 1
-                      Country: isNot("USA")"""
+                      Country: not("USA")"""
 
     parse(new StringReader(schema)) must beLike {
-      case Success(Schema(_, List(ColumnDefinition("Country", List(IsNotRule(Literal(Some("USA")))), _))), _) => ok
+      case Success(Schema(_, List(ColumnDefinition("Country", List(NotRule(Literal(Some("USA")))), _))), _) => ok
     }
   }
 
-  "succeed for 'isNot' cross reference rule" in {
+  "succeed for 'not' cross reference rule" in {
     val schema = """version 1.0
                       @totalColumns 2
-                      Country: isNot($MyCountry)
+                      Country: not($MyCountry)
                       MyCountry:"""
 
     parseAndValidate(new StringReader(schema)) must beLike {
-      case SuccessZ(Schema(_, List(ColumnDefinition("Country", List(IsNotRule(ColumnReference("MyCountry"))), _), ColumnDefinition("MyCountry", _, _)))) => ok
+      case SuccessZ(Schema(_, List(ColumnDefinition("Country", List(NotRule(ColumnReference("MyCountry"))), _), ColumnDefinition("MyCountry", _, _)))) => ok
     }
   }
 
-  "fail for invalid 'isNot' cross reference rule" in {
+  "fail for invalid 'not' cross reference rule" in {
     val schema = """version 1.0
                    |@totalColumns 2
-                   |Country: isNot($MyMissingCountry)
+                   |Country: not($MyMissingCountry)
                    |MyCountry:""".stripMargin
 
-    parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual List(SchemaMessage("Column: Country has invalid cross reference isNot($MyMissingCountry) at line: 3, column: 10")) }
+    parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual List(SchemaMessage("Column: Country has invalid cross reference not($MyMissingCountry) at line: 3, column: 10")) }
   }
 
   "succeed for 'starts' text rule" in {

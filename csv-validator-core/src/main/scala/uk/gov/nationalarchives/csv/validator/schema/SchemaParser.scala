@@ -21,25 +21,17 @@ import uk.gov.nationalarchives.csv.validator.{SchemaMessage, FailMessage}
 
 trait SchemaParser extends RegexParsers {
 
-  override protected val whiteSpace = """[ \t]*""".r
+  override protected val whiteSpace = """[ \t]+""".r
 
-  val white: Parser[String] = whiteSpace
+  //val white: Parser[String] = whiteSpace
 
   val eol = """\r?\n""".r
-
-  val nonNegativeNumber: Parser[String] = """[0-9]+""".r
-
-  val number: Parser[BigDecimal] = """(-|\+)*[0-9]*+(\.[0-9]*)?""".r ^^ { BigDecimal(_) }
 
   val charPattern = """([^"\p{Cntrl}]|\\[\\'"bfnrt]|\\u[a-fA-F0-9]{4})"""
 
   //val stringRegex = """([^"\p{Cntrl}\\]|\\[\\'"bfnrt]|\\u[a-fA-F0-9]{4})*""".r
   val stringRegex = s"""$charPattern*""".r     //allow un-escaped '\'
   val charRegex = charPattern.r
-
-  val Regex = """([(]")(.*?)("[)])""".r
-
-  val regexParser: Parser[String] = Regex withFailureMessage("""regex not correctly delimited as ("your regex")""")
 
   val pathSubstitutions: List[(String,String)]
 
@@ -73,13 +65,13 @@ trait SchemaParser extends RegexParsers {
 
   def prolog = versionDecl ~ globalDirectives
 
-  def versionDecl: Parser[String] = ("version " ~> Schema.version <~ eol).withFailureMessage(s"version ${Schema.version} missing or incorrect")
+  def versionDecl: Parser[String] = ("version" ~> Schema.version <~ eol).withFailureMessage(s"version ${Schema.version} missing or incorrect")
 
-  def globalDirectives: Parser[List[GlobalDirective]] = rep(positioned(globalDirective <~ (whiteSpace ~ opt(eol | endOfInput))))
+  def globalDirectives: Parser[List[GlobalDirective]] = rep(positioned(globalDirective <~ opt(eol)))
 
   def globalDirective = separatorDirective | quotedDirective | totalColumnsDirective | (noHeaderDirective | ignoreColumnNameCaseDirective)
 
-  def separatorDirective: Parser[Separator] = ("@separator" ~ white) ~> (separatorTabExpr | separatorChar)
+  def separatorDirective: Parser[Separator] = "@separator" ~> (separatorTabExpr | separatorChar)
 
   def separatorTabExpr: Parser[Separator] = ("TAB" | """'\t'""") ^^^ Separator('\t')
 
@@ -87,7 +79,7 @@ trait SchemaParser extends RegexParsers {
 
   def quotedDirective: Parser[Quoted] = "@quoted" ^^^ Quoted()
 
-  def totalColumnsDirective: Parser[TotalColumns] = (("@totalColumns" ~ white) ~> positiveNonZeroIntegerLiteral ^^ { TotalColumns(_) } ).withFailureMessage("@totalColumns invalid")
+  def totalColumnsDirective: Parser[TotalColumns] = ("@totalColumns" ~> positiveNonZeroIntegerLiteral ^^ { TotalColumns(_) } ).withFailureMessage("@totalColumns invalid")
 
   def noHeaderDirective: Parser[NoHeader] = "@noHeader" ^^^ NoHeader()
 
@@ -103,11 +95,16 @@ trait SchemaParser extends RegexParsers {
 
   def multiLineComment: Parser[String] = """\/\*(?:[^*\r\n]+|(?:\r?\n))*\*\/(?:\r?\n)?""".r
 
-  def columnDefinitions = (positioned(columnDefinition))
+  //def columnDefinitions = (positioned(columnDefinition))
+  def columnDefinitions = columnDefinition
 
-  def columnDefinition = ((((columnIdentifier) | (quotedColumnIdentifier)) <~ ":") ~ columnRule <~ (endOfColumnDefinition | comment) ^^ {
-    case id ~ (rules ~ columnDirectives) => ColumnDefinition(id, rules, columnDirectives)
-  }).withFailureMessage("Invalid column definition")
+  def columnDefinition: Parser[ColumnDefinition] = (
+    ((columnIdentifier | quotedColumnIdentifier) <~ ":") ~ columnRule <~ (endOfColumnDefinition | comment) ^^ {
+      case id ~ (rules ~ columnDirectives) =>
+        ColumnDefinition(id, rules, columnDirectives)
+    }
+  ).withFailureMessage("Invalid column definition")
+
 
   def columnIdentifier = (positiveNonZeroIntegerLiteral | ident).withFailureMessage("Column identifier invalid") ^^ {
     _.toString //TODO should be able to remove this `.toString` in favour of `id` field in ColumnDefinition being either NamedId <: String or OffsetId <: Integer, rather than just a String! see columnDefinition parser extractor above
@@ -117,7 +114,10 @@ trait SchemaParser extends RegexParsers {
 
   def columnRule = rep(columnValidationExpr) ~ columnDirectives
 
-  def columnDirectives = rep(positioned(optionalDirective | ignoreCaseDirective | warningDirective))
+  //def columnRule = rep(columnValidationExpr)
+
+  //TODO refactor into columnDirective and update EBNF
+  def columnDirectives: Parser[List[ColumnDirective]] = rep(positioned(optionalDirective | ignoreCaseDirective | warningDirective))
 
   def optionalDirective = "@optional" ^^^ Optional()
 
@@ -125,143 +125,243 @@ trait SchemaParser extends RegexParsers {
 
   def warningDirective = "@warning" ^^^ Warning()
 
-  def columnValidationExpr = positioned(combinatorialAndNonConditionalRule | conditionalRule)
+  //def columnValidationExpr = positioned(combinatorialAndNonConditionalRule | conditionalRule)
+  //def combinatorialAndNonConditionalRule = (and | or | nonConditionalRule)
+  //def nonConditionalRule = opt( columnRef <~ "/") ~ unaryRule ^^ { case explicitColumn ~ rule => rule.explicitColumn = explicitColumn; rule }
 
-  //TODO update EBNF to use simpler lexical rules
-  //<editor-fold desc="lexical">
-  def stringLiteral = "\"" ~> stringPattern.r <~ "\""
+  def columnValidationExpr: Parser[Rule] = positioned(combinatorialExpr | nonCombinatorialExpr)
+  //def columnValidationExpr: Parser[Rule] = combinatorialExpr | nonCombinatorialExpr //TODO reinstate positioned above
 
-  val stringPattern = """[^"]+"""
+  def nonCombinatorialExpr = nonConditionalExpr | conditionalExpr
 
-  def ident = identPattern.r
+  //TODO combinatorialExpr causes a StackOverflowException
 
-  val identPattern = """[A-Za-z0-9\-_\.]+"""
+  def nonConditionalExpr: Parser[Rule] = singleExpr | externalSingleExpr | parenthesizedExpr
 
-  def positiveNonZeroIntegerLiteral = positiveNonZeroIntegerPattern.r ^^ { _.toInt }
+  def singleExpr: Parser[Rule] = opt(explicitContextExpr) ~
+    (isExpr | notExpr | inExpr |
+      startsWithExpr | endsWithExpr | regExpExpr |
+      rangeExpr | lengthExpr |
+      emptyExpr | notEmptyExpr | uniqueExpr |
+      uriExpr |
+      xsdDateTimeExpr | xsdDateExpr | xsdTimeExpr |
+      ukDateExpr | partialUkDateExpr |
+      uuid4Expr |
+      positiveIntegerExpr) ^^ {
+    case explicitContext ~ rule =>
+      rule.explicitColumn = explicitContext
+      rule
+  }
 
-  val positiveNonZeroIntegerPattern = "[1-9][0-9]*"
+  def explicitContextExpr = columnRef <~ "/"
 
-  def characterLiteral =  "'" ~> nonBreakingChar <~ "'" ^^ { _.head }
+  //def argProvider: Parser[ArgProvider] = columnRef ^^ { s => ColumnReference(s) } | '\"' ~> stringRegex <~ '\"' ^^ {s => Literal(Some(s)) }
 
-  def nonBreakingChar = nonBreakingCharPattern.r
+  def columnRef: Parser[ColumnReference] = "$" ~> (columnIdentifier | quotedColumnIdentifier) ^^ { ColumnReference(_) }
 
-  val nonBreakingCharPattern = """[^\r\n\f]"""
-  //</editor-fold>
+  def isExpr: Parser[IsRule] = "is(" ~> stringProvider <~ ")" ^^ { IsRule }
 
-  def combinatorialAndNonConditionalRule = (and | or | nonConditionalRule)
+  def notExpr: Parser[NotRule] = "not(" ~> stringProvider <~ ")" ^^ { NotRule }
+
+  def inExpr: Parser[InRule] = "in(" ~> stringProvider <~ ")" ^^ { InRule }
+
+  def startsWithExpr: Parser[StartsRule] = "starts(" ~> stringProvider <~ ")" ^^ { StartsRule }
+
+  def endsWithExpr: Parser[EndsRule] = "ends(" ~> stringProvider <~ ")" ^^ { EndsRule }
+
+  //TODO could improve error or regex?
+  //TODO How to escape quotes inside regex?
+  //def regExpExpr: Parser[RegExpRule] = "regex(" ~> stringLiteral <~ ")" ^^ { RegExpRule }
+  def regExpExpr: Parser[RegExpRule] = "regex" ~> """\(".+"\)""".r ^^ {
+    case s =>
+      RegExpRule(s.dropRight(2).drop(2))
+  } withFailureMessage("""regex not correctly delimited as ("your regex")""")
+
+  //def regex = "regex" ~> regexParser ^^ { s => RegexRule(s.dropRight(2).drop(2)) }
+  //val Regex = """([(]")(.*?)("[)])""".r
+  //val regexParser: Parser[String] = Regex withFailureMessage("""regex not correctly delimited as ("your regex")""")
+
+  def rangeExpr: Parser[RangeRule] = "range(" ~> numericLiteral ~ "," ~ numericLiteral <~ ")"  ^^ { case a ~ "," ~ b =>  RangeRule(a, b) }
+
+  //TODO refactor
+  def lengthExpr: Parser[LengthRule] = ("length(" ~> opt(positiveIntegerOrAny <~ ",") ~ positiveIntegerOrAny <~ ")") ^^ {
+    case from ~ to => LengthRule(from, to)
+  }
+
+  def positiveIntegerOrAny = (positiveIntegerLiteral | wildcardLiteral) ^^ {
+    _.toString //TODO should be able to remove this `.toString` in favour of `LengthRule` in lengthExpr being either AnyLength Object or BigInt, rather than just a String!
+  }
+
+  def emptyExpr = "empty" ^^^ EmptyRule()
+
+  def notEmptyExpr = "notEmpty" ^^^ NotEmptyRule()
+
+  //TODO rewrite uniqueExpr and uniqueMultiExpr into single expression, will need to refactor UniqueRule and UniqueMultiRule
+  //def uniqueExpr: Parser[UniqueRule] = "unique" ^^^ UniqueRule()
+  //def uniqueMultiExpr: Parser[UniqueMultiRule] = "unique(" ~> columnRef ~ rep(',' ~> columnRef) <~ ")" ^^ { s => UniqueMultiRule( s._1 :: s._2 ) }
+  def uniqueExpr: Parser[Rule] = "unique" ~> opt("(" ~> columnRef ~ rep(',' ~> columnRef) <~ ")") ^^ {
+    case None =>
+      UniqueRule()
+    case Some((columnRef1 ~ columnRefN)) =>
+      UniqueMultiRule(columnRef1 :: columnRefN)
+  }
 
 
-  // def nonConditionalRule = unaryRule
-  def nonConditionalRule = opt( columnRef <~ "/") ~ unaryRule ^^ { case explicitColumn ~ rule => rule.explicitColumn = explicitColumn; rule }
+  def uriExpr = "uri" ^^^ UriRule()
 
-  def conditionalRule = ifExpr
+  //TODO below
 
-  def unaryRule =
-    parenthesesRule | in | is | isNot | starts | ends |
-    empty | notEmpty |
-    uniqueMultiExpr | uniqueExpr |
-    regex | uuid4 | uri | xDateTimeRange | xDateTime | xDateRange | xDate | ukDateRange | ukDate | partUkDate | xTimeRange | xTime |
-    fileExists | checksum | fileCount |
-    positiveInteger | range | lengthExpr | failure("Invalid rule")
-
-  def parenthesesRule: Parser[ParenthesesRule] = "(" ~> rep1(columnValidationExpr) <~ ")" ^^ { ParenthesesRule(_) } | failure("unmatched paren")
-
-  def or: Parser[OrRule] = nonConditionalRule ~ "or" ~ columnValidationExpr  ^^ { case lhs ~ _ ~ rhs => OrRule(lhs, rhs) }
-
-  def and: Parser[AndRule] = nonConditionalRule ~ "and" ~ columnValidationExpr  ^^  { case lhs ~ _ ~ rhs =>  AndRule(lhs, rhs) }
-
-  def ifExpr: Parser[IfRule] = (("if(" ~> white ~> combinatorialAndNonConditionalRule <~ white <~ "," <~ white) ~ (rep1(columnValidationExpr)) ~ opt((white ~> "," ~> white ~> rep1(columnValidationExpr))) <~ white <~ ")" ^^ {
-    case cond ~ bdy ~ optBdy => IfRule(cond, bdy, optBdy)
-  }) | failure("Invalid rule")
-
-  def regex = "regex" ~> regexParser ^^ { s => RegexRule(s.dropRight(2).drop(2)) }
-
-  def in = "in(" ~> argProvider <~ ")" ^^ { InRule  }
-
-  def is = "is(" ~> argProvider <~ ")" ^^ { IsRule }
-
-  def isNot = "isNot(" ~> argProvider <~ ")" ^^ { IsNotRule }
-
-  def starts = "starts(" ~> argProvider <~ ")" ^^ { StartsRule }
-
-  def ends = "ends(" ~> argProvider <~ ")" ^^ { EndsRule }
-
-  def empty = "empty" ^^^ EmptyRule()
-
-  def notEmpty = "notEmpty" ^^^ NotEmptyRule()
-
-  def uniqueExpr: Parser[UniqueRule] = "unique" ^^^ UniqueRule()
-
-  def uniqueMultiExpr: Parser[UniqueMultiRule] = "unique(" ~ white ~> columnRef ~ rep( white ~ ',' ~> columnRef ) <~ ")" ^^ { s => UniqueMultiRule( s._1 :: s._2 ) }
-
-  def uri: Parser[UriRule] = "uri" ^^^ UriRule()
+  //<editor-fold desc="XsdDateTimeExpr">
+  def xsdDateTimeExpr =  xDateTimeRange | xDateTime
 
   def xDateTime: Parser[XsdDateTimeRule] = "xDateTime" ^^^ XsdDateTimeRule()
 
-  def xDateTimeExpr: Parser[String] = """[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}""".r
-
-  def xDateTimeRange: Parser[XsdDateTimeRangeRule] = (("xDateTime(" ~> white) ~> xDateTimeExpr <~ (white <~ "," <~ white)) ~ xDateTimeExpr <~ (white ~ ")") ^^  {
-    case from ~ to => XsdDateTimeRangeRule(from, to)
+  def xDateTimeRange: Parser[XsdDateTimeRangeRule] = "xDateTime(" ~> xDateTimeExpr ~ "," ~ xDateTimeExpr <~ ")" ^^  {
+    case from ~ "," ~ to => XsdDateTimeRangeRule(from, to)
   }
+
+  //TODO change to literal
+  def xDateTimeExpr: Parser[String] = """[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}""".r
+  //</editor-fold>
+
+  //<editor-fold desc="XsdDateExpr">
+  def xsdDateExpr = xDateRange | xDate
 
   def xDate: Parser[XsdDateRule] = "xDate" ^^^ XsdDateRule()
 
-  def xsdDateExpr: Parser[String] = "[0-9]{4}-[0-9]{2}-[0-9]{2}".r
-
-  def xDateRange: Parser[XsdDateRangeRule] = (("xDate(" ~> white) ~> xsdDateExpr <~ (white <~ "," <~ white)) ~ xsdDateExpr <~ (white ~ ")") ^^  {
-    case from ~ to => XsdDateRangeRule(from, to)
+  def xDateRange: Parser[XsdDateRangeRule] = "xDate(" ~> xDateExpr ~ "," ~ xDateExpr <~ ")" ^^  {
+    case from ~ "," ~ to => XsdDateRangeRule(from, to)
   }
 
-  def ukDate: Parser[UkDateRule] = "ukDate" ^^^ UkDateRule()
+  //TODO change to literal
+  def xDateExpr: Parser[String] = "[0-9]{4}-[0-9]{2}-[0-9]{2}".r
+  //</editor-fold>
 
-  def partUkDate: Parser[PartUkDateRule] = "partUkDate" ^^^ PartUkDateRule()
-
-  val ukDateExpr: Parser[String] = "[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}".r
-
-  def ukDateRange: Parser[UkDateRangeRule] = (("ukDate(" ~> white) ~> ukDateExpr <~ (white <~ "," <~ white)) ~ ukDateExpr <~ (white ~ ")") ^^  {
-    case from ~ to => UkDateRangeRule(from, to)
-  }
+  //<editor-fold desc="XsdTimeExpr">
+  def xsdTimeExpr = xTimeRange | xTime
 
   def xTime: Parser[XsdTimeRule] = "xTime" ^^^ XsdTimeRule()
 
-  val xsdTimeExpr: Parser[String] = "[0-9]{2}:[0-9]{2}:[0-9]{2}".r
-
-  def xTimeRange: Parser[XsdTimeRangeRule] = (("xTime(" ~> white) ~> xsdTimeExpr <~ (white <~ "," <~ white)) ~ xsdTimeExpr <~ (white ~ ")") ^^  {
-    case from ~ to => XsdTimeRangeRule(from, to)
+  def xTimeRange: Parser[XsdTimeRangeRule] = "xTime(" ~> xTimeExpr ~ "," ~ xTimeExpr <~ ")" ^^  {
+    case from ~ "," ~ to => XsdTimeRangeRule(from, to)
   }
 
-  def uuid4: Parser[Uuid4Rule] = "uuid4" ^^^ Uuid4Rule()
+  //TODO change to literal
+  val xTimeExpr: Parser[String] = "[0-9]{2}:[0-9]{2}:[0-9]{2}".r
+  //</editor-fold>
 
-  def positiveInteger: Parser[PositiveIntegerRule] = "positiveInteger" ^^^ PositiveIntegerRule()
+  //<editor-fold desc="ukDateExpr">
+  def ukDateExpr = ukDateRange | ukDate
 
-  def columnRef: Parser[String] = "$" ~> (columnIdentifier | quotedColumnIdentifier)
+  def ukDate: Parser[UkDateRule] = "ukDate" ^^^ UkDateRule()
 
-  def argProvider: Parser[ArgProvider] = columnRef ^^ { s => ColumnReference(s) } | '\"' ~> stringRegex <~ '\"' ^^ {s => Literal(Some(s)) }
+  def ukDateRange: Parser[UkDateRangeRule] = "ukDate(" ~> ukDateStringLiteral ~ "," ~ ukDateStringLiteral <~ ")" ^^  {
+    case from ~ "," ~ to => UkDateRangeRule(from, to)
+  }
 
-  def fileArgProvider: Parser[ArgProvider] = columnRef ^^ { s => ColumnReference(s) } | '\"' ~> rootFilePath <~ '\"' ^^ {s => Literal(Some(s)) }
+  //TODO change to literal
+  val ukDateStringLiteral: Parser[String] = "[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}".r
+  //</editor-fold>
 
-  def fileExists = ("fileExists(" ~> fileArgProvider <~ ")" ^^ { s => FileExistsRule(pathSubstitutions, enforceCaseSensitivePathChecks, s) }).withFailureMessage("fileExists rule has an invalid file path") |
+  //TODO missing DateExpr
+
+  def partialUkDateExpr: Parser[PartUkDateRule] = "partUkDate" ^^^ PartUkDateRule()
+
+  //TODO missing PartialDateExpr
+
+  def uuid4Expr: Parser[Uuid4Rule] = "uuid4" ^^^ Uuid4Rule()
+
+  def positiveIntegerExpr: Parser[PositiveIntegerRule] = "positiveInteger" ^^^ PositiveIntegerRule()
+
+  def stringProvider: Parser[ArgProvider] = columnRef | (stringLiteral ^^ { s => Literal(Some(s)) } )
+
+  def externalSingleExpr: Parser[Rule] = opt(explicitContextExpr) ~ (fileExistsExpr | checksumExpr | fileCountExpr) ^^ {
+    case explicitContext ~ rule =>
+      rule.explicitColumn = explicitContext
+      rule
+  }
+
+  //TODO below **** MUCH TODO!
+
+  //TODO update EBNF to use simpler lexical rules
+  //<editor-fold desc="lexical">
+  def wildcardLiteral = "*"
+
+  def numericLiteral: Parser[BigDecimal] = number.r ^^ { BigDecimal(_) }
+  val number = """[\-]?[0-9]+(?:\.[0-9]+)?"""
+
+  def stringLiteral: Parser[String] = "\"" ~> stringPattern.r <~ "\""
+  val stringPattern = """[^"]+"""
+
+  def ident: Parser[String] = identPattern.r
+  val identPattern = """[A-Za-z0-9\-_\.]+"""
+
+  def positiveIntegerLiteral: Parser[BigInt] = positiveIntegerPattern.r ^^ { BigInt(_) }
+  val positiveIntegerPattern = """[0-9]+"""
+
+  def positiveNonZeroIntegerLiteral: Parser[BigInt] = positiveNonZeroIntegerPattern.r ^^ { BigInt(_) }
+  val positiveNonZeroIntegerPattern = "[1-9][0-9]*"
+
+  def characterLiteral: Parser[Char] =  "'" ~> nonBreakingChar <~ "'" ^^ { _.head }
+
+  def nonBreakingChar = nonBreakingCharPattern.r
+  val nonBreakingCharPattern = """[^\r\n\f]"""
+  //</editor-fold>
+
+  def combinatorialExpr = orExpr | andExpr
+
+//  def unaryRule =
+//    parenthesesRule | in | is | isNot | starts | ends |
+//    empty | notEmpty |
+//    uniqueMultiExpr | uniqueExpr |
+//    regex | uuid4 | uri | xDateTimeRange | xDateTime | xDateRange | xDate | ukDateRange | ukDate | partUkDate | xTimeRange | xTime |
+//    fileExists | checksum | fileCount |
+//    positiveInteger | range | lengthExpr | failure("Invalid rule")
+
+  def parenthesizedExpr: Parser[ParenthesesRule] = "(" ~> rep1(columnValidationExpr) <~ ")" ^^ { ParenthesesRule } | failure("unmatched paren")
+
+  def conditionalExpr: Parser[Rule] = ifExpr
+  
+  //def orExpr: Parser[OrRule] = columnValidationExpr ~ "or" ~ columnValidationExpr  ^^ { case lhs ~ "or" ~ rhs => OrRule(lhs, rhs) }
+
+  //def andExpr: Parser[AndRule] = columnValidationExpr ~ "and" ~ columnValidationExpr  ^^  { case lhs ~ "and" ~ rhs =>  AndRule(lhs, rhs) }
+
+  def orExpr: Parser[OrRule] = nonCombinatorialExpr ~ "or" ~ columnValidationExpr  ^^ { case lhs ~ "or" ~ rhs => OrRule(lhs, rhs) }
+
+  def andExpr: Parser[AndRule] = nonCombinatorialExpr ~ "and" ~ columnValidationExpr  ^^  { case lhs ~ "and" ~ rhs =>  AndRule(lhs, rhs) }
+
+
+
+//  def ifExpr: Parser[IfRule] = (("if(" ~> white ~> combinatorialAndNonConditionalRule <~ white <~ "," <~ white) ~ (rep1(columnValidationExpr)) ~ opt((white ~> "," ~> white ~> rep1(columnValidationExpr))) <~ white <~ ")" ^^ {
+//    case cond ~ bdy ~ optBdy => IfRule(cond, bdy, optBdy)
+//  }) | failure("Invalid rule")
+
+  def ifExpr: Parser[IfRule] = (("if(" ~> nonConditionalExpr <~ ",") ~ rep1(columnValidationExpr) ~ opt("," ~> rep1(columnValidationExpr)) <~ ")" ^^ {
+    case cond ~ bdy ~ optBdy => IfRule(cond, bdy, optBdy)
+  }) | failure("Invalid rule")
+
+
+//  def argProvider: Parser[ArgProvider] = columnRef ^^ { s => ColumnReference(s) } | '\"' ~> stringRegex <~ '\"' ^^ {s => Literal(Some(s)) }
+
+  //def fileArgProvider: Parser[ArgProvider] = columnRef ^^ { s => ColumnReference(s) } | '\"' ~> rootFilePath <~ '\"' ^^ {s => Literal(Some(s)) }
+
+  //TODO refactor into single expression
+  def fileExistsExpr = ("fileExists(" ~> stringProvider <~ ")" ^^ { s => FileExistsRule(pathSubstitutions, enforceCaseSensitivePathChecks, s) }).withFailureMessage("fileExists rule has an invalid file path") |
     "fileExists" ^^^ { FileExistsRule( pathSubstitutions, enforceCaseSensitivePathChecks ) } | failure("Invalid fileExists rule")
 
   def rootFilePath: Parser[String] = """[\^&'@\{\}\[\]\,\$=!\-#\(\)%\.\+~_a-zA-Z0-9\s\\/:]+""".r    //Characters taken from http://support.microsoft.com/kb/177506 and added '/' and '\' and ':'
 
-  def checksum = "checksum(" ~> file ~ (white ~ "," ~ white) ~ algorithmExpr <~ ")" ^^ { case files ~ _ ~ algorithm => ChecksumRule(files._1.getOrElse(Literal(None)), files._2, algorithm, pathSubstitutions, enforceCaseSensitivePathChecks) }
+  def checksumExpr = "checksum(" ~> file ~ "," ~ algorithmExpr <~ ")" ^^ { case files ~ "," ~ algorithm => ChecksumRule(files._1.getOrElse(Literal(None)), files._2, algorithm, pathSubstitutions, enforceCaseSensitivePathChecks) }
 
-  def fileCount = "fileCount(" ~> file <~ ")" ^^ { case a  => FileCountRule(a._1.getOrElse(Literal(None)), a._2, pathSubstitutions) }
-
-  def range = "range(" ~> number ~ "," ~ number <~ ")"  ^^ { case a ~ _ ~ b =>  RangeRule(a, b) }
-
-  def lengthExpr: Parser[LengthRule] = ("length(" ~> opt(("*"| nonNegativeNumber) <~ ",") ~ ("*" | nonNegativeNumber) <~ ")") ^^ {
-    case a ~ b => LengthRule(a,b)
-  }
+  def fileCountExpr = "fileCount(" ~> file <~ ")" ^^ { case a  => FileCountRule(a._1.getOrElse(Literal(None)), a._2, pathSubstitutions) }
 
   def dateRange = "dateRange(\""
 
-  def file = "file(" ~> opt(argProvider <~ (white ~ "," ~ white)) ~ argProvider <~ ")" ^^ { a => a }
+  def file = "file(" ~> opt(stringProvider <~ ",") ~ stringProvider <~ ")"
 
   def algorithmExpr: Parser[String] = "\"" ~> stringRegex <~ "\""  ^^ { a => a }
 
-  private def endOfColumnDefinition: Parser[Any] = whiteSpace ~ (eol | endOfInput | failure("Invalid column definition"))
+  private def endOfColumnDefinition: Parser[Any] = eol | endOfInput | failure("Invalid column definition")
 
   private def endOfInput: Parser[Any] = new Parser[Any] {
     def apply(input: Input) = {
@@ -403,7 +503,7 @@ trait SchemaParser extends RegexParsers {
 
   private def regexValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
     def regexCheck(rule: Rule): Boolean = rule match {
-      case RegexRule(s) =>  Try(s.r).isFailure
+      case RegExpRule(s) =>  Try(s.r).isFailure
       case _ => false
     }
 
@@ -443,12 +543,16 @@ trait SchemaParser extends RegexParsers {
   private def uniqueMultiValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
     def uniqueMultiCheck(rule: Rule): Option[List[String]] = rule match {
       case UniqueMultiRule(columns) =>
-        val actualColumns:List[String] =  columnDefinitions.map( _.id)
-        val invalidColumn = columns.filterNot( f => actualColumns.exists(_ == f))
+        val actualColumns: List[String] = columnDefinitions.map(_.id)
+        val invalidColumns: List[ColumnReference] = columns.filterNot(f => actualColumns.exists(_ == f))
 
-        if ( invalidColumn.isEmpty) None else Some(invalidColumn)
+        if(invalidColumns.isEmpty)
+          None
+        else
+          Some(invalidColumns.map(_.value))
 
-      case _ => None
+      case _ =>
+        None
     }
 
     val v = for {
@@ -496,9 +600,12 @@ trait SchemaParser extends RegexParsers {
       case ParenthesesRule(l) =>
         l.foldLeft(Some(List.empty[String])) { case (l,r) => Some((l ++  explicitColumnCheck(r)).flatten.toList) }
 
-      case _ => rule.explicitColumn match {
-        case Some(columnName) =>  if (!columnDefinitions.map(_.id).contains(columnName)) Some(List(columnName)) else None
-        case None => None
+      case _ =>
+        rule.explicitColumn match {
+          case Some(columnRef) if(!columnDefinitions.map(_.id).contains(columnRef.value)) =>
+              Some(List(columnRef.value))
+          case _ =>
+            None
       }
     }
 

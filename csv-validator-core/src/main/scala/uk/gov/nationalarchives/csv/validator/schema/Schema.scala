@@ -23,7 +23,7 @@ case class Separator(separatorChar: Char) extends GlobalDirective("separator")
 
 case class Quoted() extends GlobalDirective("quoted")
 
-case class TotalColumns(numberOfColumns: Int) extends GlobalDirective("totalColumns")
+case class TotalColumns(numberOfColumns: BigInt) extends GlobalDirective("totalColumns")
 
 case class NoHeader() extends GlobalDirective("noHeader")
 
@@ -42,7 +42,17 @@ case class ColumnReference(value: String) extends ArgProvider {
 
   def referenceValue(columnIndex: Int, row: Row, schema: Schema): Option[String] = {
     val referencedIndex = schema.columnDefinitions.indexWhere(_.id == value)
-    Some(row.cells(referencedIndex).value)
+    row.cells.lift(referencedIndex).map(_.value)
+  }
+
+  @throws[IndexOutOfBoundsException]
+  def referenceValueEx(columnIndex: Int, row: Row, schema: Schema): String = {
+    referenceValue(columnIndex, row, schema) match {
+      case Some(rv) =>
+        rv
+      case None =>
+        throw new ArrayIndexOutOfBoundsException(s"Could not access reference column $value at [$columnIndex:${row.lineNumber}]")
+    }
   }
 
   def toError ="$" + value

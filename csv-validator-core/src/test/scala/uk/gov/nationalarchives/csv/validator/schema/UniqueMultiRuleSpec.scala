@@ -18,7 +18,7 @@ class UniqueMultiRuleSpec extends Specification {
 
     "succeed if all column values are distinct" in {
       val schema = Schema(List(TotalColumns(1)), List(ColumnDefinition("Name"), ColumnDefinition("Legs")))
-      val rule = UniqueMultiRule( "Legs" :: Nil )
+      val rule = UniqueMultiRule( ColumnReference("Legs") :: Nil )
 
       rule.evaluate(0, Row(Cell("r2d2") :: Cell("3") :: Nil, 1), schema)
       rule.evaluate(0, Row(Cell("c3po") :: Cell("2") :: Nil, 2), schema) must beLike { case Success(_) => ok }
@@ -26,7 +26,7 @@ class UniqueMultiRuleSpec extends Specification {
 
     "succeed if duplicate column but 2nd is distinct" in {
       val schema = Schema(List(TotalColumns(1)), List(ColumnDefinition("Name"), ColumnDefinition("Legs")))
-      val rule = UniqueMultiRule( "Legs" :: Nil )
+      val rule = UniqueMultiRule( ColumnReference("Legs") :: Nil )
 
       rule.evaluate(0, Row(Cell("r2d2") :: Cell("3") :: Nil, 1), schema)
       rule.evaluate(0, Row(Cell("r2d2") :: Cell("2") :: Nil, 2), schema) must beLike { case Success(_) => ok }
@@ -34,7 +34,7 @@ class UniqueMultiRuleSpec extends Specification {
 
     "fail if there are duplicate on all columns column values" in {
       val schema = Schema(List(TotalColumns(1)), List(ColumnDefinition("Name"), ColumnDefinition("Legs"), ColumnDefinition("Color")))
-      val rule = UniqueMultiRule( "Legs" :: "Color" :: Nil )
+      val rule = UniqueMultiRule( ColumnReference("Legs") :: ColumnReference("Color") :: Nil )
 
       rule.evaluate(0, Row(Cell("r2d2") :: Cell("3") :: Cell("blue") :: Nil, 1), schema)
       rule.evaluate(0, Row(Cell("r2d2") :: Cell("3") :: Cell("blue") :: Nil, 2), schema) must beLike {

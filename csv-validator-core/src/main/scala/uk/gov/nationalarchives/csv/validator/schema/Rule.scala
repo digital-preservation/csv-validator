@@ -30,7 +30,7 @@ abstract class Rule(name: String, val argProviders: ArgProvider*) extends Positi
 
   type RuleValidation[A] = ValidationNel[String, A]
 
-  var explicitColumn: Option[String] = None
+  var explicitColumn: Option[ColumnReference] = None
 
   def evaluate(columnIndex: Int, row: Row, schema: Schema): RuleValidation[Any] = {
     if (valid(cellValue(columnIndex, row, schema), schema.columnDefinitions(columnIndex), columnIndex, row, schema)) true.successNel[String] else fail(columnIndex, row, schema)
@@ -43,17 +43,16 @@ abstract class Rule(name: String, val argProviders: ArgProvider*) extends Positi
     s"$toError fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}".failNel[Any]
   }
 
-  def cellValue(columnIndex: Int, row: Row, schema: Schema) = explicitColumn match {
-    case Some(columnName) => row.cells(columnNameToIndex(schema, columnName)).value
-    case None => row.cells(columnIndex).value
+  def cellValue(columnIndex: Int, row: Row, schema: Schema): String = explicitColumn match {
+    case Some(columnRef) =>
+      columnRef.referenceValueEx(columnIndex, row, schema)
+    case None =>
+      row.cells(columnIndex).value
   }
 
-  def explicitName = explicitColumn match {
-    case Some(colName) => "$" + colName + "/"
-    case None => ""
-  }
+  def explicitName: Option[String] = explicitColumn.map("$" + _.value + "/")
 
-  def ruleName = explicitName + name
+  def ruleName: String = explicitName.getOrElse("") + name
 
   def columnNameToIndex(schema: Schema, name: String): Int = {
     try {
@@ -119,8 +118,10 @@ case class IfRule(condition: Rule, rules: List[Rule], elseRules: Option[List[Rul
 
   override def evaluate(columnIndex: Int, row: Row, schema: Schema): RuleValidation[Any] = {
     val (cellValue,idx) = condition.explicitColumn match {
-      case Some(columnName) => (row.cells(columnNameToIndex(schema, columnName)).value, columnNameToIndex(schema, columnName) )
-      case None => (row.cells(columnIndex).value, columnIndex)
+      case Some(columnRef) =>
+        (columnRef.referenceValueEx(columnIndex, row, schema), columnNameToIndex(schema, columnRef.value))
+      case None =>
+        (row.cells(columnIndex).value, columnIndex)
     }
 
     val v = if (condition.valid(cellValue, schema.columnDefinitions(columnIndex), idx, row, schema)) {
@@ -153,7 +154,7 @@ case class IfRule(condition: Rule, rules: List[Rule], elseRules: Option[List[Rul
   }
 }
 
-case class RegexRule(regex: String) extends Rule("regex") {
+case class RegExpRule(regex: String) extends Rule("regex") {
   def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
 
     val regexp = if (columnDefinition.directives.contains(IgnoreCase())) "(?i)" + regex else regex
@@ -200,9 +201,9 @@ case class IsRule(isValue: ArgProvider) extends Rule("is", Seq(isValue): _*) {
   }
 }
 
-case class IsNotRule(isNotValue: ArgProvider) extends Rule("isNot", Seq(isNotValue): _*) {
+case class NotRule(notValue: ArgProvider) extends Rule("not", Seq(notValue): _*) {
   def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
-    val ruleValue = isNotValue.referenceValue(columnIndex, row, schema)
+    val ruleValue = notValue.referenceValue(columnIndex, row, schema)
 
     val (rv, cv) = if (columnDefinition.directives.contains(IgnoreCase())) (ruleValue.get.toLowerCase, cellValue.toLowerCase) else (ruleValue.get, cellValue)
     cv != rv
@@ -370,14 +371,14 @@ case class UniqueRule() extends Rule("unique") {
   }
 }
 
-case class UniqueMultiRule( columns: List[String] ) extends Rule("unique(") {
+case class UniqueMultiRule(columns: List[ColumnReference]) extends Rule("unique(") {
   val SEPARATOR:Char = 0x07 // BEL
   val distinctValues = mutable.HashMap[String, Int]()
 
   override def evaluate(columnIndex: Int, row: Row, schema: Schema): RuleValidation[Any] = {
     val columnDefinition = schema.columnDefinitions(columnIndex)
 
-    def secondaryValues: String =  columns.foldLeft(""){ case (s,c) => s + SEPARATOR + row.cells(columnNameToIndex(schema, c)).value }
+    def secondaryValues = columns.map(_.referenceValue(columnIndex, row, schema)).mkString(SEPARATOR.toString)
 
     def uniqueString: String =  cellValue(columnIndex,row,schema) + SEPARATOR +  secondaryValues
 
@@ -391,7 +392,7 @@ case class UniqueMultiRule( columns: List[String] ) extends Rule("unique(") {
     originalValue match {
       case None => distinctValues.put(cellValueCorrectCase, row.lineNumber); true.successNel
       case Some(o) => {
-        s"$toError ${columns.mkString("$", ", $", "")} ) fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)} (original at line: ${distinctValues(o)})".failNel[Any]
+        s"$toError ${columns.map(_.toError).mkString(", ")} ) fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)} (original at line: ${distinctValues(o)})".failNel[Any]
       }
     }
   }

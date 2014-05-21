@@ -541,11 +541,11 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       }
     }
 
-    "succeed for 'isNot' rule" in {
+    "succeed for 'not' rule" in {
       val schema =
         """version 1.0
            @totalColumns 1 @noHeader
-           Country: isNot("United States")
+           Country: not("United States")
         """
 
       val metaData = "United Kingdom"
@@ -553,11 +553,11 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
-    "succeed for 'isNot' cross reference rule" in {
+    "succeed for 'not' cross reference rule" in {
       val schema =
         """version 1.0
            @totalColumns 2 @noHeader
-           Country: isNot($MyCountry)
+           Country: not($MyCountry)
            MyCountry:
         """
 
@@ -566,11 +566,11 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
-    "succeed for 2 'isNot' rule" in {
+    "succeed for 2 'not' rule" in {
       val schema =
         """version 1.0
            @totalColumns 1 @noHeader
-           Country: isNot("United States") isNot("Kingdom") @ignoreCase
+           Country: not("United States") not("Kingdom") @ignoreCase
         """
 
       val metaData = "United Kingdom"
@@ -578,32 +578,32 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
-    "fail for 'isNot' rule that is not matched" in {
+    "fail for 'not' rule that is not matched" in {
       val schema =
         """version 1.0
            @totalColumns 1 @noHeader
-           Country: isNot("United Kingdom")
+           Country: not("United Kingdom")
         """
 
       val metaData = "United Kingdom"
 
       validate(metaData, schema, None) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""isNot("United Kingdom") fails for line: 1, column: Country, value: "United Kingdom""""))
+        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""not("United Kingdom") fails for line: 1, column: Country, value: "United Kingdom""""))
       }
     }
 
-    "fail for 'isNot' cross reference rule that is not matched" in {
+    "fail for 'not' cross reference rule that is not matched" in {
       val schema =
         """version 1.0
            @totalColumns 2 @noHeader
-           Country: isNot($MyCountry)
+           Country: not($MyCountry)
            MyCountry:
         """
 
       val metaData = "United Kingdom,United Kingdom"
 
       validate(metaData, schema, None) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""isNot($MyCountry) fails for line: 1, column: Country, value: "United Kingdom""""))
+        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""not($MyCountry) fails for line: 1, column: Country, value: "United Kingdom""""))
       }
     }
 
