@@ -38,7 +38,7 @@ class SchemaParserSpec extends Specification {
                       LastName: @IgnoreCase regex ("[a]")"""
 
       parse(new StringReader(schema)) must beLike {
-        case Failure(messages, _) => messages mustEqual s"version 1.0 missing or incorrect"
+        case Failure(messages, _) => messages mustEqual s"Schema version declaration 'version 1.0' missing or incorrect"
       }
     }
 

@@ -16,95 +16,140 @@ import java.security.MessageDigest
 import scalaz._
 import Scalaz._
 import uk.gov.nationalarchives.csv.validator.EOL
-import scala.util.parsing.input.{OffsetPosition, Position}
 import uk.gov.nationalarchives.csv.validator.{SchemaMessage, FailMessage}
 
+/**
+ * CSV Schema Parser
+ *
+ * Uses Scala Parser Combinators to parse the CSV Schema language defined in
+ * the specification document
+ * @see http://digital-preservation.github.io/csv-validator/csv-schema-1.0.html
+ */
 trait SchemaParser extends RegexParsers {
 
-  override protected val whiteSpace = """[ \t]*""".r
+  /**
+   * Any path substitutions needed when
+   * resolving file paths
+   */
+  val pathSubstitutions: List[(String, String)]
 
-  //val white: Parser[String] = whiteSpace
-
-  val eol = """\r?\n""".r
-
-  val charPattern = """([^"\p{Cntrl}]|\\[\\'"bfnrt]|\\u[a-fA-F0-9]{4})"""
-
-  //val stringRegex = """([^"\p{Cntrl}\\]|\\[\\'"bfnrt]|\\u[a-fA-F0-9]{4})*""".r
-  val stringRegex = s"""$charPattern*""".r     //allow un-escaped '\'
-  val charRegex = charPattern.r
-
-  val pathSubstitutions: List[(String,String)]
-
+  /**
+   * Whether to enforce case sensitivity
+   * in file path checks. Useful
+   * when working on operating systems /
+   * filesystems that ignore file path
+   * case sensitivity, e.g. Windows and NTFS
+   */
   val enforceCaseSensitivePathChecks: Boolean
 
-  def parseAndValidate(reader: Reader): ValidationNel[FailMessage, Schema] = {
 
-    //TODO following function works around a deficiency in scala.util.parsing.combinator.Parsers{$Error, $Failure} that use hard-coded Unix EOL in Scala 2.10.0
-    def formatNoSuccessMessageForPlatform(s: String) = {
-      if(sys.props("os.name").toLowerCase.startsWith("win"))
-        s.replaceAll("([^\\r]?)\\n", "$1\r\n")
-      else
-        s
-    }
+  //<editor-fold desc="CSV Schema parser combinators">
 
-    parse(reader) match {
-      case s @ Success(schema: Schema, next) => {
-        val errors = validate(schema.globalDirectives, schema.columnDefinitions)
-        if (errors.isEmpty) schema.successNel[FailMessage] else SchemaMessage(errors).failNel[Schema]
-      }
-      case n: NoSuccess => SchemaMessage(formatNoSuccessMessageForPlatform(n.toString)).failNel[Schema]
-    }
-  }
-
-  def parse(reader: Reader) = parseAll(schema, reader)
-
+  /**
+   * [1] Schema ::= Prolog Body
+   */
   def schema = prolog ~ body ^^ {
     case version ~ globalDirectives ~ columnDefs =>
       Schema(globalDirectives, columnDefs)
   }
 
+  /**
+   * [2] Prolog ::= VersionDecl GlobalDirectives
+   */
   def prolog = versionDecl ~ globalDirectives
 
-  def versionDecl: Parser[String] = ("version" ~> Schema.version <~ eol).withFailureMessage(s"version ${Schema.version} missing or incorrect")
+  /**
+   * [3] VersionDecl ::= "version 1.0"
+   */
+  def versionDecl: Parser[String] = ("version" ~> Schema.version <~ eol).withFailureMessage(s"Schema version declaration 'version ${Schema.version}' missing or incorrect")
 
-  def globalDirectives: Parser[List[GlobalDirective]] = rep(positioned(globalDirective <~ opt(eol)))
+  /**
+   * [4] GlobalDirectives	::=	SeparatorDirective? QuotedDirective? TotalColumnsDirective? (NoHeaderDirective | IgnoreColumnNameCaseDirective)?
+   */
+  def globalDirectives: Parser[List[GlobalDirective]] = rep(positioned((separatorDirective | quotedDirective | totalColumnsDirective | (noHeaderDirective | ignoreColumnNameCaseDirective)) <~ opt(eol)))
 
-  def globalDirective = separatorDirective | quotedDirective | totalColumnsDirective | (noHeaderDirective | ignoreColumnNameCaseDirective)
+  /**
+   * [5] DirectivePrefix ::= "@"
+   */
+  def directivePrefix = "@"
 
-  def separatorDirective: Parser[Separator] = "@separator" ~> (separatorTabExpr | separatorChar)
+  /**
+   * [6] SeparatorDirective	::=	DirectivePrefix "separator" (SeparatorTabExpr | SeparatorChar)
+   */
+  def separatorDirective: Parser[Separator] = directivePrefix ~> "separator" ~> (separatorTabExpr | separatorChar)
 
+  /**
+   * [7] SeparatorTabExpr	::=	"TAB" | '\t'
+   */
   def separatorTabExpr: Parser[Separator] = ("TAB" | """'\t'""") ^^^ Separator('\t')
 
+  /**
+   * [8] SeparatorChar ::= CharacterLiteral
+   */
   def separatorChar: Parser[Separator] =  characterLiteral ^^ { Separator(_) }
 
-  def quotedDirective: Parser[Quoted] = "@quoted" ^^^ Quoted()
+  /**
+   * [9] QuotedDirective ::=	DirectivePrefix "quoted"
+   */
+  def quotedDirective: Parser[Quoted] = directivePrefix ~> "quoted" ^^^ Quoted()
 
-  def totalColumnsDirective: Parser[TotalColumns] = ("@totalColumns" ~> positiveNonZeroIntegerLiteral ^^ { TotalColumns(_) } ).withFailureMessage("@totalColumns invalid")
+  /**
+   * [10]	TotalColumnsDirective	::=	DirectivePrefix "totalColumns" PositiveNonZeroIntegerLiteral
+   */
+  def totalColumnsDirective: Parser[TotalColumns] = (directivePrefix ~> "totalColumns" ~> positiveNonZeroIntegerLiteral ^^ { TotalColumns(_) }).withFailureMessage("@totalColumns invalid")
 
-  def noHeaderDirective: Parser[NoHeader] = "@noHeader" ^^^ NoHeader()
+  /**
+   * [11]	NoHeaderDirective	::=	DirectivePrefix "noHeader"
+   */
+  def noHeaderDirective: Parser[NoHeader] = directivePrefix ~> "noHeader" ^^^ NoHeader()
 
-  def ignoreColumnNameCaseDirective: Parser[IgnoreColumnNameCase] = "@ignoreColumnNameCase" ^^^ IgnoreColumnNameCase()
+  /**
+   * [12]	IgnoreColumnNameCaseDirective	::=	DirectivePrefix "ignoreColumnNameCase"
+   */
+  def ignoreColumnNameCaseDirective: Parser[IgnoreColumnNameCase] = directivePrefix ~> "ignoreColumnNameCase" ^^^ IgnoreColumnNameCase()
 
+  /**
+   * [13]	Body ::= BodyPart+
+   */
   def body = rep1(bodyPart) <~ rep(eol)
 
-  def bodyPart = (rep(comment) ~> columnDefinitions) <~ rep(comment)
+  /**
+   * [14]	BodyPart ::= Comment* ColumnDefinition Comment*
+   */
+  def bodyPart = (rep(comment) ~> columnDefinition) <~ rep(comment)
 
+  /**
+   * [15]	Comment	::=	SingleLineComment | MultiLineComment
+   */
   def comment: Parser[Any] = singleLineComment | multiLineComment
 
-  def singleLineComment: Parser[String] = """//[\S\t ]*(?:\r?\n)?""".r
+  /**
+   * [16]	SingleLineComment	::=	"//" NonBreakingChar*
+   */
+  def singleLineComment: Parser[String] = """//[\S\t ]*(?:\r?\n)?""".r    //TODO refactor to match EBNF?
 
-  def multiLineComment: Parser[String] = """\/\*(?:[^*\r\n]+|(?:\r?\n))*\*\/(?:\r?\n)?""".r
+  /**
+   * [17]	MultiLineComment ::= "/*" Char* "*/"
+   */
+  def multiLineComment: Parser[String] = """\/\*(?:[^*\r\n]+|(?:\r?\n))*\*\/(?:\r?\n)?""".r   //TODO refactor to match EBNF?
 
-  def columnDefinitions = (positioned(columnDefinition))
-  //def columnDefinitions = columnDefinition
+/*
 
-  def columnDefinition: Parser[ColumnDefinition] = (
+    [19]	ColumnIdentifier	::=	PositiveNonZeroIntegerLiteral | Ident
+    [20]	QuotedColumnIdentifier	::=	"\"" NonDoubleQuoteChar "\""
+    [21]	ColumnRule	::=	ColumnValidationExpr* ColumnDirectives
+    */
+  //def columnDefinitions = (positioned(columnDefinition))
+
+  /**
+   * [18]	ColumnDefinition ::=	(ColumnIdentifier | QuotedColumnIdentifier) ":" ColumnRule
+   */
+  def columnDefinition: Parser[ColumnDefinition] = positioned((
     ((columnIdentifier | quotedColumnIdentifier) <~ ":") ~ columnRule <~ (endOfColumnDefinition | comment) ^^ {
       case id ~ (rules ~ columnDirectives) =>
         ColumnDefinition(id, rules, columnDirectives)
     }
-  ).withFailureMessage("Invalid column definition")
-
+  ).withFailureMessage("Invalid column definition"))
 
   def columnIdentifier = (positiveNonZeroIntegerLiteral | ident).withFailureMessage("Column identifier invalid") ^^ {
     _.toString //TODO should be able to remove this `.toString` in favour of `id` field in ColumnDefinition being either NamedId <: String or OffsetId <: Integer, rather than just a String! see columnDefinition parser extractor above
@@ -113,8 +158,6 @@ trait SchemaParser extends RegexParsers {
   def quotedColumnIdentifier = stringLiteral withFailureMessage("Quoted column identifier invalid")
 
   def columnRule = rep(columnValidationExpr) ~ columnDirectives
-
-  //def columnRule = rep(columnValidationExpr)
 
   //TODO refactor into columnDirective and update EBNF
   def columnDirectives: Parser[List[ColumnDirective]] = rep(positioned(optionalDirective | ignoreCaseDirective | warningDirective))
@@ -125,10 +168,6 @@ trait SchemaParser extends RegexParsers {
 
   def warningDirective = "@warning" ^^^ Warning()
 
-  //def columnValidationExpr = positioned(combinatorialAndNonConditionalRule | conditionalRule)
-  //def combinatorialAndNonConditionalRule = (and | or | nonConditionalRule)
-  //def nonConditionalRule = opt( columnRef <~ "/") ~ unaryRule ^^ { case explicitColumn ~ rule => rule.explicitColumn = explicitColumn; rule }
-
   //TODO Update EBNF
   def columnValidationExpr: Parser[Rule] = positioned(combinatorialExpr | nonCombinatorialExpr)
 
@@ -137,10 +176,9 @@ trait SchemaParser extends RegexParsers {
 
   def nonCombinatorialExpr = nonConditionalExpr | conditionalExpr
 
-  //TODO combinatorialExpr causes a StackOverflowException
-
   def nonConditionalExpr: Parser[Rule] = singleExpr | externalSingleExpr | parenthesizedExpr
 
+  //TODO need to add DateExpr, PartialDateExpr
   def singleExpr: Parser[Rule] = opt(explicitContextExpr) ~
     (isExpr | notExpr | inExpr |
       startsWithExpr | endsWithExpr | regExpExpr |
@@ -158,8 +196,6 @@ trait SchemaParser extends RegexParsers {
 
   def explicitContextExpr = columnRef <~ "/"
 
-  //def argProvider: Parser[ArgProvider] = columnRef ^^ { s => ColumnReference(s) } | '\"' ~> stringRegex <~ '\"' ^^ {s => Literal(Some(s)) }
-
   def columnRef: Parser[ColumnReference] = "$" ~> (columnIdentifier | quotedColumnIdentifier) ^^ { ColumnReference(_) }
 
   def isExpr: Parser[IsRule] = "is(" ~> stringProvider <~ ")" ^^ { IsRule }
@@ -174,16 +210,10 @@ trait SchemaParser extends RegexParsers {
 
   //TODO could improve error or regex?
   //TODO How to escape quotes inside regex?
-  //def regExpExpr: Parser[RegExpRule] = "regex(" ~> stringLiteral <~ ")" ^^ { RegExpRule }
-  //def regExpExpr: Parser[RegExpRule] = "regex" ~> """\(".+"\)""".r ^^ {
   def regExpExpr: Parser[RegExpRule] = "regex" ~> """([(]")(.*?)("[)])""".r ^^ {
     case s =>
       RegExpRule(s.dropRight(2).drop(2))
   } withFailureMessage("""regex not correctly delimited as ("your regex")""")
-
-  //def regex = "regex" ~> regexParser ^^ { s => RegexRule(s.dropRight(2).drop(2)) }
-  //val Regex = """([(]")(.*?)("[)])""".r
-  //val regexParser: Parser[String] = Regex withFailureMessage("""regex not correctly delimited as ("your regex")""")
 
   def rangeExpr: Parser[RangeRule] = "range(" ~> numericLiteral ~ "," ~ numericLiteral <~ ")"  ^^ {
     case a ~ "," ~ b =>
@@ -210,7 +240,6 @@ trait SchemaParser extends RegexParsers {
     case Some((columnRef1 ~ columnRefN)) =>
       UniqueMultiRule(columnRef1 :: columnRefN)
   }
-
 
   def uriExpr = "uri" ^^^ UriRule()
 
@@ -299,17 +328,73 @@ trait SchemaParser extends RegexParsers {
       FileExistsRule(pathSubstitutions, enforceCaseSensitivePathChecks, s)
   }
 
-  def checksumExpr = "checksum(" ~> file ~ "," ~ algorithmExpr <~ ")" ^^ {
+  def checksumExpr = "checksum(" ~> fileExpr ~ "," ~ stringLiteral <~ ")" ^^ {
     case files ~ "," ~ algorithm =>
       ChecksumRule(files._1.getOrElse(Literal(None)), files._2, algorithm, pathSubstitutions, enforceCaseSensitivePathChecks)
   }
 
-  def fileCountExpr = "fileCount(" ~> file <~ ")" ^^ { case a  => FileCountRule(a._1.getOrElse(Literal(None)), a._2, pathSubstitutions) }
+  def fileCountExpr = "fileCount(" ~> fileExpr <~ ")" ^^ {
+    case a  =>
+      FileCountRule(a._1.getOrElse(Literal(None)), a._2, pathSubstitutions)
+  }
 
+  //TODO update EBNF to match, fileNameExpr is pointless
+  def fileExpr = "file(" ~> opt(stringProvider <~ ",") ~ stringProvider <~ ")"
+  
   //TODO below **** MUCH TODO!
+
+  def parenthesizedExpr: Parser[ParenthesesRule] = "(" ~> rep1(columnValidationExpr) <~ ")" ^^ { ParenthesesRule } | failure("unmatched paren")
+
+  def conditionalExpr: Parser[Rule] = ifExpr
+
+  //TODO update EBNF
+  /**
+   * Uses nonCombinatorialExpr on the left-hand-side
+   * to avoid left recursive rule
+   */
+  def orExpr: Parser[OrRule] = nonCombinatorialExpr ~ "or" ~ columnValidationExpr  ^^ { case lhs ~ "or" ~ rhs => OrRule(lhs, rhs) }
+
+  //TODO update EBNF
+  /**
+   * Uses nonCombinatorialExpr on the left-hand-side
+   * to avoid left recursive rule
+   */
+  def andExpr: Parser[AndRule] = nonCombinatorialExpr ~ "and" ~ columnValidationExpr  ^^  { case lhs ~ "and" ~ rhs =>  AndRule(lhs, rhs) }
+
+  //TODO update EBNF to match this
+  def ifExpr: Parser[IfRule] = (("if(" ~> (combinatorialExpr | nonConditionalExpr) <~ ",") ~ rep1(columnValidationExpr) ~ opt("," ~> rep1(columnValidationExpr)) <~ ")" ^^ {
+    case condition ~ thenExpr ~ elseExpr =>
+      IfRule(condition, thenExpr, elseExpr)
+  }) | failure("Invalid rule")
+
+  //def rootFilePath: Parser[String] = """[\^&'@\{\}\[\]\,\$=!\-#\(\)%\.\+~_a-zA-Z0-9\s\\/:]+""".r    //Characters taken from http://support.microsoft.com/kb/177506 and added '/' and '\' and ':'
+
+  //def dateRange = "dateRange(\""
+
+  private def endOfColumnDefinition: Parser[Any] = whiteSpace ~ (eol | endOfInput | failure("Invalid column definition"))
+
+  private def endOfInput: Parser[Any] = new Parser[Any] {
+    def apply(input: Input) = {
+      if (input.atEnd) new Success("End of Input reached", input)
+      else Failure("End of Input expected", input)
+    }
+  }
+
+  //</editor-fold>
 
   //TODO update EBNF to use simpler lexical rules
   //<editor-fold desc="lexical">
+  override protected val whiteSpace = """[ \t]*""".r
+
+  private val eol = """\r?\n""".r
+
+  /*
+  private val charPattern = """([^"\p{Cntrl}]|\\[\\'"bfnrt]|\\u[a-fA-F0-9]{4})"""
+  private val stringRegex = """([^"\p{Cntrl}\\]|\\[\\'"bfnrt]|\\u[a-fA-F0-9]{4})*""".r
+  private val stringRegex = s"""$charPattern*""".r     //allow un-escaped '\'
+  private val charRegex = charPattern.r
+  */
+
   def wildcardLiteral = "*"
 
   def numericLiteral: Parser[BigDecimal] = number.r ^^ { BigDecimal(_) }
@@ -333,58 +418,27 @@ trait SchemaParser extends RegexParsers {
   val nonBreakingCharPattern = """[^\r\n\f]"""
   //</editor-fold>
 
-//  def unaryRule =
-//    parenthesesRule | in | is | isNot | starts | ends |
-//    empty | notEmpty |
-//    uniqueMultiExpr | uniqueExpr |
-//    regex | uuid4 | uri | xDateTimeRange | xDateTime | xDateRange | xDate | ukDateRange | ukDate | partUkDate | xTimeRange | xTime |
-//    fileExists | checksum | fileCount |
-//    positiveInteger | range | lengthExpr | failure("Invalid rule")
 
-  def parenthesizedExpr: Parser[ParenthesesRule] = "(" ~> rep1(columnValidationExpr) <~ ")" ^^ { ParenthesesRule } | failure("unmatched paren")
+  def parseAndValidate(reader: Reader): ValidationNel[FailMessage, Schema] = {
 
-  def conditionalExpr: Parser[Rule] = ifExpr
-  
-  //def orExpr: Parser[OrRule] = columnValidationExpr ~ "or" ~ columnValidationExpr  ^^ { case lhs ~ "or" ~ rhs => OrRule(lhs, rhs) }
+    //TODO following function works around a deficiency in scala.util.parsing.combinator.Parsers{$Error, $Failure} that use hard-coded Unix EOL in Scala 2.10.0
+    def formatNoSuccessMessageForPlatform(s: String) = {
+      if(sys.props("os.name").toLowerCase.startsWith("win"))
+        s.replaceAll("([^\\r]?)\\n", "$1\r\n")
+      else
+        s
+    }
 
-  //def andExpr: Parser[AndRule] = columnValidationExpr ~ "and" ~ columnValidationExpr  ^^  { case lhs ~ "and" ~ rhs =>  AndRule(lhs, rhs) }
-
-  def orExpr: Parser[OrRule] = nonCombinatorialExpr ~ "or" ~ columnValidationExpr  ^^ { case lhs ~ "or" ~ rhs => OrRule(lhs, rhs) }
-
-  def andExpr: Parser[AndRule] = nonCombinatorialExpr ~ "and" ~ columnValidationExpr  ^^  { case lhs ~ "and" ~ rhs =>  AndRule(lhs, rhs) }
-
-
-
-//  def ifExpr: Parser[IfRule] = (("if(" ~> white ~> combinatorialAndNonConditionalRule <~ white <~ "," <~ white) ~ (rep1(columnValidationExpr)) ~ opt((white ~> "," ~> white ~> rep1(columnValidationExpr))) <~ white <~ ")" ^^ {
-//    case cond ~ bdy ~ optBdy => IfRule(cond, bdy, optBdy)
-//  }) | failure("Invalid rule")
-
-  //TODO update EBNF to match this
-  def ifExpr: Parser[IfRule] = (("if(" ~> (combinatorialExpr | nonConditionalExpr) <~ ",") ~ rep1(columnValidationExpr) ~ opt("," ~> rep1(columnValidationExpr)) <~ ")" ^^ {
-    case cond ~ bdy ~ optBdy => IfRule(cond, bdy, optBdy)
-  }) | failure("Invalid rule")
-
-
-//  def argProvider: Parser[ArgProvider] = columnRef ^^ { s => ColumnReference(s) } | '\"' ~> stringRegex <~ '\"' ^^ {s => Literal(Some(s)) }
-
-  //def fileArgProvider: Parser[ArgProvider] = columnRef ^^ { s => ColumnReference(s) } | '\"' ~> rootFilePath <~ '\"' ^^ {s => Literal(Some(s)) }
-
-  def rootFilePath: Parser[String] = """[\^&'@\{\}\[\]\,\$=!\-#\(\)%\.\+~_a-zA-Z0-9\s\\/:]+""".r    //Characters taken from http://support.microsoft.com/kb/177506 and added '/' and '\' and ':'
-
-  def dateRange = "dateRange(\""
-
-  def file = "file(" ~> opt(stringProvider <~ ",") ~ stringProvider <~ ")"
-
-  def algorithmExpr: Parser[String] = "\"" ~> stringRegex <~ "\""  ^^ { a => a }
-
-  private def endOfColumnDefinition: Parser[Any] = whiteSpace ~ (eol | endOfInput | failure("Invalid column definition"))
-
-  private def endOfInput: Parser[Any] = new Parser[Any] {
-    def apply(input: Input) = {
-      if (input.atEnd) new Success("End of Input reached", input)
-      else Failure("End of Input expected", input)
+    parse(reader) match {
+      case s @ Success(schema: Schema, next) => {
+        val errors = validate(schema.globalDirectives, schema.columnDefinitions)
+        if (errors.isEmpty) schema.successNel[FailMessage] else SchemaMessage(errors).failNel[Schema]
+      }
+      case n: NoSuccess => SchemaMessage(formatNoSuccessMessageForPlatform(n.toString)).failNel[Schema]
     }
   }
+
+  def parse(reader: Reader) = parseAll(schema, reader)
 
   private def validate(g: List[GlobalDirective], c: List[ColumnDefinition]): String = {
     globDirectivesValid(g) ::totalColumnsValid(g, c) :: columnDirectivesValid(c) :: duplicateColumnsValid(c) :: crossColumnsValid(c) :: checksumAlgorithmValid(c) ::
