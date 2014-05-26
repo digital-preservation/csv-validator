@@ -42,7 +42,7 @@ class SchemaParserSpec extends Specification {
       }
     }
 
-    "succeed for extra white space around (including tabs) :" in {
+    "succeed for extra white space around (including tabs)" in {
       val schema = """version 1.0
                       @totalColumns 2
                       Name :
@@ -61,7 +61,7 @@ class SchemaParserSpec extends Specification {
       }
     }
 
-    "succeed if noHeader global directive set :" in {
+    "succeed if noHeader global directive set" in {
       val schema = """version 1.0
                       @totalColumns 2 @noHeader
                       Name :
