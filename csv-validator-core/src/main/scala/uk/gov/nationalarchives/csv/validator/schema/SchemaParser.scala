@@ -21,7 +21,7 @@ import uk.gov.nationalarchives.csv.validator.{SchemaMessage, FailMessage}
 
 trait SchemaParser extends RegexParsers {
 
-  override protected val whiteSpace = """[ \t]+""".r
+  override protected val whiteSpace = """[ \t]*""".r
 
   //val white: Parser[String] = whiteSpace
 
@@ -95,8 +95,8 @@ trait SchemaParser extends RegexParsers {
 
   def multiLineComment: Parser[String] = """\/\*(?:[^*\r\n]+|(?:\r?\n))*\*\/(?:\r?\n)?""".r
 
-  //def columnDefinitions = (positioned(columnDefinition))
-  def columnDefinitions = columnDefinition
+  def columnDefinitions = (positioned(columnDefinition))
+  //def columnDefinitions = columnDefinition
 
   def columnDefinition: Parser[ColumnDefinition] = (
     ((columnIdentifier | quotedColumnIdentifier) <~ ":") ~ columnRule <~ (endOfColumnDefinition | comment) ^^ {
@@ -339,7 +339,8 @@ trait SchemaParser extends RegexParsers {
 //    case cond ~ bdy ~ optBdy => IfRule(cond, bdy, optBdy)
 //  }) | failure("Invalid rule")
 
-  def ifExpr: Parser[IfRule] = (("if(" ~> nonConditionalExpr <~ ",") ~ rep1(columnValidationExpr) ~ opt("," ~> rep1(columnValidationExpr)) <~ ")" ^^ {
+  //TODO update EBNF to match this
+  def ifExpr: Parser[IfRule] = (("if(" ~> (combinatorialExpr | nonConditionalExpr) <~ ",") ~ rep1(columnValidationExpr) ~ opt("," ~> rep1(columnValidationExpr)) <~ ")" ^^ {
     case cond ~ bdy ~ optBdy => IfRule(cond, bdy, optBdy)
   }) | failure("Invalid rule")
 
@@ -364,7 +365,7 @@ trait SchemaParser extends RegexParsers {
 
   def algorithmExpr: Parser[String] = "\"" ~> stringRegex <~ "\""  ^^ { a => a }
 
-  private def endOfColumnDefinition: Parser[Any] = eol | endOfInput | failure("Invalid column definition")
+  private def endOfColumnDefinition: Parser[Any] = whiteSpace ~ (eol | endOfInput | failure("Invalid column definition"))
 
   private def endOfInput: Parser[Any] = new Parser[Any] {
     def apply(input: Input) = {
