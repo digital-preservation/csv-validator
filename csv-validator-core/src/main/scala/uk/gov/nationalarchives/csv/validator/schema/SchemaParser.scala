@@ -172,7 +172,8 @@ trait SchemaParser extends RegexParsers {
   //TODO could improve error or regex?
   //TODO How to escape quotes inside regex?
   //def regExpExpr: Parser[RegExpRule] = "regex(" ~> stringLiteral <~ ")" ^^ { RegExpRule }
-  def regExpExpr: Parser[RegExpRule] = "regex" ~> """\(".+"\)""".r ^^ {
+  //def regExpExpr: Parser[RegExpRule] = "regex" ~> """\(".+"\)""".r ^^ {
+  def regExpExpr: Parser[RegExpRule] = "regex" ~> """([(]")(.*?)("[)])""".r ^^ {
     case s =>
       RegExpRule(s.dropRight(2).drop(2))
   } withFailureMessage("""regex not correctly delimited as ("your regex")""")
@@ -208,6 +209,8 @@ trait SchemaParser extends RegexParsers {
 
 
   def uriExpr = "uri" ^^^ UriRule()
+
+  //TODO adjust EBNF in spec so that xsdDateTime xsdDate and xsdTime literals do not need to be quoted etc. I see no point in forcing users to put them in quotes!
 
   //TODO below
 
@@ -291,7 +294,7 @@ trait SchemaParser extends RegexParsers {
   val number = """[\-]?[0-9]+(?:\.[0-9]+)?"""
 
   def stringLiteral: Parser[String] = "\"" ~> stringPattern.r <~ "\""
-  val stringPattern = """[^"]+"""
+  val stringPattern = """[^"]*"""
 
   def ident: Parser[String] = identPattern.r
   val identPattern = """[A-Za-z0-9\-_\.]+"""
@@ -544,7 +547,7 @@ trait SchemaParser extends RegexParsers {
     def uniqueMultiCheck(rule: Rule): Option[List[String]] = rule match {
       case UniqueMultiRule(columns) =>
         val actualColumns: List[String] = columnDefinitions.map(_.id)
-        val invalidColumns: List[ColumnReference] = columns.filterNot(f => actualColumns.exists(_ == f))
+        val invalidColumns: List[ColumnReference] = columns.filterNot(f => actualColumns.exists(_ == f.value))
 
         if(invalidColumns.isEmpty)
           None
