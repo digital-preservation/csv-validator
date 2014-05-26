@@ -175,7 +175,7 @@ class SchemaParserColumnDefinitionsSpec extends Specification {
       parseAndValidate(new StringReader(schema)) must beLike {
         case FailureZ(msgs) => msgs.list mustEqual List(SchemaMessage("""@totalColumns = 2 but number of columns defined = 5 at line: 2, column: 1
                                                         |Column: Column1 has invalid cross reference is($NotAColumn1) at line: 3, column: 23
-                                                        |Column: Column2 has invalid cross reference not($NotAColumn2) at line: 4, column: 26
+                                                        |Column: Column2 has invalid cross reference not($NotAColumn2) at line: 4, column: 24
                                                         |Column: Column3 has invalid cross reference in($NotAColumn3) at line: 5, column: 23
                                                         |Column: Column4 has invalid cross reference starts($NotAColumn4) at line: 6, column: 27
                                                         |Column: Column5 has invalid cross reference ends($NotAColumn5) at line: 7, column: 25""".stripMargin))
