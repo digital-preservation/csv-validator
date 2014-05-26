@@ -129,8 +129,11 @@ trait SchemaParser extends RegexParsers {
   //def combinatorialAndNonConditionalRule = (and | or | nonConditionalRule)
   //def nonConditionalRule = opt( columnRef <~ "/") ~ unaryRule ^^ { case explicitColumn ~ rule => rule.explicitColumn = explicitColumn; rule }
 
+  //TODO Update EBNF
   def columnValidationExpr: Parser[Rule] = positioned(combinatorialExpr | nonCombinatorialExpr)
-  //def columnValidationExpr: Parser[Rule] = combinatorialExpr | nonCombinatorialExpr //TODO reinstate positioned above
+
+  //TODO reorder EBNF
+  def combinatorialExpr = orExpr | andExpr
 
   def nonCombinatorialExpr = nonConditionalExpr | conditionalExpr
 
@@ -182,11 +185,15 @@ trait SchemaParser extends RegexParsers {
   //val Regex = """([(]")(.*?)("[)])""".r
   //val regexParser: Parser[String] = Regex withFailureMessage("""regex not correctly delimited as ("your regex")""")
 
-  def rangeExpr: Parser[RangeRule] = "range(" ~> numericLiteral ~ "," ~ numericLiteral <~ ")"  ^^ { case a ~ "," ~ b =>  RangeRule(a, b) }
+  def rangeExpr: Parser[RangeRule] = "range(" ~> numericLiteral ~ "," ~ numericLiteral <~ ")"  ^^ {
+    case a ~ "," ~ b =>
+      RangeRule(a, b)
+  }
 
   //TODO refactor
   def lengthExpr: Parser[LengthRule] = ("length(" ~> opt(positiveIntegerOrAny <~ ",") ~ positiveIntegerOrAny <~ ")") ^^ {
-    case from ~ to => LengthRule(from, to)
+    case from ~ to =>
+      LengthRule(from, to)
   }
 
   def positiveIntegerOrAny = (positiveIntegerLiteral | wildcardLiteral) ^^ {
@@ -197,10 +204,7 @@ trait SchemaParser extends RegexParsers {
 
   def notEmptyExpr = "notEmpty" ^^^ NotEmptyRule()
 
-  //TODO rewrite uniqueExpr and uniqueMultiExpr into single expression, will need to refactor UniqueRule and UniqueMultiRule
-  //def uniqueExpr: Parser[UniqueRule] = "unique" ^^^ UniqueRule()
-  //def uniqueMultiExpr: Parser[UniqueMultiRule] = "unique(" ~> columnRef ~ rep(',' ~> columnRef) <~ ")" ^^ { s => UniqueMultiRule( s._1 :: s._2 ) }
-  def uniqueExpr: Parser[Rule] = "unique" ~> opt("(" ~> columnRef ~ rep(',' ~> columnRef) <~ ")") ^^ {
+  def uniqueExpr: Parser[Rule] = "unique" ~> opt("(" ~> columnRef ~ rep("," ~> columnRef) <~ ")") ^^ {
     case None =>
       UniqueRule()
     case Some((columnRef1 ~ columnRefN)) =>
@@ -220,7 +224,8 @@ trait SchemaParser extends RegexParsers {
   def xDateTime: Parser[XsdDateTimeRule] = "xDateTime" ^^^ XsdDateTimeRule()
 
   def xDateTimeRange: Parser[XsdDateTimeRangeRule] = "xDateTime(" ~> xDateTimeExpr ~ "," ~ xDateTimeExpr <~ ")" ^^  {
-    case from ~ "," ~ to => XsdDateTimeRangeRule(from, to)
+    case from ~ "," ~ to =>
+      XsdDateTimeRangeRule(from, to)
   }
 
   //TODO change to literal
@@ -233,7 +238,8 @@ trait SchemaParser extends RegexParsers {
   def xDate: Parser[XsdDateRule] = "xDate" ^^^ XsdDateRule()
 
   def xDateRange: Parser[XsdDateRangeRule] = "xDate(" ~> xDateExpr ~ "," ~ xDateExpr <~ ")" ^^  {
-    case from ~ "," ~ to => XsdDateRangeRule(from, to)
+    case from ~ "," ~ to =>
+      XsdDateRangeRule(from, to)
   }
 
   //TODO change to literal
@@ -246,7 +252,8 @@ trait SchemaParser extends RegexParsers {
   def xTime: Parser[XsdTimeRule] = "xTime" ^^^ XsdTimeRule()
 
   def xTimeRange: Parser[XsdTimeRangeRule] = "xTime(" ~> xTimeExpr ~ "," ~ xTimeExpr <~ ")" ^^  {
-    case from ~ "," ~ to => XsdTimeRangeRule(from, to)
+    case from ~ "," ~ to =>
+      XsdTimeRangeRule(from, to)
   }
 
   //TODO change to literal
@@ -259,7 +266,8 @@ trait SchemaParser extends RegexParsers {
   def ukDate: Parser[UkDateRule] = "ukDate" ^^^ UkDateRule()
 
   def ukDateRange: Parser[UkDateRangeRule] = "ukDate(" ~> ukDateStringLiteral ~ "," ~ ukDateStringLiteral <~ ")" ^^  {
-    case from ~ "," ~ to => UkDateRangeRule(from, to)
+    case from ~ "," ~ to =>
+      UkDateRangeRule(from, to)
   }
 
   //TODO change to literal
@@ -283,6 +291,20 @@ trait SchemaParser extends RegexParsers {
       rule.explicitColumn = explicitContext
       rule
   }
+
+  def fileExistsExpr = ("fileExists" ~> opt("(" ~> stringProvider <~ ")")).withFailureMessage("Invalid fileExists rule") ^^ {
+    case None =>
+      FileExistsRule(pathSubstitutions, enforceCaseSensitivePathChecks)
+    case Some(s) =>
+      FileExistsRule(pathSubstitutions, enforceCaseSensitivePathChecks, s)
+  }
+
+  def checksumExpr = "checksum(" ~> file ~ "," ~ algorithmExpr <~ ")" ^^ {
+    case files ~ "," ~ algorithm =>
+      ChecksumRule(files._1.getOrElse(Literal(None)), files._2, algorithm, pathSubstitutions, enforceCaseSensitivePathChecks)
+  }
+
+  def fileCountExpr = "fileCount(" ~> file <~ ")" ^^ { case a  => FileCountRule(a._1.getOrElse(Literal(None)), a._2, pathSubstitutions) }
 
   //TODO below **** MUCH TODO!
 
@@ -310,8 +332,6 @@ trait SchemaParser extends RegexParsers {
   def nonBreakingChar = nonBreakingCharPattern.r
   val nonBreakingCharPattern = """[^\r\n\f]"""
   //</editor-fold>
-
-  def combinatorialExpr = orExpr | andExpr
 
 //  def unaryRule =
 //    parenthesesRule | in | is | isNot | starts | ends |
@@ -349,15 +369,7 @@ trait SchemaParser extends RegexParsers {
 
   //def fileArgProvider: Parser[ArgProvider] = columnRef ^^ { s => ColumnReference(s) } | '\"' ~> rootFilePath <~ '\"' ^^ {s => Literal(Some(s)) }
 
-  //TODO refactor into single expression
-  def fileExistsExpr = ("fileExists(" ~> stringProvider <~ ")" ^^ { s => FileExistsRule(pathSubstitutions, enforceCaseSensitivePathChecks, s) }).withFailureMessage("fileExists rule has an invalid file path") |
-    "fileExists" ^^^ { FileExistsRule( pathSubstitutions, enforceCaseSensitivePathChecks ) } | failure("Invalid fileExists rule")
-
   def rootFilePath: Parser[String] = """[\^&'@\{\}\[\]\,\$=!\-#\(\)%\.\+~_a-zA-Z0-9\s\\/:]+""".r    //Characters taken from http://support.microsoft.com/kb/177506 and added '/' and '\' and ':'
-
-  def checksumExpr = "checksum(" ~> file ~ "," ~ algorithmExpr <~ ")" ^^ { case files ~ "," ~ algorithm => ChecksumRule(files._1.getOrElse(Literal(None)), files._2, algorithm, pathSubstitutions, enforceCaseSensitivePathChecks) }
-
-  def fileCountExpr = "fileCount(" ~> file <~ ")" ^^ { case a  => FileCountRule(a._1.getOrElse(Literal(None)), a._2, pathSubstitutions) }
 
   def dateRange = "dateRange(\""
 
