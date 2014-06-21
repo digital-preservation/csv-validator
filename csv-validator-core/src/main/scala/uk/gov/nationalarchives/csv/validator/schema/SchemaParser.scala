@@ -97,20 +97,17 @@ trait SchemaParser extends RegexParsers {
   /**
    * [10]	TotalColumnsDirective	::=	DirectivePrefix "totalColumns" PositiveNonZeroIntegerLiteral
    */
-  //def totalColumnsDirective: Parser[TotalColumns] = (directivePrefix ~> "totalColumns" ~> positiveNonZeroIntegerLiteral ^^ { TotalColumns(_) }).withFailureMessage("@totalColumns invalid")
   def totalColumnsDirective: Parser[TotalColumns] = (directivePrefix ~> "totalColumns" ~> positiveNonZeroIntegerLiteral ^^ { TotalColumns(_) }).withFailureMessage("@totalColumns invalid")
 
   /**
    * [11]	NoHeaderDirective	::=	DirectivePrefix "noHeader"
    */
-//  def noHeaderDirective: Parser[NoHeader] = directivePrefix ~> "noHeader" ^^^ NoHeader()
   def noHeaderDirective: Parser[NoHeader] = directivePrefix ~> "noHeader" ^^^ NoHeader()
 
   /**
    * [12]	IgnoreColumnNameCaseDirective	::=	DirectivePrefix "ignoreColumnNameCase"
    */
   def ignoreColumnNameCaseDirective: Parser[IgnoreColumnNameCase] = directivePrefix ~> "ignoreColumnNameCase" ^^^ IgnoreColumnNameCase()
-  //def ignoreColumnNameCaseDirective: Parser[IgnoreColumnNameCase] = "ignoreColumnNameCase" ^^^ IgnoreColumnNameCase()
 
   /**
    * [13]	Body ::= BodyPart+
@@ -130,20 +127,12 @@ trait SchemaParser extends RegexParsers {
   /**
    * [16]	SingleLineComment	::=	"//" NonBreakingChar*
    */
-  def singleLineComment: Parser[String] = """//[\S\t ]*(?:\r?\n)?""".r    //TODO refactor to match EBNF?
+  def singleLineComment: Parser[String] = """//[\S\t ]*(?:\r?\n)?""".r
 
   /**
    * [17]	MultiLineComment ::= "/*" Char* "*/"
    */
-  def multiLineComment: Parser[String] = """\/\*(?:[^*\r\n]+|(?:\r?\n))*\*\/(?:\r?\n)?""".r   //TODO refactor to match EBNF?
-
-/*
-
-    [19]	ColumnIdentifier	::=	PositiveNonZeroIntegerLiteral | Ident
-    [20]	QuotedColumnIdentifier	::=	"\"" NonDoubleQuoteChar "\""
-    [21]	ColumnRule	::=	ColumnValidationExpr* ColumnDirectives
-    */
-  //def columnDefinitions = (positioned(columnDefinition))
+  def multiLineComment: Parser[String] = """\/\*(?:[^*\r\n]+|(?:\r?\n))*\*\/(?:\r?\n)?""".r
 
   /**
    * [18]	ColumnDefinition ::=	(ColumnIdentifier | QuotedColumnIdentifier) ":" ColumnRule
@@ -155,34 +144,98 @@ trait SchemaParser extends RegexParsers {
     }
   ).withFailureMessage("Invalid column definition"))
 
+  /**
+   * [19]	ColumnIdentifier ::= PositiveNonZeroIntegerLiteral | Ident
+   */
   def columnIdentifier = (positiveNonZeroIntegerLiteral | ident).withFailureMessage("Column identifier invalid") ^^ {
     _.toString //TODO should be able to remove this `.toString` in favour of `id` field in ColumnDefinition being either NamedId <: String or OffsetId <: Integer, rather than just a String! see columnDefinition parser extractor above
   }
 
+  /**
+   * [20]	QuotedColumnIdentifier ::= StringLiteral
+   */
   def quotedColumnIdentifier = stringLiteral withFailureMessage("Quoted column identifier invalid")
 
+  /**
+   * [21]	ColumnRule ::= ColumnValidationExpr* ColumnDirectives
+   */
   def columnRule = rep(columnValidationExpr) ~ columnDirectives
 
-  //TODO refactor into columnDirective and update EBNF
-  def columnDirectives: Parser[List[ColumnDirective]] = rep(positioned(optionalDirective | ignoreCaseDirective | warningDirective))
+  /**
+   * [22]	ColumnDirectives ::= OptionalDirective? MatchIsFalseDirective? IgnoreCaseDirective? WarningDirective?    /* expr: unordered */
+   */
+  def columnDirectives: Parser[List[ColumnDirective]] = opt(mingle(List(optionalDirective, matchIsFalseDirective, ignoreCaseDirective, warningDirective).map(positioned(_)))
+    .withFailureMessage("Invalid column directive")) ^^ { _.getOrElse(List.empty) }
 
-  def optionalDirective = "@optional" ^^^ Optional()
+  /**
+   * [23]	OptionalDirective ::= DirectivePrefix "optional"
+   */
+  def optionalDirective = directivePrefix ~> "optional" ^^^ Optional()
 
-  def ignoreCaseDirective = "@ignoreCase" ^^^ IgnoreCase()
+  /**
+   * [24] MatchIsFalseDirective	::=	DirectivePrefix "matchIsFalse"
+   */
+  //TODO implement workings of matchIsFalseDirective at present it does nothing!
+  def matchIsFalseDirective = directivePrefix ~> "matchIsFalse" ^^^ MatchIsFalse()
 
-  def warningDirective = "@warning" ^^^ Warning()
+  /**
+   * [25] IgnoreCaseDirective	::=	DirectivePrefix "ignoreCase"
+   */
+  def ignoreCaseDirective = directivePrefix ~> "ignoreCase" ^^^ IgnoreCase()
 
-  //TODO Update EBNF
+  /**
+   * [26]	WarningDirective ::=	DirectivePrefix "warningDirective"
+   */
+  def warningDirective = directivePrefix ~> "warning" ^^^ Warning()
+
+  /**
+   * [27]	ColumnValidationExpr ::= CombinatorialExpr | NonCombinatorialExpr
+   */
   def columnValidationExpr: Parser[Rule] = positioned(combinatorialExpr | nonCombinatorialExpr)
 
-  //TODO reorder EBNF
+  /**
+   * [28]	CombinatorialExpr ::= OrExpr | AndExpr
+   */
   def combinatorialExpr = orExpr | andExpr
 
+  /**
+   * [29]	OrExpr	::=	nonCombinatorialExpr "or" columnValidationExpr
+   *
+   * Uses nonCombinatorialExpr on the left-hand-side
+   * to avoid left recursive rule
+   */
+  def orExpr: Parser[OrRule] = nonCombinatorialExpr ~ "or" ~ columnValidationExpr  ^^ { case lhs ~ "or" ~ rhs => OrRule(lhs, rhs) }
+
+  /**
+   * [30]	AndExpr	::=	nonCombinatorialExpr "and" ColumnValidationExpr
+   *
+   * Uses nonCombinatorialExpr on the left-hand-side
+   * to avoid left recursive rule
+   */
+  def andExpr: Parser[AndRule] = nonCombinatorialExpr ~ "and" ~ columnValidationExpr  ^^  { case lhs ~ "and" ~ rhs =>  AndRule(lhs, rhs) }
+
+  /**
+   * [31]	NonCombinatorialExpr ::= NonConditionalExpr | ConditionalExpr
+   */
   def nonCombinatorialExpr = nonConditionalExpr | conditionalExpr
 
+  /**
+   * [32] NonConditionalExpr ::=	SingleExpr | ExternalSingleExpr | ParenthesizedExpr
+   */
   def nonConditionalExpr: Parser[Rule] = singleExpr | externalSingleExpr | parenthesizedExpr
 
-  //TODO need to add DateExpr, PartialDateExpr
+  /**
+   * [33] SingleExpr ::=	ExplicitContextExpr? (IsExpr | NotExpr | InExpr |
+   *                        StartsWithExpr | EndsWithExpr | RegExpExpr |
+   *                        RangeExpr | LengthExpr |
+   *                        EmptyExpr | NotEmptyExpr | UniqueExpr |
+   *                        UriExpr |
+   *                        XsdDateTimeExpr | XsdDateExpr | XsdTimeExpr |
+   *                        UkDateExpr | DateExpr | PartialUkDateExpr | PartialDateExpr |
+   *                        uuid4Expr |
+   *                        PositiveIntegerExpr)
+   */
+  //TODO need to implement and add DateExpr, PartialDateExpr
   def singleExpr: Parser[Rule] = opt(explicitContextExpr) ~
     (isExpr | notExpr | inExpr |
       startsWithExpr | endsWithExpr | regExpExpr |
@@ -198,20 +251,44 @@ trait SchemaParser extends RegexParsers {
       rule
   }
 
+  /**
+   * [34]	ExplicitContextExpr	::=	ColumnRef "/"
+   */
   def explicitContextExpr = columnRef <~ "/"
 
+  /**
+   * [35]	ColumnRef	::=	"$" (ColumnIdentifier | QuotedColumnIdentifier)
+   */
   def columnRef: Parser[ColumnReference] = "$" ~> (columnIdentifier | quotedColumnIdentifier) ^^ { ColumnReference(_) }
 
+  /**
+   * [36]	IsExpr ::= "is(" StringProvider ")"
+   */
   def isExpr: Parser[IsRule] = "is(" ~> stringProvider <~ ")" ^^ { IsRule }
 
+  /**
+   * [37]	NotExpr	::=	"not(" StringProvider ")"
+   */
   def notExpr: Parser[NotRule] = "not(" ~> stringProvider <~ ")" ^^ { NotRule }
 
+  /**
+   * [38]	InExpr ::=	"in(" StringProvider ")"
+   */
   def inExpr: Parser[InRule] = "in(" ~> stringProvider <~ ")" ^^ { InRule }
 
+  /**
+   * [39]	StartsWithExpr ::= "starts(" StringProvider ")"
+   */
   def startsWithExpr: Parser[StartsRule] = "starts(" ~> stringProvider <~ ")" ^^ { StartsRule }
 
+  /**
+   * [40]	EndsWithExpr ::=	"ends(" StringProvider ")"
+   */
   def endsWithExpr: Parser[EndsRule] = "ends(" ~> stringProvider <~ ")" ^^ { EndsRule }
 
+  /**
+   * [41]	RegExpExpr	::=	"regex(" StringLiteral ")"
+   */
   //TODO could improve error or regex?
   //TODO How to escape quotes inside regex?
   def regExpExpr: Parser[RegExpRule] = "regex" ~> """([(]")(.*?)("[)])""".r ^^ {
@@ -219,25 +296,50 @@ trait SchemaParser extends RegexParsers {
       RegExpRule(s.dropRight(2).drop(2))
   } withFailureMessage("""regex not correctly delimited as ("your regex")""")
 
+  /**
+   * [42]	RangeExpr	::=	"range(" NumericLiteral "," NumericLiteral ")" /* range is inclusive */
+   */
   def rangeExpr: Parser[RangeRule] = "range(" ~> numericLiteral ~ "," ~ numericLiteral <~ ")"  ^^ {
     case a ~ "," ~ b =>
       RangeRule(a, b)
   }
 
-  //TODO refactor
+  /**
+   * [43]	LengthExpr	::=	"length(" (PositiveIntegerOrAny ",")? PositiveIntegerOrAny ")"
+   *
+   * /*
+   * length has 4 forms.
+   * 1) length(n) ensures the value is: the exact length n (absolute length)
+   * 2) length(n, *) ensures the value is: longer than or equal to n (minimum length)
+   * 3) length(*, n) ensures the value is: shorter than or equal to n (maximum length)
+   * 4) length(n1, n2) ensures the value is: longer than or equal to n1 AND shorter than or equal to n2 (minumum and maximum lengths)
+   * */
+   */
   def lengthExpr: Parser[LengthRule] = ("length(" ~> opt(positiveIntegerOrAny <~ ",") ~ positiveIntegerOrAny <~ ")") ^^ {
     case from ~ to =>
       LengthRule(from, to)
   }
 
-  def positiveIntegerOrAny = (positiveIntegerLiteral | wildcardLiteral) ^^ {
-    _.toString //TODO should be able to remove this `.toString` in favour of `LengthRule` in lengthExpr being either AnyLength Object or BigInt, rather than just a String!
+  /**
+   * [44]	PositiveIntegerOrAny ::=	PositiveIntegerLiteral | WildcardLiteral
+   */
+  def positiveIntegerOrAny: Parser[String] = (positiveIntegerLiteral | wildcardLiteral) ^^ {
+    _.toString //TODO should be able to remove this `.toString` in favour of positiveIntegerOrAny returning some sort of number or any object, `LengthRule` in lengthExpr being either AnyLength object or BigInt, rather than just a String!
   }
 
+  /**
+   * [45]	EmptyExpr	::=	"empty"
+   */
   def emptyExpr = "empty" ^^^ EmptyRule()
 
+  /**
+   * [46]	NotEmptyExpr ::=	"notEmpty"
+   */
   def notEmptyExpr = "notEmpty" ^^^ NotEmptyRule()
 
+  /**
+   * [47]	UniqueExpr ::=	"unique" ("(" ColumnRef ("," ColumnRef)* ")")?
+   */
   def uniqueExpr: Parser[Rule] = "unique" ~> opt("(" ~> columnRef ~ rep("," ~> columnRef) <~ ")") ^^ {
     case None =>
       UniqueRule()
@@ -245,86 +347,93 @@ trait SchemaParser extends RegexParsers {
       UniqueMultiRule(columnRef1 :: columnRefN)
   }
 
+  /**
+   * [48]	UriExpr	::=	"uri"
+   */
   def uriExpr = "uri" ^^^ UriRule()
 
-  //TODO adjust EBNF in spec so that xsdDateTime xsdDate and xsdTime literals do not need to be quoted etc. I see no point in forcing users to put them in quotes!
-
-  //TODO below
-
-  //<editor-fold desc="XsdDateTimeExpr">
-  def xsdDateTimeExpr =  xDateTimeRange | xDateTime
-
-  def xDateTime: Parser[XsdDateTimeRule] = "xDateTime" ^^^ XsdDateTimeRule()
-
-  def xDateTimeRange: Parser[XsdDateTimeRangeRule] = "xDateTime(" ~> xDateTimeExpr ~ "," ~ xDateTimeExpr <~ ")" ^^  {
-    case from ~ "," ~ to =>
+  /**
+   * [49] XsdDateTimeExpr	::=	"xDateTime" ("(" XsdDateTimeLiteral "," XsdDateTimeLiteral ")")?
+   */
+  def xsdDateTimeExpr = "xDateTime" ~> opt((("(" ~> xsdDateTimeLiteral) <~ ",") ~ (xsdDateTimeLiteral <~ ")")) ^^ {
+    case None =>
+      XsdDateTimeRule()
+    case Some((from ~ to)) =>
       XsdDateTimeRangeRule(from, to)
   }
 
-  //TODO change to literal
-  def xDateTimeExpr: Parser[String] = """[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}""".r
-  //</editor-fold>
-
-  //<editor-fold desc="XsdDateExpr">
-  def xsdDateExpr = xDateRange | xDate
-
-  def xDate: Parser[XsdDateRule] = "xDate" ^^^ XsdDateRule()
-
-  def xDateRange: Parser[XsdDateRangeRule] = "xDate(" ~> xDateExpr ~ "," ~ xDateExpr <~ ")" ^^  {
-    case from ~ "," ~ to =>
+  /**
+   * [50] XsdDateExpr ::=	"xDate" ("(" XsdDateLiteral "," XsdDateLiteral ")")?
+   */
+  def xsdDateExpr = "xDate" ~> opt((("(" ~> xsdDateLiteral) <~ ",") ~ (xsdDateLiteral <~ ")")) ^^ {
+    case None =>
+      XsdDateRule()
+    case Some((from ~ to)) =>
       XsdDateRangeRule(from, to)
   }
 
-  //TODO change to literal
-  def xDateExpr: Parser[String] = "[0-9]{4}-[0-9]{2}-[0-9]{2}".r
-  //</editor-fold>
-
-  //<editor-fold desc="XsdTimeExpr">
-  def xsdTimeExpr = xTimeRange | xTime
-
-  def xTime: Parser[XsdTimeRule] = "xTime" ^^^ XsdTimeRule()
-
-  def xTimeRange: Parser[XsdTimeRangeRule] = "xTime(" ~> xTimeExpr ~ "," ~ xTimeExpr <~ ")" ^^  {
-    case from ~ "," ~ to =>
+  /**
+   * [51] XsdTimeExpr ::=	"xTime" ("(" XsdTimeLiteral "," XsdTimeLiteral ")")?
+   */
+  def xsdTimeExpr = "xTime" ~> opt((("(" ~> xsdTimeLiteral) <~ ",") ~ (xsdTimeLiteral <~ ")")) ^^ {
+    case None =>
+      XsdTimeRule()
+    case Some((from ~ to)) =>
       XsdTimeRangeRule(from, to)
   }
 
-  //TODO change to literal
-  val xTimeExpr: Parser[String] = "[0-9]{2}:[0-9]{2}:[0-9]{2}".r
-  //</editor-fold>
-
-  //<editor-fold desc="ukDateExpr">
-  def ukDateExpr = ukDateRange | ukDate
-
-  def ukDate: Parser[UkDateRule] = "ukDate" ^^^ UkDateRule()
-
-  def ukDateRange: Parser[UkDateRangeRule] = "ukDate(" ~> ukDateStringLiteral ~ "," ~ ukDateStringLiteral <~ ")" ^^  {
-    case from ~ "," ~ to =>
+  /**
+   * [52] UkDateExpr ::=	"ukDate" ("(" UkDateLiteral "," UkDateLiteral ")")?
+   */
+  def ukDateExpr = "ukDate" ~> opt((("(" ~> ukDateLiteral) <~ ",") ~ (ukDateLiteral <~ ")")) ^^ {
+    case None =>
+      UkDateRule()
+    case Some((from ~ to)) =>
       UkDateRangeRule(from, to)
   }
 
-  //TODO change to literal
-  val ukDateStringLiteral: Parser[String] = "[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}".r
-  //</editor-fold>
+  /**
+   * [53]	DateExpr ::=	"date(" StringProvider "," StringProvider "," StringProvider ("," XsdDateLiteral "," XsdDateLiteral)? ")"
+   */
+  //TODO implement DateExpr
 
-  //TODO missing DateExpr
-
+  /**
+   * [54]	PartialUkDateExpr	::=	"partUkDate"
+   */
   def partialUkDateExpr: Parser[PartUkDateRule] = "partUkDate" ^^^ PartUkDateRule()
 
-  //TODO missing PartialDateExpr
+  /**
+   * [55]	PartialDateExpr	::=	"partDate(" StringProvider "," StringProvider "," StringProvider ")"
+   */
+  //TODO implement PartialDateExpr
 
+  /**
+   * [56]	Uuid4Expr	::=	"uuid4"
+   */
   def uuid4Expr: Parser[Uuid4Rule] = "uuid4" ^^^ Uuid4Rule()
 
+  /**
+   * [57]	PositiveIntegerExpr	::=	"positiveInteger"
+   */
   def positiveIntegerExpr: Parser[PositiveIntegerRule] = "positiveInteger" ^^^ PositiveIntegerRule()
 
+  /**
+   * [58] StringProvider ::= ColumnRef | StringLiteral
+   */
   def stringProvider: Parser[ArgProvider] = columnRef | (stringLiteral ^^ { s => Literal(Some(s)) } )
 
+  /**
+   * [59] ExternalSingleExpr ::= ExplicitContextExpr? (FileExistsExpr | ChecksumExpr | FileCountExpr)
+   */
   def externalSingleExpr: Parser[Rule] = opt(explicitContextExpr) ~ (fileExistsExpr | checksumExpr | fileCountExpr) ^^ {
     case explicitContext ~ rule =>
       rule.explicitColumn = explicitContext
       rule
   }
 
+  /**
+   * [60] FileExistsExpr ::=	"fileExists" ("(" StringProvider ")")? /* optional path to prepend to this cell with filename in */
+   */
   def fileExistsExpr = ("fileExists" ~> opt("(" ~> stringProvider <~ ")")).withFailureMessage("Invalid fileExists rule") ^^ {
     case None =>
       FileExistsRule(pathSubstitutions, enforceCaseSensitivePathChecks)
@@ -332,48 +441,44 @@ trait SchemaParser extends RegexParsers {
       FileExistsRule(pathSubstitutions, enforceCaseSensitivePathChecks, s)
   }
 
-  def checksumExpr = "checksum(" ~> fileExpr ~ "," ~ stringLiteral <~ ")" ^^ {
-    case files ~ "," ~ algorithm =>
+  /**
+   * [61]	ChecksumExpr ::= "checksum(" FileExpr "," StringLiteral ")" /* first arg is file expr, second arg is algorithm to use for checksum */
+   */
+  def checksumExpr = ("checksum(" ~> fileExpr <~ ",") ~ stringLiteral <~ ")" ^^ {
+    case files ~ algorithm =>
       ChecksumRule(files._1.getOrElse(Literal(None)), files._2, algorithm, pathSubstitutions, enforceCaseSensitivePathChecks)
   }
 
+  /**
+   * [62]	FileExpr ::= "file(" (StringProvider ",")? StringProvider ")" /* first (optional) arg is path (or ColumnRef of path) to prepend to second arg, second arg is filename (or ColumnRef of filename) */
+   */
+  def fileExpr = "file(" ~> opt(stringProvider <~ ",") ~ stringProvider <~ ")"
+
+  /**
+   * [63]	FileCountExpr	::=	"fileCount(" FileExpr ")"
+   */
   def fileCountExpr = "fileCount(" ~> fileExpr <~ ")" ^^ {
     case a  =>
       FileCountRule(a._1.getOrElse(Literal(None)), a._2, pathSubstitutions)
   }
 
-  //TODO update EBNF to match, fileNameExpr is pointless
-  def fileExpr = "file(" ~> opt(stringProvider <~ ",") ~ stringProvider <~ ")"
-  
-  //TODO below **** MUCH TODO!
-
+  /**
+   * [64] ParenthesizedExpr ::=	"(" ColumnValidationExpr+ ")"
+   */
   def parenthesizedExpr: Parser[ParenthesesRule] = "(" ~> rep1(columnValidationExpr) <~ ")" ^^ { ParenthesesRule } | failure("unmatched paren")
 
+  /**
+   * [65]	ConditionalExpr ::= IfExpr
+   */
   def conditionalExpr: Parser[Rule] = ifExpr
 
-  //TODO update EBNF
   /**
-   * Uses nonCombinatorialExpr on the left-hand-side
-   * to avoid left recursive rule
+   * [66] IfExpr ::= "if(" (CombinatorialExpr | NonConditionalExpr) "," ColumnValidationExpr+ ("," ColumnValidationExpr+)? ")" /* if with optional else */
    */
-  def orExpr: Parser[OrRule] = nonCombinatorialExpr ~ "or" ~ columnValidationExpr  ^^ { case lhs ~ "or" ~ rhs => OrRule(lhs, rhs) }
-
-  //TODO update EBNF
-  /**
-   * Uses nonCombinatorialExpr on the left-hand-side
-   * to avoid left recursive rule
-   */
-  def andExpr: Parser[AndRule] = nonCombinatorialExpr ~ "and" ~ columnValidationExpr  ^^  { case lhs ~ "and" ~ rhs =>  AndRule(lhs, rhs) }
-
-  //TODO update EBNF to match this
   def ifExpr: Parser[IfRule] = (("if(" ~> (combinatorialExpr | nonConditionalExpr) <~ ",") ~ rep1(columnValidationExpr) ~ opt("," ~> rep1(columnValidationExpr)) <~ ")" ^^ {
     case condition ~ thenExpr ~ elseExpr =>
       IfRule(condition, thenExpr, elseExpr)
   }) | failure("Invalid rule")
-
-  //def rootFilePath: Parser[String] = """[\^&'@\{\}\[\]\,\$=!\-#\(\)%\.\+~_a-zA-Z0-9\s\\/:]+""".r    //Characters taken from http://support.microsoft.com/kb/177506 and added '/' and '\' and ':'
-
-  //def dateRange = "dateRange(\""
 
   private def endOfColumnDefinition: Parser[Any] = whiteSpace ~ (eol | endOfInput | failure("Invalid column definition"))
 
@@ -383,11 +488,85 @@ trait SchemaParser extends RegexParsers {
       else Failure("End of Input expected", input)
     }
   }
-
   //</editor-fold>
 
-  //TODO update EBNF to use simpler lexical rules
-  //<editor-fold desc="lexical">
+  //<editor-fold desc="CSV Schema lexical parser combinators">
+  /**
+   * [67] XsdDateTimeLiteral ::= XsdDateWithoutTimezoneComponent "T" XsdTimeLiteral
+   */
+  def xsdDateTimeLiteral: Parser[String] = (xsdDateWithoutTimezoneComponent + "T" + xsdTimeWithoutTimezoneComponent + xsdTimezoneComponent).r
+
+  /**
+   * [68]	XsdDateLiteral ::=	XsdDateWithoutTimezoneComponent XsdTimezoneComponent
+   */
+  def xsdDateLiteral: Parser[String] = (xsdDateWithoutTimezoneComponent + xsdTimezoneComponent).r
+
+  /**
+   * [69]	XsdTimeLiteral ::=	XsdTimeWithoutTimezoneComponent XsdTimezoneComponent
+   */
+  def xsdTimeLiteral: Parser[String] = (xsdTimeWithoutTimezoneComponent + xsdTimezoneComponent).r
+
+  /**
+   * [70]	XsdDateWithoutTimezoneComponent	::=	-?[0-9]{4}-(((0(1|3|5|7|8)|1(0|2))-(0[1-9]|(1|2)[0-9]|3[0-1]))|((0(4|6|9)|11)-(0[1-9]|(1|2)[0-9]|30))|(02-(0[1-9]|(1|2)[0-9])))    /* xgc:regular-expression */
+   */
+  //NOTE - we use a more relaxed regexp here than the spec, as another validation parse is done by the relevant rule class (e.g. schema.XsdTimeRegex, schema.XsdDateRegex or schema.XsdDateTimeRegex)
+  lazy val xsdDateWithoutTimezoneComponent = "[0-9]{4}-[0-9]{2}-[0-9]{2}"
+
+  /**
+   * [71]	XsdTimeWithoutTimezoneComponent	::=	([0-1][0-9]|2[0-4]):(0[0-9]|[1-5][0-9]):(0[0-9]|[1-5][0-9])(\.[0-9]{3})?    /* xgc:regular-expression */
+   */
+  //NOTE - we use a more relaxed regexp here than the spec, as another validation parse is done by the relevant rule class (e.g. schema.XsdTimeRegex, schema.XsdDateRegex or schema.XsdDateTimeRegex)
+  lazy val xsdTimeWithoutTimezoneComponent = """[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{3})?"""
+
+  /**
+   * [72]	XsdTimezoneComponent ::=	((\+|-)(0[1-9]|1[0-9]|2[0-4]):(0[0-9]|[1-5][0-9])|Z)?    /* xgc:regular-expression */
+   */
+  //NOTE - we use a more relaxed regexp here than the spec, as another validation parse is done by the relevant rule class (e.g. schema.XsdTimeRegex, schema.XsdDateRegex or schema.XsdDateTimeRegex)
+  lazy val xsdTimezoneComponent = "(([+-][0-9]{2}:[0-9]{2})|Z)?"
+
+  /**
+   * [73]	UkDateLiteral	::=	(((0[1-9]|(1|2)[0-9]|3[0-1])\/(0(1|3|5|7|8)|1(0|2)))|((0[1-9]|(1|2)[0-9]|30)\/(0(4|6|9)|11))|((0[1-9]|(1|2)[0-9])\/02))\/[0-9]{4}
+   */
+  //NOTE - we use a more relaxed parser here than the spec, as another validation parse is done by schema.UkDateRegex in the appropriate rule
+  def ukDateLiteral: Parser[String] = "[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}".r
+
+  /**
+   * [74]	PositiveNonZeroIntegerLiteral	::=	[1-9][0-9]*     /* xgc:regular-expression */    /* A Natural Number, positive integer */
+   */
+  def positiveNonZeroIntegerLiteral: Parser[BigInt] = "[1-9][0-9]*".r ^^ { BigInt(_) }
+
+  /**
+   * [75]	PositiveIntegerLiteral ::= [0-9]+     /* xgc:regular-expression */    /* A Natural Number, non-negative integer */
+   */
+  def positiveIntegerLiteral: Parser[BigInt] = "[0-9]+".r ^^ { BigInt(_) }
+
+  /**
+   * [76] NumericLiteral ::= -?[0-9]+(\.[0-9]+)?         /* xgc:regular-expression */    /* A Real Number, expressed as an integer or decimal */
+   */
+  def numericLiteral: Parser[BigDecimal] = """-?[0-9]+(\.[0-9]+)?""".r ^^ { BigDecimal(_) }
+
+  /**
+   * [77] StringLiteral ::= "\"" [^"]* "\""    /* xgc:regular-expression */    /* Any characters except: quotation mark */
+   */
+  def stringLiteral: Parser[String] = "\"" ~> """[^"]*""".r <~ "\""
+
+  /**
+   * [78] CharacterLiteral ::= "'" [^\r\n\f'] "'"     /* xgc:regular-expression */    /* Any characters except: carriage-return, line-break, form-feed and apostrophe */
+   */
+  def characterLiteral: Parser[Char] =  "'" ~> """[^\r\n\f']""".r <~ "'" ^^ { _.head }
+
+  /**
+   * [79] WildcardLiteral ::= "*"
+   */
+  def wildcardLiteral = "*"
+
+  /**
+   * [80] Ident ::= [A-Za-z0-9\-_\.]+   /* xgc:regular-expression */
+   */
+  def ident: Parser[String] = """[A-Za-z0-9\-_\.]+""".r
+
+
+
   override protected val whiteSpace = """[ \t]*""".r
 
   private val eol = """\r?\n""".r
@@ -398,29 +577,8 @@ trait SchemaParser extends RegexParsers {
   private val stringRegex = s"""$charPattern*""".r     //allow un-escaped '\'
   private val charRegex = charPattern.r
   */
-
-  def wildcardLiteral = "*"
-
-  def numericLiteral: Parser[BigDecimal] = number.r ^^ { BigDecimal(_) }
-  val number = """[\-]?[0-9]+(?:\.[0-9]+)?"""
-
-  def stringLiteral: Parser[String] = "\"" ~> stringPattern.r <~ "\""
-  val stringPattern = """[^"]*"""
-
-  def ident: Parser[String] = identPattern.r
-  val identPattern = """[A-Za-z0-9\-_\.]+"""
-
-  def positiveIntegerLiteral: Parser[BigInt] = positiveIntegerPattern.r ^^ { BigInt(_) }
-  val positiveIntegerPattern = """[0-9]+"""
-
-  def positiveNonZeroIntegerLiteral: Parser[BigInt] = positiveNonZeroIntegerPattern.r ^^ { BigInt(_) }
-  val positiveNonZeroIntegerPattern = "[1-9][0-9]*"
-
-  def characterLiteral: Parser[Char] =  "'" ~> nonBreakingChar <~ "'" ^^ { _.head }
-
-  def nonBreakingChar = nonBreakingCharPattern.r
-  val nonBreakingCharPattern = """[^\r\n\f]"""
   //</editor-fold>
+
 
   /**
    * Given 1 or more Parsers
@@ -693,54 +851,54 @@ trait SchemaParser extends RegexParsers {
 
   private def explicitColumnValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
 
-    def invalidColumnNames(rule:Rule) = explicitColumnCheck(rule) match {
+    def invalidColumnNames(rule: Rule) = explicitColumnCheck(rule) match {
       case Some(x) => x
       case None => List.empty[String]
     }
 
     def checkAlternativeOption(rules: Option[List[Rule]]): Option[List[String]] = rules match {
-      case Some(rulesList) => Some( rulesList.foldLeft(List.empty[String]) {
-        case (list, rule: Rule) =>  list ++ invalidColumnNames(rule)
+      case Some(rulesList) => Some(rulesList.foldLeft(List.empty[String]) {
+        case (list, rule: Rule) => list ++ invalidColumnNames(rule)
       })
 
       case None => None
     }
 
     def explicitColumnCheck(rule: Rule): Option[List[String]] = rule match {
-      case IfRule(c,t,f) =>
+      case IfRule(c, t, f) =>
         val cond = explicitColumnCheck(c)
-        val cons = t.foldLeft(Some(List.empty[String])) { case (l, r) => Some((l ++  explicitColumnCheck(r)).flatten.toList) }
+        val cons = t.foldLeft(Some(List.empty[String])) { case (l, r) => Some((l ++ explicitColumnCheck(r)).flatten.toList)}
         val alt = checkAlternativeOption(f)
         Some((cond ++ cons ++ alt).flatten.toList)
 
-      case AndRule(lf,rt) =>
-         val left = explicitColumnCheck(lf)
-         val right = explicitColumnCheck(rt)
-         Some((left ++ right ).flatten.toList)
+      case AndRule(lf, rt) =>
+        val left = explicitColumnCheck(lf)
+        val right = explicitColumnCheck(rt)
+        Some((left ++ right).flatten.toList)
 
-      case OrRule(lf,rt) =>
-         val left = explicitColumnCheck(lf)
-         val right = explicitColumnCheck(rt)
-         Some((left ++ right ).flatten.toList)
+      case OrRule(lf, rt) =>
+        val left = explicitColumnCheck(lf)
+        val right = explicitColumnCheck(rt)
+        Some((left ++ right).flatten.toList)
 
       case ParenthesesRule(l) =>
-        l.foldLeft(Some(List.empty[String])) { case (l,r) => Some((l ++  explicitColumnCheck(r)).flatten.toList) }
+        l.foldLeft(Some(List.empty[String])) { case (l, r) => Some((l ++ explicitColumnCheck(r)).flatten.toList)}
 
       case _ =>
         rule.explicitColumn match {
-          case Some(columnRef) if(!columnDefinitions.map(_.id).contains(columnRef.value)) =>
-              Some(List(columnRef.value))
+          case Some(columnRef) if (!columnDefinitions.map(_.id).contains(columnRef.value)) =>
+            Some(List(columnRef.value))
           case _ =>
             None
-      }
+        }
     }
 
     val result = for {
       cd <- columnDefinitions
       rule <- cd.rules
       errorColumn = explicitColumnCheck(rule)
-      if( errorColumn.isDefined && errorColumn.get.length > 0)
-    } yield  s"""Column: ${cd.id}: Invalid explicit column ${errorColumn.get.mkString(", ")}: at line: ${rule.pos.line}, column: ${rule.pos.column}"""
+      if (errorColumn.isDefined && errorColumn.get.length > 0)
+    } yield s"""Column: ${cd.id}: Invalid explicit column ${errorColumn.get.mkString(", ")}: at line: ${rule.pos.line}, column: ${rule.pos.column}"""
 
     if (result.isEmpty) None else Some(result.mkString(EOL))
   }

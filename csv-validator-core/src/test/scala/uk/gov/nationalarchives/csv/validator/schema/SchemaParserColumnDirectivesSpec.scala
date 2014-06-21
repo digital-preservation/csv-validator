@@ -43,7 +43,11 @@ class SchemaParserColumnDirectivesSpec extends Specification {
                      |@totalColumns 1
                      |column1: @ignoreCase @ignoreCase""".stripMargin
 
-      parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual List(SchemaMessage("""column1: Duplicated column directives: @ignoreCase at line: 3, column: 10""")) }
+      parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual List(SchemaMessage(
+        """[3.23] failure: `warning' expected but `i' found
+        |
+        |column1: @ignoreCase @ignoreCase
+        |                      ^""".stripMargin)) }
     }
 
     "fail for multiple duplicate column directives" in {
@@ -51,7 +55,11 @@ class SchemaParserColumnDirectivesSpec extends Specification {
                      |@totalColumns 1
                      |column1: @ignoreCase @optional @ignoreCase @optional""".stripMargin
 
-      parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual List(SchemaMessage("""column1: Duplicated column directives: @ignoreCase at line: 3, column: 10, @optional at line: 3, column: 22""")) }
+      parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual List(SchemaMessage(
+       """[3.33] failure: `warning' expected but `i' found
+       |
+       |column1: @ignoreCase @optional @ignoreCase @optional
+       |                                ^""".stripMargin)) }
     }
 
     "fail for duplicate column directives on different columns" in {
@@ -62,8 +70,11 @@ class SchemaParserColumnDirectivesSpec extends Specification {
                      |column3: @ignoreCase @ignoreCase @optional @optional""".stripMargin
 
       parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual List(SchemaMessage(
-        """column1: Duplicated column directives: @ignoreCase at line: 3, column: 10, @optional at line: 3, column: 22
-          |column3: Duplicated column directives: @ignoreCase at line: 5, column: 10, @optional at line: 5, column: 34""".stripMargin)) }
+        """[3.33] failure: `warning' expected but `i' found
+          |
+          |column1: @ignoreCase @optional @ignoreCase @optional
+          |
+          |                                ^""".stripMargin)) }
     }
 
   }

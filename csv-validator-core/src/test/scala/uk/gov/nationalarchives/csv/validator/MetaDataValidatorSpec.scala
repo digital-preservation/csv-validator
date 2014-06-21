@@ -814,23 +814,41 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
-    "succeed for valid xDateTime (if you can guess the dates without google see me for a prize)" in {
+    "succeed for valid xDateTime" in {
       val schema = """version 1.0
                       @totalColumns 1 @noHeader
                       date: xDateTime"""
 
       val metaData =
-        """1969-07-21T02:56:00
-           1215-06-15T00:00:00
-           1844-05-24T00:00:00
-           1066-10-14T00:00:00
+        """1959-06-20T12:59:59.000
+           1959-06-20T12:59:59.999
+           1969-07-21T02:56:00.456
+           1215-06-15T00:00:00+23:59
+           1844-05-24T00:00:00-23:30
+           1066-10-14T00:00:00-01:00
            1966-07-30T00:00:00
+           1966-07-30T00:00:00Z
+           1966-07-30T00:00:00+01:00
         """
 
       validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
-    "succeed for valid xDate (no prizes for the dates this time)" in {
+    "succeed for valid xDateTime range" in {
+      val schema = """version 1.0
+                      @totalColumns 1 @noHeader
+                      date: xDateTime(1959-06-20T12:59:59.000-04:00, 1969-07-21T02:56:00.456+07:00)"""
+
+      val metaData =
+        """1959-06-29T12:59:59.000-04:00
+           1959-06-20T18:00:00.000Z
+           1963-06-20T12:00:00
+           1969-07-21T02:56:00.456+07:00
+        """
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
+    }
+
+    "succeed for valid xDate" in {
       val schema = """version 1.0
                       @totalColumns 1 @noHeader
                       date: xDate"""

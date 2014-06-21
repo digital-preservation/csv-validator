@@ -57,7 +57,7 @@ class SchemaParserSpec extends Specification {
                       LastName: @IgnoreCase regex ("[a]")"""
 
       parse(new StringReader(schema)) must beLike {
-        case Failure(messages, _) => messages mustEqual "Invalid column definition"
+        case Failure(messages, _) => messages mustEqual "Invalid column directive"
       }
     }
 
