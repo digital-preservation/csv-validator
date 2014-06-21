@@ -20,27 +20,27 @@ class SchemaParserTotalColumnsSpec extends Specification {
   "Schema" should {
 
     "fail for TotalColumns with missing value" in {
-      parse(new StringReader("version 1.0\n@totalColumns")) must beLike { case Failure(message, _) => message mustEqual "@totalColumns invalid" }
+      parse(new StringReader("version 1.0\n@totalColumns")) must beLike { case Failure(message, _) => message mustEqual "Invalid global directive" }
     }
 
     "fail for incorrect TotalColumns field name" in {
-      parse(new StringReader("version 1.0\n@ToalColumns 23")) must beLike { case Failure(message, _) => message mustEqual "Invalid column definition" }
+      parse(new StringReader("version 1.0\n@ToalColumns 23")) must beLike { case Failure(message, _) => message mustEqual "Invalid global directive" }
     }
 
     "fail for incorrect TotalColumns field name with no value" in {
-      parse(new StringReader("version 1.0\n@TtalColumn")) must beLike { case Failure(message, _) => message mustEqual "Invalid column definition" }
+      parse(new StringReader("version 1.0\n@TtalColumn")) must beLike { case Failure(message, _) => message mustEqual "Invalid global directive" }
     }
 
     "fail for TotalColumns field name incorrect case" in {
-      parse(new StringReader("version 1.0\n@TotalColumns 65")) must beLike { case Failure(message, _) => message mustEqual "Invalid column definition" }
+      parse(new StringReader("version 1.0\n@TotalColumns 65")) must beLike { case Failure(message, _) => message mustEqual "Invalid global directive" }
     }
 
     "fail for TotalColumns of zero" in {
-      parse(new StringReader("version 1.0\n@totalColumns 0")) must beLike { case Failure(message, _) => message mustEqual "@totalColumns invalid" }
+      parse(new StringReader("version 1.0\n@totalColumns 0")) must beLike { case Failure(message, _) => message mustEqual "Invalid global directive" }
     }
 
     "fail for TotalColumns with negative integer" in {
-      parse(new StringReader("version 1.0\n@totalColumns -23")) must beLike { case Failure(message, _) => message mustEqual "@totalColumns invalid" }
+      parse(new StringReader("version 1.0\n@totalColumns -23")) must beLike { case Failure(message, _) => message mustEqual "Invalid global directive" }
     }
 
     "fail for TotalColumns with non integer" in {
@@ -48,7 +48,7 @@ class SchemaParserTotalColumnsSpec extends Specification {
     }
 
     "fail for TotalColumns with non numeric" in {
-      parse(new StringReader("version 1.0\n@totalColumns blah")) must beLike { case Failure(message, _) => message mustEqual "@totalColumns invalid" }
+      parse(new StringReader("version 1.0\n@totalColumns blah")) must beLike { case Failure(message, _) => message mustEqual "Invalid global directive" }
     }
   }
 }

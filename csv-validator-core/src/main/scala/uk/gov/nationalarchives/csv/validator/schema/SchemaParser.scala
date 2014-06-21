@@ -64,9 +64,10 @@ trait SchemaParser extends RegexParsers {
   def versionDecl: Parser[String] = ("version" ~> Schema.version <~ eol).withFailureMessage(s"Schema version declaration 'version ${Schema.version}' missing or incorrect")
 
   /**
-   * [4] GlobalDirectives	::=	SeparatorDirective? QuotedDirective? TotalColumnsDirective? (NoHeaderDirective | IgnoreColumnNameCaseDirective)?
+   * [4] GlobalDirectives	::=	SeparatorDirective? QuotedDirective? TotalColumnsDirective? (NoHeaderDirective | IgnoreColumnNameCaseDirective)?    /* expr: unordered */
    */
-  def globalDirectives: Parser[List[GlobalDirective]] = rep(positioned((separatorDirective | quotedDirective | totalColumnsDirective | (noHeaderDirective | ignoreColumnNameCaseDirective)) <~ opt(eol)))
+  def globalDirectives: Parser[List[GlobalDirective]] = opt(mingle(List(separatorDirective, quotedDirective, totalColumnsDirective, noHeaderDirective | ignoreColumnNameCaseDirective).map(positioned(_) <~ opt(eol)))
+    .withFailureMessage("Invalid global directive")) ^^ { _.getOrElse(List.empty) }
 
   /**
    * [5] DirectivePrefix ::= "@"
@@ -96,17 +97,20 @@ trait SchemaParser extends RegexParsers {
   /**
    * [10]	TotalColumnsDirective	::=	DirectivePrefix "totalColumns" PositiveNonZeroIntegerLiteral
    */
+  //def totalColumnsDirective: Parser[TotalColumns] = (directivePrefix ~> "totalColumns" ~> positiveNonZeroIntegerLiteral ^^ { TotalColumns(_) }).withFailureMessage("@totalColumns invalid")
   def totalColumnsDirective: Parser[TotalColumns] = (directivePrefix ~> "totalColumns" ~> positiveNonZeroIntegerLiteral ^^ { TotalColumns(_) }).withFailureMessage("@totalColumns invalid")
 
   /**
    * [11]	NoHeaderDirective	::=	DirectivePrefix "noHeader"
    */
+//  def noHeaderDirective: Parser[NoHeader] = directivePrefix ~> "noHeader" ^^^ NoHeader()
   def noHeaderDirective: Parser[NoHeader] = directivePrefix ~> "noHeader" ^^^ NoHeader()
 
   /**
    * [12]	IgnoreColumnNameCaseDirective	::=	DirectivePrefix "ignoreColumnNameCase"
    */
   def ignoreColumnNameCaseDirective: Parser[IgnoreColumnNameCase] = directivePrefix ~> "ignoreColumnNameCase" ^^^ IgnoreColumnNameCase()
+  //def ignoreColumnNameCaseDirective: Parser[IgnoreColumnNameCase] = "ignoreColumnNameCase" ^^^ IgnoreColumnNameCase()
 
   /**
    * [13]	Body ::= BodyPart+
@@ -417,6 +421,58 @@ trait SchemaParser extends RegexParsers {
   def nonBreakingChar = nonBreakingCharPattern.r
   val nonBreakingCharPattern = """[^\r\n\f]"""
   //</editor-fold>
+
+  /**
+   * Given 1 or more Parsers
+   * this function produces
+   * all permutations of
+   * all combinations.
+   *
+   * Put more simply if you have a List
+   * of Parsers, we create a Parser
+   * that matches n of those parsers
+   * in any order
+   *
+   * @param parsers A list of parsers to mingle
+   * @return A parser that represents all permutations of
+   *         all combinations of the parsers
+   */
+  private def mingle[T, U](parsers : List[Parser[T]]): Parser[List[T]] = {
+
+    /**
+     * All permutations of all combinations
+     * of a List
+     */
+    def mingle[T](data: List[T]): List[List[T]] = {
+      (for(i <- 1 to data.length) yield
+        data.combinations(i).flatMap(_.permutations)
+      ).toList.flatten
+    }
+
+    /**
+     * Combines n parsers together
+     * in the same manner as p1 ~ p2 ~ ... pN
+     */
+    def combine[T](parsers: List[Parser[T]]): Parser[List[T]] = {
+      parsers.foldRight(success(List.empty[T])) {
+        case (p, acc) => for {
+          pRes <- p
+          accRes <- acc
+        } yield pRes :: accRes
+      }
+    }
+
+    def longestFirst(l1: List[_], l2: List[_]) = l1.length > l2.length
+
+    val mingled = mingle[Parser[T]](parsers)
+      .sortWith(longestFirst)
+    //we sort longest first here,
+    //to make sure the parser that matches
+    //the most input will always be put first
+
+    val alternates = mingled.map(combine(_))
+    alternates.reduceLeft(_ | _)
+  }
 
 
   def parseAndValidate(reader: Reader): ValidationNel[FailMessage, Schema] = {
