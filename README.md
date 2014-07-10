@@ -84,4 +84,11 @@ The CSV Validator does not yet implement the complete CSV Schema 1.0 language. L
 
 * No checking of column names in the CSV Schema is performed against the CSV file; as such `@ignoreColumnNameCase` has no effect.
 
-* @matchIsFalse column directive is not yet implemented.
+* `@matchIsFalse` column directive is not yet implemented (silently ignored!).
+
+* `DateExpr` is not yet implemented (raises Schema check error).
+
+* `PartialDateExpr` is not yet implemented (raises Schema check error).
+
+* At least `MD5`, `SHA-1`, `SHA-2`, `SHA-3`, and `SHA-256` checksum algorithms are supported. Probably many more as well as we defer to Java's `java.security.MessageDigest` class.
+* 
