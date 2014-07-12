@@ -1,9 +1,16 @@
 language: scala
+
 scala:
-        - 2.10.3
+        - 2.11.1
+
+before_install:
+        - "sudo apt-get update"
+        - "sudo apt-get install openjdk-6-jdk openjdk-7-jdk"
+
 script: "mvn test verify" 
+
 jdk:
-#        - openjdk6     # Ignore for now, build on OpenJDK6 on Travis fails, but works locally on CentOS 6.4 and OpenJDK 1.6.0_24
+        - openjdk6
         - openjdk7
         - oraclejdk7
-#        - oraclejdk8   # not yet supported by Scala Compiler
+        - oraclejdk8   # not yet supported by Scala Compiler
