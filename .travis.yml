@@ -13,4 +13,4 @@ jdk:
         - openjdk6
         - openjdk7
         - oraclejdk7
-        - oraclejdk8   # not yet supported by Scala Compiler
+        - oraclejdk8
