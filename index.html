@@ -42,9 +42,9 @@
           </div>
           <div class="collapse navbar-collapse">
             <ul class="nav navbar-nav navbar-right">
-              <li class="active"><a href="#">Home</a></li>
-              <li><a href="#about">About</a></li>
-              <li><a href="#contact">Contact</a></li>
+              <li class="active"><a href="#">CSV Validator</a></li>
+              <li><a href="csv-schema-1.0.html">CSV Schema Specification</a></li>
+              <!-- li><a href="#contact">Contact</a></li>
               <li class="dropdown">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown <b class="caret"></b></a>
                 <ul class="dropdown-menu">
@@ -56,7 +56,7 @@
                   <li><a href="#">Separated link</a></li>
                   <li><a href="#">One more separated link</a></li>
                 </ul>
-              </li>
+              </li -->
             </ul>
           </div><!--/.nav-collapse -->
         </div>
@@ -83,7 +83,7 @@
             <p>The Schema and Validator can really be considered seperately, if you are not authoring CSV Schema you need only understand how to run the Validator!</p>
             <div>
                 <h3>Background</h3>
-                <p>TNA (The National Archives) receive Metadata along with Collections of Digitised or Born-Digital Collections. Whilst TNA typically process Metadata in XML and RDF, it was recognised that it was too difficult and/or expensive for many suppliers to produce the desired metadata in XML and/or RDF, as such it was decided that Metadata would be received in CSV format.</p>
+                <p>The National Archives receive Metadata along with Collections of Digitised or Born-Digital Collections. Whilst The National Archives typically process Metadata in XML and RDF, it was recognised that it was too difficult and/or expensive for many suppliers to produce the desired metadata in XML and/or RDF, as such it was decided that Metadata would be received in CSV format.</p>
                 <p>Our experience shows that when suppliers are asked to produce metadata in XML or RDF there are several possible barriers:
                     <ul>
                         <li>Many content/document repository systems only export metadata in CSV, or generate XML or RDF in a non-desirable format which would then have to be transformed (at further cost).</li>
@@ -93,39 +93,163 @@
                         <li>Best/Worst case, most suppliers already have Microsoft Excel (or an equivalent) installed which they know how to use to produce a CSV file.</li>
                     </ul>
                 </p>
-                <p>TNA set exacting requirements on the Metadata that they expect and the format of that Metadata. Such constraints enable them to automatically process it, as the semantics of the metadata are already defined. Whilst previous bespoke tools have been developed in the past for validating data in various CSV files, it was felt that a generic open tool which could be shared with suppliers would offer several benefits:
+                <p>The National Archives set exacting requirements on the Metadata that they expect and the format of that Metadata. Such constraints enable them to automatically process it, as the semantics of the metadata are already defined. Whilst previous bespoke tools have been developed in the past for validating data in various CSV files, it was felt that a generic open tool which could be shared with suppliers would offer several benefits:
                     <ul>
-                        <li>A common CSV Schema language, would enable TNA to absolutely define required Metadata formats.</li>
+                        <li>A common CSV Schema language, would enable The National Archives to absolutely define required Metadata formats.</li>
                         <li>Developed CSV Schemas could be shared with suppliers and other archival sector organisations.</li>
-                        <li>Suppliers could validate Metadata before sending it to TNA. Hopefully reducing mistakes and therefore costs to both parties.</li>
-                        <li>TNA could use the same tool to ensure Metadata compliance automatically.</li>
+                        <li>Suppliers could validate Metadata before sending it to The National Archives. Hopefully reducing mistakes and therefore costs to both parties.</li>
+                        <li>The National Archives could use the same tool to ensure Metadata compliance automatically.</li>
                         <li>Although not of primary concern, it was recognised that this tool would also have value for anyone working with CSV as a data/metadata transfer medium.</li>
                     </ul>
                 </p>
             </div>
             <div>
-                <h3>Philosophy</h3>
-                <p>A few bullet-points that will try and help to explain our thinking in the design of both the CSV Schema Language and the Validation Tool implementation:
-                    <ul>
-                        <li>Simple CSV Schema Language. A DSL (Domain Specifc Language) was desired that could be expressed in plain text and should be simple enough that Metadata experts could easily write it without having to know a programming language or data/document modelling language such as XML or RDF. Note, the CSV Schema Language is NOT itself expressed in CSV, it is expressed in a simple text format.</li>
-
-                        <li>Context is King! Schema rules are written for each column of the CSV file. Each set of column rules is then asserted against each row of the CSV file in turn. Each rule in the CSV Schema operates on the current context (e.g. defined Column and parsed Row), unless otherwise specified. Hopefully this makes the rules short and concise.</li>
-
-                        <li>Streaming. Often the Metadata files that we receive are very large as they contain many records about a Collection which itself can be huge. The CSV Schema Language was designed with an eye to being able to write a Validation tool which could read the CSV file as a stream. Few steps require mnenomization of data from the CSV file, and where they do this is limited and should be easily optimisable to keep memory use to a minimum.</li>
-
-                        <li>Sane Defaults. We try to do the right thing by default, CSV files and their bretheren (Tab Separated Values etc.) can come in many shapes and sizes, by default we parse CSV according to RFC 4180, of course we allow you to customize this behaviour in the CSV Schema.</li>
-
-                        <li>CSV Schema is NOT a Programming Language. This is worth stressing as it was something we had to keep site of ourselves during development; CSV Schema is a simple data definition and validation language for CSV!</li>
-                    </ul>
-                </p>
-            </div>
-            <div>
                 <h2>CSV Schema Language</h2>
-                <p>The CSV Schema Language is defined in the CSV Schema Language 1.0 specification, available here TODO</p>
+                <p>
+				The CSV Schema Language is defined in the <a href="./csv-validator/csv-schema-1.0.html">CSV Schema Language 1.0 specification</a>. 
+				It is suggested that the extension .csvs be used for CSV Schema Language Files.
+				</p>
             </div>
             <div>
                 <h2>CSV Validator GUI Application</h2>
-                <p>TODO useage instructions and screenshots</p>
+				<div>
+					<h3>Starting the GUI</h3>
+					<p>
+					In order to run the CSV Validator via the GUI, navigate to the directory where you installed csv-validator, and then to the bin subdirectory and run either:
+					<ol>
+						<li>validate-gui.bat on Windows operating systems, or;</li>
+						<li>validate-gui shell script on Unix/Linux/Apple.</li>
+					</ol>
+					You should then see the following:
+					</p>
+					<img src="images/started-gui.png" alt="The basic GUI, boxes to enter file names for data and schema, 'Validate' button, text box for ouput" id="GUI">
+				</div>
+				<div>
+					<h3>Selecting metadata and schema for validation</h3>
+					<p>
+					To validate data you must supply a full filepath for the csv  file to be validated, and for the schema it is to be validated against. 
+					You can either type, or copy-and-paste, the filepath into the appropriate box, these are labelled "CSV file" and "CSV Schema file" respectively.
+					Alternatively, click the buttons labelled "..." (highlighted in the image below): 
+					</p>
+					<img src="images/gui-file-selects-highlighted.png" alt="Part of GUI, showing in detail the boxes to enter file names for data and schema, file open dialogue buttons highlighted in yellow" id="GUI-detail1">
+					<p>
+					This will open up a standard "File open" dialogue, allowing you to navigate to the file in the file system, and select it:
+					</p>
+					<img src="images/file-open.png" alt="Standard file open dialogue, with CSV file selected" id="GUI-detail2">
+					<p>
+					Clicking "Open" will populate the related text box:
+					</p>
+					<img src="images/filepath-text-box-populated.png" alt="Part of GUI, showing completed CSV file text box" id="GUI-detai3l">
+				</div>
+				<div>
+					<h3>Using Settings</h3>
+					<p>
+					While in the most straightforward cases, you can validate a CSV file immediately after supplying the filepaths, in many instances you will need to supply Settings options. 
+					To open up Settings, click on the downward facing double arrow below the file dialogue buttons (highlighted below):
+					</p>
+					<img src="images/highlight-settings-arrow.png" alt="Part of GUI, showing completed CSV file text box" id="GUI-detail4">
+					<p>
+					Having opened up Settings, you will see that there are two main groups:
+						<ol>
+							<li>Fail on first error?, and;</li>
+							<li>Path Substitutions</li>
+						</ol>
+					</p>
+					<img src="images/settings-opened.png" alt="Part of GUI, showing completed CSV file text box" id="GUI-detail5">
+					<div>
+						<h4>Fail on first error</h4>
+						<p>
+						With this setting selected, validation will terminate when the first 
+						<a href="./csv-schema-1.0.html#validation-errors">validation error</a> is encountered in the CSV file.  
+						If there are no validation errors the whole CSV file will be validated and return <code>PASS</code>.
+						You should be aware that the CSV Schema can declare that some validation tests will produce only validation warnings, rather than validation errors. 
+						A validation warning will not stop validation, even with "Fail on first error" set.
+						This setting is equivalent to using the --failfast flag when <a href="#toc7">running via the Command Line</a>.
+						</p>
+					</div>
+					<div>
+						<h4>Path Substitutions</h4>
+						<p>
+						Path Substitutions are a more slippery concept to grasp.  As described in the <a href="#toc1">Background</a> section above, the original use case at 
+						The National Archives was for a tool to validate metadata files.  These files generally describe a set of digital files being transferred to The National Archives 
+						and so contain information, including a filepath and checksum, about each file in a particular transfer. In addition to checking that the metadata files are 
+						correctly structured, we wish to check that the file actually exists at the filepath specified, and that when recalculated, the checksum for the files matches 
+						the value supplied in the CSV file.  To this end, the CSV Schema language contains a set of so-called 
+						<a href="./csv-schema-1.0.html#external-single-expressions">External Single Expressions</a>, which allow 
+						reference to other file system resources outside the CSV file being validated. However, it is likely that after transfer the drive letter or mount point (at least) 
+						will have changed from the original.  Path Substitutions allow us to overcome this at validation time by effectively performing a simple find-and-replace within the 
+						file during validation which maps the supplied filepath to the equivalent on the system where validation is actually taking place. 
+						It is also important to note that the CSV Validator expects filepaths to be supplied as file URIs.
+						</p>
+						<div>
+							<h5>Creating Path Substitutions</h5>
+							<p>
+							To create a Path Substitution in the GUI, click the "Add Path Substitution..." button (highlighted):
+							</p>
+							<img src="images/settings-opened-create-substitution-highlighted.png" alt="Part of GUI, showing 'Add Path Substitution...' button highlighted" id="GUI-detail6">
+							<p>
+							This will open a popup:
+							</p>
+							<img src="images/add-path-substitution.png" alt="Popup window for entering substitution 'find-and-replace'" id="GUI-detail7">
+							<p>
+							in the first box enter the text string which will be found in the supplied CSV file, and in the second the text string which should be substituted.
+							So considering the examples already used in this document, the CSV file is found at Y:\UAT_2\ADM362B003\tech_acq_metadata_v1_ADM362B003.csv and we can see 
+							that there is a folder named ADM_362 alongside the CSV file, that folder contains the images which the CSV file describes. 
+							When created, the metadata CSV file and images were on the C: drive, instead of the Y: drive, and they are also now in a project-related folder structure. 
+							So the filepaths in the metadata CSV file all begin file:///c:/ADM_362/ - when we run the validator, we actually need to look for the content files at 
+							file:///y:/UAT_2/ADM362B003/ADM_362/ when we are checking for their existence and verifying the associated checksums.  So we enter those filepath fragments into 
+							the "From:" and "To:" boxes respectively, and click OK.  This gives:
+							</p>
+							<img src="images/settings-with-entered-substituion.png" alt="Popup window for entering substitution 'find-and-replace'" id="GUI-detail8">
+						</div>
+						<div>
+							<h5>Editing Path Substitutions</h5>
+							<p>
+							To edit a substitution, simply double-click on the field you wish to edit:
+							</p>
+							<img src="images/edit-file-substitution.png" alt="Editing substitution" id="GUI-detail9">
+							<p>
+							Hit &lt;Enter&gt; or click on the other side of the substitution to complete the edit.
+							</p>
+						</div>
+					</div>
+				</div>
+				<div>
+					<h3>Validating a CSV file and understanding program output</h3>
+					<p>
+					Having selected a CSV file and schema, and chosen which settings (if any) to apply, validation is performed by clicking the large "Validate" button. 
+					Output is only written to the report pane (below the "Validate" button) when all rows have been validated.  If checksum verifcation is being performed, 
+					this can take a considerable amount of time, as each file described in the CSV file has to be read in full in order to calculate the checksum. 
+					The mouse pointer will change to the egg-timer (or equivalent) while validation is taking place.
+					</p>
+					<p>
+					If the data is completely clean, and validates perfectly against the schema, the only output returned to the output pane will be <code>PASS</code>.
+					</p>
+					<div>
+						<h4>Schema Errors</h4>
+						<p>
+						If you are developing schemas, it is possible to make syntax errors in the schema, for example a mismatch in the declared number of columns 
+						(using the <a href="./csv-schema-1.0.html#total-columns-directive">Total Columns Directive</a>) against the actual number of 
+						<a href="./csv-schema-1.0.html#column-definitions">Column Definitions</a> included in the schema (eg 
+						<code>@totalColumns = 41 but number of columns defined = 42 at line: 2, column: 1</code>).  
+						The schema itself is always checked before validation of the data begins, and schema errors always terminate validation.
+						</p>
+						<img src="images/bad-totalColumns-dir.png" alt="@totalColumns = 41 but number of columns defined = 42 at line: 2, column: 1" id="totalColumnsErr">
+						<p>
+						Or, if the Version Declaration has been omitted from the schema; or you accidentally switch over the input filepaths in the validator, 
+						and put the filepath for the CSV data file into the field for the schema and vice versa, 
+						you will see a schema error saying that the <a href="./csv-schema-1.0.html#version-declaration">Version Declaration</a> is not present
+						(eg <code>[1.1] failure: version 1.0 missing or incorrect</code>):
+						</p>
+						<img src="images/version-declaration-error.png" alt="[1.1] failure: version 1.0 missing or incorrect
+<br />
+batch_code,department,series,piece,item,ordinal,file_uuid,file_path,file_checksum,resource_uri,scan_operator,scan_id,scan_location,scan_native_format,scan_timestamp,image_resolution,image_width,image_height,image_tonal_resolution,image_format,image_colour_space,process_location,jp2_creation_timestamp,uuid_timestamp,embed_timestamp,image_split,image_split_other_uuid,image_split_operator,image_split_timestamp,image_crop,image_crop_operator,image_crop_timestamp,image_deskew,image_deskew_operator,image_deskew_timestamp,QA-code,comments,transcribed_volume_number,transcribed_birth_date_day,transcribed_birth_date_month,transcribed_birth_date_year,transcribed_official_number
+<br />
+^" id="versionDeclErr">
+						<p>
+						</p>
+					</div>	
+				</div>
             </div>
             <div>
                 <h2>CSV Validator Command Line Tool</h2>
