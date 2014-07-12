@@ -32,6 +32,8 @@ public class Substitution {
 
     /**
      * Substitution from
+     *
+     * @return The replacement to use in the substitution
      */
     public String getFrom() {
         return from;
@@ -39,6 +41,8 @@ public class Substitution {
 
     /**
      * Substitution to
+     *
+     * @return The string to replace in the substitution
      */
     public String getTo() {
         return to;
