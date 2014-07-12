@@ -302,31 +302,37 @@ batch_code,department,series,piece,item,ordinal,file_uuid,file_path,file_checksu
 					<p>
 					In order to run the CSV Validator via the command line, set your working directory to the bin subdirectory of the installation directory and execute either:
 					<ol>
-						<li>validate.bat on Windows operating systems, or;</li>
-						<li>validate shell script on Unix/Linux.</li>
+						<li><code>validate.bat</code> on Windows operating systems, or;</li>
+						<li><code>validate</code> shell script on Unix/Linux.</li>
 					</ol>
 					Executing without any options or command line parameters should produce the following usage text:
 					</p>
 					<pre>
-					Usage: validate [options] &lt;csv-path&gt; &lt;csv-schema-path&gt;
-					
-					options:
-					-f &lt;value&gt; | --fail-fast &lt;value&gt;
-						Stops on the first validation error rather than reporting all errors if used with value true
-					-p:&lt;key&gt;=&lt;value&gt; | --path:&lt;key&gt;=&lt;value&gt;
-						Allows you to substitute a file path (or part of) in the CSV for a different file path
-					-c &lt;value&gt; | --case-sensitive-paths &lt;value&gt;
-						Enforces case-sensitive file path checking if used with value true. 
-						Useful when validating on case-insensitive filesystems like Windows NTFS
-						
-					&lt;csv-path&gt;
-						The path to the CSV file to validate
-						
-					&lt;csv-schema-path&gt;
-						The path to the CSV Schema file to use for validation
-						
-					--help
-						Prints this usage text
+Error: Missing argument <csv-path>
+Error: Missing argument <csv-schema-path>
+Try --help for more information.
+					</pre>
+					<p>Subsequently, executing with the <code>--help</code> argument, should produce the following help text:
+					<pre>
+CSV Validator - Command Line 1.0
+Usage: validate [options] &lt;csv-path&gt; &lt;csv-schema-path&gt;
+
+  --help
+        Prints this usage text
+  -f &lt;value&gt; | --fail-fast &lt;value&gt;
+        Stops on the first validation error rather than reporting all errors
+  -p:&lt;key&gt;=&lt;value&gt; | --path:&lt;key&gt;=&lt;value&gt;
+        Allows you to substitute a file path (or part of) in the CSV for a different file path
+  -c &lt;value&gt; | --case-sensitive-paths &lt;value&gt;
+        Enforces case-sensitive file path checking. Useful when validating on case-insensitive filesystems like Windows NTFS
+  -x &lt;value&gt; | --csv-encoding &lt;value&gt;
+        Defines the charset encoding used in the CSV file
+  -y &lt;value&gt; | --csv-schema-encoding &lt;value&gt;
+        Defines the charset encoding used in the CSV Schema file
+  &lt;csv-path&gt;
+        The path to the CSV file to validate
+  &lt;csv-schema-path&gt;
+        The path to the CSV Schema file to use for validation
 					</pre>
 				</div>
 				<div>
@@ -339,7 +345,7 @@ batch_code,department,series,piece,item,ordinal,file_uuid,file_path,file_checksu
  				<div>
 					<h3>Using command line options</h3>
 					<p>
-					Three options (plus --help, which merely reproduces the usage text given above) are available to modify certain behaviours of the CSV Validator.
+					Five options (plus --help, which merely reproduces the usage text given above) are available to modify certain behaviours of the CSV Validator.
 					</p>
 					<div>
 						<h4>Fail fast</h4>
@@ -381,13 +387,19 @@ batch_code,department,series,piece,item,ordinal,file_uuid,file_path,file_checksu
 						This helps to avoid inconsistent validation results when validating the same CSV file and schema on different operating systems.
 						</p>
 					</div>
+ 					<div>
+ 						<h4>CSV File Encoding</h4>
+ 						<p>To specify that the CSV file that you are validating uses a different character set encoding than the default (<code>UTF-8</code>), supply either of the flags <code>-x</code> or <code>--csv-encoding</code> along with the name of the character set encoding.</p>
+ 					</div>
+ 					<div>
+ 						<h4>CSV Schema File Encoding</h4>
+ 						<p>To specify that the CSV Schema file that you are parsing uses a different character set encoding than the default (<code>UTF-8</code>), supply either of the flags <code>-y</code> or <code>--csv-schema-encoding</code> along with the name of the character set encoding.</p>
+ 					</div>
 				</div>
 				<div>
 					<h3>Command line output</h3>
-					<p>
-					All output is written to stdout by default, and so can be written to file by the usual means.  Reporting is otherwise identical to that produced by the GUI client, 
+					<p>All output is written to <em>stdout</em> by default, and so can be written to file by the usual terminal redirection means.  Reporting is otherwise identical to that produced by the GUI client, 
 					which is described in the section <a href="#toc8">Validating a CSV file and understanding program output</a> above.
-
 					</p>
 				</div>
             </div>
