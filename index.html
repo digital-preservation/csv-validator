@@ -72,7 +72,7 @@
         <div id="toc"></div>
         <div>
             <h2>Overview</h2>
-            <p>Firstly, we defined a Grammar which describes a language for expressing rules to validate a CSV file. We call such an expression of this language a <code>CSV Schema</code>. The grammar itself is more formally described in <code>EBNF</code> and is available in the file <a href="https://raw.github.com/adamretter/csv-validator/master/csv-schema-grammar.ebnf">csv-schema-grammar.ebnf</a>, and in the <a href="file:///C:/Users/dunderdown/csv-validator/csv-schema-1.0.html">CSV Schema Specification</a>.</p>
+            <p>Firstly, we defined a Grammar which describes a language for expressing rules to validate a CSV file. We call such an expression of this language a <code>CSV Schema</code>. The grammar itself is more formally described in <code>EBNF</code> and is available in the file <a href="http://github.com/digital-preservation/csv-validator/blob/master/csv-schema-grammar.ebnf">csv-schema-grammar.ebnf</a>, and in the <a href="csv-schema-1.0.html">CSV Schema Specification</a>.</p>
             <p>Secondly, we implemented a Validator that will take a CSV Schema and a CSV file, verify that the CSV Schema itself is syntactically correct and then assert that each rule in the CSV Schema holds true for the CSV file. The Validator is predominantly written in Scala 2.10 and run's on any platform with a Java Virtual Machine (JVM). The Validator toolset provides:
             <ol>
                 <li>A stand-alone command line tool.</li>
@@ -114,7 +114,7 @@
 				<h2>Installing the CSV Validator</h2>
 				<p>
 				The core of the CSV Validator is written in Scala 2.10, Scala runs in the Java Virtual Machine, so requires Java 6 to be installed on your computer in order to run. 
-				The latest release build is automatically published from <a href="https://github.com/digital-preservation/csv-validator">the source code repository on GitHub</a>, 
+				The latest release build is automatically published from <a href="http://github.com/digital-preservation/csv-validator">the source code repository on GitHub</a>, 
 				to Maven Central <a href="http://search.maven.org/#search%7Cga%7C1%7Ccsv-validator">currently (18 March 2014), Version 1.0, Release Candidate 3 (1.0-RC3)</a>.
 				</p>
 				<a href="http://search.maven.org/#search%7Cga%7C1%7Ccsv-validator"><img src="images/Maven-Central.png" alt="Screenshot showing packages in maven Central" id="MavenCentral"></a>
@@ -249,7 +249,7 @@
 					<p>
 					Having selected a CSV file and schema, and chosen which settings (if any) to apply, validation is performed by clicking the large "Validate" button. 
 					As of Version 1.0-RC2, there is a progress bar (but due to a threading issue) that and output to the report pane (below the "Validate" button) is currently only 
-					updated when all rows have been validated (<a href="https://github.com/digital-preservation/csv-validator/issues/34">Issue #34 has been raised to address this</a>). 
+					updated when all rows have been validated (<a href="http://github.com/digital-preservation/csv-validator/issues/34">Issue #34 has been raised to address this</a>). 
 					If checksum verification is being performed, the validation can take a considerable amount of time, as each file described in the CSV file has to be read in full 
 					in order to calculate the checksum. The mouse pointer will change to the egg-timer (or equivalent) while validation is taking place.
 					You should also note that information already in the output pane is currently not cleared when a new validation run is started (it is only overwritten on completion).
