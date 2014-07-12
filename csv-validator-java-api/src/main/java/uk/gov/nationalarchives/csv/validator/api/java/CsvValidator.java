@@ -17,35 +17,32 @@ import static uk.gov.nationalarchives.csv.validator.api.CsvValidator$.MODULE$;
  * Validate that a csv file matches a format specified a csv schema.
  * This is a Java wrapper calling the main Scala application.
  *
- * <p> A typical invocation sequence:
+ * <p> A typical invocation sequence:</p>
+ * <blockquote><pre>{@code
+ *  Boolean failFast = false;
+ *  List<Substitution> pathSubstitutions = new ArrayList<Substitution>();
  *
- * <blockquote><pre>
+ *  //add a substitution path
+ *  pathSubstitutions.add(new Substitution("file://something", "/home/xxx"));
  *
- * Boolean failFast = false;
- * List<Substitution> pathSubstitutions = new ArrayList<Substitution>();
+ *  List<FailMessage> messages = CsvValidator.{@link #validate validate}(
+ *    "/home/dev/IdeaProjects/csv/csv-validator/csv-validator-core/data.csv",
+ *    "/home/dev/IdeaProjects/csv/csv-validator/csv-validator-core/data-schema.csvs",
+ *    failFast,
+ *    pathSubstitutions);
  *
- * //add a substitution path
- * pathSubstitutions.add(new Substitution("file://something", "/home/xxx"));
- *
- * List<FailMessage> messages = CsvValidator.{@link #validate validate}(
- *   "/home/dev/IdeaProjects/csv/csv-validator/csv-validator-core/data.csv",
- *   "/home/dev/IdeaProjects/csv/csv-validator/csv-validator-core/data-schema.csvs",
- *   failFast,
- *   pathSubstitutions);
- *
- * if(messages.isEmpty()) {
- *   System.out.println("All worked OK");
- * } else {
- *   for(FailMessage message : messages) {
- *     if(message instanceof WarningMessage) {
- *       System.out.println("Warning: " + message.getMessage());
- *     } else {
- *       System.out.println("Error: " + message.getMessage());
- *     }
- *   }
- * }
- *
- * </pre></blockquote>
+ *  if(messages.isEmpty()) {
+ *    System.out.println("All worked OK");
+ *  } else {
+ *    for(FailMessage message : messages) {
+ *      if(message instanceof WarningMessage) {
+ *        System.out.println("Warning: " + message.getMessage());
+ *      } else {
+ *        System.out.println("Error: " + message.getMessage());
+ *      }
+ *    }
+ *  }
+ * }</pre></blockquote>
  */
 public class CsvValidator {
 
