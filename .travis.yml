@@ -3,14 +3,14 @@ language: scala
 scala:
         - 2.11.1
 
-before_install:
-        - "sudo apt-get update"
-        - "sudo apt-get install openjdk-6-jdk openjdk-7-jdk"
+# before_install:
+#        - "sudo apt-get update"
+#        - "sudo apt-get install openjdk-6-jdk openjdk-7-jdk"
 
 script: "mvn test verify" 
 
 jdk:
-        - openjdk6
-        - openjdk7
+#        - openjdk6
+#        - openjdk7
         - oraclejdk7
         - oraclejdk8
