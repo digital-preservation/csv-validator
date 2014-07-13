@@ -25,11 +25,12 @@ import static uk.gov.nationalarchives.csv.validator.api.CsvValidator$.MODULE$;
  *  //add a substitution path
  *  pathSubstitutions.add(new Substitution("file://something", "/home/xxx"));
  *
- *  List<FailMessage> messages = CsvValidator.{@link #validate validate}(
+ *  List<FailMessage> messages = CsvValidator.validate(
  *    "/home/dev/IdeaProjects/csv/csv-validator/csv-validator-core/data.csv",
  *    "/home/dev/IdeaProjects/csv/csv-validator/csv-validator-core/data-schema.csvs",
  *    failFast,
- *    pathSubstitutions);
+ *    pathSubstitutions,
+ *    true);
  *
  *  if(messages.isEmpty()) {
  *    System.out.println("All worked OK");
