@@ -10,10 +10,9 @@ package uk.gov.nationalarchives.csv.validator.schema
 
 import scalax.file.{PathSet, Path}
 import scalaz._, Scalaz._
-import java.io.{BufferedInputStream, FileInputStream, File}
+import java.io.File
 import scala.util.parsing.input.Positional
 import scala.collection.mutable
-import java.security.MessageDigest
 import uk.gov.nationalarchives.csv.validator.metadata.Row
 import util.Try
 import annotation.tailrec
@@ -21,10 +20,8 @@ import java.net.{URISyntaxException, URI}
 import org.joda.time.{Interval, DateTime}
 import org.joda.time.format.{DateTimeFormatterBuilder, ISODateTimeFormat, DateTimeFormat}
 import scalaz.{Success => SuccessZ, Failure => FailureZ}
-import scala.Some
 import uk.gov.nationalarchives.csv.validator.api.CsvValidator.SubstitutePath
 import uk.gov.nationalarchives.csv.validator.Util.{TypedPath, FileSystem}
-import resource.managed
 
 abstract class Rule(name: String, val argProviders: ArgProvider*) extends Positional {
 
@@ -455,17 +452,33 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
   def calcChecksum(file: String): ValidationNel[String, String] = {
 
     def checksum(f: File): ValidationNel[String, String] = {
-      val digest = MessageDigest.getInstance(algorithm)
-      managed(new BufferedInputStream(new FileInputStream(f))).map {
-        fileBuffer =>
-          Stream.continually(fileBuffer.read).takeWhile(-1 !=).map(_.toByte).foreach( digest.update(_))
-          digest.digest
-      }.either match {
-        case Right(b) =>
-          hexEncode(b).successNel[String]
-        case Left(ts) =>
-          ts(0).getMessage.failNel[String] //TODO how to extract not just first error?
+
+      import scalaz.stream._
+
+      def getHash(algorithm: String) : Process1[scodec.bits.ByteVector, scodec.bits.ByteVector] = {
+        val hashes = Map(
+          ("md2", () => hash.md2),
+          ("md5", () => hash.md5),
+          ("sha1", () => hash.sha1),
+          ("sha256", () => hash.sha256),
+          ("sha384", () => hash.sha384),
+          ("sha256", () => hash.sha512)
+        )
+        hashes(algorithm.toLowerCase().replace("-", ""))()
       }
+
+      val bufSize = 16384 //16KB
+      Process.constant(bufSize)
+        .toSource
+        .through(io.fileChunkR(f.getAbsolutePath, bufSize))
+        .pipe(getHash(algorithm))
+        .map(_.toHex)
+        .runLast
+        .attemptRun
+          .validation
+          .leftMap(_.getMessage)
+          .rightMap(_.getOrElse("NO CHECKSUM"))
+          .toValidationNel
     }
 
     FileSystem.createFile(file) match {
@@ -483,26 +496,6 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
       case scala.util.Failure(_) =>
         s"""file "${FileSystem.file2PatformDependent(file)}" not found""".failNel[String]
     }
-  }
-
-  private def hexEncode(in: Array[Byte]): String = {
-    val sb = new StringBuilder
-    val len = in.length
-
-    def addDigit(in: Array[Byte], pos: Int, len: Int, sb: StringBuilder) {
-      if (pos < len) {
-        val b: Int = in(pos)
-        val msb = (b & 0xf0) >> 4
-        val lsb = (b & 0x0f)
-        sb.append((if (msb < 10) ('0' + msb).asInstanceOf[Char] else ('a' + (msb - 10)).asInstanceOf[Char]))
-        sb.append((if (lsb < 10) ('0' + lsb).asInstanceOf[Char] else ('a' + (lsb - 10)).asInstanceOf[Char]))
-
-        addDigit(in, pos + 1, len, sb)
-      }
-    }
-
-    addDigit(in, 0, len, sb)
-    sb.toString()
   }
 }
 

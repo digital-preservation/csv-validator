@@ -98,6 +98,21 @@
             <artifactId>scalaz-core_${scala.version}</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.scalaz.stream</groupId>
+            <artifactId>scalaz-stream_${scala.version}</artifactId>
+            <version>0.5a</version>     <!-- version 0.5a is compatible with scalaz-core 7.1.0 -->
+        </dependency>
+        <dependency>
+            <groupId>org.typelevel</groupId>
+            <artifactId>scodec-bits_${scala.version}</artifactId>
+            <version>1.0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.scalaz</groupId>
+            <artifactId>scalaz-concurrent_${scala.version}</artifactId>
+            <version>${scalaz.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.github.scala-incubator.io</groupId>
             <artifactId>scala-io-file_${scala.version}</artifactId>
         </dependency>
@@ -125,4 +140,14 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <repositories>
+        <repository>
+            <id>scalaz-bintray</id>
+            <name>Scalaz Bintray Repo</name>
+            <url>http://dl.bintray.com/scalaz/releases</url>
+            <!-- needed for scalaz-stream -->
+        </repository>
+    </repositories>
+
 </project>
