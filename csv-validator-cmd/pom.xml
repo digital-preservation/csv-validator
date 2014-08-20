@@ -27,12 +27,7 @@
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
                 <configuration>
-                    <!-- scalaVersion>${scala.version}</scalaVersion -->
-                    <!-- commented out incremental compilation until 
-                         a new release of the scala-maven-plugin (3.1.6.1+)
-                         is available which supports scala 2.11+
-                         see https://github.com/davidB/scala-maven-plugin/issues/151 -->
-                    <!-- recompileMode>incremental</recompileMode -->   <!-- NOTE: incremental compilation although faster requires passing to MAVEN_OPTS="-XX:MaxPermSize=128m" -->
+                    <recompileMode>incremental</recompileMode>   <!-- NOTE: incremental compilation although faster requires passing to MAVEN_OPTS="-XX:MaxPermSize=128m" -->
                     <useZincServer>true</useZincServer>          <!-- NOTE: if you have Zinc server installed and running, you can get faster compilation by enabling this -->
                     <javacArgs>
                         <javacArg>-Xlint:unchecked</javacArg>
