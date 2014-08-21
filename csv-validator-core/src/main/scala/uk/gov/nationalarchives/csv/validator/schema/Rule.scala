@@ -403,6 +403,7 @@ case class UniqueMultiRule(columns: List[ColumnReference]) extends Rule("unique(
 }
 
 case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: String, pathSubstitutions: List[(String,String)], enforceCaseSensitivePathChecks: Boolean = false) extends Rule("checksum", Seq(rootPath, file): _*) with FileWildcardSearch[String] {
+
   def this(file: ArgProvider, algorithm: String, pathSubstitutions: List[(String,String)], enforceCaseSensitivePathChecks: Boolean) = this(Literal(None), file, algorithm, pathSubstitutions, enforceCaseSensitivePathChecks)
   def this(file: ArgProvider, algorithm: String, enforceCaseSensitivePathChecks: Boolean) = this(Literal(None), file, algorithm, List.empty[(String,String)], enforceCaseSensitivePathChecks)
 
@@ -462,7 +463,7 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
           ("sha1", () => hash.sha1),
           ("sha256", () => hash.sha256),
           ("sha384", () => hash.sha384),
-          ("sha256", () => hash.sha512)
+          ("sha512", () => hash.sha512)
         )
         hashes(algorithm.toLowerCase().replace("-", ""))()
       }
