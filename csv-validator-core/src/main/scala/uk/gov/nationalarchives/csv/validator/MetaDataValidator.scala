@@ -68,9 +68,9 @@ trait MetaDataValidator {
     managed(new CSVReader(csv, separator, CSVParser.DEFAULT_QUOTE_CHARACTER, CSVParser.NULL_CHARACTER)) map {
       reader =>
 
-        //if there is header and no metadata, file must skip the first row and return true
-        //if there is no header and metadata, file must have at least one row
-        //if there is header and metadata, file must skip first the firs row and find metadata
+        // if 'no header' is set but the file is empty and 'permit empty' has not been set - this is an error
+        // if 'no header' is not set and the file is empty - this is an error
+        // if 'no header' is not set and 'permit empty' is not set but the file contains only one line - this is an error
 
         val rowIt = new RowIterator(reader, progress)
 
