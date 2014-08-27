@@ -25,6 +25,8 @@ case class Quoted() extends GlobalDirective("quoted")
 
 case class TotalColumns(numberOfColumns: BigInt) extends GlobalDirective("totalColumns")
 
+case class PermitEmpty() extends GlobalDirective("permitEmpty")
+
 case class NoHeader() extends GlobalDirective("noHeader")
 
 case class IgnoreColumnNameCase() extends GlobalDirective("ignoreColumnNameCase")

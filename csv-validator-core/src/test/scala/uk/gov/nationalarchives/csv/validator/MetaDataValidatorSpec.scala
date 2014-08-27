@@ -402,22 +402,64 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       }
     }
 
-    "fail for empty metaData file when expecting header" in {
+    "fail for completely empty metadata file when this is not permitted" in {
       val schema =
         """version 1.0
            @totalColumns 1
+           @noHeader
            Col1:
         """
 
       val metaData = ""
 
       validate(metaData, schema, None) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("metadata file is empty"))
+        case Failure(messages) => messages.list mustEqual List(ErrorMessage("metadata file is empty but this has not been permitted"))
       }
-
     }
 
-    "fail for metaData file with only a header line" in {
+    "succeed for completely empty metadata file when this is permitted" in {
+      val schema =
+        """version 1.0
+           @totalColumns 1
+           @noHeader
+           @permitEmpty
+           Col1:
+        """
+
+      val metaData = ""
+
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
+    }
+
+    "fail for permitted empty metaData file when expecting a header" in {
+      val schema =
+        """version 1.0
+           @totalColumns 1
+           @permitEmpty
+           Col1:
+        """
+
+      val metaData = ""
+
+      validate(metaData, schema, None) must beLike {
+        case Failure(messages) => messages.list mustEqual List(ErrorMessage("metadata file is empty but should contain at least a header"))
+      }
+    }
+
+    "succeed for permitted empty metadata file with header only" in {
+      val schema =
+        """version 1.0
+           @totalColumns 1
+           @permitEmpty
+           Col1:
+        """
+
+      val metaData = "Name"
+
+      validate(metaData, schema, None) must beLike { case Success(_) => ok }
+    }
+
+    "fail for metaData file with only a header line when not permitted empty" in {
       val schema =
         """version 1.0
            @totalColumns 1
@@ -427,7 +469,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val metaData = "Name"
 
       validate(metaData, schema, None) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("metadata file has a header but no data"))
+        case Failure(messages) => messages.list mustEqual List(ErrorMessage("metadata file has a header but no data and this has not been permitted"))
       }
     }
 

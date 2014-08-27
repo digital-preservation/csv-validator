@@ -11,7 +11,7 @@ package uk.gov.nationalarchives.csv.validator
 import scalaz._, Scalaz._
 import java.io.{IOException, Reader => JReader, InputStreamReader => JInputStreamReader, FileInputStream => JFileInputStream, LineNumberReader => JLineNumberReader}
 import resource._
-import uk.gov.nationalarchives.csv.validator.schema.{Quoted, Separator, NoHeader, Schema}
+import uk.gov.nationalarchives.csv.validator.schema._
 import uk.gov.nationalarchives.csv.validator.metadata.Cell
 
 import au.com.bytecode.opencsv.{CSVParser, CSVReader}
@@ -68,22 +68,39 @@ trait MetaDataValidator {
     managed(new CSVReader(csv, separator, CSVParser.DEFAULT_QUOTE_CHARACTER, CSVParser.NULL_CHARACTER)) map {
       reader =>
 
+        // if 'no header' is set but the file is empty and 'permit empty' has not been set - this is an error
+        // if 'no header' is not set and the file is empty - this is an error
+        // if 'no header' is not set and 'permit empty' is not set but the file contains only one line - this is an error
+
         val rowIt = new RowIterator(reader, progress)
 
-        if(!rowIt.hasNext) {
-          ErrorMessage("metadata file is empty").failNel[Any]
-        } else {
-          //if the csv has a header, skip over it
-          if(!schema.globalDirectives.contains(NoHeader())) {
-            val header = rowIt.skipHeader()
+        val maybeNoData =
+          if (schema.globalDirectives.contains(NoHeader())) {
+            if (!rowIt.hasNext && !schema.globalDirectives.contains(PermitEmpty())) {
+              Some(ErrorMessage("metadata file is empty but this has not been permitted").failNel[Any])
+            } else {
+              None
+            }
+          } else {
+            if(!rowIt.hasNext) {
+              Some(ErrorMessage("metadata file is empty but should contain at least a header").failNel[Any])
+            } else {
+              val header = rowIt.skipHeader()
+              if(!rowIt.hasNext && !schema.globalDirectives.contains(PermitEmpty())) {
+                Some(ErrorMessage("metadata file has a header but no data and this has not been permitted").failNel[Any])
+              } else {
+                None
+              }
+            }
           }
 
-          if(!rowIt.hasNext) {
-            ErrorMessage("metadata file has a header but no data").failNel[Any]
-          } else {
+        maybeNoData match {
+          case Some(noData) =>
+            noData
+          case None =>
             validateRows(rowIt, schema)
-          }
         }
+
     } either match {
       case Right(metadataValidation) =>
         metadataValidation

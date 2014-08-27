@@ -80,5 +80,25 @@ class SchemaParserGlobalDirectivesSpec extends Specification {
 
       parse(new StringReader(schema)) must beLike { case Success(Schema(Nil, List(ColumnDefinition("column1", Nil, Nil))), _) => ok}
     }
+
+    "succeed with @permitEmpty" in {
+      val schema =
+        """version 1.0
+          |@permitEmpty
+          |column1: """.stripMargin
+
+      parse(new StringReader(schema)) must beLike { case Success(Schema(List(PermitEmpty()), List(ColumnDefinition("column1", Nil, Nil))), _) => ok}
+    }
+
+    "succeed with @permitEmpty and @noHeader" in {
+      val schema =
+        """version 1.0
+          |@permitEmpty
+          |@noHeader
+          |column1: """.stripMargin
+
+      parse(new StringReader(schema)) must beLike { case Success(Schema(List(PermitEmpty(), NoHeader()), List(ColumnDefinition("column1", Nil, Nil))), _) => ok}
+    }
+
   }
 }
