@@ -123,7 +123,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
         Swing.onEDT {resumeUi }
     }
   }
-
+  //TODO Handle the field integrityCheckFilenameColumn
   private def validate(csvFilePath: String, csvEncoding: Charset, csvSchemaFilePath: String, csvSchemaEncoding: Charset, failOnFirstError: Boolean, pathSubstitutions: List[(String, String)], enforceCaseSensitivePathChecks: Boolean, progress: Option[ProgressCallback])(output: String => Unit) {
     output("")
     output(CsvValidatorCmdApp.validate(
@@ -132,6 +132,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
       failOnFirstError,
       pathSubstitutions,
       enforceCaseSensitivePathChecks,
+      integrityCheckFilenameColumn = None,
       progress
     )._1)
   }
