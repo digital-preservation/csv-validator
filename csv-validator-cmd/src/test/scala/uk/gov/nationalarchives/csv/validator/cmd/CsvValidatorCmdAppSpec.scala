@@ -18,6 +18,14 @@ class CsvValidatorCmdAppSpec extends Specification with TestResources {
   val badSchemaPath = relResourcePath("badSchema.csvs")
   val standardRulesFailPath = relResourcePath("acceptance/standardRulesFailMetaData.csv")
   val standardRulesSchemaPath = relResourcePath("acceptance/standardRulesSchema.csvs")
+  val integrityCheckSchemaPath = relResourcePath("integrityCheck/header/schema.csvs")
+  val integrityCheckMetaDataPath = relResourcePath("integrityCheck/header/metaData.csv")
+  val integrityCheckMetaDataPathMissingFiles = relResourcePath("integrityCheck/header/metaData-missing-files.csv")
+  val integrityCheckMetaDataPathWithTooManyFiles = relResourcePath("integrityCheck/header/metaData-with-too-many-files.csv")
+  val integrityCheckBadSchemaPath = relResourcePath("integrityCheck/header/badSchema.csvs")
+  val integrityCheckSchemaPathNoHeader = relResourcePath("integrityCheck/noheader/schema.csvs")
+  val integrityCheckMetaDataPathNoHeader = relResourcePath("integrityCheck/noheader/metaData.csv")
+
 
   "Check arguments" should {
     "give usage message when no arguments supplied" in {
@@ -109,7 +117,7 @@ class CsvValidatorCmdAppSpec extends Specification with TestResources {
     //    "have exit code 0 when validation --path successful" in {
     //      CsvValidatorCmdApp.run(Array( "--path:c: " + basePath + "metaData.csv", basePath + "schema.csvs"))._2 mustEqual 0
     //    }
-
+    
     "have exit code 1 when the command line arguments are wrong" in {
       CsvValidatorCmdApp.run(Array(""))._2 mustEqual 1
     }
@@ -130,6 +138,42 @@ class CsvValidatorCmdAppSpec extends Specification with TestResources {
     "have exit code 3 when the metadata is invalid" in {
       CsvValidatorCmdApp.run(Array(standardRulesFailPath, standardRulesSchemaPath))._2 mustEqual 3
     }
+
+
+    "have exit code 1 when integrity check fails because it can't find the content folder" in {
+      CsvValidatorCmdApp.run(Array("-i","Name", metadataPath, schemaPath))._2  === 3
+    }
+
+
+
+    "have exit code 0 when validation successful with integrity check - for schema with no header" in {
+      CsvValidatorCmdApp.run(Array("-i","Name", integrityCheckMetaDataPathNoHeader, integrityCheckSchemaPathNoHeader)) mustEqual Tuple2("PASS", 0)
+    }
+
+    "have exit code 0 when the metadata file list has more files than the actual content file" in {
+      val result = CsvValidatorCmdApp.run(Array("-i","Name", integrityCheckMetaDataPathWithTooManyFiles, integrityCheckSchemaPath))
+
+      result mustEqual Tuple2("PASS", 0)
+
+    }
+
+    "have exit code 3 when the metadata file list fewer wile than the actual content file with integrity check error message" in {
+      val result = CsvValidatorCmdApp.run(Array("-i","Name", integrityCheckMetaDataPathMissingFiles, integrityCheckSchemaPath))
+      result._2 mustEqual 3
+      result._1 must contain("[Integrity Check]")
+    }
+
+
+    "have exit code 0 when validation successful with integrity check" in {
+       CsvValidatorCmdApp.run(Array("-i","Name", integrityCheckMetaDataPath, integrityCheckSchemaPath)) mustEqual Tuple2("PASS", 0)
+    }
+
+
+
+
+
+
+    //TODO Add some more integrity check tests...
 
   }
 }
