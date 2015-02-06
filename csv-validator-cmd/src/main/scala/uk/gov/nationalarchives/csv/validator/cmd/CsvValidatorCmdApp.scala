@@ -53,7 +53,7 @@ object CsvValidatorCmdApp extends App {
         opt[Boolean]('c', "case-sensitive-paths") optional() action { (x,c) => c.copy(caseSensitivePaths = x) } text("Enforces case-sensitive file path checking. Useful when validating on case-insensitive filesystems like Windows NTFS")
         opt[Charset]('x', "csv-encoding") optional() action { (x,c) => c.copy(csvEncoding = x) } text("Defines the charset encoding used in the CSV file")
         opt[Charset]('y', "csv-schema-encoding") optional() action { (x,c) => c.copy(csvSchemaEncoding = x) } text("Defines the charset encoding used in the CSV Schema file")
-        opt[String]('i',"integrity-check") optional() action {(x, c) => c.copy(integrityCheckFilenameColumn = Some(x))}  text("the filename column  for integrity check")
+        opt[String]('i',"integrity-check") optional() action {(x, c) => c.copy(integrityCheckFilenameColumn = Some(x))}  text("Defines the filename column in the schema for integrity check")
         arg[Path]("<csv-path>") validate { x => if(x.exists && x.canRead) success else failure(s"Cannot access CSV file: ${x.path}") } action { (x,c) => c.copy(csvPath = x) } text("The path to the CSV file to validate") 
         arg[Path]("<csv-schema-path>") validate { x => if(x.exists && x.canRead) success else failure(s"Cannot access CSV Schema file: ${x.path}") } action { (x,c) => c.copy(csvSchemaPath = x) } text("The path to the CSV Schema file to use for validation")
     }
