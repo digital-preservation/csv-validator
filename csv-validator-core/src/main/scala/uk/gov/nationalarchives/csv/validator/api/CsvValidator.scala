@@ -60,6 +60,8 @@ trait CsvValidator extends SchemaParser {
    * If defined, specifies the name of the filename column to run the integrity check
    */
   val integrityCheckFilenameColumn: Option[String] = None
+
+  val includeFolder = false
   
   /**
    * Validate the csvFile given as a parameter according to the schema, updating the progress
@@ -96,14 +98,13 @@ trait CsvValidator extends SchemaParser {
         val allMetadataFilenames = withReader(csvFile) {
           reader =>
             getColumn(reader, csvSchema, filenameColumnIndex)
-        }
-        csvFile.file.parent.map(_ / "content").map { contentPath => 
+        }.map(new File(_).getName)
+                csvFile.file.parent.map(_ / "content").map { contentPath =>
         val contentFile = new File(contentPath.toURI)
 
-        scala.util.Try(Util.findAllFiles(contentFile)).map{ allContentFiles =>
+        scala.util.Try(Util.findAllFiles(includeFolder, contentFile)).map{ allContentFiles =>
           val allContentFilename = allContentFiles.map(_.getName)
-          if (Util.containAll(allMetadataFilenames,allContentFilename))
-//          if (Util.containAll(allContentFilename, allMetadataFilenames))
+          if (Util.containAll(allMetadataFilenames,allContentFilename.toList))
               true.successNel[FailMessage]
           else
               ErrorMessage(s"[Integrity Check], The file(s) ${allContentFilename.filterNot(allMetadataFilenames.toSet).mkString(" ")} " +

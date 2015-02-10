@@ -46,11 +46,11 @@ object Util {
    * @param folder
    * @return List of all filename
    */
-  //TODO use SET
-  def findAllFiles(folder: File): List[File] = {
+  def findAllFiles(includeFolder : Boolean,folder: File): Set[File] = {
     if (folder.exists()){
-        val these = folder.listFiles.toList
-        (folder :: these ++ these.filter(f => f.isDirectory && !(f.getName == "RECYCLER") && !(f.getName == "$RECYCLE.BIN")).flatMap(findAllFiles)).toSet.toList
+        val these = folder.listFiles.toSet
+        val head = if (includeFolder) Set(folder) else Nil
+        (head ++ these.filter( f => if (!includeFolder) f.isFile else true) ++ these.filter(f => f.isDirectory && !(f.getName == "RECYCLER") && !(f.getName == "$RECYCLE.BIN")).flatMap(file => findAllFiles(includeFolder, file))).toSet
     }
     else
      throw new FileNotFoundException(s"Cannot find the folder $folder")

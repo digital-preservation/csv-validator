@@ -28,30 +28,46 @@ class UtilSpec  extends Specification with TestResources  {
     
     "list file in folder" in {
 
-      val apiFiles = Util.findAllFiles(new File(acceptancePath))
-      
+      val apiFiles = Util.findAllFiles(true, new File(acceptancePath))
+
       apiFiles must haveLength(65)
-      
+
       apiFiles must contain (new File(s"$basePath/uk/gov/nationalarchives/csv/validator/acceptance/twoRulesPassMetaData.csv"))
 
       apiFiles must contain (new File(s"$basePath/uk/gov/nationalarchives/csv/validator/acceptance/dp/regexRuleSchema.csvs"))
-      
+
       apiFiles must contain (new File(s"$basePath/uk/gov/nationalarchives/csv/validator/acceptance/dp"))
-      
+
       apiFiles must contain (new File(s"$basePath/uk/gov/nationalarchives/csv/validator/acceptance"))
-      
-      val integrityCheckFiles =  Util.findAllFiles(new File(base))
 
+      val integrityCheckFiles =  Util.findAllFiles(true, new File(base))
 
-      integrityCheckFiles  must haveLength(17)
+      integrityCheckFiles  must haveLength(33)
 
       integrityCheckFiles must contain (new File(s"$basePath/uk/gov/nationalarchives/csv/validator/integrityCheck/header/integrityCheckSchema.csvs"))
 
       integrityCheckFiles must contain (new File(s"$basePath/uk/gov/nationalarchives/csv/validator/integrityCheck/header/content/file1"))
 
       integrityCheckFiles must contain (new File(s"$basePath/uk/gov/nationalarchives/csv/validator/integrityCheck/header/content"))
-     
+
+
+      integrityCheckFiles must contain (new File(s"$basePath/uk/gov/nationalarchives/csv/validator/integrityCheck/noheader/content"))
+
+      integrityCheckFiles must contain (new File(s"$basePath/uk/gov/nationalarchives/csv/validator/integrityCheck/WO_95/content"))
+
       integrityCheckFiles must contain (new File(s"$basePath/uk/gov/nationalarchives/csv/validator/integrityCheck"))
+
+      val integrityCheckFilesNoFolder =  Util.findAllFiles(false, new File(base))
+
+      integrityCheckFilesNoFolder  must haveLength(21)
+
+      integrityCheckFilesNoFolder must contain (new File(s"$basePath/uk/gov/nationalarchives/csv/validator/integrityCheck/header/content/file1"))
+
+      integrityCheckFilesNoFolder must contain (new File(s"$basePath/uk/gov/nationalarchives/csv/validator/integrityCheck/header/integrityCheckSchema.csvs"))
+
+      integrityCheckFilesNoFolder must not contain (new File(s"$basePath/uk/gov/nationalarchives/csv/validator/integrityCheck/noheader/content"))
+
+      integrityCheckFilesNoFolder must not contain (new File(s"$basePath/uk/gov/nationalarchives/csv/validator/integrityCheck/WO_95/content"))
 
 
     }

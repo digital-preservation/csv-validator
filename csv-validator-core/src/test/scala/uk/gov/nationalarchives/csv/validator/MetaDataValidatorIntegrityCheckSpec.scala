@@ -22,12 +22,11 @@ class MetaDataValidatorIntegrityCheckSpec extends Specification with TestResourc
 val base = s"${System.getProperty("user.dir")}/csv-validator-core/src/test/resources/uk/gov/nationalarchives/csv/validator/integrityCheck/"
 
   
-  def buildValidator(substitutionPath: String) : CsvValidator = new CsvValidator with AllErrorsMetaDataValidator {
-    val pathSubstitutions = List[(String,String)](("file:///T:/WORK/RF_5/",substitutionPath))
-    //    val pathSubstitutions = List[(String,String)]()
+  def buildValidator(substitutionPath: List[(String,String)], filenameColumn: Option[String], include: Boolean = true) : CsvValidator = new CsvValidator with AllErrorsMetaDataValidator {
+    val pathSubstitutions = substitutionPath
     val enforceCaseSensitivePathChecks = false
-    override val integrityCheckFilenameColumn = Some("filename")
-
+    override val integrityCheckFilenameColumn = filenameColumn
+    override val includeFolder = include
   }
 
 
@@ -35,18 +34,22 @@ val base = s"${System.getProperty("user.dir")}/csv-validator-core/src/test/resou
 
   "integrity Check" should {
     val headerPath = base + "/header/"
-    val noHheaderPath = base + "/noheader/"
+    val noHeaderPath = base + "/noheader/"
+    val WO95Path = base + "/WO_95/"
+    
     "succeed with good values - header" in {
-      val validator = buildValidator(headerPath)
+      val substititutionPaths = List(("file:///T:/WORK/RF_5/",headerPath))
+      val validator = buildValidator(substititutionPaths, Some("filename"))
       validator.validate(TextFile(Path.fromString(headerPath) / "integrityCheckMetaData.csv"), parse(headerPath + "/integrityCheckSchema.csvs",validator), None) must beLike {
          case Success(_) => ok
       }
     }
 
     "fail for metadatafile missing files - header" in {
-      val validator = buildValidator(headerPath)
+      val substititutionPaths = List(("file:///T:/WORK/RF_5/",headerPath))
+      val validator = buildValidator(substititutionPaths, Some("filename"))
       val result = validator.validate(TextFile(Path.fromString(headerPath) / "integrityCheckMetaData-missing-files.csv"), parse(headerPath + "/integrityCheckSchema.csvs",validator), None)
-      
+
       result.isFailure mustEqual true
       val Failure(message) = result
       //TODO perform test on nonEmptyList instead of using to string
@@ -55,7 +58,8 @@ val base = s"${System.getProperty("user.dir")}/csv-validator-core/src/test/resou
     }
 
     "fail for metadatafile with too many files files - header" in {
-      val validator = buildValidator(headerPath)
+      val substititutionPaths = List(("file:///T:/WORK/RF_5/",headerPath))
+      val validator = buildValidator(substititutionPaths, Some("filename"))
       val result = validator.validate(TextFile(Path.fromString(headerPath) / "integrityCheckMetaDataTooManyFiles.csv"), parse(headerPath + "/integrityCheckSchema.csvs",validator), None)
 
       result.isFailure mustEqual true
@@ -68,10 +72,20 @@ val base = s"${System.getProperty("user.dir")}/csv-validator-core/src/test/resou
 
 
     "succeed with good values - no header" in {
-      val validator = buildValidator(noHheaderPath)
+      val substititutionPaths = List(("file:///T:/WORK/RF_5/",noHeaderPath))
+      val validator = buildValidator(substititutionPaths, Some("filename"))
       validator.validate(TextFile(Path.fromString(headerPath) / "integrityCheckMetaData.csv"), parse(headerPath + "/integrityCheckSchema.csvs",validator), None) must beLike {
         case Success(_) => ok
       }
+    }
+    
+    "Validate WO 95" in {
+      val substititutionPaths = List(("file:///WO_95",WO95Path))
+      val validator = buildValidator(substititutionPaths, Some("file_path"), false)
+      validator.validate(TextFile(Path.fromString(WO95Path) / "tech_acq_metadata_v1_WO95Y14B003.csv"), parse(WO95Path + "/tech_acq_metadata_v1_WO95Y14B000.csvs",validator), None) must beLike {
+        case Success(_) => ok
+      }
+
     }
 
   }
