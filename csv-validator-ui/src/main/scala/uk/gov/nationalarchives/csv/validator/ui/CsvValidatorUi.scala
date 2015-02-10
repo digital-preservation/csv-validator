@@ -123,8 +123,11 @@ object CsvValidatorUi extends SimpleSwingApplication {
         Swing.onEDT {resumeUi }
     }
   }
-  //TODO Handle the field integrityCheckFilenameColumn
-  private def validate(csvFilePath: String, csvEncoding: Charset, csvSchemaFilePath: String, csvSchemaEncoding: Charset, failOnFirstError: Boolean, pathSubstitutions: List[(String, String)], enforceCaseSensitivePathChecks: Boolean, progress: Option[ProgressCallback])(output: String => Unit) {
+  
+  private def validate(csvFilePath: String, csvEncoding: Charset, csvSchemaFilePath: String, csvSchemaEncoding: Charset, 
+                       failOnFirstError: Boolean, pathSubstitutions: List[(String, String)], enforceCaseSensitivePathChecks: Boolean,
+                       integrityCheckFilenameColumn: Option[String], integrityCheckIncludeFolder: Boolean,
+                       progress: Option[ProgressCallback])(output: String => Unit) {
     output("")
     output(CsvValidatorCmdApp.validate(
       TextFile(Path.fromString(csvFilePath), csvEncoding),
@@ -132,8 +135,8 @@ object CsvValidatorUi extends SimpleSwingApplication {
       failOnFirstError,
       pathSubstitutions,
       enforceCaseSensitivePathChecks,
-      integrityCheckFilenameColumn = None,
-      includeFolder = false,
+      integrityCheckFilenameColumn,
+      integrityCheckIncludeFolder,
       progress
     )._1)
   }
@@ -271,7 +274,9 @@ object CsvValidatorUi extends SimpleSwingApplication {
         this.progressBar.visible = true
 
       },
-      action = validate(txtCsvFile.text, settingsPanel.csvEncoding, txtCsvSchemaFile.text, settingsPanel.csvSchemaEncoding, settingsPanel.failOnFirstError, settingsPanel.pathSubstitutions, settingsPanel.enforceCaseSensitivePathChecks, Some(progress)),
+      action = validate(txtCsvFile.text, settingsPanel.csvEncoding, txtCsvSchemaFile.text, settingsPanel.csvSchemaEncoding,
+        settingsPanel.failOnFirstError, settingsPanel.pathSubstitutions, settingsPanel.enforceCaseSensitivePathChecks,
+        settingsPanel.integrityCheckFilenameColumn, settingsPanel.integrityCheckIncludeFolder, Some(progress)),
       output = outputToReport,
       resumeUi = {
         btnValidate.enabled = true
@@ -365,6 +370,15 @@ object CsvValidatorUi extends SimpleSwingApplication {
     private val lblPathSubstitutions = new Label("Path Substitutions")
     private val cbEnforceCaseSensitivePathChecks = new CheckBox("Enforce case-sensitive file path checks?")
     cbEnforceCaseSensitivePathChecks.tooltip = "Performs additional checks to ensure that the case of file-paths in the CSV file match those of the filesystem"
+    
+    private val lblIntegrityCheck = new Label("Filename Column for integrity Check")
+    lblIntegrityCheck.tooltip = "Check the existence of (hidden) extra-files (a.k.a not listed in the metadata)"
+    private val tfIntegrityCheck = new TextField()
+    tfIntegrityCheck.tooltip = "Enter the name of the file path column in the metadata schema"
+    tfIntegrityCheck.preferredSize = cmbCsvEncoding.preferredSize
+
+    private val cbIncludeFolder = new CheckBox("Include folder in integrity check")
+    cbIncludeFolder.tooltip = "Specifies whether or not the folder are listed within metadata for integrity check"
 
     private val tblPathSubstitutions = new Table(0, 2) {
       preferredViewportSize = new Dimension(500, 70)
@@ -423,16 +437,28 @@ object CsvValidatorUi extends SimpleSwingApplication {
 
       c.gridx = 0
       c.gridy = 4
+      layout(lblIntegrityCheck) = c
+
+      c.gridx = 1
+      c.gridy = 4
+      layout(tfIntegrityCheck) = c
+
+      c.gridx = 0
+      c.gridy = 5
+      layout(cbIncludeFolder) = c
+
+      c.gridx = 0
+      c.gridy = 6
       c.insets = new Insets(0,10,0,0)
       layout(lblPathSubstitutions) = c
 
       c.gridx = 0
-      c.gridy = 5
+      c.gridy = 7
       c.gridwidth = 2
       layout(spTblPathSubstitutions) = c
 
       c.gridx = 1
-      c.gridy = 6
+      c.gridy = 8
       c.anchor = Anchor.LastLineEnd
       layout(btnAddPathSubstitution) = c
     }
@@ -445,5 +471,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
     def failOnFirstError: Boolean = cbFailOnFirstError.selected
     def pathSubstitutions: List[(String, String)] = tblPathSubstitutions.pathSubstitutions
     def enforceCaseSensitivePathChecks: Boolean = cbEnforceCaseSensitivePathChecks.selected
+    def integrityCheckFilenameColumn: Option[String] = if (tfIntegrityCheck.text.isEmpty) None else Some(tfIntegrityCheck.text)
+    def integrityCheckIncludeFolder: Boolean = cbIncludeFolder.selected
   }
 }

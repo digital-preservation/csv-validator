@@ -22,7 +22,7 @@ $ validate
 CSV Validator - Command Line
 Usage: validate [options] <csv-path> <csv-schema-path>
 
-   -f <value> | --fail-fast <value>
+  -f <value> | --fail-fast <value>
         Stops on the first validation error rather than reporting all errors
   -p:<key>=<value> | --path:<key>=<value>
         Allows you to substitute a file path (or part of) in the CSV for a different file path
@@ -34,9 +34,11 @@ Usage: validate [options] <csv-path> <csv-schema-path>
         Defines the charset encoding used in the CSV Schema file
   -i <value> | --integrity-check <value>
         Defines the filename column in the schema for integrity check
+  -d <value> | --include-directory <value>
+        Specifies whether or not the metadata list the directories for integrity check
   <csv-path>
         The path to the CSV file to validate
-  <csv-schema-path>
+  <csv-schema-path>  
         The path to the CSV Schema file to use for validation
 
 
