@@ -133,6 +133,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
       pathSubstitutions,
       enforceCaseSensitivePathChecks,
       integrityCheckFilenameColumn = None,
+      includeFolder = false,
       progress
     )._1)
   }

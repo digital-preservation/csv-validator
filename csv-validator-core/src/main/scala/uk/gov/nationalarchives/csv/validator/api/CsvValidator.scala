@@ -26,18 +26,20 @@ object CsvValidator {
   type SubstitutePath = (PathFrom, PathTo)
 
   def createValidator(failFast: Boolean, pathSubstitutionsList: List[SubstitutePath],
-           enforceCaseSensitivePathChecksSwitch: Boolean, integrityCheckFileColumn: Option[String]) = {
+           enforceCaseSensitivePathChecksSwitch: Boolean, integrityCheckFileColumn: Option[String], includeDirectory: Boolean = false) = {
     if(failFast) {
       new CsvValidator with FailFastMetaDataValidator { 
         val pathSubstitutions = pathSubstitutionsList
         val enforceCaseSensitivePathChecks = enforceCaseSensitivePathChecksSwitch
         override val integrityCheckFilenameColumn = integrityCheckFileColumn
+        override val includeFolder = includeDirectory
       }
     } else {
       new CsvValidator with AllErrorsMetaDataValidator {
         val pathSubstitutions = pathSubstitutionsList
         val enforceCaseSensitivePathChecks = enforceCaseSensitivePathChecksSwitch
         override val integrityCheckFilenameColumn = integrityCheckFileColumn
+        override val includeFolder = includeDirectory
       }
     }
   }

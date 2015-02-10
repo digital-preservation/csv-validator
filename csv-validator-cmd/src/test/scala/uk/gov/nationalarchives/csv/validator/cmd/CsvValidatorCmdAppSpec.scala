@@ -25,6 +25,8 @@ class CsvValidatorCmdAppSpec extends Specification with TestResources {
   val integrityCheckBadSchemaPath = relResourcePath("integrityCheck/header/badSchema.csvs")
   val integrityCheckSchemaPathNoHeader = relResourcePath("integrityCheck/noheader/schema.csvs")
   val integrityCheckMetaDataPathNoHeader = relResourcePath("integrityCheck/noheader/metaData.csv")
+  val integrityCheckWO95MetaDataPath = relResourcePath("integrityCheck/WO_95/tech_acq_metadata_v1_WO95Y14B003.csv")
+  val integrityCheckWO95SchemaPath = relResourcePath("integrityCheck/WO_95/tech_acq_metadata_v1_WO95Y14B000.csvs")
 
 
   "Check arguments" should {
@@ -110,14 +112,16 @@ class CsvValidatorCmdAppSpec extends Specification with TestResources {
 
   "Command line app" should {
 
+    //    "have exit code 0 when validation --path successful" in {
+    //      CsvValidatorCmdApp.run(Array( "--path:c: " + basePath + "metaData.csv", basePath + "schema.csvs"))._2 mustEqual 0
+    //    }
+
+ 
     "have exit code 0 when validation successful" in {
       CsvValidatorCmdApp.run(Array(metadataPath, schemaPath)) mustEqual Tuple2("PASS", 0)
     }
 
-    //    "have exit code 0 when validation --path successful" in {
-    //      CsvValidatorCmdApp.run(Array( "--path:c: " + basePath + "metaData.csv", basePath + "schema.csvs"))._2 mustEqual 0
-    //    }
-    
+ 
     "have exit code 1 when the command line arguments are wrong" in {
       CsvValidatorCmdApp.run(Array(""))._2 mustEqual 1
     }
@@ -152,7 +156,6 @@ class CsvValidatorCmdAppSpec extends Specification with TestResources {
 
     "have exit code 0 when the metadata file list has more files than the actual content file" in {
       val result = CsvValidatorCmdApp.run(Array("-i","Name", integrityCheckMetaDataPathWithTooManyFiles, integrityCheckSchemaPath))
-
       result mustEqual Tuple2("PASS", 0)
 
     }
@@ -169,11 +172,11 @@ class CsvValidatorCmdAppSpec extends Specification with TestResources {
     }
 
 
+    "have exit code 0 when validation successful with integrity check on WO_95" in {
 
-
-
-
-    //TODO Add some more integrity check tests...
+      val base = s"${System.getProperty("user.dir")}/csv-validator-cmd/src/test/resources/uk/gov/nationalarchives/csv/validator/cmd/integrityCheck/WO_95"
+      CsvValidatorCmdApp.run(Array("-i","file_path", "-d", "false",s"-p:file:///WO_95=$base", integrityCheckWO95MetaDataPath, integrityCheckWO95SchemaPath)) mustEqual Tuple2("PASS", 0)
+    }
 
   }
 }
