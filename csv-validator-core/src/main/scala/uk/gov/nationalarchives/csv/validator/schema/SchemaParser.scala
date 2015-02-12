@@ -42,7 +42,6 @@ trait SchemaParser extends RegexParsers {
    */
   val enforceCaseSensitivePathChecks: Boolean
 
-
   //<editor-fold desc="CSV Schema parser combinators">
 
   /**

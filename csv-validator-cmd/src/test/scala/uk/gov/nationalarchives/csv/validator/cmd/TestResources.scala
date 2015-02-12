@@ -33,5 +33,6 @@ trait TestResources {
 
   def relBasePath : String = basePath.replace(System.getProperty("user.dir") + FILE_SEPARATOR, "")
   def relBaseResourcePkgPath : String = new File(relBasePath, spec.getClass.getPackage.getName.replace('.', '/')).getPath
-  def relResourcePath(resource: String) : String = new File(relBaseResourcePkgPath, resource).getPath
+ def relResourcePath(resource: String) : String = new File(relBaseResourcePkgPath, resource).getPath
+//  def relResourcePath(resource: String) : String = this.getClass().getResource("/$resource").getPath
 }
