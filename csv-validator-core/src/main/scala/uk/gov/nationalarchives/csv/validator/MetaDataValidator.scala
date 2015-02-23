@@ -192,13 +192,13 @@ trait MetaDataValidator {
   
   def filename(row: Row,titleIndex: Int): String = row.cells.map(_.value).apply(titleIndex)
 
-  private def validateRow(row: Row, schema: Schema): MetaDataValidation[Any] = {
+  protected def validateRow(row: Row, schema: Schema): MetaDataValidation[Any] = {
     val totalColumnsV = totalColumns(row, schema)
     val rulesV = rules(row, schema)
     (totalColumnsV |@| rulesV) { _ :: _ }
   }
 
-  private def totalColumns(row: Row, schema: Schema): MetaDataValidation[Any] = {
+  protected def totalColumns(row: Row, schema: Schema): MetaDataValidation[Any] = {
     val tc: Option[TotalColumns] = schema.globalDirectives.collectFirst {
       case t@TotalColumns(_) => t
     }
@@ -213,14 +213,14 @@ trait MetaDataValidator {
     v.sequence[MetaDataValidation, Any]
   }
 
-  private def validateCell(columnIndex: Int, cells: (Int) => Option[Cell], row: Row, schema: Schema): MetaDataValidation[Any] = {
+  protected def validateCell(columnIndex: Int, cells: (Int) => Option[Cell], row: Row, schema: Schema): MetaDataValidation[Any] = {
     cells(columnIndex) match {
       case Some(c) => rulesForCell(columnIndex, row, schema)
       case _ => ErrorMessage(s"Missing value at line: ${row.lineNumber}, column: ${schema.columnDefinitions(columnIndex).id}").failNel[Any]
     }
   }
 
-  private def rulesForCell(columnIndex: Int, row: Row, schema: Schema): MetaDataValidation[Any] = {
+  protected def rulesForCell(columnIndex: Int, row: Row, schema: Schema): MetaDataValidation[Any] = {
 
     val columnDefinition = schema.columnDefinitions(columnIndex)
 
