@@ -173,6 +173,17 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
       }
     }
   }
+  
+  "An @integrityCheck Directive" should {
+    
+    "pass an ingrityCheck directive" in {
+
+      validate(TextFile(Path.fromString(base) / "standardRulesPassMetaData.csv"), parse (base + "/integrityCheckSchema.csvs"), None) must beLike {
+        case Success(_) => ok
+      }
+    }   
+    //TODO validate bad schema
+  }
 
   "An @ignoreCase column directive" should {
     "pass a rule ignoring case" in {

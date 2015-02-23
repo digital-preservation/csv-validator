@@ -63,9 +63,9 @@ trait SchemaParser extends RegexParsers {
   def versionDecl: Parser[String] = ("version" ~> Schema.version <~ eol).withFailureMessage(s"Schema version declaration 'version ${Schema.version}' missing or incorrect")
 
   /**
-   * [4] GlobalDirectives	::=	SeparatorDirective? QuotedDirective? TotalColumnsDirective? PermitEmptyDirective? (NoHeaderDirective | IgnoreColumnNameCaseDirective)?    /* expr: unordered */
+   * [4] GlobalDirectives	::=	SeparatorDirective? QuotedDirective? TotalColumnsDirective? PermitEmptyDirective? (NoHeaderDirective | IgnoreColumnNameCaseDirective)? IntegrityCheckDirective    /* expr: unordered */
    */
-  def globalDirectives: Parser[List[GlobalDirective]] = opt(mingle(List(separatorDirective, quotedDirective, totalColumnsDirective, permitEmptyDirective, noHeaderDirective | ignoreColumnNameCaseDirective).map(positioned(_) <~ opt(eol)))
+  def globalDirectives: Parser[List[GlobalDirective]] = opt(mingle(List(separatorDirective, quotedDirective, totalColumnsDirective, permitEmptyDirective, noHeaderDirective | ignoreColumnNameCaseDirective, integrityCheckDirective).map(positioned(_) <~ opt(eol)))
     .withFailureMessage("Invalid global directive")) ^^ { _.getOrElse(List.empty) }
 
   /**
@@ -112,6 +112,13 @@ trait SchemaParser extends RegexParsers {
    * [13]	IgnoreColumnNameCaseDirective	::=	DirectivePrefix "ignoreColumnNameCase"
    */
   def ignoreColumnNameCaseDirective: Parser[IgnoreColumnNameCase] = directivePrefix ~> "ignoreColumnNameCase" ^^^ IgnoreColumnNameCase()
+
+  /**
+   * IntegrityCheckDirective ::= DirectivePrefix "integrityCheck(" StringLiteral, BooleanLiteral ")"
+   */
+  def integrityCheckDirective: Parser[IntegrityCheckDirective] = (directivePrefix ~> "integrityCheck(" ~> stringLiteral ~ "," ~ booleanLiteral <~ ")" ^^ {
+    case filepathColumn ~ "," ~ includeFolder => IntegrityCheckDirective(filepathColumn, includeFolder)
+  }).withFailureMessage("@integrityChek invalid")
 
   /**
    * [14]	Body ::= BodyPart+
@@ -558,6 +565,10 @@ trait SchemaParser extends RegexParsers {
    * [79] CharacterLiteral ::= "'" [^\r\n\f'] "'"     /* xgc:regular-expression */    /* Any characters except: carriage-return, line-break, form-feed and apostrophe */
    */
   def characterLiteral: Parser[Char] =  "'" ~> """[^\r\n\f']""".r <~ "'" ^^ { _.head }
+  
+  //TODO refactor using logic on TRY / PARSER
+  def booleanLiteral: Parser[Boolean] = """true|false""".r ^^ {input => input.toBoolean}
+
 
   /**
    * [80] WildcardLiteral ::= "*"
