@@ -1,5 +1,5 @@
 version 1.0
-@totalColumns 3
+@totalColumns 3 @integrityCheck("identifier",true)
 identifier: fileExists
 filename:
 size:

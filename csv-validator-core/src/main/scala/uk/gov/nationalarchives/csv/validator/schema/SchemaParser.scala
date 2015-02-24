@@ -15,8 +15,7 @@ import collection.immutable.TreeMap
 import java.security.MessageDigest
 import scalaz._
 import Scalaz._
-import uk.gov.nationalarchives.csv.validator.EOL
-import uk.gov.nationalarchives.csv.validator.{SchemaMessage, FailMessage}
+import uk.gov.nationalarchives.csv.validator._
 
 /**
  * CSV Schema Parser
@@ -116,8 +115,8 @@ trait SchemaParser extends RegexParsers {
   /**
    * IntegrityCheckDirective ::= DirectivePrefix "integrityCheck(" StringLiteral, BooleanLiteral ")"
    */
-  def integrityCheckDirective: Parser[IntegrityCheckDirective] = (directivePrefix ~> "integrityCheck(" ~> stringLiteral ~ "," ~ booleanLiteral <~ ")" ^^ {
-    case filepathColumn ~ "," ~ includeFolder => IntegrityCheckDirective(filepathColumn, includeFolder)
+  def integrityCheckDirective: Parser[IntegrityCheck] = (directivePrefix ~> "integrityCheck(" ~> stringLiteral ~ "," ~ booleanLiteral <~ ")" ^^ {
+    case filepathColumn ~ "," ~ includeFolder => IntegrityCheck(filepathColumn, includeFolder)
   }).withFailureMessage("@integrityChek invalid")
 
   /**
@@ -670,7 +669,7 @@ trait SchemaParser extends RegexParsers {
   def parse(reader: Reader) = parseAll(schema, reader)
 
   private def validate(g: List[GlobalDirective], c: List[ColumnDefinition]): String = {
-    globDirectivesValid(g) ::totalColumnsValid(g, c) :: columnDirectivesValid(c) :: duplicateColumnsValid(c) :: crossColumnsValid(c) :: checksumAlgorithmValid(c) ::
+    globDirectivesValid(g) ::totalColumnsValid(g, c) :: integrationCheckValid(g, c) :: columnDirectivesValid(c) :: duplicateColumnsValid(c) :: crossColumnsValid(c) :: checksumAlgorithmValid(c) ::
     rangeValid(c) :: lengthValid(c) :: regexValid(c) :: dateRangeValid(c) :: uniqueMultiValid(c) :: explicitColumnValid(c) :: Nil collect { case Some(s: String) => s } mkString(EOL)
   }
 
@@ -681,6 +680,18 @@ trait SchemaParser extends RegexParsers {
       Some(s"@totalColumns = ${tc.get.numberOfColumns} but number of columns defined = ${c.length} at line: ${tc.get.pos.line}, column: ${tc.get.pos.column}" )
     else
       None
+  }
+
+  private def integrationCheckValid(g: List[GlobalDirective], c: List[ColumnDefinition]): Option[String] = {
+    val maybeIntegrityCheck: Option[IntegrityCheck] = g.collectFirst { case i @ IntegrityCheck(_, _) => i}
+    
+    maybeIntegrityCheck.flatMap{ integrityCheck =>
+      val filePathColumn = integrityCheck.filepathColumn
+        if (c.map(_.id).exists(_ == filePathColumn))
+          None
+        else
+          Some(s"[Integrity Check], Cannot find the colunm $filePathColumn")
+    }
   }
 
   private def duplicateColumnsValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {

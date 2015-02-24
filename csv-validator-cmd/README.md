@@ -32,10 +32,6 @@ Usage: validate [options] <csv-path> <csv-schema-path>
         Defines the charset encoding used in the CSV file
   -y <value> | --csv-schema-encoding <value>
         Defines the charset encoding used in the CSV Schema file
-  -i <value> | --integrity-check <value>
-        Defines the filename column in the schema for integrity check
-  -d <value> | --include-directory <value>
-        Specifies whether or not the metadata list the directories for integrity check
   <csv-path>
         The path to the CSV file to validate
   <csv-schema-path>  
