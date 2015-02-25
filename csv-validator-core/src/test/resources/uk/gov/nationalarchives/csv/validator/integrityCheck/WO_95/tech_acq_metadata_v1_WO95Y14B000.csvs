@@ -1,5 +1,5 @@
 version 1.0
-@totalColumns 33
+@totalColumns 33 @integrityCheck("file_path",false)
 /*---------------------------------------------------------------------------------------------------------------
 |This schema is for the validation of technical acquisition metadata                                            |
 |csv files according to the specification given for digitised surrogates in                                     |

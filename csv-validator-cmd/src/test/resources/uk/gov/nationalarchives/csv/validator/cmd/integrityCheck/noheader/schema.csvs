@@ -1,4 +1,4 @@
 version 1.0
-@totalColumns  2 @noHeader
+@totalColumns  2 @noHeader @integrityCheck("Name",true)
 Name:
 Age:

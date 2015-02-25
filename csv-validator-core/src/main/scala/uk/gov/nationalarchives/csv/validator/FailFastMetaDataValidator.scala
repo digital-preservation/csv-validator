@@ -60,16 +60,10 @@ trait FailFastMetaDataValidator extends MetaDataValidator {
     validateRows()
   }
 
-  private def validateRow(row: Row, schema: Schema): MetaDataValidation[Any] = {
+  override protected def validateRow(row: Row, schema: Schema): MetaDataValidation[Any] = {
     totalColumns(row, schema).fold(e => e.fail[Any], s => rules(row, schema))
   }
 
-  private def totalColumns(row: Row, schema: Schema): MetaDataValidation[Any] = {
-    val tc: Option[TotalColumns] = schema.globalDirectives.collectFirst{ case t@TotalColumns(_) => t }
-
-    if (tc.isEmpty || tc.get.numberOfColumns == row.cells.length) true.successNel[FailMessage]
-    else ErrorMessage(s"Expected @totalColumns of ${tc.get.numberOfColumns} and found ${row.cells.length} on line ${row.lineNumber}").failNel[Any]
-  }
 
   private def rules(row: Row, schema: Schema): MetaDataValidation[Any] = {
     val cells: (Int) => Option[Cell] = row.cells.lift
@@ -87,14 +81,8 @@ trait FailFastMetaDataValidator extends MetaDataValidator {
     validateRules(schema.columnDefinitions.zipWithIndex)
   }
 
-  private def validateCell(columnIndex: Int, cells: (Int) => Option[Cell], row: Row, schema: Schema): MetaDataValidation[Any] = {
-    cells(columnIndex) match {
-      case Some(c) => rulesForCell(columnIndex, row, schema)
-      case _ => SchemaMessage(s"Missing value at line: ${row.lineNumber}, column: ${schema.columnDefinitions(columnIndex).id}").failNel[Any]
-    }
-  }
 
-  private def rulesForCell(columnIndex: Int, row: Row, schema: Schema): MetaDataValidation[Any] = {
+  override protected def rulesForCell(columnIndex: Int, row: Row, schema: Schema): MetaDataValidation[Any] = {
     val columnDefinition = schema.columnDefinitions(columnIndex)
 
     def isWarningDirective: Boolean = columnDefinition.directives.contains(Warning())

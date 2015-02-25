@@ -29,8 +29,6 @@ class MetaDataValidatorIntegrityCheckSpec extends Specification with TestResourc
   def buildValidator(substitutionPath: List[(String,String)], filenameColumn: Option[String], include: Boolean = true) : CsvValidator = new CsvValidator with AllErrorsMetaDataValidator {
     val pathSubstitutions = substitutionPath
     val enforceCaseSensitivePathChecks = false
-    override val integrityCheckFilenameColumn = filenameColumn
-    override val includeFolder = include
   }
   //TODO Memory check
   def getMemorySize(): Map[String, MemoryUsage] = {
@@ -98,7 +96,7 @@ class MetaDataValidatorIntegrityCheckSpec extends Specification with TestResourc
         case Success(_) => ok
       }
     }
-    
+
     "Validate WO 95" in {
 
       val substititutionPaths = List(("file:///WO_95",WO95Path))

@@ -37,7 +37,7 @@ object CsvValidatorCmdApp extends App {
 
   case class Config(failFast: Boolean = false, substitutePaths: List[SubstitutePath] = List.empty[SubstitutePath], caseSensitivePaths: Boolean = false,
                     showVersion: Boolean = false, csvPath: Path = Path.fromString("."), csvEncoding: Charset = CsvValidator.DEFAULT_ENCODING, csvSchemaPath: Path = Path.fromString("."),
-                    csvSchemaEncoding: Charset = CsvValidator.DEFAULT_ENCODING, integrityCheckFilenameColumn: Option[String] = None, includeFolder: Boolean = false)
+                    csvSchemaEncoding: Charset = CsvValidator.DEFAULT_ENCODING)
 
   def run(args: Array[String]): (String,Int) = {
 
@@ -53,8 +53,6 @@ object CsvValidatorCmdApp extends App {
         opt[Boolean]('c', "case-sensitive-paths") optional() action { (x,c) => c.copy(caseSensitivePaths = x) } text("Enforces case-sensitive file path checking. Useful when validating on case-insensitive filesystems like Windows NTFS")
         opt[Charset]('x', "csv-encoding") optional() action { (x,c) => c.copy(csvEncoding = x) } text("Defines the charset encoding used in the CSV file")
         opt[Charset]('y', "csv-schema-encoding") optional() action { (x,c) => c.copy(csvSchemaEncoding = x) } text("Defines the charset encoding used in the CSV Schema file")
-        opt[String]('i',"integrity-check") optional() action {(x, c) => c.copy(integrityCheckFilenameColumn = Some(x))}  text("Defines the filename column in the schema for integrity check")
-        opt[Boolean]('d',"include-directory") optional() action {(x, c) => c.copy(includeFolder = x)}  text("Specifies whether or not the metadata list the directories for integrity check")
         arg[Path]("<csv-path>") validate { x => if(x.exists && x.canRead) success else failure(s"Cannot access CSV file: ${x.path}") } action { (x,c) => c.copy(csvPath = x) } text("The path to the CSV file to validate")
         arg[Path]("<csv-schema-path>") validate { x => if(x.exists && x.canRead) success else failure(s"Cannot access CSV Schema file: ${x.path}") } action { (x,c) => c.copy(csvSchemaPath = x) } text("The path to the CSV Schema file to use for validation")
     }
@@ -63,7 +61,7 @@ object CsvValidatorCmdApp extends App {
     parser.parse(args, new Config()) map {
       config =>
         validate(TextFile(config.csvPath, config.csvEncoding), TextFile(config.csvSchemaPath, config.csvSchemaEncoding), config.failFast,
-            config.substitutePaths, config.caseSensitivePaths, config.integrityCheckFilenameColumn, config.includeFolder, None)
+            config.substitutePaths, config.caseSensitivePaths, None)
     } getOrElse {
       //arguments are bad, usage message will have been displayed
       ("", SystemExits.IncorrectArguments)
@@ -105,9 +103,8 @@ object CsvValidatorCmdApp extends App {
   }
 
   def validate(csvFile: TextFile, schemaFile: TextFile, failFast: Boolean, pathSubstitutionsList: List[SubstitutePath], 
-               enforceCaseSensitivePathChecks: Boolean, integrityCheckFilenameColumn: Option[String], includeFolder : Boolean = false,
-               progress: Option[ProgressCallback] = None): (String,Int) = {
-    val validator = createValidator(failFast, pathSubstitutionsList, enforceCaseSensitivePathChecks, integrityCheckFilenameColumn, includeFolder)
+               enforceCaseSensitivePathChecks: Boolean, progress: Option[ProgressCallback] = None): (String,Int) = {
+    val validator = createValidator(failFast, pathSubstitutionsList, enforceCaseSensitivePathChecks)
     validator.parseSchema(schemaFile) match {
       case FailureZ(errors) => (prettyPrint(errors), SystemExits.InvalidSchema)
       case SuccessZ(schema) =>

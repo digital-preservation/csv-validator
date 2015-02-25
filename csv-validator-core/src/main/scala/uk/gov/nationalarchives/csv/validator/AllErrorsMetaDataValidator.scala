@@ -36,20 +36,6 @@ trait AllErrorsMetaDataValidator extends MetaDataValidator {
     v.sequence[MetaDataValidation, Any]
   }
 
-  private def validateRow(row: Row, schema: Schema): MetaDataValidation[Any] = {
-    val totalColumnsV = totalColumns(row, schema)
-    val rulesV = rules(row, schema)
-    (totalColumnsV |@| rulesV) { _ :: _ }
-  }
-
-  private def totalColumns(row: Row, schema: Schema): MetaDataValidation[Any] = {
-    val tc: Option[TotalColumns] = schema.globalDirectives.collectFirst {
-      case t@TotalColumns(_) => t
-    }
-
-    if (tc.isEmpty || tc.get.numberOfColumns == row.cells.length) true.successNel[FailMessage]
-    else ErrorMessage(s"Expected @totalColumns of ${tc.get.numberOfColumns} and found ${row.cells.length} on line ${row.lineNumber}").failNel[Any]
-  }
 
   private def rules(row: Row, schema: Schema): MetaDataValidation[List[Any]] = {
     val cells: (Int) => Option[Cell] = row.cells.lift
@@ -57,31 +43,7 @@ trait AllErrorsMetaDataValidator extends MetaDataValidator {
     v.sequence[MetaDataValidation, Any]
   }
 
-  private def validateCell(columnIndex: Int, cells: (Int) => Option[Cell], row: Row, schema: Schema): MetaDataValidation[Any] = {
-    cells(columnIndex) match {
-      case Some(c) => rulesForCell(columnIndex, row, schema)
-      case _ => ErrorMessage(s"Missing value at line: ${row.lineNumber}, column: ${schema.columnDefinitions(columnIndex).id}").failNel[Any]
-    }
-  }
 
-  private def rulesForCell(columnIndex: Int, row: Row, schema: Schema): MetaDataValidation[Any] = {
 
-    val columnDefinition = schema.columnDefinitions(columnIndex)
 
-    def isWarningDirective: Boolean = columnDefinition.directives.contains(Warning())
-    def isOptionDirective: Boolean = columnDefinition.directives.contains(Optional())
-
-    def convert2Warnings(results:Rule#RuleValidation[Any]): MetaDataValidation[Any] = {
-      results.leftMap(_.map(WarningMessage))
-    }
-
-    def convert2Errors(results:Rule#RuleValidation[Any]): MetaDataValidation[Any] = {
-      results.leftMap(_.map(ErrorMessage))
-    }
-
-    if (row.cells(columnIndex).value.trim.isEmpty && isOptionDirective) true.successNel
-    else columnDefinition.rules.map(_.evaluate(columnIndex, row, schema)).map{ ruleResult:Rule#RuleValidation[Any] => {
-      if(isWarningDirective) convert2Warnings(ruleResult) else convert2Errors(ruleResult)
-    }}.sequence[MetaDataValidation, Any]
-  }
 }
