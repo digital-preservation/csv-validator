@@ -37,7 +37,6 @@ trait TestResources {
   def toUriPath(path: String) = path.replace('\\', '/')
 
   val acceptancePath = resourcePath("acceptance")
-  val integrityCheckPath = resourcePath("integrityCheck")
 
   val threeFilesInSubDirPath = resourcePath("fileCountTestFiles/threeFilesinSubDir")
   val threeFilesPath = resourcePath("fileCountTestFiles/threeFiles")

@@ -35,7 +35,6 @@ object CsvValidatorJavaBridge {
     validate(csvFile, csvEncoding, csvSchemaFile, csvSchemaEncoding, failFast, pathSubstitutionsList, enforceCaseSensitivePathChecks, Some(sProgressCallback))
   }
 
-  //Todo handle integrity check
   private def validate(csvFile: String, csvEncoding: Charset, csvSchemaFile: String, csvSchemaEncoding: Charset, failFast: Boolean, pathSubstitutionsList: JList[Substitution], enforceCaseSensitivePathChecks: Boolean, progress: Option[SProgressCallback]): JList[FailMessage] = {
 
     import scala.collection.JavaConverters._
@@ -50,7 +49,7 @@ object CsvValidatorJavaBridge {
         errors.list.map{ asJavaMessage(_) }.asJava
 
       case SuccessZ(_) =>
-        val validator = createValidator(failFast, pathSubs, enforceCaseSensitivePathChecks, None)
+        val validator = createValidator(failFast, pathSubs, enforceCaseSensitivePathChecks)
         validator.parseSchema(csvSchemaTextFile) match {
 
           case FailureZ(errors) =>
@@ -75,14 +74,13 @@ object CsvValidatorJavaBridge {
     validate(csvData, csvSchema, failFast, pathSubstitutionsList, enforceCaseSensitivePathChecks, Some(sProgressCallback))
   }
 
-  //Todo handle integrity check
   private def validate(csvData: JReader, csvSchema: JReader, failFast: Boolean, pathSubstitutionsList: JList[Substitution],  enforceCaseSensitivePathChecks: Boolean, progress: Option[SProgressCallback]): JList[FailMessage] = {
 
     import scala.collection.JavaConverters._
 
     val pathSubs: List[(String,String)] = pathSubstitutionsList.asScala.map( x => (x.getFrom, x.getTo)).toList
 
-    val validator = createValidator(failFast, pathSubs, enforceCaseSensitivePathChecks, None)
+    val validator = createValidator(failFast, pathSubs, enforceCaseSensitivePathChecks)
     validator.parseSchema(csvSchema) match {
 
       case FailureZ(errors) =>
