@@ -109,13 +109,28 @@ object CsvValidatorCmdApp extends App {
       case FailureZ(errors) => (prettyPrint(errors), SystemExitCodes.InvalidSchema)
       case SuccessZ(schema) =>
         validator.validate(csvFile, schema, progress) match {
-          case FailureZ(errors) => (prettyPrint(errors), SystemExitCodes.InvalidCsv)
+          case FailureZ(failures) =>
+            val failuresMsg = prettyPrint(failures)
+            if(containsError(failures))  //checks for just warnings to determine exit code
+              (failuresMsg + EOL + "FAIL",
+                SystemExitCodes.InvalidCsv)
+            else
+              (failuresMsg + EOL + "PASS", //just warnings!
+                SystemExitCodes.ValidCsv)
+
           case SuccessZ(_) => ("PASS", SystemExitCodes.ValidCsv)
         }
     }
   }
 
-  private def prettyPrint(l: NonEmptyList[FailMessage]): String = l.list.map{i =>
+  private def containsError(l: NonEmptyList[FailMessage]) : Boolean = {
+    l.list.find(_ match {
+      case ErrorMessage(_, _, _) => true
+      case _ => false
+    }).nonEmpty
+  }
+
+  private def prettyPrint(l: NonEmptyList[FailMessage]): String = l.list.map { i =>
     i match {
       case WarningMessage(err,_,_) => "Warning: " + err
       case ErrorMessage(err,_,_) =>   "Error:   " + err

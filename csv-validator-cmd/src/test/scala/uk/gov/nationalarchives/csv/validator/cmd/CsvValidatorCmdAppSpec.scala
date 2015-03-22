@@ -14,6 +14,8 @@ class CsvValidatorCmdAppSpec extends Specification with TestResources {
 
   val schemaPath = relResourcePath("schema.csvs")
   val metadataPath = relResourcePath("metaData.csv")
+  val warningSchemaPath = relResourcePath("warning.csvs")
+  val warningMetadataPath = relResourcePath("warning.csv")
   val badSchemaPath = relResourcePath("badSchema.csvs")
   val standardRulesFailPath = relResourcePath("acceptance/standardRulesFailMetaData.csv")
   val standardRulesSchemaPath = relResourcePath("acceptance/standardRulesSchema.csvs")
@@ -103,6 +105,14 @@ class CsvValidatorCmdAppSpec extends Specification with TestResources {
 
     "have exit code 0 when validation successful" in {
       CsvValidatorCmdApp.run(Array(metadataPath, schemaPath)) mustEqual Tuple2("PASS", SystemExitCodes.ValidCsv)
+    }
+
+    "have exit code 0 when validation only reports warnings and is successful" in {
+      CsvValidatorCmdApp.run(Array(warningMetadataPath, warningSchemaPath))._2 mustEqual SystemExitCodes.ValidCsv
+    }
+
+    "have exit code 0 when validation only reports warnings and is successful (fail-fast) " in {
+      CsvValidatorCmdApp.run(Array("--fail-fast", "true", warningMetadataPath, warningSchemaPath))._2 mustEqual SystemExitCodes.ValidCsv
     }
 
     //    "have exit code 0 when validation --path successful" in {
