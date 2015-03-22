@@ -74,7 +74,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
         """
 
       validate(metaData, schema, None) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("Expected @totalColumns of 3 and found 2 on line 2",Some(2)), ErrorMessage("Missing value at line: 2, column: column3",Some(2),Some(2)))
+        case Failure(messages) => messages.list mustEqual List(ErrorMessage("Expected @totalColumns of 3 and found 2 on line 2",Some(2),Some(2)), ErrorMessage("Missing value at line: 2, column: column3",Some(2),Some(2)))
       }
     }
 
@@ -141,7 +141,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val metaData = "1"
 
       validate(metaData, schema, None) should beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("Expected @totalColumns of 2 and found 1 on line 1",Some(1)), ErrorMessage("Missing value at line: 1, column: Col2",Some(1),Some(1)))
+        case Failure(messages) => messages.list mustEqual List(ErrorMessage("Expected @totalColumns of 2 and found 1 on line 1",Some(1),Some(1)), ErrorMessage("Missing value at line: 1, column: Col2",Some(1),Some(1)))
       }
     }
 
