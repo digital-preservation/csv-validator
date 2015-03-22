@@ -10,7 +10,6 @@ package uk.gov.nationalarchives.csv.validator.cmd
 
 
 import resource.managed
-import scala.App
 import scalax.file.Path
 import scalaz.{Success => SuccessZ, Failure => FailureZ, _}
 import scopt.Read
@@ -21,23 +20,28 @@ import java.net.URL
 import java.nio.charset.Charset
 import java.util.jar.{Attributes, Manifest}
 
+object SystemExitCodes extends Enumeration {
+  type ExitCode = Int
+  sealed abstract class SystemExitCode(val code: ExitCode)
 
-object  SystemExits {
-  val ValidCsv = 0
-  val IncorrectArguments = 1
-  val InvalidSchema = 2
-  val InvalidCsv = 3
+  case object ValidCsv extends SystemExitCode(0)
+  case object IncorrectArguments extends SystemExitCode(1)
+  case object InvalidSchema extends SystemExitCode(2)
+  case object InvalidCsv extends SystemExitCode(3)
 }
 
 object CsvValidatorCmdApp extends App {
 
-  val (exitMsg, exitCode) = run(args)
-  println(exitMsg)
-  System.exit(exitCode)
+  type ExitMessage = String
+  type ExitStatus = (ExitMessage, SystemExitCodes.SystemExitCode)
+
+  val (exitMessage, systemExitCode) = run(args)
+  println(exitMessage)
+  System.exit(systemExitCode.code)
 
   case class Config(failFast: Boolean = false, substitutePaths: List[SubstitutePath] = List.empty[SubstitutePath], caseSensitivePaths: Boolean = false, showVersion: Boolean = false, csvPath: Path = Path.fromString("."), csvEncoding: Charset = CsvValidator.DEFAULT_ENCODING, csvSchemaPath: Path = Path.fromString("."), csvSchemaEncoding: Charset = CsvValidator.DEFAULT_ENCODING)
 
-  def run(args: Array[String]): (String,Int) = {
+  def run(args: Array[String]): ExitStatus = {
 
     implicit val pathRead: Read[Path] = Read.reads { Path.fromString(_) }
     implicit val charsetRead: Read[Charset] = Read.reads { Charset.forName(_) }
@@ -61,7 +65,7 @@ object CsvValidatorCmdApp extends App {
         validate(TextFile(config.csvPath, config.csvEncoding), TextFile(config.csvSchemaPath, config.csvSchemaEncoding), config.failFast, config.substitutePaths, config.caseSensitivePaths, None)
     } getOrElse {
       //arguments are bad, usage message will have been displayed
-      ("", SystemExits.IncorrectArguments)
+      ("", SystemExitCodes.IncorrectArguments)
     }
   }
 
@@ -99,14 +103,14 @@ object CsvValidatorCmdApp extends App {
     }
   }
 
-  def validate(csvFile: TextFile, schemaFile: TextFile, failFast: Boolean, pathSubstitutionsList: List[SubstitutePath], enforceCaseSensitivePathChecks: Boolean, progress: Option[ProgressCallback]): (String,Int) = {
+  def validate(csvFile: TextFile, schemaFile: TextFile, failFast: Boolean, pathSubstitutionsList: List[SubstitutePath], enforceCaseSensitivePathChecks: Boolean, progress: Option[ProgressCallback]): ExitStatus = {
     val validator = createValidator(failFast, pathSubstitutionsList, enforceCaseSensitivePathChecks)
     validator.parseSchema(schemaFile) match {
-      case FailureZ(errors) => (prettyPrint(errors), SystemExits.InvalidSchema)
+      case FailureZ(errors) => (prettyPrint(errors), SystemExitCodes.InvalidSchema)
       case SuccessZ(schema) =>
         validator.validate(csvFile, schema, progress) match {
-          case FailureZ(errors) => (prettyPrint(errors), SystemExits.InvalidCsv)
-          case SuccessZ(_) => ("PASS", SystemExits.ValidCsv)
+          case FailureZ(errors) => (prettyPrint(errors), SystemExitCodes.InvalidCsv)
+          case SuccessZ(_) => ("PASS", SystemExitCodes.ValidCsv)
         }
     }
   }
