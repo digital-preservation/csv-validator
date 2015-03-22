@@ -8,6 +8,7 @@
  */
 package uk.gov.nationalarchives.csv.validator
 
+import scala.language.postfixOps
 import scalaz._, Scalaz._
 import java.io.{IOException, Reader => JReader, InputStreamReader => JInputStreamReader, FileInputStream => JFileInputStream, LineNumberReader => JLineNumberReader}
 import resource._
