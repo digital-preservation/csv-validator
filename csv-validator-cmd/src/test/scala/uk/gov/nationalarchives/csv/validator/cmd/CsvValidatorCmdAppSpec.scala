@@ -33,11 +33,11 @@ class CsvValidatorCmdAppSpec extends Specification with TestResources {
       }
     }
 
-    //    "give usage message when too many arguments supplied" in {
-    //      CsvValidatorCmdApp.run(List("somMetaData.csv", "someSchema.csvs", "something extra").toArray) must beLike {
-    //        case (errMsg,errCode) => errCode mustEqual SystemExits.IncorrectArguments
-    //      }
-    //    }
+    "give usage message when too many arguments supplied" in {
+      CsvValidatorCmdApp.run(List("somMetaData.csv", "someSchema.csvs", "something extra").toArray) must beLike {
+        case (errMsg,errCode) => errCode mustEqual SystemExitCodes.IncorrectArguments
+      }
+    }
 
     "fail if metadata file is unreadable" in {
       CsvValidatorCmdApp.run(Array("nonExistentMetaData.csv", schemaPath)) must beLike {
@@ -67,19 +67,19 @@ class CsvValidatorCmdAppSpec extends Specification with TestResources {
   "Fail fast and file args" should {
 
     "return true and the file names for fail fast" in {
-      CsvValidatorCmdApp.run(Array("--fail-fast", "someMetaData.csv", "someSchema.csvs")) must beLike {
-        case (errMsg, errCode) => errCode mustEqual SystemExitCodes.IncorrectArguments
+      CsvValidatorCmdApp.run(Array("--fail-fast", "true", metadataPath, schemaPath)) must beLike {
+        case (errMsg, errCode) => errCode mustEqual SystemExitCodes.ValidCsv
       }
     }
 
     "return true and the file names for fail fast short form" in {
-      CsvValidatorCmdApp.run(Array("-f", "someMetaData.csv", "someSchema.csvs")) must beLike {
-        case (errMsg, errCode) => errCode mustEqual SystemExitCodes.IncorrectArguments
+      CsvValidatorCmdApp.run(Array("-f", "true", metadataPath, schemaPath)) must beLike {
+        case (errMsg, errCode) => errCode mustEqual SystemExitCodes.ValidCsv
       }
     }
 
     "return false and the file names for no fail fast" in {
-      CsvValidatorCmdApp.run(Array("someMetaData.csv", "someSchema.csvs")) must beLike {
+      CsvValidatorCmdApp.run(Array("--fail-fast", "false", "someMetaData.csv", "someSchema.csvs")) must beLike {
         case (errMsg, errCode) => errCode mustEqual SystemExitCodes.IncorrectArguments
       }
     }
