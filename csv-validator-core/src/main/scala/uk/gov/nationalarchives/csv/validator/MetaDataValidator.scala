@@ -78,17 +78,17 @@ trait MetaDataValidator {
         val maybeNoData =
           if (schema.globalDirectives.contains(NoHeader())) {
             if (!rowIt.hasNext && !schema.globalDirectives.contains(PermitEmpty())) {
-              Some(ErrorMessage("metadata file is empty but this has not been permitted").failNel[Any])
+              Some(ErrorMessage("metadata file is empty but this has not been permitted").failureNel[Any])
             } else {
               None
             }
           } else {
             if(!rowIt.hasNext) {
-              Some(ErrorMessage("metadata file is empty but should contain at least a header").failNel[Any])
+              Some(ErrorMessage("metadata file is empty but should contain at least a header").failureNel[Any])
             } else {
               val header = rowIt.skipHeader()
               if(!rowIt.hasNext && !schema.globalDirectives.contains(PermitEmpty())) {
-                Some(ErrorMessage("metadata file has a header but no data and this has not been permitted").failNel[Any])
+                Some(ErrorMessage("metadata file has a header but no data and this has not been permitted").failureNel[Any])
               } else {
                 None
               }
@@ -108,8 +108,8 @@ trait MetaDataValidator {
 
       case Left(ts) =>
         //TODO emit all errors not just first!
-        ErrorMessage(ts(0).toString).failNel[Any]
-        //ts.toList.map(t => ErrorMessage(t.toString).failNel[Any]).sequence[MetaDataValidation, Any]
+        ErrorMessage(ts(0).toString).failureNel[Any]
+        //ts.toList.map(t => ErrorMessage(t.toString).failureNel[Any]).sequence[MetaDataValidation, Any]
     }
   }
 

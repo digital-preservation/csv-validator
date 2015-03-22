@@ -109,7 +109,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
     import scala.util.{Success, Failure}
 
     suspendUi
-    val fAction: Future[Unit] = future {
+    val fAction: Future[Unit] = Future {
       action(output)
     }
 

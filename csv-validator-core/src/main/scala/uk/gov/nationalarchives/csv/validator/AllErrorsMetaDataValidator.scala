@@ -48,7 +48,7 @@ trait AllErrorsMetaDataValidator extends MetaDataValidator {
     }
 
     if (tc.isEmpty || tc.get.numberOfColumns == row.cells.length) true.successNel[FailMessage]
-    else ErrorMessage(s"Expected @totalColumns of ${tc.get.numberOfColumns} and found ${row.cells.length} on line ${row.lineNumber}", Some(row.lineNumber)).failNel[Any]
+    else ErrorMessage(s"Expected @totalColumns of ${tc.get.numberOfColumns} and found ${row.cells.length} on line ${row.lineNumber}", Some(row.lineNumber)).failureNel[Any]
   }
 
   private def rules(row: Row, schema: Schema): MetaDataValidation[List[Any]] = {
@@ -60,7 +60,7 @@ trait AllErrorsMetaDataValidator extends MetaDataValidator {
   private def validateCell(columnIndex: Int, cells: (Int) => Option[Cell], row: Row, schema: Schema): MetaDataValidation[Any] = {
     cells(columnIndex) match {
       case Some(c) => rulesForCell(columnIndex, row, schema)
-      case _ => ErrorMessage(s"Missing value at line: ${row.lineNumber}, column: ${schema.columnDefinitions(columnIndex).id}", Some(row.lineNumber), Some(columnIndex)).failNel[Any]
+      case _ => ErrorMessage(s"Missing value at line: ${row.lineNumber}, column: ${schema.columnDefinitions(columnIndex).id}", Some(row.lineNumber), Some(columnIndex)).failureNel[Any]
     }
   }
 

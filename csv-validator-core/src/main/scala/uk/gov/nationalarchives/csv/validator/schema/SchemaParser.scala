@@ -651,9 +651,9 @@ trait SchemaParser extends RegexParsers {
     parse(reader) match {
       case s @ Success(schema: Schema, next) => {
         val errors = validate(schema.globalDirectives, schema.columnDefinitions)
-        if (errors.isEmpty) schema.successNel[FailMessage] else SchemaMessage(errors).failNel[Schema]
+        if (errors.isEmpty) schema.successNel[FailMessage] else SchemaMessage(errors).failureNel[Schema]
       }
-      case n: NoSuccess => SchemaMessage(formatNoSuccessMessageForPlatform(n.toString)).failNel[Schema]
+      case n: NoSuccess => SchemaMessage(formatNoSuccessMessageForPlatform(n.toString)).failureNel[Schema]
     }
   }
 

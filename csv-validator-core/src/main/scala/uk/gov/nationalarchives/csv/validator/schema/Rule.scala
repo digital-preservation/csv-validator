@@ -37,7 +37,7 @@ abstract class Rule(name: String, val argProviders: ArgProvider*) extends Positi
 
   def fail(columnIndex: Int, row: Row, schema: Schema): RuleValidation[Any] = {
     val columnDefinition = schema.columnDefinitions(columnIndex)
-    s"$toError fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}".failNel[Any]
+    s"$toError fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}".failureNel[Any]
   }
 
   def cellValue(columnIndex: Int, row: Row, schema: Schema): String = explicitColumn match {
@@ -355,7 +355,7 @@ case class UniqueRule() extends Rule("unique") {
     originalValue match {
       case None => distinctValues.put(cellValueCorrectCase, row.lineNumber); true.successNel
       case Some(o) => {
-        s"$toError fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)} (original at line: ${distinctValues(o)})".failNel[Any]
+        s"$toError fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)} (original at line: ${distinctValues(o)})".failureNel[Any]
       }
     }
   }
@@ -389,7 +389,7 @@ case class UniqueMultiRule(columns: List[ColumnReference]) extends Rule("unique(
     originalValue match {
       case None => distinctValues.put(cellValueCorrectCase, row.lineNumber); true.successNel
       case Some(o) => {
-        s"$toError ${columns.map(_.toError).mkString(", ")} ) fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)} (original at line: ${distinctValues(o)})".failNel[Any]
+        s"$toError ${columns.map(_.toError).mkString(", ")} ) fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)} (original at line: ${distinctValues(o)})".failureNel[Any]
       }
     }
   }
@@ -412,8 +412,8 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
 
     search(filename(columnIndex, row, schema)) match {
       case SuccessZ(hexValue: String) if hexValue == cellValue(columnIndex,row,schema) => true.successNel[String]
-      case SuccessZ(hexValue: String) => s"""$toError file "${TypedPath(filename(columnIndex, row, schema)._1 + filename(columnIndex, row, schema)._2).toPlatform}" checksum match fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}. Computed checksum value:"${hexValue}"""".failNel[Any]
-      case FailureZ(errMsg) => s"$toError ${errMsg.head} for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}".failNel[Any]
+      case SuccessZ(hexValue: String) => s"""$toError file "${TypedPath(filename(columnIndex, row, schema)._1 + filename(columnIndex, row, schema)._2).toPlatform}" checksum match fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}. Computed checksum value:"${hexValue}"""".failureNel[Any]
+      case FailureZ(errMsg) => s"$toError ${errMsg.head} for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}".failureNel[Any]
     }
   }
 
@@ -444,8 +444,8 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
 
   def matchWildcardPaths(matchList: PathSet[Path],fullPath: String): ValidationNel[String, String] = matchList.size match {
     case 1 => calcChecksum(matchList.head.path)
-    case 0 => s"""no files for $fullPath found""".failNel[String]
-    case _ => s"""multiple files for ${TypedPath(fullPath).toPlatform} found""".failNel[String]
+    case 0 => s"""no files for $fullPath found""".failureNel[String]
+    case _ => s"""multiple files for ${TypedPath(fullPath).toPlatform} found""".failureNel[String]
   }
 
   def matchSimplePath(fullPath: String): ValidationNel[String, String]  = calcChecksum(fullPath)
@@ -488,14 +488,14 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
           if(FileSystem.caseSensitivePathMatchesFs(f)) {
             checksum(f)
           } else {
-            s"""file "${FileSystem.file2PatformDependent(file)}" not found""".failNel[String]
+            s"""file "${FileSystem.file2PatformDependent(file)}" not found""".failureNel[String]
           }
         } else {
           checksum(f)
         }
 
       case scala.util.Failure(_) =>
-        s"""file "${FileSystem.file2PatformDependent(file)}" not found""".failNel[String]
+        s"""file "${FileSystem.file2PatformDependent(file)}" not found""".failureNel[String]
     }
   }
 }
@@ -518,11 +518,11 @@ case class FileCountRule(rootPath: ArgProvider, file: ArgProvider, pathSubstitut
       case scala.util.Success(cellCount) =>
         search(filename(columnIndex, row, schema)) match {
           case SuccessZ(count: Int) if count == cellCount => true.successNel[String]
-          case SuccessZ(count: Int) => s"$toError found $count file(s) for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}".failNel[Any]
-          case FailureZ(errMsg) => s"$toError ${errMsg.head} for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}".failNel[Any]
+          case SuccessZ(count: Int) => s"$toError found $count file(s) for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}".failureNel[Any]
+          case FailureZ(errMsg) => s"$toError ${errMsg.head} for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}".failureNel[Any]
         }
 
-      case scala.util.Failure(_) =>  s"$toError '${cellValue(columnIndex,row,schema)}' is not a number for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}".failNel[Any]
+      case scala.util.Failure(_) =>  s"$toError '${cellValue(columnIndex,row,schema)}' is not a number for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}".failureNel[Any]
     }
   }
 
@@ -595,7 +595,7 @@ trait FileWildcardSearch[T] {
       def findMatches(wc: (Path, String) => PathSet[Path] ): ValidationNel[String, T] = {
         path match {
           case Some(p) =>  matchWildcardPaths( wc(p, matchPath ), fullPath )
-          case None => "no file".failNel[T]
+          case None => "no file".failureNel[T]
         }
       }
 
@@ -621,21 +621,21 @@ trait FileWildcardSearch[T] {
       }
 
       if(basePathExists) {
-        s"""incorrect basepath $pathString found""".failNel[T]
+        s"""incorrect basepath $pathString found""".failureNel[T]
       } else if(wildcardNotInRoot ) {
-        s"""root $pathString should not contain wildcards""".failNel[T]
+        s"""root $pathString should not contain wildcards""".failureNel[T]
       } else if(matchUsesWildDirectory) {
         findMatches(wildcardPath)
       } else if(matchUsesWildFiles) {
         findMatches(wildcardFile)
       } else if(!fileExists) {
-        s"""file "${TypedPath(fullPath).toPlatform}" not found""".failNel[T]
+        s"""file "${TypedPath(fullPath).toPlatform}" not found""".failureNel[T]
       } else {
         matchSimplePath(basePath + System.getProperty("file.separator") + matchPath)
       }
     } catch {
       case err:Throwable =>
-        err.getMessage.failNel[T]
+        err.getMessage.failureNel[T]
     }
   }
 }

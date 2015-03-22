@@ -8,6 +8,8 @@
  */
 package uk.gov.nationalarchives.csv
 
+import java.nio.charset.StandardCharsets
+
 import scala.sys
 
 package object validator {
@@ -16,6 +18,8 @@ package object validator {
    * End-of-Line
    */
   val EOL = sys.props("line.separator")
+
+  val ENCODING = StandardCharsets.UTF_8
 
   /**
    * Separator in file paths i.e. '\' or '/'
