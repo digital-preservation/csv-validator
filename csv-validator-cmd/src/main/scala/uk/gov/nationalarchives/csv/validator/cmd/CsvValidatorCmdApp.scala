@@ -39,7 +39,7 @@ object CsvValidatorCmdApp extends App {
   println(exitMessage)
   System.exit(systemExitCode.code)
 
-  case class Config(failFast: Boolean = false, substitutePaths: List[SubstitutePath] = List.empty[SubstitutePath], caseSensitivePaths: Boolean = false, showVersion: Boolean = false, csvPath: Path = Path.fromString("."), csvEncoding: Charset = CsvValidator.DEFAULT_ENCODING, csvSchemaPath: Path = Path.fromString("."), csvSchemaEncoding: Charset = CsvValidator.DEFAULT_ENCODING)
+  case class Config(traceParser: Boolean = false, failFast: Boolean = false, substitutePaths: List[SubstitutePath] = List.empty[SubstitutePath], caseSensitivePaths: Boolean = false, showVersion: Boolean = false, csvPath: Path = Path.fromString("."), csvEncoding: Charset = CsvValidator.DEFAULT_ENCODING, csvSchemaPath: Path = Path.fromString("."), csvSchemaEncoding: Charset = CsvValidator.DEFAULT_ENCODING)
 
   def run(args: Array[String]): ExitStatus = {
 
@@ -50,6 +50,7 @@ object CsvValidatorCmdApp extends App {
         head("CSV Validator - Command Line", getShortVersion())
         help("help") text("Prints this usage text")
         //opt[Boolean]("version") action { (x,c) => c.copy(showVersion = x) } text { "Display the version information" } //TODO would be nice if '--version' could be used without specifying CSV+CSVS paths etc //getLongVersion().map(x => s"${x._1}: ${x._2}").foreach(println(_))
+        opt[Unit]('t', "trace-parser") optional() action { (_, c) => c.copy(traceParser = true)} text("Prints a trace of the parser parse")
         opt[Boolean]('f', "fail-fast") optional() action { (x,c) => c.copy(failFast = x) } text("Stops on the first validation error rather than reporting all errors")
         opt[SubstitutePath]('p', "path") optional() unbounded() action { (x,c) => c.copy(substitutePaths = c.substitutePaths :+ x) } text("Allows you to substitute a file path (or part of) in the CSV for a different file path")
         opt[Boolean]('c', "case-sensitive-paths") optional() action { (x,c) => c.copy(caseSensitivePaths = x) } text("Enforces case-sensitive file path checking. Useful when validating on case-insensitive filesystems like Windows NTFS")
@@ -62,7 +63,7 @@ object CsvValidatorCmdApp extends App {
     //parse the command line arguments
     parser.parse(args, new Config()) map {
       config =>
-        validate(TextFile(config.csvPath, config.csvEncoding), TextFile(config.csvSchemaPath, config.csvSchemaEncoding), config.failFast, config.substitutePaths, config.caseSensitivePaths, None)
+        validate(TextFile(config.csvPath, config.csvEncoding), TextFile(config.csvSchemaPath, config.csvSchemaEncoding), config.failFast, config.substitutePaths, config.caseSensitivePaths, config.traceParser, None)
     } getOrElse {
       //arguments are bad, usage message will have been displayed
       ("", SystemExitCodes.IncorrectArguments)
@@ -103,8 +104,8 @@ object CsvValidatorCmdApp extends App {
     }
   }
 
-  def validate(csvFile: TextFile, schemaFile: TextFile, failFast: Boolean, pathSubstitutionsList: List[SubstitutePath], enforceCaseSensitivePathChecks: Boolean, progress: Option[ProgressCallback]): ExitStatus = {
-    val validator = createValidator(failFast, pathSubstitutionsList, enforceCaseSensitivePathChecks)
+  def validate(csvFile: TextFile, schemaFile: TextFile, failFast: Boolean, pathSubstitutionsList: List[SubstitutePath], enforceCaseSensitivePathChecks: Boolean, trace: Boolean, progress: Option[ProgressCallback]): ExitStatus = {
+    val validator = createValidator(failFast, pathSubstitutionsList, enforceCaseSensitivePathChecks, trace)
     validator.parseSchema(schemaFile) match {
       case FailureZ(errors) => (prettyPrint(errors), SystemExitCodes.InvalidSchema)
       case SuccessZ(schema) =>

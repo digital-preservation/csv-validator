@@ -24,6 +24,7 @@ class MetaDataValidatorChecksumSpec extends Specification with TestResources {
     val schemaParser = new SchemaParser() {
       val pathSubstitutions = List[(String,String)]()
       val enforceCaseSensitivePathChecks = false
+      val trace = false
       override def parse(reader: Reader): ParseResult[Schema] = super.parse(reader) match {
         case s @ Success(schema: Schema, _) =>
           s
@@ -35,7 +36,7 @@ class MetaDataValidatorChecksumSpec extends Specification with TestResources {
     schemaParser.parse(s).get
   }
 
-  object TestMetaDataValidator extends AllErrorsMetaDataValidator { val pathSubstitutions = List[(String,String)]() }
+  object TestMetaDataValidator extends AllErrorsMetaDataValidator { val pathSubstitutions = List[(String,String)](); val trace = false }
 
   import TestMetaDataValidator._
 

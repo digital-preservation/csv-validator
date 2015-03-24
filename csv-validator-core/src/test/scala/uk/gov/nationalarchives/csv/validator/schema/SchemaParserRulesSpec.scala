@@ -19,7 +19,7 @@ class SchemaParserRulesSpec extends Specification {
 
   val emptyPathSubstitutions = List[(String,String)]()
 
-  object TestSchemaParser extends SchemaParser { val pathSubstitutions = List[(String,String)](); val enforceCaseSensitivePathChecks = false }
+  object TestSchemaParser extends SchemaParser { val pathSubstitutions = List[(String,String)](); val enforceCaseSensitivePathChecks = false; val trace = false }
 
   import TestSchemaParser._
 

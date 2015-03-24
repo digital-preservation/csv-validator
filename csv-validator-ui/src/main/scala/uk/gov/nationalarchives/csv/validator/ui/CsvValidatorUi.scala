@@ -132,6 +132,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
       failOnFirstError,
       pathSubstitutions,
       enforceCaseSensitivePathChecks,
+      false,
       progress
     )._1)
   }
