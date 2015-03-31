@@ -24,8 +24,8 @@ class SchemaParserColumnDefinitionsSpec extends Specification {
     val globalDirsTwo = List(TotalColumns(2))
 
     "succeed for valid schema with all possible column definitions" in {
-      val columnDefinitions = List(new ColumnDefinition("column1"),new ColumnDefinition("column2"),new ColumnDefinition("column3"),
-        new ColumnDefinition("."),new ColumnDefinition("_-co.l"),new ColumnDefinition("0.a-B-z_Z"),new ColumnDefinition("-abc.csvs"))
+      val columnDefinitions = List(new ColumnDefinition(NamedColumnIdentifier("column1")),new ColumnDefinition(NamedColumnIdentifier("column2")),new ColumnDefinition(NamedColumnIdentifier("column3")),
+        new ColumnDefinition(NamedColumnIdentifier(".")),new ColumnDefinition(NamedColumnIdentifier("_-co.l")),new ColumnDefinition(NamedColumnIdentifier("0.a-B-z_Z")),new ColumnDefinition(NamedColumnIdentifier("-abc.csvs")))
 
       val schema = """version 1.0
                       @totalColumns 7
@@ -41,9 +41,9 @@ class SchemaParserColumnDefinitionsSpec extends Specification {
     }
 
     "succeed for valid schema with all possible quoted column definitions" in {
-      val columnDefinitions = List(new ColumnDefinition("column1"),new ColumnDefinition("column2"),new ColumnDefinition("column 3"),
-        new ColumnDefinition("column 4/5"), new ColumnDefinition("."),new ColumnDefinition("_-co.l"),
-        new ColumnDefinition("0.a-B-z_Z"),new ColumnDefinition("-abc.csvs"))
+      val columnDefinitions = List(new ColumnDefinition(NamedColumnIdentifier("column1")),new ColumnDefinition(NamedColumnIdentifier("column2")),new ColumnDefinition(NamedColumnIdentifier("column 3")),
+        new ColumnDefinition(NamedColumnIdentifier("column 4/5")), new ColumnDefinition(NamedColumnIdentifier(".")),new ColumnDefinition(NamedColumnIdentifier("_-co.l")),
+        new ColumnDefinition(NamedColumnIdentifier("0.a-B-z_Z")),new ColumnDefinition(NamedColumnIdentifier("-abc.csvs")))
 
       val schema = """version 1.0
                       @totalColumns 8
@@ -99,7 +99,7 @@ class SchemaParserColumnDefinitionsSpec extends Specification {
                       @totalColumns 1
                       Name:"""
 
-      parse(new StringReader(schema)) must beLike { case Success(schemaResult, _) => schemaResult mustEqual Schema(globalDirsOne, List(ColumnDefinition("Name"))) }
+      parse(new StringReader(schema)) must beLike { case Success(schemaResult, _) => schemaResult mustEqual Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("Name")))) }
     }
 
     "succeed for column definition with single regex rule" in {
@@ -107,7 +107,7 @@ class SchemaParserColumnDefinitionsSpec extends Specification {
                       @totalColumns 1
                       Age: regex ("[1-9]*")"""
 
-      parse(new StringReader(schema)) must beLike { case Success(Schema(globalDirsOne1, List(ColumnDefinition("Age", List(RegExpRule(r)), _))), _) => r mustEqual "[1-9]*" }
+      parse(new StringReader(schema)) must beLike { case Success(Schema(globalDirsOne1, List(ColumnDefinition(NamedColumnIdentifier("Age"), List(RegExpRule(r)), _))), _) => r mustEqual "[1-9]*" }
     }
 
     "fail for more than one column definition on a line" in {
@@ -203,8 +203,8 @@ class SchemaParserColumnDefinitionsSpec extends Specification {
                       Column2:"""
 
       parseAndValidate(new StringReader(schema)) must beLike {
-        case SuccessZ(schemaResult) => schemaResult mustEqual Schema(globalDirsTwo, List(ColumnDefinition("Column1", List(InRule(ColumnReference("Column2")))),
-                                                                               ColumnDefinition("Column2")))
+        case SuccessZ(schemaResult) => schemaResult mustEqual Schema(globalDirsTwo, List(ColumnDefinition(NamedColumnIdentifier("Column1"), List(InRule(ColumnReference(NamedColumnIdentifier("Column2"))))),
+                                                                               ColumnDefinition(NamedColumnIdentifier("Column2"))))
       }
     }
   }

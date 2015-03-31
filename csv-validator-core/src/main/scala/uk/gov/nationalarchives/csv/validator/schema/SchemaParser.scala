@@ -159,14 +159,17 @@ trait SchemaParser extends RegexParsers
   /**
    * [20]	ColumnIdentifier ::= PositiveNonZeroIntegerLiteral | Ident
    */
-  def columnIdentifier = "ColumnIdentifier" ::= (positiveNonZeroIntegerLiteral | ident).withFailureMessage("Column identifier invalid") ^^ {
-    _.toString //TODO should be able to remove this `.toString` in favour of `id` field in ColumnDefinition being either NamedId <: String or OffsetId <: Integer, rather than just a String! see columnDefinition parser extractor above
+  def columnIdentifier: Parser[ColumnIdentifier] = "ColumnIdentifier" ::= (positiveNonZeroIntegerLiteral | ident).withFailureMessage("Column identifier invalid") ^^ {
+    case offset: BigInt => OffsetColumnIdentifier(offset)
+    case ident: String => NamedColumnIdentifier(ident)
   }
 
   /**
    * [21]	QuotedColumnIdentifier ::= StringLiteral
    */
-  def quotedColumnIdentifier = "QuotedColumnIdentifier" ::= stringLiteral withFailureMessage("Quoted column identifier invalid")
+  def quotedColumnIdentifier = "QuotedColumnIdentifier" ::= stringLiteral.withFailureMessage("Quoted column identifier invalid") ^^ {
+    NamedColumnIdentifier(_)
+  }
 
   /**
    * [22]	ColumnRule ::= ColumnValidationExpr* ColumnDirectives
@@ -709,7 +712,7 @@ trait SchemaParser extends RegexParsers
   }
 
   private def duplicateColumnsValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
-    val duplicates = TreeMap(columnDefinitions.groupBy(_.id).toSeq:_*).filter(_._2.length > 1)
+    val duplicates = TreeMap(columnDefinitions.groupBy(_.id).toSeq:_*)(scala.math.Ordering.by[ColumnIdentifier, String](_.toString)).filter(_._2.length > 1)
 
     if (duplicates.isEmpty) None
     else Some(duplicates.map { case (id, cds) => s"""Column: $id has duplicates on lines """ + cds.map(cd => cd.pos.line).mkString(", ") }.mkString(EOL))
@@ -865,15 +868,15 @@ trait SchemaParser extends RegexParsers
   }
 
   private def uniqueMultiValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
-    def uniqueMultiCheck(rule: Rule): Option[List[String]] = rule match {
+    def uniqueMultiCheck(rule: Rule): Option[List[ColumnIdentifier]] = rule match {
       case UniqueMultiRule(columns) =>
-        val actualColumns: List[String] = columnDefinitions.map(_.id)
-        val invalidColumns: List[ColumnReference] = columns.filterNot(f => actualColumns.exists(_ == f.value))
+        val actualColumns: List[ColumnIdentifier] = columnDefinitions.map(_.id)
+        val invalidColumns: List[ColumnReference] = columns.filterNot(f => actualColumns.exists(_ == f.ref))
 
         if(invalidColumns.isEmpty)
           None
         else
-          Some(invalidColumns.map(_.value))
+          Some(invalidColumns.map(_.ref))
 
       case _ =>
         None
@@ -884,7 +887,7 @@ trait SchemaParser extends RegexParsers
       rule <- cd.rules
       invalidColumns = uniqueMultiCheck(rule)
       _ <- invalidColumns
-    } yield s"""Column: ${cd.id}: Invalid cross reference ${invalidColumns.get.mkString("$", ", $", "")}: at line: ${rule.pos.line}, column: ${rule.pos.column}"""
+    } yield s"""Column: ${cd.id.value}: Invalid cross reference ${invalidColumns.get.map(_.toString).mkString("$", ", $", "")}: at line: ${rule.pos.line}, column: ${rule.pos.column}"""
 
     if (v.isEmpty) None else Some(v.mkString(EOL))
   }
@@ -893,21 +896,21 @@ trait SchemaParser extends RegexParsers
 
     def invalidColumnNames(rule: Rule) = explicitColumnCheck(rule) match {
       case Some(x) => x
-      case None => List.empty[String]
+      case None => List.empty[ColumnIdentifier]
     }
 
-    def checkAlternativeOption(rules: Option[List[Rule]]): Option[List[String]] = rules match {
-      case Some(rulesList) => Some(rulesList.foldLeft(List.empty[String]) {
+    def checkAlternativeOption(rules: Option[List[Rule]]): Option[List[ColumnIdentifier]] = rules match {
+      case Some(rulesList) => Some(rulesList.foldLeft(List.empty[ColumnIdentifier]) {
         case (list, rule: Rule) => list ++ invalidColumnNames(rule)
       })
 
       case None => None
     }
 
-    def explicitColumnCheck(rule: Rule): Option[List[String]] = rule match {
+    def explicitColumnCheck(rule: Rule): Option[List[ColumnIdentifier]] = rule match {
       case IfRule(c, t, f) =>
         val cond = explicitColumnCheck(c)
-        val cons = t.foldLeft(Some(List.empty[String])) { case (l, r) => Some((l ++ explicitColumnCheck(r)).flatten.toList)}
+        val cons = t.foldLeft(Some(List.empty[ColumnIdentifier])) { case (l, r) => Some((l ++ explicitColumnCheck(r)).flatten.toList)}
         val alt = checkAlternativeOption(f)
         Some((cond ++ cons ++ alt).flatten.toList)
 
@@ -922,12 +925,12 @@ trait SchemaParser extends RegexParsers
         Some((left ++ right).flatten.toList)
 
       case ParenthesesRule(l) =>
-        l.foldLeft(Some(List.empty[String])) { case (l, r) => Some((l ++ explicitColumnCheck(r)).flatten.toList)}
+        l.foldLeft(Some(List.empty[ColumnIdentifier])) { case (l, r) => Some((l ++ explicitColumnCheck(r)).flatten.toList)}
 
       case _ =>
         rule.explicitColumn match {
-          case Some(columnRef) if (!columnDefinitions.map(_.id).contains(columnRef.value)) =>
-            Some(List(columnRef.value))
+          case Some(columnRef) if (!columnDefinitions.map(_.id).contains(columnRef.ref)) =>
+            Some(List(columnRef.ref))
           case _ =>
             None
         }

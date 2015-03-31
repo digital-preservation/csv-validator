@@ -31,7 +31,20 @@ case class NoHeader() extends GlobalDirective("noHeader")
 
 case class IgnoreColumnNameCase() extends GlobalDirective("ignoreColumnNameCase")
 
-case class ColumnDefinition(id: String, rules: List[Rule] = Nil, directives: List[ColumnDirective] = Nil) extends Positional
+trait ColumnIdentifier {
+  val value: String
+  override def toString = value
+}
+
+case class NamedColumnIdentifier(name: String) extends ColumnIdentifier {
+  val value = name
+}
+
+case class OffsetColumnIdentifier(offset: BigInt) extends ColumnIdentifier {
+  val value = offset.toString
+}
+
+case class ColumnDefinition(id: ColumnIdentifier, rules: List[Rule] = Nil, directives: List[ColumnDirective] = Nil) extends Positional
 
 trait ArgProvider {
 
@@ -40,10 +53,10 @@ trait ArgProvider {
   def toError: String
 }
 
-case class ColumnReference(value: String) extends ArgProvider {
+case class ColumnReference(ref: ColumnIdentifier) extends ArgProvider {
 
   def referenceValue(columnIndex: Int, row: Row, schema: Schema): Option[String] = {
-    val referencedIndex = schema.columnDefinitions.indexWhere(_.id == value)
+    val referencedIndex = schema.columnDefinitions.indexWhere(_.id == ref)
     row.cells.lift(referencedIndex).map(_.value)
   }
 
@@ -53,11 +66,11 @@ case class ColumnReference(value: String) extends ArgProvider {
       case Some(rv) =>
         rv
       case None =>
-        throw new ArrayIndexOutOfBoundsException(s"Could not access reference column $value at [$columnIndex:${row.lineNumber}]")
+        throw new ArrayIndexOutOfBoundsException(s"Could not access reference column $ref at [$columnIndex:${row.lineNumber}]")
     }
   }
 
-  def toError ="$" + value
+  def toError ="$" + ref
 }
 
 case class Literal(value: Option[String]) extends ArgProvider {

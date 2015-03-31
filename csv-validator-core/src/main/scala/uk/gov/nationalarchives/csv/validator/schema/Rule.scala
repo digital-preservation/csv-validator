@@ -47,17 +47,17 @@ abstract class Rule(name: String, val argProviders: ArgProvider*) extends Positi
       row.cells(columnIndex).value
   }
 
-  def explicitName: Option[String] = explicitColumn.map("$" + _.value + "/")
+  def explicitName: Option[String] = explicitColumn.map("$" + _.ref + "/")
 
   def ruleName: String = explicitName.getOrElse("") + name
 
-  def columnNameToIndex(schema: Schema, name: String): Int = {
+  def columnIdentifierToIndex(schema: Schema, id: ColumnIdentifier): Int = {
     try {
-      schema.columnDefinitions.zipWithIndex.filter{ case (c,i) => c.id == name}.head._2
+      schema.columnDefinitions.zipWithIndex.filter{ case (c,i) => c.id == id}.head._2
     } catch {
-      // this should be fixed in the uk.gov.nationalarchives.csv.validator.schema validator, preventing this from ever happening
-      case _: java.util.NoSuchElementException => println( s"Error:   Unable to find: $name for line: ${pos.line}, column: ${pos.column}"); 0
-      case _: Throwable => println( s"Error: with: $name"); 0
+      // TODO this should be fixed in the uk.gov.nationalarchives.csv.validator.schema validator, preventing this from ever happening
+      case _: java.util.NoSuchElementException => println( s"Error:   Unable to find: $id for line: ${pos.line}, column: ${pos.column}"); 0
+      case _: Throwable => println( s"Error: with: $id"); 0
     }
   }
 
@@ -116,7 +116,7 @@ case class IfRule(condition: Rule, rules: List[Rule], elseRules: Option[List[Rul
   override def evaluate(columnIndex: Int, row: Row, schema: Schema): RuleValidation[Any] = {
     val (cellValue,idx) = condition.explicitColumn match {
       case Some(columnRef) =>
-        (columnRef.referenceValueEx(columnIndex, row, schema), columnNameToIndex(schema, columnRef.value))
+        (columnRef.referenceValueEx(columnIndex, row, schema), columnIdentifierToIndex(schema, columnRef.ref))
       case None =>
         (row.cells(columnIndex).value, columnIndex)
     }

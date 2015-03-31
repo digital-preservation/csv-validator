@@ -27,7 +27,7 @@ class SchemaParserGlobalDirectivesSpec extends Specification {
            |@totalColumns 1
            |column1: """.stripMargin
 
-      parse(new StringReader(schema)) must beLike { case Success(Schema(List(TotalColumns(_)), List(ColumnDefinition("column1", Nil, Nil))),_) => ok }
+      parse(new StringReader(schema)) must beLike { case Success(Schema(List(TotalColumns(_)), List(ColumnDefinition(NamedColumnIdentifier("column1"), Nil, Nil))),_) => ok }
     }
 
     "with @totalColumns and @noHeader global directives" should {
@@ -38,7 +38,7 @@ class SchemaParserGlobalDirectivesSpec extends Specification {
             |@noHeader
             |column1: """.stripMargin
 
-        parse(new StringReader(schema)) must beLike { case Success(Schema(List(TotalColumns(_), NoHeader()), List(ColumnDefinition("column1", Nil, Nil))), _) => ok}
+        parse(new StringReader(schema)) must beLike { case Success(Schema(List(TotalColumns(_), NoHeader()), List(ColumnDefinition(NamedColumnIdentifier("column1"), Nil, Nil))), _) => ok}
       }
 
       "succeed on same line" in {
@@ -47,7 +47,7 @@ class SchemaParserGlobalDirectivesSpec extends Specification {
             |@totalColumns 1 @noHeader
             |column1: """.stripMargin
 
-        parse(new StringReader(schema)) must beLike { case Success(Schema(List(TotalColumns(_), NoHeader()), List(ColumnDefinition("column1", Nil, Nil))), _) => ok}
+        parse(new StringReader(schema)) must beLike { case Success(Schema(List(TotalColumns(_), NoHeader()), List(ColumnDefinition(NamedColumnIdentifier("column1"), Nil, Nil))), _) => ok}
       }
     }
 
@@ -78,7 +78,7 @@ class SchemaParserGlobalDirectivesSpec extends Specification {
         """version 1.0
           |column1: """.stripMargin
 
-      parse(new StringReader(schema)) must beLike { case Success(Schema(Nil, List(ColumnDefinition("column1", Nil, Nil))), _) => ok}
+      parse(new StringReader(schema)) must beLike { case Success(Schema(Nil, List(ColumnDefinition(NamedColumnIdentifier("column1"), Nil, Nil))), _) => ok}
     }
 
     "succeed with @permitEmpty" in {
@@ -87,7 +87,7 @@ class SchemaParserGlobalDirectivesSpec extends Specification {
           |@permitEmpty
           |column1: """.stripMargin
 
-      parse(new StringReader(schema)) must beLike { case Success(Schema(List(PermitEmpty()), List(ColumnDefinition("column1", Nil, Nil))), _) => ok}
+      parse(new StringReader(schema)) must beLike { case Success(Schema(List(PermitEmpty()), List(ColumnDefinition(NamedColumnIdentifier("column1"), Nil, Nil))), _) => ok}
     }
 
     "succeed with @permitEmpty and @noHeader" in {
@@ -97,7 +97,7 @@ class SchemaParserGlobalDirectivesSpec extends Specification {
           |@noHeader
           |column1: """.stripMargin
 
-      parse(new StringReader(schema)) must beLike { case Success(Schema(List(PermitEmpty(), NoHeader()), List(ColumnDefinition("column1", Nil, Nil))), _) => ok}
+      parse(new StringReader(schema)) must beLike { case Success(Schema(List(PermitEmpty(), NoHeader()), List(ColumnDefinition(NamedColumnIdentifier("column1"), Nil, Nil))), _) => ok}
     }
 
   }

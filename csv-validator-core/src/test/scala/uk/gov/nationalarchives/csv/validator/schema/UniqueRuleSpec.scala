@@ -17,7 +17,7 @@ class UniqueRuleSpec extends Specification {
   "unique rule" should {
 
     "pass if all column values are distinct" in {
-      val schema = Schema(List(TotalColumns(1)), List(ColumnDefinition("Name")))
+      val schema = Schema(List(TotalColumns(1)), List(ColumnDefinition(NamedColumnIdentifier("Name"))))
       val rule = UniqueRule()
 
       rule.evaluate(0, Row(Cell("Jim") :: Nil, 1), schema)
@@ -25,7 +25,7 @@ class UniqueRuleSpec extends Specification {
     }
 
     "fail if there are duplicate column values" in {
-      val schema = Schema(List(TotalColumns(1)), List(ColumnDefinition("Name")))
+      val schema = Schema(List(TotalColumns(1)), List(ColumnDefinition(NamedColumnIdentifier("Name"))))
       val rule = UniqueRule()
 
       rule.evaluate(0, Row(Cell("Jim") :: Nil, 1), schema)
@@ -38,7 +38,7 @@ class UniqueRuleSpec extends Specification {
 
     "fail if columns differ only in case with @ignoreCase" in {
       val rule = UniqueRule()
-      val schema = Schema(List(TotalColumns(1)), List(ColumnDefinition("Name", rule :: Nil, IgnoreCase() :: Nil)))
+      val schema = Schema(List(TotalColumns(1)), List(ColumnDefinition(NamedColumnIdentifier("Name"), rule :: Nil, IgnoreCase() :: Nil)))
 
       rule.evaluate(0, Row(Cell("Ben") :: Nil, 1), schema)
 

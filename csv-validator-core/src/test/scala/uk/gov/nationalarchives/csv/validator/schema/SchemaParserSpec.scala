@@ -20,7 +20,7 @@ class SchemaParserSpec extends Specification {
   "Schema" should {
 
     "succeed for valid minimal schema" in {
-      val columnDefinitions = List(new ColumnDefinition("column1"),new ColumnDefinition("column2"),new ColumnDefinition("column3"))
+      val columnDefinitions = List(new ColumnDefinition(NamedColumnIdentifier("column1")),new ColumnDefinition(NamedColumnIdentifier("column2")),new ColumnDefinition(NamedColumnIdentifier("column3")))
 
       val schema = """version 1.0
                      |@totalColumns 3
@@ -48,7 +48,7 @@ class SchemaParserSpec extends Specification {
                       Name :
                       Age   :     """
 
-      parse(new StringReader(schema)) must beLike { case Success(parsedSchema, _) => parsedSchema mustEqual Schema(List(TotalColumns(2)), List(ColumnDefinition("Name"), ColumnDefinition("Age"))) }
+      parse(new StringReader(schema)) must beLike { case Success(parsedSchema, _) => parsedSchema mustEqual Schema(List(TotalColumns(2)), List(ColumnDefinition(NamedColumnIdentifier("Name")), ColumnDefinition(NamedColumnIdentifier("Age")))) }
     }
 
     "fail if column directives declared before rules" in {
@@ -66,7 +66,7 @@ class SchemaParserSpec extends Specification {
                       @totalColumns 2 @noHeader
                       Name :
                       Age   :     """
-      parse(new StringReader(schema)) must beLike { case Success(parsedSchema, _) => parsedSchema mustEqual Schema(List(TotalColumns(2), NoHeader()), List(ColumnDefinition("Name"), ColumnDefinition("Age"))) }
+      parse(new StringReader(schema)) must beLike { case Success(parsedSchema, _) => parsedSchema mustEqual Schema(List(TotalColumns(2), NoHeader()), List(ColumnDefinition(NamedColumnIdentifier("Name")), ColumnDefinition(NamedColumnIdentifier("Age")))) }
     }
 
     "succeed for single-line comments" should {
@@ -78,7 +78,7 @@ class SchemaParserSpec extends Specification {
           Name : notEmpty
           Age : notEmpty
           """
-        parse(new StringReader(schema)) must beLike { case Success(parsedSchema, _) => parsedSchema mustEqual Schema(List(TotalColumns(2)), List(ColumnDefinition("Name", List(NotEmptyRule()), List()), ColumnDefinition("Age", List(NotEmptyRule()), List()))) }
+        parse(new StringReader(schema)) must beLike { case Success(parsedSchema, _) => parsedSchema mustEqual Schema(List(TotalColumns(2)), List(ColumnDefinition(NamedColumnIdentifier("Name"), List(NotEmptyRule()), List()), ColumnDefinition(NamedColumnIdentifier("Age"), List(NotEmptyRule()), List()))) }
       }
 
       "placed anywhere in the body" in {
@@ -89,7 +89,7 @@ class SchemaParserSpec extends Specification {
           //comment before next rule
           Age : notEmpty //another inline comment
                      """
-        parse(new StringReader(schema)) must beLike { case Success(parsedSchema, _) => parsedSchema mustEqual Schema(List(TotalColumns(2)), List(ColumnDefinition("Name", List(NotEmptyRule()), List()), ColumnDefinition("Age", List(NotEmptyRule()), List()))) }
+        parse(new StringReader(schema)) must beLike { case Success(parsedSchema, _) => parsedSchema mustEqual Schema(List(TotalColumns(2)), List(ColumnDefinition(NamedColumnIdentifier("Name"), List(NotEmptyRule()), List()), ColumnDefinition(NamedColumnIdentifier("Age"), List(NotEmptyRule()), List()))) }
       }
 
       "placed at the end of the body (with newline)" in {
@@ -99,7 +99,7 @@ class SchemaParserSpec extends Specification {
           Age : notEmpty
           //comment at end of body
                      """
-        parse(new StringReader(schema)) must beLike { case Success(parsedSchema, _) => parsedSchema mustEqual Schema(List(TotalColumns(2)), List(ColumnDefinition("Name", List(NotEmptyRule()), List()), ColumnDefinition("Age", List(NotEmptyRule()), List()))) }
+        parse(new StringReader(schema)) must beLike { case Success(parsedSchema, _) => parsedSchema mustEqual Schema(List(TotalColumns(2)), List(ColumnDefinition(NamedColumnIdentifier("Name"), List(NotEmptyRule()), List()), ColumnDefinition(NamedColumnIdentifier("Age"), List(NotEmptyRule()), List()))) }
       }
 
       "placed at the end of the body (without newline)" in {
@@ -108,7 +108,7 @@ class SchemaParserSpec extends Specification {
           Name : notEmpty
           Age : notEmpty
           //comment at end of body"""
-        parse(new StringReader(schema)) must beLike { case Success(parsedSchema, _) => parsedSchema mustEqual Schema(List(TotalColumns(2)), List(ColumnDefinition("Name", List(NotEmptyRule()), List()), ColumnDefinition("Age", List(NotEmptyRule()), List()))) }
+        parse(new StringReader(schema)) must beLike { case Success(parsedSchema, _) => parsedSchema mustEqual Schema(List(TotalColumns(2)), List(ColumnDefinition(NamedColumnIdentifier("Name"), List(NotEmptyRule()), List()), ColumnDefinition(NamedColumnIdentifier("Age"), List(NotEmptyRule()), List()))) }
       }
 
     }
@@ -124,7 +124,7 @@ class SchemaParserSpec extends Specification {
           Name : notEmpty
           Age : notEmpty
                      """
-        parse(new StringReader(schema)) must beLike { case Success(parsedSchema, _) => parsedSchema mustEqual Schema(List(TotalColumns(2)), List(ColumnDefinition("Name", List(NotEmptyRule()), List()), ColumnDefinition("Age", List(NotEmptyRule()), List()))) }
+        parse(new StringReader(schema)) must beLike { case Success(parsedSchema, _) => parsedSchema mustEqual Schema(List(TotalColumns(2)), List(ColumnDefinition(NamedColumnIdentifier("Name"), List(NotEmptyRule()), List()), ColumnDefinition(NamedColumnIdentifier("Age"), List(NotEmptyRule()), List()))) }
       }
 
       "placed anywhere in the body" in {
@@ -139,7 +139,7 @@ class SchemaParserSpec extends Specification {
           Age : notEmpty /* another inline
           comment */
                      """
-        parse(new StringReader(schema)) must beLike { case Success(parsedSchema, _) => parsedSchema mustEqual Schema(List(TotalColumns(2)), List(ColumnDefinition("Name", List(NotEmptyRule()), List()), ColumnDefinition("Age", List(NotEmptyRule()), List()))) }
+        parse(new StringReader(schema)) must beLike { case Success(parsedSchema, _) => parsedSchema mustEqual Schema(List(TotalColumns(2)), List(ColumnDefinition(NamedColumnIdentifier("Name"), List(NotEmptyRule()), List()), ColumnDefinition(NamedColumnIdentifier("Age"), List(NotEmptyRule()), List()))) }
       }
 
       "placed at the end of the body (with newline)" in {
@@ -150,7 +150,7 @@ class SchemaParserSpec extends Specification {
           /* comment at
             end of body */
                      """
-        parse(new StringReader(schema)) must beLike { case Success(parsedSchema, _) => parsedSchema mustEqual Schema(List(TotalColumns(2)), List(ColumnDefinition("Name", List(NotEmptyRule()), List()), ColumnDefinition("Age", List(NotEmptyRule()), List()))) }
+        parse(new StringReader(schema)) must beLike { case Success(parsedSchema, _) => parsedSchema mustEqual Schema(List(TotalColumns(2)), List(ColumnDefinition(NamedColumnIdentifier("Name"), List(NotEmptyRule()), List()), ColumnDefinition(NamedColumnIdentifier("Age"), List(NotEmptyRule()), List()))) }
       }
 
       "placed at the end of the body (without newline)" in {
@@ -160,7 +160,7 @@ class SchemaParserSpec extends Specification {
           Age : notEmpty
           /* comment at end
           of body */"""
-        parse(new StringReader(schema)) must beLike { case Success(parsedSchema, _) => parsedSchema mustEqual Schema(List(TotalColumns(2)), List(ColumnDefinition("Name", List(NotEmptyRule()), List()), ColumnDefinition("Age", List(NotEmptyRule()), List()))) }
+        parse(new StringReader(schema)) must beLike { case Success(parsedSchema, _) => parsedSchema mustEqual Schema(List(TotalColumns(2)), List(ColumnDefinition(NamedColumnIdentifier("Name"), List(NotEmptyRule()), List()), ColumnDefinition(NamedColumnIdentifier("Age"), List(NotEmptyRule()), List()))) }
       }
 
     }
@@ -171,7 +171,7 @@ class SchemaParserSpec extends Specification {
   "When there is a named column for a rule the schema" should {
     "succeed when there is a named column for a rule" in {
 
-      val columnDefinitions = List(new ColumnDefinition("FirstName", Nil, Nil),new ColumnDefinition("LastName", List( IsRule(Literal(Some("Yoda")))))   )
+      val columnDefinitions = List(new ColumnDefinition(NamedColumnIdentifier("FirstName"), Nil, Nil),new ColumnDefinition(NamedColumnIdentifier("LastName"), List( IsRule(Literal(Some("Yoda")))))   )
 
       val schema = """version 1.0
                       @totalColumns 2  @noHeader
@@ -183,7 +183,7 @@ class SchemaParserSpec extends Specification {
 
     "succeed when there is NO named column for a rule" in {
 
-      val columnDefinitions = List(new ColumnDefinition("FirstName", Nil, Nil),new ColumnDefinition("LastName", List( IsRule(Literal(Some("Yoda")))))   )
+      val columnDefinitions = List(new ColumnDefinition(NamedColumnIdentifier("FirstName"), Nil, Nil),new ColumnDefinition(NamedColumnIdentifier("LastName"), List( IsRule(Literal(Some("Yoda")))))   )
 
       val schema = """version 1.0
                       @totalColumns 2  @noHeader
@@ -195,7 +195,7 @@ class SchemaParserSpec extends Specification {
 
     "succeed when there is 'or' rule named column for a rule" in {
 
-      val columnDefinitions = List(new ColumnDefinition("FirstName", Nil, Nil),new ColumnDefinition("LastName", List( OrRule( IsRule(Literal(Some("Yoda"))),IsRule(Literal(Some("Darth"))) ) )) )
+      val columnDefinitions = List(new ColumnDefinition(NamedColumnIdentifier("FirstName"), Nil, Nil),new ColumnDefinition(NamedColumnIdentifier("LastName"), List( OrRule( IsRule(Literal(Some("Yoda"))),IsRule(Literal(Some("Darth"))) ) )) )
 
       val schema = """version 1.0
                       @totalColumns 2  @noHeader

@@ -23,36 +23,36 @@ class IfRuleSpec extends Specification {
 
     "condition and 'if body' is true and no 'else'" in {
       val ifRule = IfRule(StartsRule(Literal(Some("hello world"))),List(EndsRule(Literal(Some("world")))), None)
-      ifRule.evaluate(0, Row(List(Cell("hello world")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(List(true))
+      ifRule.evaluate(0, Row(List(Cell("hello world")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) mustEqual Success(List(true))
     }
 
     "condition is true and no else, 'if body' rule fails" in {
       val ifRule = IfRule(StartsRule(Literal(Some("hello world"))),List(EndsRule(Literal(Some("hello")))), None)
-      ifRule.evaluate(0, Row(List(Cell("hello world")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must beLike {
+      ifRule.evaluate(0, Row(List(Cell("hello world")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) must beLike {
         case Failure(messages) => messages.head mustEqual "ends(\"hello\") fails for line: 1, column: column1, value: \"hello world\""
       }
     }
 
     "condition is true and there is an 'else' that is true and 'if' body that is false" in {
       val ifRule = IfRule(StartsRule(Literal(Some("hello"))),List(EndsRule(Literal(Some("hello")))), Some(List(EndsRule(Literal(Some("world"))))))
-      ifRule.evaluate(0, Row(List(Cell("hello world")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must beLike {
+      ifRule.evaluate(0, Row(List(Cell("hello world")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) must beLike {
         case Failure(messages) => messages.head mustEqual "ends(\"hello\") fails for line: 1, column: column1, value: \"hello world\""
       }
     }
 
     "condition is false and there is no 'else' and 'if' body that is true" in {
       val ifRule = IfRule(StartsRule(Literal(Some("sello"))),List(EndsRule(Literal(Some("world")))), None)
-      ifRule.evaluate(0, Row(List(Cell("hello world")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(List())
+      ifRule.evaluate(0, Row(List(Cell("hello world")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) mustEqual Success(List())
     }
 
     "condition is false and there is an 'else' that is true and body that is true" in {
       val ifRule = IfRule(StartsRule(Literal(Some("sello"))),List(EndsRule(Literal(Some("world")))), Some(List(EndsRule(Literal(Some("world"))))))
-      ifRule.evaluate(0, Row(List(Cell("hello world")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(List(true))
+      ifRule.evaluate(0, Row(List(Cell("hello world")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) mustEqual Success(List(true))
     }
 
     "condition is false and there is an 'else' that is false and 'if' body that is true" in {
       val ifRule = IfRule(StartsRule(Literal(Some("sello"))),List(EndsRule(Literal(Some("world")))), Some(List(EndsRule(Literal(Some("hello"))))))
-      ifRule.evaluate(0, Row(List(Cell("hello world")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must beLike {
+      ifRule.evaluate(0, Row(List(Cell("hello world")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) must beLike {
         case Failure(messages) => messages.head mustEqual "ends(\"hello\") fails for line: 1, column: column1, value: \"hello world\""
       }
     }
@@ -63,7 +63,7 @@ class IfRuleSpec extends Specification {
           IfRule(StartsRule(Literal(Some("sello"))),List(EndsRule(Literal(Some("world")))), None)
         ))
       )
-      ifRule.evaluate(0, Row(List(Cell("hello world")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(List(List()))
+      ifRule.evaluate(0, Row(List(Cell("hello world")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) mustEqual Success(List(List()))
     }
 
     "condition is false and 'else' has nested 'if' that is true with no 'else'" in {
@@ -72,7 +72,7 @@ class IfRuleSpec extends Specification {
           IfRule(StartsRule(Literal(Some("hello"))),List(EndsRule(Literal(Some("world")))), None)
         ))
       )
-      ifRule.evaluate(0, Row(List(Cell("hello world")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(List(List(true)))
+      ifRule.evaluate(0, Row(List(Cell("hello world")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) mustEqual Success(List(List(true)))
     }
 
     "nested if'" in {
@@ -84,7 +84,7 @@ class IfRuleSpec extends Specification {
             ,List(EndsRule(Literal(Some("world")))), Some(List(EndsRule(Literal(Some("world"))))))
         ))
       )
-      ifRule.evaluate(0, Row(List(Cell("hello world")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(List(List(true)))
+      ifRule.evaluate(0, Row(List(Cell("hello world")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) mustEqual Success(List(List(true)))
     }
 
   }

@@ -20,12 +20,12 @@ class EmptyRuleSpec extends Specification {
 
      "Succeed if cell is empty" in {
       val emptyRule = EmptyRule()
-      emptyRule.evaluate(0, Row(List(Cell("")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) mustEqual Success(true)
+      emptyRule.evaluate(0, Row(List(Cell("")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) mustEqual Success(true)
      }
 
     "Fail if cell is NOT empty" in {
       val emptyRule = EmptyRule()
-      emptyRule.evaluate(0, Row(List(Cell("something")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must beLike {
+      emptyRule.evaluate(0, Row(List(Cell("something")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) must beLike {
         case Failure(messages) => messages.head mustEqual """empty fails for line: 1, column: column1, value: "something""""
       }
     }

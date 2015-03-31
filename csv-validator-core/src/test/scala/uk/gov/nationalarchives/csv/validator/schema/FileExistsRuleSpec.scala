@@ -34,31 +34,31 @@ class FileExistsRuleSpec extends Specification with TestResources {
     val globalDirsTwo = List(TotalColumns(2))
 
     "fail for non-existent file" in {
-      FileExistsRule(emptyPathSubstitutions, false).evaluate(0, Row(List(Cell("some/non/existent/file")), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must beLike {
+      FileExistsRule(emptyPathSubstitutions, false).evaluate(0, Row(List(Cell("some/non/existent/file")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) must beLike {
         case Failure(messages) => messages.head mustEqual "fileExists fails for line: 1, column: column1, value: \"some/non/existent/file\""
       }
     }
 
     "fail for empty file path" in {
-      FileExistsRule(emptyPathSubstitutions, false).evaluate(1, Row(List(Cell("abc"), Cell("")), 2), Schema(globalDirsTwo, List(ColumnDefinition("column1"), ColumnDefinition("column2")))) must beLike {
+      FileExistsRule(emptyPathSubstitutions, false).evaluate(1, Row(List(Cell("abc"), Cell("")), 2), Schema(globalDirsTwo, List(ColumnDefinition(NamedColumnIdentifier("column1")), ColumnDefinition(NamedColumnIdentifier("column2"))))) must beLike {
         case Failure(messages) => messages.head mustEqual "fileExists fails for line: 2, column: column2, value: \"\""
       }
     }
 
     "succeed for file that exists with no root file path" in {
-      FileExistsRule(emptyPathSubstitutions, false).evaluate(0, Row(List(Cell(relMustExistForRulePath)), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must be_==(Success(true))
+      FileExistsRule(emptyPathSubstitutions, false).evaluate(0, Row(List(Cell(relMustExistForRulePath)), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) must be_==(Success(true))
     }
 
     "succeed for file that exists with root file path" in {
-      FileExistsRule(emptyPathSubstitutions, false, Literal(Some(relPath._1 + FILE_SEPARATOR))).evaluate(0, Row(List(Cell(relPath._2)), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must be_==(Success(true))
+      FileExistsRule(emptyPathSubstitutions, false, Literal(Some(relPath._1 + FILE_SEPARATOR))).evaluate(0, Row(List(Cell(relPath._2)), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) must be_==(Success(true))
     }
 
     "succeed for root file path without final file separator and file without initial file separator" in {
-      FileExistsRule(emptyPathSubstitutions,false, Literal(Some(relPath._1))).evaluate(0, Row(List(Cell(relPath._2)), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must be_==(Success(true))
+      FileExistsRule(emptyPathSubstitutions,false, Literal(Some(relPath._1))).evaluate(0, Row(List(Cell(relPath._2)), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) must be_==(Success(true))
     }
 
     "succeed for filename that contains '#' character" in {
-      FileExistsRule(emptyPathSubstitutions, false, Literal(Some(hashRelPath._1 + FILE_SEPARATOR))).evaluate(0, Row(List(Cell(hashRelPath._2)), 1), Schema(globalDirsOne, List(ColumnDefinition("column1")))) must be_==(Success(true))
+      FileExistsRule(emptyPathSubstitutions, false, Literal(Some(hashRelPath._1 + FILE_SEPARATOR))).evaluate(0, Row(List(Cell(hashRelPath._2)), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) must be_==(Success(true))
     }
   }
 
