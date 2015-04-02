@@ -349,14 +349,18 @@ trait SchemaParser extends RegexParsers
    */
   def lengthExpr: Parser[LengthRule] = "LengthExpr" ::= "length(" ~> opt(positiveIntegerOrAny <~ ",") ~ positiveIntegerOrAny <~ ")" ^^ {
     case from ~ to =>
-      LengthRule(from, to)
+      def str(x: Option[BigInt]): String = x.map(_.toString).getOrElse(wildcard)
+      LengthRule(from.map(str), str(to))
   }
 
   /**
    * [45]	PositiveIntegerOrAny ::=	PositiveIntegerLiteral | WildcardLiteral
    */
-  def positiveIntegerOrAny: Parser[String] = "PositiveIntegerOrAny" ::= (positiveIntegerLiteral | wildcardLiteral) ^^ {
-    _.toString //TODO should be able to remove this `.toString` in favour of positiveIntegerOrAny returning some sort of number or any object, `LengthRule` in lengthExpr being either AnyLength object or BigInt, rather than just a String!
+  def positiveIntegerOrAny: Parser[Option[BigInt]] = "PositiveIntegerOrAny" ::= (positiveIntegerLiteral | wildcardLiteral) ^^ {
+    case positiveInteger: BigInt =>
+      Option(positiveInteger)
+    case wildcard =>
+      Option.empty
   }
 
   /**
@@ -602,13 +606,14 @@ trait SchemaParser extends RegexParsers
   /**
    * [80] WildcardLiteral ::= "*"
    */
-  def wildcardLiteral : Parser[String] = "WildcardLiteral" ::= "*"
+  def wildcardLiteral : Parser[String] = "WildcardLiteral" ::= wildcard
 
   /**
    * [81] Ident ::= [A-Za-z0-9\-_\.]+   /* xgc:regular-expression */
    */
   def ident: Parser[String] = "Ident" ::= """[A-Za-z0-9\-_\.]+""".r
 
+  private val wildcard = "*"
 
   override protected val whiteSpace = """[ \t]*""".r
 
