@@ -113,9 +113,9 @@ object CsvValidatorCmdApp extends App {
 
   private def prettyPrint(l: NonEmptyList[FailMessage]): String = l.list.map{i =>
     i match {
-      case WarningMessage(err) => "Warning: " + err
-      case ErrorMessage(err) =>   "Error:   " + err
-      case SchemaMessage(err) =>  err
+      case WarningMessage(err,_,_) => "Warning: " + err
+      case ErrorMessage(err,_,_) =>   "Error:   " + err
+      case SchemaMessage(err,_,_) =>  err
     }
   }.mkString(sys.props("line.separator"))
 }

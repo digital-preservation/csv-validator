@@ -95,8 +95,8 @@ object CsvValidatorJavaBridge {
   }
 
   private def asJavaMessage(f: SFailMessage): FailMessage = f match {
-    case SWarningMessage(msg) => new WarningMessage(msg).asInstanceOf[FailMessage]
-    case SErrorMessage(msg) => new ErrorMessage(msg).asInstanceOf[FailMessage]
-    case SSchemaMessage(msg) => new ErrorMessage(msg).asInstanceOf[FailMessage]
+    case SWarningMessage(msg, lineNr, columnIdx) => new WarningMessage(msg, lineNr, columnIdx).asInstanceOf[FailMessage]
+    case SErrorMessage(msg, lineNr, columnIdx) => new ErrorMessage(msg, lineNr, columnIdx).asInstanceOf[FailMessage]
+    case SSchemaMessage(msg, lineNr, columnIdx) => new ErrorMessage(msg, lineNr, columnIdx).asInstanceOf[FailMessage]
   }
 }

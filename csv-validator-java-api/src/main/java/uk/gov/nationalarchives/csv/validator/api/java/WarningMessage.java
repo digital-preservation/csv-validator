@@ -13,7 +13,7 @@ package uk.gov.nationalarchives.csv.validator.api.java;
  */
 public class WarningMessage extends FailMessage {
 
-    public WarningMessage(final String message) {
-        super(message);
+    public WarningMessage(final String message, final int lineNumber, final int columnIndex) {
+        super(message, lineNumber, columnIndex);
     }
 }
