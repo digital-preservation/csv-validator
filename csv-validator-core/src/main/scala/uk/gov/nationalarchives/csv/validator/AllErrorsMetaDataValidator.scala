@@ -48,7 +48,7 @@ trait AllErrorsMetaDataValidator extends MetaDataValidator {
     }
 
     if (tc.isEmpty || tc.get.numberOfColumns == row.cells.length) true.successNel[FailMessage]
-    else ErrorMessage(s"Expected @totalColumns of ${tc.get.numberOfColumns} and found ${row.cells.length} on line ${row.lineNumber}", row.lineNumber, row.cells.length).failNel[Any]
+    else ErrorMessage(s"Expected @totalColumns of ${tc.get.numberOfColumns} and found ${row.cells.length} on line ${row.lineNumber}", row.lineNumber).failNel[Any]
   }
 
   private def rules(row: Row, schema: Schema): MetaDataValidation[List[Any]] = {
