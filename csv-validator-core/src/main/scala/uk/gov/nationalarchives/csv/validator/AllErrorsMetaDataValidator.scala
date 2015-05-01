@@ -48,7 +48,7 @@ trait AllErrorsMetaDataValidator extends MetaDataValidator {
     }
 
     if (tc.isEmpty || tc.get.numberOfColumns == row.cells.length) true.successNel[FailMessage]
-    else ErrorMessage(s"Expected @totalColumns of ${tc.get.numberOfColumns} and found ${row.cells.length} on line ${row.lineNumber}", row.lineNumber).failNel[Any]
+    else ErrorMessage(s"Expected @totalColumns of ${tc.get.numberOfColumns} and found ${row.cells.length} on line ${row.lineNumber}", Some(row.lineNumber)).failNel[Any]
   }
 
   private def rules(row: Row, schema: Schema): MetaDataValidation[List[Any]] = {
@@ -60,7 +60,7 @@ trait AllErrorsMetaDataValidator extends MetaDataValidator {
   private def validateCell(columnIndex: Int, cells: (Int) => Option[Cell], row: Row, schema: Schema): MetaDataValidation[Any] = {
     cells(columnIndex) match {
       case Some(c) => rulesForCell(columnIndex, row, schema)
-      case _ => ErrorMessage(s"Missing value at line: ${row.lineNumber}, column: ${schema.columnDefinitions(columnIndex).id}", row.lineNumber, columnIndex).failNel[Any]
+      case _ => ErrorMessage(s"Missing value at line: ${row.lineNumber}, column: ${schema.columnDefinitions(columnIndex).id}", Some(row.lineNumber), Some(columnIndex)).failNel[Any]
     }
   }
 
@@ -72,11 +72,11 @@ trait AllErrorsMetaDataValidator extends MetaDataValidator {
     def isOptionDirective: Boolean = columnDefinition.directives.contains(Optional())
 
     def convert2Warnings(results:Rule#RuleValidation[Any]): MetaDataValidation[Any] = {
-      results.leftMap(_.map(WarningMessage(_, row.lineNumber, columnIndex)))
+      results.leftMap(_.map(WarningMessage(_, Some(row.lineNumber), Some(columnIndex))))
     }
 
     def convert2Errors(results:Rule#RuleValidation[Any]): MetaDataValidation[Any] = {
-      results.leftMap(_.map(ErrorMessage(_, row.lineNumber, columnIndex)))
+      results.leftMap(_.map(ErrorMessage(_, Some(row.lineNumber), Some(columnIndex))))
     }
 
     if (row.cells(columnIndex).value.trim.isEmpty && isOptionDirective) true.successNel

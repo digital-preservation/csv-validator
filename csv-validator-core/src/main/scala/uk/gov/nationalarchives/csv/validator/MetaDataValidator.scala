@@ -19,10 +19,10 @@ import uk.gov.nationalarchives.csv.validator.metadata.Row
 import scala.annotation.tailrec
 import uk.gov.nationalarchives.csv.validator.api.TextFile
 
-sealed abstract class FailMessage(val msg:String, val lineNr:Int, val colIdx:Int)
-case class WarningMessage(message:String, lineNumber: Int, columnIndex: Int = -1) extends FailMessage(message, lineNumber, columnIndex)
-case class ErrorMessage(message:String, lineNumber: Int, columnIndex: Int = -1) extends FailMessage(message, lineNumber, columnIndex)
-case class SchemaMessage(message:String, lineNumber: Int = 0, columnIndex: Int = -1) extends FailMessage(message, lineNumber, columnIndex)
+sealed abstract class FailMessage(val msg:String, val lineNr:Option[Int], val colIdx:Option[Int])
+case class WarningMessage(message:String, lineNumber: Option[Int] = None, columnIndex: Option[Int] = None) extends FailMessage(message, lineNumber, columnIndex)
+case class ErrorMessage(message:String, lineNumber: Option[Int] = None, columnIndex: Option[Int] = None) extends FailMessage(message, lineNumber, columnIndex)
+case class SchemaMessage(message:String, lineNumber: Option[Int] = None, columnIndex: Option[Int] = None) extends FailMessage(message, lineNumber, columnIndex)
 
 case class ProgressFor(rowsToValidate: Int, progress: ProgressCallback)
 
@@ -77,17 +77,17 @@ trait MetaDataValidator {
         val maybeNoData =
           if (schema.globalDirectives.contains(NoHeader())) {
             if (!rowIt.hasNext && !schema.globalDirectives.contains(PermitEmpty())) {
-              Some(ErrorMessage("metadata file is empty but this has not been permitted", 0,0).failNel[Any])
+              Some(ErrorMessage("metadata file is empty but this has not been permitted").failNel[Any])
             } else {
               None
             }
           } else {
             if(!rowIt.hasNext) {
-              Some(ErrorMessage("metadata file is empty but should contain at least a header", 0,0).failNel[Any])
+              Some(ErrorMessage("metadata file is empty but should contain at least a header").failNel[Any])
             } else {
               val header = rowIt.skipHeader()
               if(!rowIt.hasNext && !schema.globalDirectives.contains(PermitEmpty())) {
-                Some(ErrorMessage("metadata file has a header but no data and this has not been permitted", 0,0).failNel[Any])
+                Some(ErrorMessage("metadata file has a header but no data and this has not been permitted").failNel[Any])
               } else {
                 None
               }
@@ -107,7 +107,7 @@ trait MetaDataValidator {
 
       case Left(ts) =>
         //TODO emit all errors not just first!
-        ErrorMessage(ts(0).toString, 0,0).failNel[Any]
+        ErrorMessage(ts(0).toString).failNel[Any]
         //ts.toList.map(t => ErrorMessage(t.toString).failNel[Any]).sequence[MetaDataValidation, Any]
     }
   }
