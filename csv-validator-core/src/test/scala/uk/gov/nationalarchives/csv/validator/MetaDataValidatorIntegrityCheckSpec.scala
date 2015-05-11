@@ -11,6 +11,7 @@ package uk.gov.nationalarchives.csv.validator
 import java.lang.management.MemoryUsage
 import java.util.Date
 
+import org.junit.Ignore
 import org.specs2.mutable.{BeforeAfter, Specification}
 import org.specs2.specification.{BeforeAfterExample, BeforeAfterEach}
 import uk.gov.nationalarchives.csv.validator.api.{TextFile, CsvValidator}
@@ -100,8 +101,8 @@ class MetaDataValidatorIntegrityCheckSpec extends Specification with TestResourc
 
     "succeed with good values - no header" in {
 
-      val substititutionPaths = List(("file:///T:/WORK/RF_5/",noHeaderPath))
-      val validator = buildValidator(substititutionPaths, Some("identifier"))
+      val substitutionPaths = List(("file:///T:/WORK/RF_5/",noHeaderPath))
+      val validator = buildValidator(substitutionPaths, Some("identifier"))
       val schema: Schema = parse(noHeaderPath + "/integrityCheckSchema.csvs", validator)
       validator.validate(TextFile(Path.fromString(noHeaderPath) / "integrityCheckMetaData.csv"), schema, None) must beLike {
         case Success(_) => ok
@@ -109,17 +110,17 @@ class MetaDataValidatorIntegrityCheckSpec extends Specification with TestResourc
 
     }
 
-  //FIXME
-//    "fail with wrong includeFolder directive - no header" in {
-//
-//      val substititutionPaths = List(("file:///T:/WORK/RF_5/",noHeaderPath))
-//      val validator = buildValidator(substititutionPaths, Some("filename"))
-//      val result = validator.validate(TextFile(Path.fromString(noHeaderPath) / "integrityCheckMetaData.csv"), parse(noHeaderPath + "/badIntegrityCheckSchema.csvs",validator), None)
-//      result.isFailure mustEqual true
-//      val Failure(message) = result
-//      println(message)
-//      ok
-//    }
+
+    "fail with wrong includeFolder directive - no header" in {
+
+      val substititutionPaths = List(("file:///T:/WORK/RF_5/",noHeaderPath))
+      val validator = buildValidator(substititutionPaths, Some("filename"))
+      val result = validator.validate(TextFile(Path.fromString(noHeaderPath) / "integrityCheckMetaData.csv"), parse(noHeaderPath + "/badIntegrityCheckSchema.csvs",validator), None)
+      result.isFailure mustEqual true
+      val Failure(message) = result
+      println(message)
+      ok
+    }.pendingUntilFixed()
 
     "Validate WO 95" in {
 
