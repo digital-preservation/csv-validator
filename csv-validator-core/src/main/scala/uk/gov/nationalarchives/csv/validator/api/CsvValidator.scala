@@ -64,7 +64,7 @@ trait CsvValidator extends SchemaParser {
    */
   def validate(csvFile: TextFile, csvSchema: Schema, progress: Option[ProgressCallback]): MetaDataValidation[Any] = {
    
-    val integrationValidation: MetaDataValidation[Any] = integrityCheckValidation2(csvFile, csvSchema).getOrElse(true.successNel[FailMessage])
+    val integrationValidation: MetaDataValidation[Any] = integrityCheckValidation(csvFile, csvSchema).getOrElse(true.successNel[FailMessage])
 
     val metadataValidation:MetaDataValidation[Any] = withReader(csvFile) {
       reader =>
@@ -74,7 +74,7 @@ trait CsvValidator extends SchemaParser {
     List(integrationValidation, metadataValidation).sequence[MetaDataValidation, Any]
   }
 
-  def integrityCheckValidation2(csvFile: TextFile, csvSchema: Schema): Option[MetaDataValidation[Any]] = {
+  def integrityCheckValidation(csvFile: TextFile, csvSchema: Schema): Option[MetaDataValidation[Any]] = {
     val ic = csvSchema.globalDirectives.collectFirst{ case i @ IntegrityCheck(_, _) => i}
     ic.map {  integrityCheck =>
         val filenameColumn = integrityCheck.filepathColumn
