@@ -1,4 +1,4 @@
 version 1.0
-@totalColumns  2 @integrityCheck("Name",true)
+@totalColumns  2 @integrityCheck("Name","includeFolder")
 Name:
 Age:

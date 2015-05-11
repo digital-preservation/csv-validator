@@ -113,11 +113,13 @@ trait SchemaParser extends RegexParsers {
   def ignoreColumnNameCaseDirective: Parser[IgnoreColumnNameCase] = directivePrefix ~> "ignoreColumnNameCase" ^^^ IgnoreColumnNameCase()
 
   /**
-   * IntegrityCheckDirective ::= DirectivePrefix "integrityCheck(" StringLiteral, BooleanLiteral ")"
+   * IntegrityCheckDirective ::= DirectivePrefix "integrityCheck("StringLiteral, StringLiteral? ")"
    */
-  def integrityCheckDirective: Parser[IntegrityCheck] = (directivePrefix ~> "integrityCheck(" ~> stringLiteral ~ "," ~ booleanLiteral <~ ")" ^^ {
-    case filepathColumn ~ "," ~ includeFolder => IntegrityCheck(filepathColumn, includeFolder)
-  }).withFailureMessage("@integrityChek invalid")
+  def integrityCheckDirective: Parser[IntegrityCheck] = (directivePrefix ~> "integrityCheck(" ~> stringLiteral ~ (("," ~> stringLiteral)?) <~ ")" ^^ {
+    case filepathColumn ~ Some(includeFolder) if includeFolder == "includeFolder"  => IntegrityCheck(filepathColumn, true)
+    case filepathColumn ~ Some(includeFolder) if includeFolder == "excludeFolder"  => IntegrityCheck(filepathColumn, false)
+    case filepathColumn ~ None  => IntegrityCheck(filepathColumn, false)
+  }).withFailureMessage("@integrityCheck invalid")
 
   /**
    * [14]	Body ::= BodyPart+
@@ -566,7 +568,7 @@ trait SchemaParser extends RegexParsers {
   def characterLiteral: Parser[Char] =  "'" ~> """[^\r\n\f']""".r <~ "'" ^^ { _.head }
   
   //TODO refactor using logic on TRY / PARSER
-  def booleanLiteral: Parser[Boolean] = """true|false""".r ^^ {input => input.toBoolean}
+ // def booleanLiteral: Parser[Boolean] = """true|false""".r ^^ {input => input.toBoolean}
 
 
   /**
