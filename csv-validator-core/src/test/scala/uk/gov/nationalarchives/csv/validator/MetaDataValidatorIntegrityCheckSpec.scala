@@ -53,8 +53,8 @@ class MetaDataValidatorIntegrityCheckSpec extends Specification with TestResourc
     
     "succeed with good values - header" in {
 
-      val substititutionPaths = List(("file:///T:/WORK/RF_5/",headerPath))
-      val validator = buildValidator(substititutionPaths, Some("filename"))
+      val substitutionPaths = List(("file:///T:/WORK/RF_5/",headerPath))
+      val validator = buildValidator(substitutionPaths, Some("filename"))
       validator.validate(TextFile(Path.fromString(headerPath) / "integrityCheckMetaData.csv"), parse(headerPath + "/integrityCheckSchema.csvs",validator), None) must beLike {
          case Success(_) => ok
       }
@@ -63,8 +63,8 @@ class MetaDataValidatorIntegrityCheckSpec extends Specification with TestResourc
 
     "succeed with good values and implicit include folder - header" in {
 
-      val substititutionPaths = List(("file:///T:/WORK/RF_5/",headerPath))
-      val validator = buildValidator(substititutionPaths, Some("filename"))
+      val substitutionPaths = List(("file:///T:/WORK/RF_5/",headerPath))
+      val validator = buildValidator(substitutionPaths, Some("filename"))
       validator.validate(TextFile(Path.fromString(headerPath) / "integrityCheckMetaData.csv"), parse(headerPath + "/integrityCheckDefaultIncludeFolderSchema.csvs",validator), None) must beLike {
         case Success(_) => ok
       }
@@ -74,8 +74,8 @@ class MetaDataValidatorIntegrityCheckSpec extends Specification with TestResourc
 
     "fail for metadatafile missing files - header" in {
 
-      val substititutionPaths = List(("file:///T:/WORK/RF_5/",headerPath))
-      val validator = buildValidator(substititutionPaths, Some("filename"))
+      val substitutionPaths = List(("file:///T:/WORK/RF_5/",headerPath))
+      val validator = buildValidator(substitutionPaths, Some("filename"))
       val result = validator.validate(TextFile(Path.fromString(headerPath) / "integrityCheckMetaData-missing-files.csv"), parse(headerPath + "/integrityCheckSchema.csvs",validator), None)
 
       result.isFailure mustEqual true
@@ -87,8 +87,8 @@ class MetaDataValidatorIntegrityCheckSpec extends Specification with TestResourc
 
     "fail for metadatafile missing files - header" in {
 
-      val substititutionPaths = List(("file:///T:/WORK/RF_5/",headerPath))
-      val validator = buildValidator(substititutionPaths, Some("filename"))
+      val substitutionPaths = List(("file:///T:/WORK/RF_5/",headerPath))
+      val validator = buildValidator(substitutionPaths, Some("filename"))
       val result = validator.validate(TextFile(Path.fromString(headerPath) / "integrityCheckMetaData-missing-files.csv"), parse(headerPath + "/integrityCheckSchema.csvs",validator), None)
 
       result.isFailure mustEqual true
@@ -113,8 +113,8 @@ class MetaDataValidatorIntegrityCheckSpec extends Specification with TestResourc
 
     "fail with wrong includeFolder directive - no header" in {
 
-      val substititutionPaths = List(("file:///T:/WORK/RF_5/",noHeaderPath))
-      val validator = buildValidator(substititutionPaths, Some("filename"))
+      val substitutionPaths = List(("file:///T:/WORK/RF_5/",noHeaderPath))
+      val validator = buildValidator(substitutionPaths, Some("filename"))
       val result = validator.validate(TextFile(Path.fromString(noHeaderPath) / "integrityCheckMetaData.csv"), parse(noHeaderPath + "/badIntegrityCheckSchema.csvs",validator), None)
       result.isFailure mustEqual true
       val Failure(message) = result
@@ -124,8 +124,8 @@ class MetaDataValidatorIntegrityCheckSpec extends Specification with TestResourc
 
     "Validate WO 95" in {
 
-      val substititutionPaths = List(("file:///WO_95",WO95Path))
-      val validator = buildValidator(substititutionPaths, Some("file_path"), false)
+      val substitutionPaths = List(("file:///WO_95",WO95Path))
+      val validator = buildValidator(substitutionPaths, Some("file_path"), false)
       validator.validate(TextFile(Path.fromString(WO95Path) / "tech_acq_metadata_v1_WO95Y14B003.csv"), parse(WO95Path + "/tech_acq_metadata_v1_WO95Y14B000.csvs",validator), None) must beLike {
         case Success(_) => ok
       }
