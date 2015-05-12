@@ -68,7 +68,7 @@ trait FailFastMetaDataValidator extends MetaDataValidator {
     val tc: Option[TotalColumns] = schema.globalDirectives.collectFirst{ case t@TotalColumns(_) => t }
 
     if (tc.isEmpty || tc.get.numberOfColumns == row.cells.length) true.successNel[FailMessage]
-    else ErrorMessage(s"Expected @totalColumns of ${tc.get.numberOfColumns} and found ${row.cells.length} on line ${row.lineNumber}").failNel[Any]
+    else ErrorMessage(s"Expected @totalColumns of ${tc.get.numberOfColumns} and found ${row.cells.length} on line ${row.lineNumber}", Some(row.lineNumber), Some(row.cells.length)).failNel[Any]
   }
 
   private def rules(row: Row, schema: Schema): MetaDataValidation[Any] = {
@@ -90,7 +90,7 @@ trait FailFastMetaDataValidator extends MetaDataValidator {
   private def validateCell(columnIndex: Int, cells: (Int) => Option[Cell], row: Row, schema: Schema): MetaDataValidation[Any] = {
     cells(columnIndex) match {
       case Some(c) => rulesForCell(columnIndex, row, schema)
-      case _ => SchemaMessage(s"Missing value at line: ${row.lineNumber}, column: ${schema.columnDefinitions(columnIndex).id}").failNel[Any]
+      case _ => SchemaMessage(s"Missing value at line: ${row.lineNumber}, column: ${schema.columnDefinitions(columnIndex).id}", Some(row.lineNumber), Some(columnIndex)).failNel[Any]
     }
   }
 
@@ -101,11 +101,11 @@ trait FailFastMetaDataValidator extends MetaDataValidator {
     def isOptionDirective: Boolean = columnDefinition.directives.contains(Optional())
 
     def convert2Warnings(results:Rule#RuleValidation[Any]): MetaDataValidation[Any] = {
-      results.leftMap(_.map(WarningMessage))
+      results.leftMap(_.map(WarningMessage(_, Some(row.lineNumber), Some(columnIndex))))
     }
 
     def convert2Errors(results:Rule#RuleValidation[Any]): MetaDataValidation[Any] = {
-      results.leftMap(_.map(ErrorMessage))
+      results.leftMap(_.map(ErrorMessage(_, Some(row.lineNumber), Some(columnIndex))))
     }
 
     @tailrec

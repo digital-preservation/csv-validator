@@ -19,10 +19,10 @@ import uk.gov.nationalarchives.csv.validator.metadata.Row
 import scala.annotation.tailrec
 import uk.gov.nationalarchives.csv.validator.api.TextFile
 
-sealed abstract class FailMessage(val msg:String)
-case class WarningMessage(message:String) extends FailMessage(message)
-case class ErrorMessage(message:String) extends FailMessage(message)
-case class SchemaMessage(message:String) extends FailMessage(message)
+sealed abstract class FailMessage(val msg:String, val lineNr:Option[Int], val colIdx:Option[Int])
+case class WarningMessage(message:String, lineNumber: Option[Int] = None, columnIndex: Option[Int] = None) extends FailMessage(message, lineNumber, columnIndex)
+case class ErrorMessage(message:String, lineNumber: Option[Int] = None, columnIndex: Option[Int] = None) extends FailMessage(message, lineNumber, columnIndex)
+case class SchemaMessage(message:String, lineNumber: Option[Int] = None, columnIndex: Option[Int] = None) extends FailMessage(message, lineNumber, columnIndex)
 
 case class ProgressFor(rowsToValidate: Int, progress: ProgressCallback)
 

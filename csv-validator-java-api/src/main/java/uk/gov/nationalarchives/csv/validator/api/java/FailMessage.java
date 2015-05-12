@@ -13,15 +13,31 @@ package uk.gov.nationalarchives.csv.validator.api.java;
  */
 public abstract class FailMessage {
     private final String message;
+    private final int lineNumber;
+    private final int columnIndex;
 
     /**
      * @param message The failure message
+     * @param lineNumber The original line number in the file
+     * @param columnIndex Zero-based column index
      */
-    public FailMessage(final String message) {
+    public FailMessage(final String message, final int lineNumber, final int columnIndex) {
         this.message = message;
+        this.lineNumber = lineNumber;
+        this.columnIndex = columnIndex;
     }
 
     public String getMessage() {
         return message;
+    }
+
+    public int getLineNumber()
+    {
+        return lineNumber;
+    }
+
+    public int getColumnIndex()
+    {
+        return columnIndex;
     }
 }
