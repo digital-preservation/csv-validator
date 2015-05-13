@@ -9,17 +9,17 @@
 package uk.gov.nationalarchives.csv.validator
 
 import scalaz._, Scalaz._
-import uk.gov.nationalarchives.csv.validator.schema._
+import uk.gov.nationalarchives.csv.validator.schema.Optional
+import uk.gov.nationalarchives.csv.validator.schema.Rule
+import uk.gov.nationalarchives.csv.validator.schema.Schema
+import uk.gov.nationalarchives.csv.validator.schema.Warning
 import uk.gov.nationalarchives.csv.validator.metadata.Cell
 import uk.gov.nationalarchives.csv.validator.metadata.Row
-import uk.gov.nationalarchives.csv.validator.schema.Warning
-import uk.gov.nationalarchives.csv.validator.schema.TotalColumns
-import uk.gov.nationalarchives.csv.validator.schema.Optional
 import scala.annotation.tailrec
 
 trait AllErrorsMetaDataValidator extends MetaDataValidator {
 
-  def validateRows(rows: Iterator[Row], schema: Schema): MetaDataValidation[Any] = {
+  override def validateRows(rows: Iterator[Row], schema: Schema): MetaDataValidation[Any] = {
 
     @tailrec
     def validateRows(results: List[MetaDataValidation[Any]] = List.empty[MetaDataValidation[Any]]) : List[MetaDataValidation[Any]] = {
@@ -36,52 +36,26 @@ trait AllErrorsMetaDataValidator extends MetaDataValidator {
     v.sequence[MetaDataValidation, Any]
   }
 
-  private def validateRow(row: Row, schema: Schema): MetaDataValidation[Any] = {
-    val totalColumnsV = totalColumns(row, schema)
-    val rulesV = rules(row, schema)
-    (totalColumnsV |@| rulesV) { _ :: _ }
-  }
-
-  private def totalColumns(row: Row, schema: Schema): MetaDataValidation[Any] = {
-    val tc: Option[TotalColumns] = schema.globalDirectives.collectFirst {
-      case t@TotalColumns(_) => t
+  override protected def rules(row: Row, schema: Schema): MetaDataValidation[List[Any]] = {
+    val cells: (Int) => Option[Cell] = row.cells.lift
+    val v = schema.columnDefinitions.zipWithIndex.map {
+      case (columnDefinition, columnIndex) =>
+        validateCell(columnIndex, cells, row, schema)
     }
 
-    if (tc.isEmpty || tc.get.numberOfColumns == row.cells.length) true.successNel[FailMessage]
-    else ErrorMessage(s"Expected @totalColumns of ${tc.get.numberOfColumns} and found ${row.cells.length} on line ${row.lineNumber}", Some(row.lineNumber)).failNel[Any]
-  }
-
-  private def rules(row: Row, schema: Schema): MetaDataValidation[List[Any]] = {
-    val cells: (Int) => Option[Cell] = row.cells.lift
-    val v = for {(columnDefinition, columnIndex) <- schema.columnDefinitions.zipWithIndex} yield validateCell(columnIndex, cells, row, schema)
     v.sequence[MetaDataValidation, Any]
   }
 
-  private def validateCell(columnIndex: Int, cells: (Int) => Option[Cell], row: Row, schema: Schema): MetaDataValidation[Any] = {
-    cells(columnIndex) match {
-      case Some(c) => rulesForCell(columnIndex, row, schema)
-      case _ => ErrorMessage(s"Missing value at line: ${row.lineNumber}, column: ${schema.columnDefinitions(columnIndex).id}", Some(row.lineNumber), Some(columnIndex)).failNel[Any]
-    }
-  }
-
-  private def rulesForCell(columnIndex: Int, row: Row, schema: Schema): MetaDataValidation[Any] = {
+  override protected def rulesForCell(columnIndex: Int, row: Row, schema: Schema): MetaDataValidation[Any] = {
 
     val columnDefinition = schema.columnDefinitions(columnIndex)
 
     def isWarningDirective: Boolean = columnDefinition.directives.contains(Warning())
     def isOptionDirective: Boolean = columnDefinition.directives.contains(Optional())
 
-    def convert2Warnings(results:Rule#RuleValidation[Any]): MetaDataValidation[Any] = {
-      results.leftMap(_.map(WarningMessage(_, Some(row.lineNumber), Some(columnIndex))))
-    }
-
-    def convert2Errors(results:Rule#RuleValidation[Any]): MetaDataValidation[Any] = {
-      results.leftMap(_.map(ErrorMessage(_, Some(row.lineNumber), Some(columnIndex))))
-    }
-
-    if (row.cells(columnIndex).value.trim.isEmpty && isOptionDirective) true.successNel
+    if(row.cells(columnIndex).value.trim.isEmpty && isOptionDirective) true.successNel
     else columnDefinition.rules.map(_.evaluate(columnIndex, row, schema)).map{ ruleResult:Rule#RuleValidation[Any] => {
-      if(isWarningDirective) convert2Warnings(ruleResult) else convert2Errors(ruleResult)
+      if(isWarningDirective) toWarnings(ruleResult, row.lineNumber, columnIndex) else toErrors(ruleResult, row.lineNumber, columnIndex)
     }}.sequence[MetaDataValidation, Any]
   }
 }

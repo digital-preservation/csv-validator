@@ -17,7 +17,7 @@ class RangeRuleSpec extends Specification {
 
   "RangeRule" should  {
     val globalDirectives = List(TotalColumns(1))
-    val schema = Schema(globalDirectives, List(ColumnDefinition("Country")))
+    val schema = Schema(globalDirectives, List(ColumnDefinition(NamedColumnIdentifier("Country"))))
 
     "fail when non numeric number passed" in {
       val rangeRule = new RangeRule(1,2)

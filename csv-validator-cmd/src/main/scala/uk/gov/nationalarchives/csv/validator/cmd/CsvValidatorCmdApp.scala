@@ -10,7 +10,6 @@ package uk.gov.nationalarchives.csv.validator.cmd
 
 
 import resource.managed
-import scala.App
 import scalax.file.Path
 import scalaz.{Success => SuccessZ, Failure => FailureZ, _}
 import scopt.Read
@@ -21,23 +20,28 @@ import java.net.URL
 import java.nio.charset.Charset
 import java.util.jar.{Attributes, Manifest}
 
+object SystemExitCodes extends Enumeration {
+  type ExitCode = Int
+  sealed abstract class SystemExitCode(val code: ExitCode)
 
-object  SystemExits {
-  val ValidCsv = 0
-  val IncorrectArguments = 1
-  val InvalidSchema = 2
-  val InvalidCsv = 3
+  case object ValidCsv extends SystemExitCode(0)
+  case object IncorrectArguments extends SystemExitCode(1)
+  case object InvalidSchema extends SystemExitCode(2)
+  case object InvalidCsv extends SystemExitCode(3)
 }
 
 object CsvValidatorCmdApp extends App {
 
-  val (exitMsg, exitCode) = run(args)
-  println(exitMsg)
-  System.exit(exitCode)
+  type ExitMessage = String
+  type ExitStatus = (ExitMessage, SystemExitCodes.SystemExitCode)
 
-  case class Config(failFast: Boolean = false, substitutePaths: List[SubstitutePath] = List.empty[SubstitutePath], caseSensitivePaths: Boolean = false, showVersion: Boolean = false, csvPath: Path = Path.fromString("."), csvEncoding: Charset = CsvValidator.DEFAULT_ENCODING, csvSchemaPath: Path = Path.fromString("."), csvSchemaEncoding: Charset = CsvValidator.DEFAULT_ENCODING)
+  val (exitMessage, systemExitCode) = run(args)
+  println(exitMessage)
+  System.exit(systemExitCode.code)
 
-  def run(args: Array[String]): (String,Int) = {
+  case class Config(traceParser: Boolean = false, failFast: Boolean = false, substitutePaths: List[SubstitutePath] = List.empty[SubstitutePath], caseSensitivePaths: Boolean = false, showVersion: Boolean = false, csvPath: Path = Path.fromString("."), csvEncoding: Charset = CsvValidator.DEFAULT_ENCODING, csvSchemaPath: Path = Path.fromString("."), csvSchemaEncoding: Charset = CsvValidator.DEFAULT_ENCODING)
+
+  def run(args: Array[String]): ExitStatus = {
 
     implicit val pathRead: Read[Path] = Read.reads { Path.fromString(_) }
     implicit val charsetRead: Read[Charset] = Read.reads { Charset.forName(_) }
@@ -46,6 +50,7 @@ object CsvValidatorCmdApp extends App {
         head("CSV Validator - Command Line", getShortVersion())
         help("help") text("Prints this usage text")
         //opt[Boolean]("version") action { (x,c) => c.copy(showVersion = x) } text { "Display the version information" } //TODO would be nice if '--version' could be used without specifying CSV+CSVS paths etc //getLongVersion().map(x => s"${x._1}: ${x._2}").foreach(println(_))
+        opt[Unit]('t', "trace-parser") optional() action { (_, c) => c.copy(traceParser = true)} text("Prints a trace of the parser parse")
         opt[Boolean]('f', "fail-fast") optional() action { (x,c) => c.copy(failFast = x) } text("Stops on the first validation error rather than reporting all errors")
         opt[SubstitutePath]('p', "path") optional() unbounded() action { (x,c) => c.copy(substitutePaths = c.substitutePaths :+ x) } text("Allows you to substitute a file path (or part of) in the CSV for a different file path")
         opt[Boolean]('c', "case-sensitive-paths") optional() action { (x,c) => c.copy(caseSensitivePaths = x) } text("Enforces case-sensitive file path checking. Useful when validating on case-insensitive filesystems like Windows NTFS")
@@ -58,10 +63,10 @@ object CsvValidatorCmdApp extends App {
     //parse the command line arguments
     parser.parse(args, new Config()) map {
       config =>
-        validate(TextFile(config.csvPath, config.csvEncoding), TextFile(config.csvSchemaPath, config.csvSchemaEncoding), config.failFast, config.substitutePaths, config.caseSensitivePaths, None)
+        validate(TextFile(config.csvPath, config.csvEncoding), TextFile(config.csvSchemaPath, config.csvSchemaEncoding), config.failFast, config.substitutePaths, config.caseSensitivePaths, config.traceParser, None)
     } getOrElse {
       //arguments are bad, usage message will have been displayed
-      ("", SystemExits.IncorrectArguments)
+      ("", SystemExitCodes.IncorrectArguments)
     }
   }
 
@@ -99,19 +104,34 @@ object CsvValidatorCmdApp extends App {
     }
   }
 
-  def validate(csvFile: TextFile, schemaFile: TextFile, failFast: Boolean, pathSubstitutionsList: List[SubstitutePath], enforceCaseSensitivePathChecks: Boolean, progress: Option[ProgressCallback]): (String,Int) = {
-    val validator = createValidator(failFast, pathSubstitutionsList, enforceCaseSensitivePathChecks)
+  def validate(csvFile: TextFile, schemaFile: TextFile, failFast: Boolean, pathSubstitutionsList: List[SubstitutePath], enforceCaseSensitivePathChecks: Boolean, trace: Boolean, progress: Option[ProgressCallback]): ExitStatus = {
+    val validator = createValidator(failFast, pathSubstitutionsList, enforceCaseSensitivePathChecks, trace)
     validator.parseSchema(schemaFile) match {
-      case FailureZ(errors) => (prettyPrint(errors), SystemExits.InvalidSchema)
+      case FailureZ(errors) => (prettyPrint(errors), SystemExitCodes.InvalidSchema)
       case SuccessZ(schema) =>
         validator.validate(csvFile, schema, progress) match {
-          case FailureZ(errors) => (prettyPrint(errors), SystemExits.InvalidCsv)
-          case SuccessZ(_) => ("PASS", SystemExits.ValidCsv)
+          case FailureZ(failures) =>
+            val failuresMsg = prettyPrint(failures)
+            if(containsError(failures))  //checks for just warnings to determine exit code
+              (failuresMsg + EOL + "FAIL",
+                SystemExitCodes.InvalidCsv)
+            else
+              (failuresMsg + EOL + "PASS", //just warnings!
+                SystemExitCodes.ValidCsv)
+
+          case SuccessZ(_) => ("PASS", SystemExitCodes.ValidCsv)
         }
     }
   }
 
-  private def prettyPrint(l: NonEmptyList[FailMessage]): String = l.list.map{i =>
+  private def containsError(l: NonEmptyList[FailMessage]) : Boolean = {
+    l.list.find(_ match {
+      case ErrorMessage(_, _, _) => true
+      case _ => false
+    }).nonEmpty
+  }
+
+  private def prettyPrint(l: NonEmptyList[FailMessage]): String = l.list.map { i =>
     i match {
       case WarningMessage(err,_,_) => "Warning: " + err
       case ErrorMessage(err,_,_) =>   "Error:   " + err

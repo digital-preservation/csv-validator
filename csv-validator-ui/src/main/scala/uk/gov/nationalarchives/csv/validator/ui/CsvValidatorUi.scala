@@ -109,7 +109,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
     import scala.util.{Success, Failure}
 
     suspendUi
-    val fAction: Future[Unit] = future {
+    val fAction: Future[Unit] = Future {
       action(output)
     }
 
@@ -132,6 +132,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
       failOnFirstError,
       pathSubstitutions,
       enforceCaseSensitivePathChecks,
+      false,
       progress
     )._1)
   }
@@ -269,7 +270,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
         this.progressBar.visible = true
 
       },
-      action = validate(txtCsvFile.text, settingsPanel.csvEncoding, txtCsvSchemaFile.text, settingsPanel.csvSchemaEncoding, settingsPanel.failOnFirstError, settingsPanel.pathSubstitutions, settingsPanel.enforceCaseSensitivePathChecks, Some(progress)),
+      action = CsvValidatorUi.this.validate(txtCsvFile.text, settingsPanel.csvEncoding, txtCsvSchemaFile.text, settingsPanel.csvSchemaEncoding, settingsPanel.failOnFirstError, settingsPanel.pathSubstitutions, settingsPanel.enforceCaseSensitivePathChecks, Some(progress)),
       output = outputToReport,
       resumeUi = {
         btnValidate.enabled = true

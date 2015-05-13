@@ -17,7 +17,7 @@ class AndRuleSpec extends Specification {
   "AndRule" should {
     "fail when left rule only validates" in {
       val globalDirectives = List(TotalColumns(1))
-      val schema = Schema(globalDirectives, List(ColumnDefinition("Country")))
+      val schema = Schema(globalDirectives, List(ColumnDefinition(NamedColumnIdentifier("Country"))))
 
       val leftInRule = InRule(Literal(Some("Germany")))
       val rightInRule = InRule(Literal(Some("France")))
@@ -31,7 +31,7 @@ class AndRuleSpec extends Specification {
 
     "fail when left rule only validates" in {
       val globalDirectives = List(TotalColumns(1))
-      val schema = Schema(globalDirectives, List(ColumnDefinition("Country")))
+      val schema = Schema(globalDirectives, List(ColumnDefinition(NamedColumnIdentifier("Country"))))
 
       val leftInRule = InRule(Literal(Some("Germany")))
       val rightInRule = InRule(Literal(Some("France")))
@@ -45,7 +45,7 @@ class AndRuleSpec extends Specification {
 
     "fail when left/right rules are both invalid" in {
       val globalDirectives = List(TotalColumns(1))
-      val schema = Schema(globalDirectives, List(ColumnDefinition("ThisOrThat")))
+      val schema = Schema(globalDirectives, List(ColumnDefinition(NamedColumnIdentifier("ThisOrThat"))))
 
       val leftInRule = InRule(Literal(Some("This")))
       val rightInRule = InRule(Literal(Some("That")))
@@ -59,7 +59,7 @@ class AndRuleSpec extends Specification {
 
     "succeed when both left and right match" in {
       val globalDirectives = List(TotalColumns(1))
-      val schema = Schema(globalDirectives, List(ColumnDefinition("Country")))
+      val schema = Schema(globalDirectives, List(ColumnDefinition(NamedColumnIdentifier("Country"))))
 
       val leftInRule = InRule(Literal(Some("UK")))
       val rightInRule = InRule(Literal(Some("UK")))
@@ -71,7 +71,7 @@ class AndRuleSpec extends Specification {
 
     "succeed when both left and parentheses right match" in {
       val globalDirectives = List(TotalColumns(1))
-      val schema = Schema(globalDirectives, List(ColumnDefinition("Country")))
+      val schema = Schema(globalDirectives, List(ColumnDefinition(NamedColumnIdentifier("Country"))))
 
       val pLeftInRule = IsRule(Literal(Some("UK")))
       val pRightInRule = IsRule(Literal(Some("UK")))
@@ -86,7 +86,7 @@ class AndRuleSpec extends Specification {
 
     "succeed when both left and parentheses right match" in {
       val globalDirectives = List(TotalColumns(1))
-      val schema = Schema(globalDirectives, List(ColumnDefinition("Country")))
+      val schema = Schema(globalDirectives, List(ColumnDefinition(NamedColumnIdentifier("Country"))))
 
       val pLeftInRule = IsRule(Literal(Some("UK")))
       val pRightInRule = IsRule(Literal(Some("UK1")))

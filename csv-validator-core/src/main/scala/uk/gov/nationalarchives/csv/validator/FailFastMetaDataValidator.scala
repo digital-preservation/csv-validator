@@ -16,114 +16,75 @@ import uk.gov.nationalarchives.csv.validator.schema.ColumnDefinition
 import uk.gov.nationalarchives.csv.validator.schema.Optional
 import uk.gov.nationalarchives.csv.validator.schema.Rule
 import uk.gov.nationalarchives.csv.validator.schema.Schema
-import uk.gov.nationalarchives.csv.validator.schema.TotalColumns
 import uk.gov.nationalarchives.csv.validator.schema.Warning
 import uk.gov.nationalarchives.csv.validator.metadata.Cell
 import uk.gov.nationalarchives.csv.validator.metadata.Row
 
 trait FailFastMetaDataValidator extends MetaDataValidator {
 
-  val pathSubstitutions: List[(String,String)]
-
-  def validateRows(rows: Iterator[Row], schema: Schema): MetaDataValidation[Any] = {
+  override def validateRows(rows: Iterator[Row], schema: Schema): MetaDataValidation[Any] = {
 
     def containsErrors(e: MetaDataValidation[Any]): Boolean = e.fold(_.list.exists(_.isInstanceOf[ErrorMessage]), _ => false)
 
-//  @tailrec
-//    def validateRows(rows: Iterator[Row]): MetaDataValidation[Any] = rows match {
-//      case Nil => true.successNel[FailMessage]
-//      case r :: tail =>  validateRow(r, schema) match {
-//        case e @ Failure(messages) =>
-//          if( containsErrors(e)) e else validateRows(tail).leftMap(_ append messages)
-//        case _ => validateRows(tail)
-//      }
-//    }
-
-    def validateRows(): MetaDataValidation[Any] = {
-      if(!rows.hasNext) {
-        true.successNel[FailMessage]
+    @tailrec
+    def validateRows(results: List[MetaDataValidation[Any]] = List.empty[MetaDataValidation[Any]]) : List[MetaDataValidation[Any]] = {
+      if(results.headOption.map(containsErrors(_)).getOrElse(false) || !rows.hasNext) {
+        results.reverse
       } else {
         val row = rows.next()
-        validateRow(row, schema) match {
-          case e @ Failure(messages) =>
-            if(containsErrors(e)) {
-              e
-            } else {
-              validateRows().leftMap(_ append messages)
-            }
-          case _ =>
-            validateRows()
-        }
+        val result = validateRow(row, schema)
+        validateRows(result :: results)
       }
     }
 
-    validateRows()
+    val v = validateRows()
+    v.sequence[MetaDataValidation, Any]
   }
 
-  private def validateRow(row: Row, schema: Schema): MetaDataValidation[Any] = {
-    totalColumns(row, schema).fold(e => e.fail[Any], s => rules(row, schema))
-  }
-
-  private def totalColumns(row: Row, schema: Schema): MetaDataValidation[Any] = {
-    val tc: Option[TotalColumns] = schema.globalDirectives.collectFirst{ case t@TotalColumns(_) => t }
-
-    if (tc.isEmpty || tc.get.numberOfColumns == row.cells.length) true.successNel[FailMessage]
-    else ErrorMessage(s"Expected @totalColumns of ${tc.get.numberOfColumns} and found ${row.cells.length} on line ${row.lineNumber}", Some(row.lineNumber), Some(row.cells.length)).failNel[Any]
-  }
-
-  private def rules(row: Row, schema: Schema): MetaDataValidation[Any] = {
+  override protected def rules(row: Row, schema: Schema): MetaDataValidation[List[Any]] = {
     val cells: (Int) => Option[Cell] = row.cells.lift
 
-//    @tailrec
-    def validateRules(columnDefinitions:List[(ColumnDefinition,Int)]): MetaDataValidation[Any] = columnDefinitions match {
-      case Nil => true.successNel[FailMessage]
-      case (columnDef, columnIndex) :: tail => validateCell(columnIndex, cells, row, schema) match {
-        case e@Failure(messages) =>
-          if( schema.columnDefinitions(columnIndex).directives.contains(Warning())) validateRules(tail).leftMap(_ append messages)
-          else e
-        case _ => validateRules(tail)
+    @tailrec
+    def validateRules(columnDefinitions: List[(ColumnDefinition, Int)], accum: List[MetaDataValidation[Any]] = List.empty) : List[MetaDataValidation[Any]] = {
+      columnDefinitions match {
+        case Nil if(accum.isEmpty) =>
+          List(true.successNel[FailMessage])
+
+        case Nil if(accum.nonEmpty) =>
+          accum.reverse
+
+        case (columnDefinition, columnIndex) :: tail =>
+          validateCell(columnIndex, cells, row, schema) match {
+            case failure @ Failure(_) if(!schema.columnDefinitions(columnIndex).directives.contains(Warning())) =>
+              validateRules(List.empty, failure :: accum) //stop on first failure which is not a warning
+            case result =>
+              validateRules(tail, result :: accum)
+          }
       }
     }
-    validateRules(schema.columnDefinitions.zipWithIndex)
+
+    val v = validateRules(schema.columnDefinitions.zipWithIndex)
+    v.sequence[MetaDataValidation, Any]
   }
 
-  private def validateCell(columnIndex: Int, cells: (Int) => Option[Cell], row: Row, schema: Schema): MetaDataValidation[Any] = {
-    cells(columnIndex) match {
-      case Some(c) => rulesForCell(columnIndex, row, schema)
-      case _ => SchemaMessage(s"Missing value at line: ${row.lineNumber}, column: ${schema.columnDefinitions(columnIndex).id}", Some(row.lineNumber), Some(columnIndex)).failNel[Any]
-    }
-  }
-
-  private def rulesForCell(columnIndex: Int, row: Row, schema: Schema): MetaDataValidation[Any] = {
+  override protected def rulesForCell(columnIndex: Int, row: Row, schema: Schema): MetaDataValidation[Any] = {
     val columnDefinition = schema.columnDefinitions(columnIndex)
 
     def isWarningDirective: Boolean = columnDefinition.directives.contains(Warning())
     def isOptionDirective: Boolean = columnDefinition.directives.contains(Optional())
 
-    def convert2Warnings(results:Rule#RuleValidation[Any]): MetaDataValidation[Any] = {
-      results.leftMap(_.map(WarningMessage(_, Some(row.lineNumber), Some(columnIndex))))
-    }
-
-    def convert2Errors(results:Rule#RuleValidation[Any]): MetaDataValidation[Any] = {
-      results.leftMap(_.map(ErrorMessage(_, Some(row.lineNumber), Some(columnIndex))))
-    }
-
     @tailrec
-    def validateRulesForCell(rules:List[Rule]): MetaDataValidation[Any] = rules match {
+    def validateRulesForCell(rules: List[Rule]): MetaDataValidation[Any] = rules match {
       case Nil => true.successNel[FailMessage]
       case rule :: tail => rule.evaluate(columnIndex, row, schema) match {
-        case e@Failure(_) => convert2Errors(e)
+        case e@Failure(_) => toErrors(e, row.lineNumber, columnIndex)
         case _ => validateRulesForCell(tail)
       }
     }
 
-    def validateAllRulesForCell(rules:List[Rule]): MetaDataValidation[Any] = {
-      rules.map(_.evaluate(columnIndex, row, schema)).map{ ruleResult:Rule#RuleValidation[Any] => {
-        convert2Warnings(ruleResult)
-      }}.sequence[MetaDataValidation, Any]
-    }
+    def validateAllRulesForCell(rules: List[Rule]): MetaDataValidation[Any] = rules.map(_.evaluate(columnIndex, row, schema)).map(toWarnings(_, row.lineNumber, columnIndex)).sequence[MetaDataValidation, Any]
 
-    if (row.cells(columnIndex).value.trim.isEmpty && isOptionDirective ) true.successNel
+    if(row.cells(columnIndex).value.trim.isEmpty && isOptionDirective) true.successNel
     else if(isWarningDirective) validateAllRulesForCell(columnDefinition.rules)
     else validateRulesForCell(columnDefinition.rules)
   }

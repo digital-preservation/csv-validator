@@ -8,13 +8,14 @@
  */
 package uk.gov.nationalarchives.csv.validator
 
+import scala.language.postfixOps
 import scalaz._, Scalaz._
 import java.io.{IOException, Reader => JReader, InputStreamReader => JInputStreamReader, FileInputStream => JFileInputStream, LineNumberReader => JLineNumberReader}
 import resource._
 import uk.gov.nationalarchives.csv.validator.schema._
 import uk.gov.nationalarchives.csv.validator.metadata.Cell
 
-import au.com.bytecode.opencsv.{CSVParser, CSVReader}
+import com.opencsv.{CSVParser, CSVReader}
 import uk.gov.nationalarchives.csv.validator.metadata.Row
 import scala.annotation.tailrec
 import uk.gov.nationalarchives.csv.validator.api.TextFile
@@ -77,17 +78,17 @@ trait MetaDataValidator {
         val maybeNoData =
           if (schema.globalDirectives.contains(NoHeader())) {
             if (!rowIt.hasNext && !schema.globalDirectives.contains(PermitEmpty())) {
-              Some(ErrorMessage("metadata file is empty but this has not been permitted").failNel[Any])
+              Some(ErrorMessage("metadata file is empty but this has not been permitted").failureNel[Any])
             } else {
               None
             }
           } else {
             if(!rowIt.hasNext) {
-              Some(ErrorMessage("metadata file is empty but should contain at least a header").failNel[Any])
+              Some(ErrorMessage("metadata file is empty but should contain at least a header").failureNel[Any])
             } else {
               val header = rowIt.skipHeader()
               if(!rowIt.hasNext && !schema.globalDirectives.contains(PermitEmpty())) {
-                Some(ErrorMessage("metadata file has a header but no data and this has not been permitted").failNel[Any])
+                Some(ErrorMessage("metadata file has a header but no data and this has not been permitted").failureNel[Any])
               } else {
                 None
               }
@@ -107,12 +108,41 @@ trait MetaDataValidator {
 
       case Left(ts) =>
         //TODO emit all errors not just first!
-        ErrorMessage(ts(0).toString).failNel[Any]
-        //ts.toList.map(t => ErrorMessage(t.toString).failNel[Any]).sequence[MetaDataValidation, Any]
+        ErrorMessage(ts(0).toString).failureNel[Any]
+        //ts.toList.map(t => ErrorMessage(t.toString).failureNel[Any]).sequence[MetaDataValidation, Any]
     }
   }
 
   def validateRows(rows: Iterator[Row], schema: Schema): MetaDataValidation[Any]
+
+  def validateRow(row: Row, schema: Schema): MetaDataValidation[Any] = {
+    val totalColumnsV = totalColumns(row, schema)
+    val rulesV = rules(row, schema)
+    (totalColumnsV |@| rulesV) { _ :: _ }
+  }
+
+  private def totalColumns(row: Row, schema: Schema): MetaDataValidation[Any] = {
+    val tc: Option[TotalColumns] = schema.globalDirectives.collectFirst {
+      case t@TotalColumns(_) => t
+    }
+
+    if (tc.isEmpty || tc.get.numberOfColumns == row.cells.length) true.successNel[FailMessage]
+    else ErrorMessage(s"Expected @totalColumns of ${tc.get.numberOfColumns} and found ${row.cells.length} on line ${row.lineNumber}", Some(row.lineNumber), Some(row.cells.length)).failureNel[Any]
+  }
+
+  protected def rules(row: Row, schema: Schema): MetaDataValidation[List[Any]]
+
+  protected def validateCell(columnIndex: Int, cells: (Int) => Option[Cell], row: Row, schema: Schema): MetaDataValidation[Any] = {
+    cells(columnIndex) match {
+      case Some(c) => rulesForCell(columnIndex, row, schema)
+      case _ => ErrorMessage(s"Missing value at line: ${row.lineNumber}, column: ${schema.columnDefinitions(columnIndex).id}", Some(row.lineNumber), Some(columnIndex)).failureNel[Any]
+    }
+  }
+
+  protected def toWarnings(results: Rule#RuleValidation[Any], lineNumber: Int, columnIndex: Int): MetaDataValidation[Any] = results.leftMap(_.map(WarningMessage(_, Some(lineNumber), Some(columnIndex))))
+  protected def toErrors(results: Rule#RuleValidation[Any], lineNumber: Int, columnIndex: Int): MetaDataValidation[Any] = results.leftMap(_.map(ErrorMessage(_, Some(lineNumber), Some(columnIndex))))
+
+  protected def rulesForCell(columnIndex: Int, row: Row, schema: Schema): MetaDataValidation[Any]
 
   protected def countRows(textFile: TextFile): Int = {
     withReader(textFile) {

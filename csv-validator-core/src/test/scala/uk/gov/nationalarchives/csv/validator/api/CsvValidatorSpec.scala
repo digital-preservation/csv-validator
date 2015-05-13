@@ -19,7 +19,7 @@ import uk.gov.nationalarchives.csv.validator.api.CsvValidator.SubstitutePath
 class CsvValidatorSpec extends Specification with TestResources {
 
   "Parsing schema" should {
-    val app = new CsvValidator with AllErrorsMetaDataValidator { val pathSubstitutions = List[SubstitutePath](); val enforceCaseSensitivePathChecks = false }
+    val app = new CsvValidator with AllErrorsMetaDataValidator { val pathSubstitutions = List[SubstitutePath](); val enforceCaseSensitivePathChecks = false; val trace = false }
 
     "report position on parse fail" in {
 
@@ -42,7 +42,7 @@ class CsvValidatorSpec extends Specification with TestResources {
   }
 
   "Validation" should {
-    val app = new CsvValidator with AllErrorsMetaDataValidator { val pathSubstitutions = List[(String,String)](); val enforceCaseSensitivePathChecks = false }
+    val app = new CsvValidator with AllErrorsMetaDataValidator { val pathSubstitutions = List[(String,String)](); val enforceCaseSensitivePathChecks = false; val trace = false }
 
     def parse(filePath: String): Schema = app.parseSchema(TextFile(Path.fromString(filePath))) fold (f => throw new IllegalArgumentException(f.toString()), s => s)
 

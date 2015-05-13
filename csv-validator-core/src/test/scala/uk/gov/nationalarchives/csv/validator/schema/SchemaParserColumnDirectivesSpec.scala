@@ -16,7 +16,7 @@ import uk.gov.nationalarchives.csv.validator.SchemaMessage
 
 class SchemaParserColumnDirectivesSpec extends Specification {
 
-  object TestSchemaParser extends SchemaParser { val pathSubstitutions = List[(String,String)](); val enforceCaseSensitivePathChecks = false }
+  object TestSchemaParser extends SchemaParser { val pathSubstitutions = List[(String,String)](); val enforceCaseSensitivePathChecks = false; val trace = false }
 
   import TestSchemaParser._
 
@@ -27,7 +27,7 @@ class SchemaParserColumnDirectivesSpec extends Specification {
                       |@totalColumns 1
                       |column1: @optional""".stripMargin
 
-      parse(new StringReader(schema)) must beLike { case Success(Schema(_, List(ColumnDefinition("column1", _, List(Optional())))),_) => ok }
+      parse(new StringReader(schema)) must beLike { case Success(Schema(_, List(ColumnDefinition(NamedColumnIdentifier("column1"), _, List(Optional())))),_) => ok }
     }
 
     "succeed for a @ignoreCase column directive" in {
@@ -35,7 +35,7 @@ class SchemaParserColumnDirectivesSpec extends Specification {
                       @totalColumns 1
                       column1: @ignoreCase""".stripMargin
 
-      parse(new StringReader(schema)) must beLike { case Success(Schema(_, List(ColumnDefinition("column1", _, List(IgnoreCase())))),_) => ok }
+      parse(new StringReader(schema)) must beLike { case Success(Schema(_, List(ColumnDefinition(NamedColumnIdentifier("column1"), _, List(IgnoreCase())))),_) => ok }
     }
 
     "fail for duplicate column directives" in {
@@ -85,7 +85,7 @@ class SchemaParserColumnDirectivesSpec extends Specification {
                       |@totalColumns 1
                       |column1: @optional @ignoreCase""".stripMargin
 
-      parse(new StringReader(schema)) must beLike { case Success(Schema(_, List(ColumnDefinition("column1", _, Optional() :: IgnoreCase() :: Nil))),_) => ok }
+      parse(new StringReader(schema)) must beLike { case Success(Schema(_, List(ColumnDefinition(NamedColumnIdentifier("column1"), _, Optional() :: IgnoreCase() :: Nil))),_) => ok }
     }
 
     "allow any ordering of column directives - ignore case before optional" in {
@@ -93,7 +93,7 @@ class SchemaParserColumnDirectivesSpec extends Specification {
                       @totalColumns 1
                       column1: @ignoreCase @optional""".stripMargin
 
-      parse(new StringReader(schema)) must beLike { case Success(Schema(_, List(ColumnDefinition("column1", _, IgnoreCase() :: Optional() :: Nil))),_) => ok }
+      parse(new StringReader(schema)) must beLike { case Success(Schema(_, List(ColumnDefinition(NamedColumnIdentifier("column1"), _, IgnoreCase() :: Optional() :: Nil))),_) => ok }
     }
   }
 }

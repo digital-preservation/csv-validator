@@ -60,14 +60,14 @@ class FileCountSpec extends Specification with TestResources {
     "find a match on a directory" in {
       val fileCountRule = new FileCountRule( Literal(Some(s"$threeFilesPath/**/*.jp2")), List.empty )
       val expectedFileCount = "3"
-      fileCountRule.evaluate(0, Row(List(Cell(expectedFileCount)), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition("column1")))) mustEqual Success(true)
+      fileCountRule.evaluate(0, Row(List(Cell(expectedFileCount)), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition(NamedColumnIdentifier("column1"))))) mustEqual Success(true)
 
     }
 
     "find a match on a directory with basePath and file" in {
       val fileCountRule = new FileCountRule( Literal(Some(s"$threeFilesPath/")), Literal(Some("**/*.jp2")) )
       val expectedFileCount: String = "3"
-      fileCountRule.evaluate(0, Row(List(Cell(expectedFileCount)), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition("column1")))) mustEqual Success(true)
+      fileCountRule.evaluate(0, Row(List(Cell(expectedFileCount)), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition(NamedColumnIdentifier("column1"))))) mustEqual Success(true)
 
     }
   }
@@ -79,7 +79,7 @@ class FileCountSpec extends Specification with TestResources {
 
     val fileCountRule = new FileCountRule(Literal(Some("""bob/checksum.csvs""")), pathSubstitutions)
     val expectedFileCount = "1"
-    fileCountRule.evaluate(0, Row(List(Cell(expectedFileCount)), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition("column1")))) mustEqual Success(true)
+    fileCountRule.evaluate(0, Row(List(Cell(expectedFileCount)), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition(NamedColumnIdentifier("column1"))))) mustEqual Success(true)
   }
 
 

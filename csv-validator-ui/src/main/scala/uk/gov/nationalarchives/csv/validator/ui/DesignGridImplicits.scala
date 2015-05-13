@@ -8,6 +8,7 @@
  */
 package uk.gov.nationalarchives.csv.validator.ui
 
+import scala.language.implicitConversions
 import net.java.dev.designgridlayout.{ISpannableGridRow, IRowCreator, IGridRow, IRow}
 import swing.{Label, Component}
 

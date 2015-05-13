@@ -25,7 +25,7 @@ object Util {
 
   def checkFilesReadable(files: List[Path]) = files.map(fileReadable).sequence[AppValidation, FailMessage]
 
-  def fileReadable(file: Path): AppValidation[FailMessage] = if (file.exists && file.canRead) SchemaMessage(file.path).successNel[FailMessage] else fileNotReadableMessage(file).failNel[FailMessage]
+  def fileReadable(file: Path): AppValidation[FailMessage] = if (file.exists && file.canRead) SchemaMessage(file.path).successNel[FailMessage] else fileNotReadableMessage(file).failureNel[FailMessage]
 
   def fileNotReadableMessage(file: Path) = SchemaMessage("Unable to read file : " + file.path)
 
@@ -105,7 +105,7 @@ object Util {
 
 
   object FileSystem {
-    def createFile(filename: String): Try[File] =  Try{ if( filename.startsWith("file:")) new File( new URI(file2PlatformIndependent(filename))) else  new File( URLDecoder.decode(filename) )}
+    def createFile(filename: String): Try[File] =  Try{ if( filename.startsWith("file:")) new File( new URI(file2PlatformIndependent(filename))) else  new File( URLDecoder.decode(filename, ENCODING.name()) )} //TODO encoding shudld not be hard-coded here. Should be determined from cmd-line/ui user setting
 
     def replaceSpaces(file: String): String = file.replace(" ", "%20")
 

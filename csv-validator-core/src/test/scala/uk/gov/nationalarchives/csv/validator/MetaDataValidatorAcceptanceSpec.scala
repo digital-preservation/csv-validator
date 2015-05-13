@@ -24,6 +24,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
   val v = new CsvValidator with AllErrorsMetaDataValidator {
     val pathSubstitutions = List[(String,String)]()
     val enforceCaseSensitivePathChecks = false
+    val trace = false
 
     def validateR(csv: io.Reader, schema: Schema): this.type#MetaDataValidation[Any] = validate(csv, schema, None)
   }
@@ -31,6 +32,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
   val ve = new CsvValidator with AllErrorsMetaDataValidator {
     val pathSubstitutions = List[(String,String)]()
     val enforceCaseSensitivePathChecks = true
+    val trace = false
   }
 
   import v.{validate, validateR, parseSchema}
@@ -246,7 +248,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
   }
 
   "Validate fail fast" should {
-    val app = new CsvValidator with FailFastMetaDataValidator  { val pathSubstitutions = List[(String,String)](); val enforceCaseSensitivePathChecks = false }
+    val app = new CsvValidator with FailFastMetaDataValidator  { val pathSubstitutions = List[(String,String)](); val enforceCaseSensitivePathChecks = false; val trace = false }
 
     "only report first error for invalid @TotalColumns" in {
       app.validate(TextFile(Path.fromString(base) / "totalColumnsFailMetaData.csv"), parse(base + "/totalColumnsSchema.csvs"), None) must beLike {
@@ -265,17 +267,30 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
         case Success(_) => ok
       }
     }
+
+    "report warnings" in {
+      app.validate(TextFile(Path.fromString(base) / "warnings.csv"), parse(base + "/warnings.csvs"), None) must beLike {
+        case Failure(warnings) => warnings.list mustEqual List(
+          WarningMessage("""is("WO") fails for line: 2, column: department, value: "BT"""", Some(2), Some(0)),
+          WarningMessage("""is("WO") fails for line: 3, column: department, value: "ED"""", Some(3), Some(0))
+        )
+      }
+    }
+
+    "report warnings and only first error" in {
+      app.validate(TextFile(Path.fromString(base) / "warningsAndErrors.csv"), parse(base + "/warnings.csvs"), None) must beLike {
+        case Failure(warningsAndError) => warningsAndError.list mustEqual List(
+          WarningMessage("""is("WO") fails for line: 2, column: department, value: "BT"""", Some(2), Some(0)),
+          WarningMessage("""is("WO") fails for line: 3, column: department, value: "ED"""", Some(3), Some(0)),
+          ErrorMessage("""is("13") fails for line: 4, column: division, value: "15"""", Some(4), Some(1))
+        )
+      }
+    }
   }
 
   "validate schema" should {
 
     "fail with duplicate column ids" in {
-//      parseSchema(Path.fromString(base) / "duplicateColumnIdsFailSchema.csvs" ) must beLike {
-//        case Failure(errors) => errors.list mustEqual List(SchemaMessage("""Column: Age has duplicates on lines 3, 8
-//                                                             |Column: Country has duplicates on lines 4, 5, 7""".stripMargin), None)
-//      }
-
-      //TODO not yet sure why we have to remove the training `None`
       parseSchema(TextFile(Path.fromString(base) / "duplicateColumnIdsFailSchema.csvs")) must beLike {
         case Failure(errors) => errors.list mustEqual List(SchemaMessage("""Column: Age has duplicates on lines 3, 8
                                                                            |Column: Country has duplicates on lines 4, 5, 7""".stripMargin))
