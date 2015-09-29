@@ -385,23 +385,23 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       }
     }
 
-    "fail when first line contains invalid data and noHeader directive is not set" in {
-      val schema =
-        """version 1.0
-           @totalColumns 2
-           col1:
-           col2WithRule: regex("[0-9a-z]*") in("dog")
-        """
-
-      val metaData =
-        """someData,this line is skipped because no header is not set i.e there is a header (this line) to skip
-           someMore,thisisrubbish
-        """
-
-      validate(metaData, schema, None) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""in("dog") fails for line: 1, column: col2WithRule, value: "thisisrubbish"""",Some(1),Some(1)))
-      }
-    }
+//    "fail when first line contains invalid data and noHeader directive is not set" in {
+//      val schema =
+//        """version 1.0
+//           @totalColumns 2
+//           col1:
+//           col2WithRule: regex("[0-9a-z]*") in("dog")
+//        """
+//
+//      val metaData =
+//        """someData,this line is skipped because no header is not set i.e there is a header (this line) to skip
+//           someMore,thisisrubbish
+//        """
+//
+//      validate(metaData, schema, None) must beLike {
+//        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""in("dog") fails for line: 1, column: col2WithRule, value: "thisisrubbish"""",Some(1),Some(1)))
+//      }
+//    }
 
     "fail for completely empty metadata file when this is not permitted" in {
       val schema =
@@ -452,7 +452,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
         """version 1.0
            @totalColumns 1
            @permitEmpty
-           Col1:
+           Name:
         """
 
       val metaData = "Name"
@@ -464,7 +464,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val schema =
         """version 1.0
            @totalColumns 1
-           Col1:
+           Name:
         """
 
       val metaData = "Name"
@@ -783,7 +783,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
     "succeed for unique rule that is unique" in {
       val schema = """version 1.0
-                      @totalColumns 2
+                      @totalColumns 2 @noHeader
                       Name: unique
                       Age: range(0,100)"""
 
@@ -821,7 +821,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
     "succeed for multi-column unique rule" in {
       val schema = """version 1.0
-                      @totalColumns 3
+                      @totalColumns 3 @noHeader
                       Name: unique($Age,$PostCode)
                       Age:
                       PostCode:
@@ -984,7 +984,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
     "succeed for valid ranges" in {
       val schema = """version 1.0
-                      @totalColumns 2
+                      @totalColumns 2  @noHeader
                       Name:
                       Age: range(0,100)"""
 
