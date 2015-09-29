@@ -67,9 +67,9 @@ trait SchemaParser extends RegexParsers
   lazy val versionDecl: PackratParser[String] = "VersionDecl" ::= ("version" ~> Schema.version <~ eol).withFailureMessage(s"Schema version declaration 'version ${Schema.version}' missing or incorrect")
 
   /**
-   * [4] GlobalDirectives ::= SeparatorDirective? QuotedDirective? TotalColumnsDirective? PermitEmptyDirective? (NoHeaderDirective | IgnoreColumnNameCaseDirective)?    /* expr: unordered */
+   * [4] GlobalDirectives	::=	SeparatorDirective? QuotedDirective? TotalColumnsDirective? PermitEmptyDirective? (NoHeaderDirective | IgnoreColumnNameCaseDirective)?  IntegrityCheckDirective  /* expr: unordered */
    */
-  lazy val globalDirectives: PackratParser[List[GlobalDirective]] = "GlobalDirectives" ::= opt(mingle(List(separatorDirective, quotedDirective, totalColumnsDirective, permitEmptyDirective, noHeaderDirective | ignoreColumnNameCaseDirective).map(positioned(_) <~ opt(eol))).withFailureMessage("Invalid global directive")) ^^ {
+  lazy val globalDirectives: PackratParser[List[GlobalDirective]] = "GlobalDirectives" ::= opt(mingle(List(separatorDirective, quotedDirective, totalColumnsDirective, permitEmptyDirective, noHeaderDirective | ignoreColumnNameCaseDirective, integrityCheckDirective).map(positioned(_) <~ opt(eol))).withFailureMessage("Invalid global directive")) ^^ {
       _.getOrElse(List.empty)
   }
 
@@ -123,7 +123,16 @@ trait SchemaParser extends RegexParsers
   lazy val ignoreColumnNameCaseDirective: PackratParser[IgnoreColumnNameCase] = "IgnoreColumnNameCaseDirective" ::= directivePrefix ~> "ignoreColumnNameCase" ^^^ IgnoreColumnNameCase()
 
   /**
-   * [14] Body ::= BodyPart+
+   * IntegrityCheckDirective ::= DirectivePrefix "integrityCheck("StringLiteral, StringLiteral? ")"
+   */
+  lazy val integrityCheckDirective: PackratParser[IntegrityCheck] = (directivePrefix ~> "integrityCheck(" ~> stringLiteral ~ (("," ~> stringLiteral)?) <~ ")" ^^ {
+    case filepathColumn ~ Some(includeFolder) if includeFolder == "includeFolder"  => IntegrityCheck(filepathColumn, true)
+    case filepathColumn ~ Some(includeFolder) if includeFolder == "excludeFolder"  => IntegrityCheck(filepathColumn, false)
+    case filepathColumn ~ None  => IntegrityCheck(filepathColumn, false)
+  }).withFailureMessage("@integrityCheck invalid")
+
+  /**
+   * [14]	Body ::= BodyPart+
    */
   lazy val body = "Body" ::= rep1(bodyPart) <~ rep(eol)
 
@@ -704,7 +713,7 @@ trait SchemaParser extends RegexParsers
   def parse(reader: Reader) = parseAll(schema, reader)
 
   private def validate(g: List[GlobalDirective], c: List[ColumnDefinition]): String = {
-    globDirectivesValid(g) ::totalColumnsValid(g, c) :: columnDirectivesValid(c) :: duplicateColumnsValid(c) :: crossColumnsValid(c) :: checksumAlgorithmValid(c) ::
+    globDirectivesValid(g) ::totalColumnsValid(g, c) :: integrityCheckValid(g, c) :: columnDirectivesValid(c) :: duplicateColumnsValid(c) :: crossColumnsValid(c) :: checksumAlgorithmValid(c) ::
     rangeValid(c) :: lengthValid(c) :: regexValid(c) :: dateRangeValid(c) :: uniqueMultiValid(c) :: explicitColumnValid(c) :: Nil collect { case Some(s: String) => s } mkString(EOL)
   }
 
@@ -715,6 +724,18 @@ trait SchemaParser extends RegexParsers
       Some(s"@totalColumns = ${tc.get.numberOfColumns} but number of columns defined = ${c.length} at line: ${tc.get.pos.line}, column: ${tc.get.pos.column}" )
     else
       None
+  }
+
+  private def integrityCheckValid(g: List[GlobalDirective], c: List[ColumnDefinition]): Option[String] = {
+    val maybeIntegrityCheck: Option[IntegrityCheck] = g.collectFirst { case i @ IntegrityCheck(_, _) => i}
+
+    maybeIntegrityCheck.flatMap{ integrityCheck =>
+      val filePathColumn = integrityCheck.filepathColumn
+      if (c.map(_.id).exists(_.value == filePathColumn))
+        None
+      else
+        Some(s"[Integrity Check], Cannot find the colunm $filePathColumn")
+    }
   }
 
   private def duplicateColumnsValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {

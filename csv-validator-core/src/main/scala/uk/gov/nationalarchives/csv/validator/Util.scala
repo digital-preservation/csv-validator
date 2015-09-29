@@ -14,7 +14,7 @@ import Scalaz._
 import java.util.regex.{Matcher, Pattern}
 import java.net.URI
 import scala.util.Try
-import java.io.{FilenameFilter, File}
+import java.io.{FileNotFoundException, FilenameFilter, File}
 import java.net.URLDecoder
 import scala.annotation.tailrec
 
@@ -28,6 +28,32 @@ object Util {
   def fileReadable(file: Path): AppValidation[FailMessage] = if (file.exists && file.canRead) SchemaMessage(file.path).successNel[FailMessage] else fileNotReadableMessage(file).failureNel[FailMessage]
 
   def fileNotReadableMessage(file: Path) = SchemaMessage("Unable to read file : " + file.path)
+
+  /**
+   * Check if the list l1 contain all element in l2
+   * @param l1 the containing list
+   * @param l2 the contained list
+   * @tparam A type of the list
+   * @return true,if the list l1 contain all element in l2
+   */
+  def containAll[A](l1: List[A], l2: List[A]): Boolean =
+    l2 forall  ((l1.toSet) contains)
+
+  /**
+   * List recursively all the files (but not the subfolder) in the folder given as a parameter
+   * @param folder
+   * @return List of all filename
+   */
+  def findAllFiles(includeFolder : Boolean,folder: File): Set[File] = {
+    if (folder.exists()){
+      val these = folder.listFiles.toSet
+      val head = if (includeFolder) Set(folder) else Nil
+      (head ++ these.filter( f => if (!includeFolder) f.isFile else true) ++ these.filter(f => f.isDirectory && !(f.getName == "RECYCLER") && !(f.getName == "$RECYCLE.BIN")).flatMap(file => findAllFiles(includeFolder, file))).toSet
+    }
+    else
+      throw new FileNotFoundException(s"Cannot find the folder $folder")
+  }
+
 
 
   abstract class TypedPath {
