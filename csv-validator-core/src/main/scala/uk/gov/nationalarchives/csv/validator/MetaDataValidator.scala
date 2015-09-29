@@ -8,6 +8,7 @@
  */
 package uk.gov.nationalarchives.csv.validator
 
+
 import scala.language.postfixOps
 import scalaz._, Scalaz._
 import java.io.{IOException, Reader => JReader, InputStreamReader => JInputStreamReader, FileInputStream => JFileInputStream, LineNumberReader => JLineNumberReader}
@@ -50,6 +51,67 @@ trait MetaDataValidator {
 
     validateKnownRows(csv, schema, pf)
   }
+
+  /**
+   * Browse csv File and return all the titleIndex as a list
+   * @param csv the CSV reader
+   * @param schema the Schema
+   * @param columnIndex the index of the column to be return
+   * @return all the element of the column columnIndex
+   */
+  def getColumn(csv: JReader, schema: Schema, columnIndex: Int): List[String] = {
+
+    val separator = schema.globalDirectives.collectFirst {
+      case Separator(sep) =>
+        sep
+    }.getOrElse(CSVParser.DEFAULT_SEPARATOR)
+
+    val quote = schema.globalDirectives.collectFirst {
+      case q: Quoted =>
+        CSVParser.DEFAULT_QUOTE_CHARACTER
+    }
+
+    //TODO CSVReader does not appear to be RFC 4180 compliant as it does not support escaping a double-quote with a double-quote between double-quotes
+    //TODO CSVReader does not seem to allow you to enable/disable quoted columns
+    //we need a better CSV Reader!
+    (managed(new CSVReader(csv, separator, CSVParser.DEFAULT_QUOTE_CHARACTER, CSVParser.NULL_CHARACTER)) map {
+      reader =>
+        // if 'no header' is set but the file is empty and 'permit empty' has not been set - this is an error
+        // if 'no header' is not set and the file is empty - this is an error
+        // if 'no header' is not set and 'permit empty' is not set but the file contains only one line - this is an error
+
+        val rowIt = new RowIterator(reader, None)
+
+        val maybeNoData =
+          if (schema.globalDirectives.contains(NoHeader())) {
+            if (!rowIt.hasNext && !schema.globalDirectives.contains(PermitEmpty())) {
+              Some(ErrorMessage("metadata file is empty but this has not been permitted").failNel[Any])
+            } else {
+              None
+            }
+          } else {
+            if(!rowIt.hasNext) {
+              Some(ErrorMessage("metadata file is empty but should contain at least a header").failNel[Any])
+            } else {
+              val header = rowIt.skipHeader()
+              if(!rowIt.hasNext && !schema.globalDirectives.contains(PermitEmpty())) {
+                Some(ErrorMessage("metadata file has a header but no data and this has not been permitted").failNel[Any])
+              } else {
+                None
+              }
+            }
+          }
+
+        maybeNoData match {
+          case Some(noData) =>
+            Nil
+          case None =>
+            getColumn(rowIt, columnIndex)
+
+        }
+    } opt).getOrElse(Nil)
+  }
+
 
   def validateKnownRows(csv: JReader, schema: Schema, progress: Option[ProgressFor]): MetaDataValidation[Any] = {
 
@@ -112,6 +174,20 @@ trait MetaDataValidator {
         //ts.toList.map(t => ErrorMessage(t.toString).failureNel[Any]).sequence[MetaDataValidation, Any]
     }
   }
+
+  /**
+   * Return the column at the index columnIndex
+   * @param rows the row iterator
+   * @param columnIndex the index of the column
+   * @return List of string of all element at the columnIndex
+   */
+  def getColumn(rows: Iterator[Row], columnIndex: Int): List[String] =
+    rows.foldLeft(List[String]()){ (acc,row) =>
+      acc :+ filename(row, columnIndex)
+    }
+
+  def filename(row: Row,titleIndex: Int): String = row.cells.map(_.value).apply(titleIndex)
+
 
   def validateRows(rows: Iterator[Row], schema: Schema): MetaDataValidation[Any]
 
