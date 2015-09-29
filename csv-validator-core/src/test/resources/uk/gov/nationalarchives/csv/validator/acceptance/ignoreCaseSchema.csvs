@@ -1,4 +1,4 @@
 version 1.0
-@totalColumns 2
+@totalColumns 2 @noHeader
 Name: in($FullName) @ignoreCase
 FullName:

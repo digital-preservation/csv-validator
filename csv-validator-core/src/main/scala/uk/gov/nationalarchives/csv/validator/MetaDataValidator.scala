@@ -93,7 +93,6 @@ trait MetaDataValidator {
             if(!rowIt.hasNext) {
               Some(ErrorMessage("metadata file is empty but should contain at least a header").failNel[Any])
             } else {
-              val header = rowIt.skipHeader()
               if(!rowIt.hasNext && !schema.globalDirectives.contains(PermitEmpty())) {
                 Some(ErrorMessage("metadata file has a header but no data and this has not been permitted").failNel[Any])
               } else {
@@ -149,10 +148,13 @@ trait MetaDataValidator {
               Some(ErrorMessage("metadata file is empty but should contain at least a header").failureNel[Any])
             } else {
               val header = rowIt.skipHeader()
-              if(!rowIt.hasNext && !schema.globalDirectives.contains(PermitEmpty())) {
-                Some(ErrorMessage("metadata file has a header but no data and this has not been permitted").failureNel[Any])
-              } else {
-                None
+              val headerValidation = validateHeader(header, schema)
+              headerValidation.orElse{
+                if(!rowIt.hasNext && !schema.globalDirectives.contains(PermitEmpty())) {
+                  Some(ErrorMessage("metadata file has a header but no data and this has not been permitted").failureNel[Any])
+                } else {
+                  None
+                }
               }
             }
           }
@@ -190,6 +192,22 @@ trait MetaDataValidator {
 
 
   def validateRows(rows: Iterator[Row], schema: Schema): MetaDataValidation[Any]
+
+  def validateHeader(header: Row, schema: Schema): Option[MetaDataValidation[Any]] = {
+    val icnc: Option[IgnoreColumnNameCase] = schema.globalDirectives.collectFirst {case i @ IgnoreColumnNameCase() => i }
+
+    def toggleCase(s: String): String =
+      if (icnc.isDefined) s.toLowerCase else s
+
+
+    val headerList = header.cells.map(header => toggleCase(header.value))
+    val schemaHeader = schema.columnDefinitions.map(header => toggleCase(header.id.value))
+
+    if (headerList.sameElements(schemaHeader))
+      None
+    else
+      Some(ErrorMessage(s"Metadata header, cannot find the column headers ${Util.diff(schemaHeader.toSet, headerList.toSet).mkString(", ")}.${if (icnc.isEmpty) "  (Case sensitive)" else ""}").failNel[Any])
+  }
 
   def validateRow(row: Row, schema: Schema): MetaDataValidation[Any] = {
     val totalColumnsV = totalColumns(row, schema)
@@ -299,7 +317,7 @@ class RowIterator(reader: CSVReader, progress: Option[ProgressFor]) extends Iter
   }
 
   @throws(classOf[IOException])
-  def skipHeader() = {
+  def skipHeader(): Row = {
     this.index = index - 1
     next()
   }

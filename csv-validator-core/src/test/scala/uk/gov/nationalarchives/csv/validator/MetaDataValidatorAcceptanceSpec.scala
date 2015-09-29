@@ -92,16 +92,11 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
       }
     }
 
-    "succeed when @noHeader not set as first line is skipped" in {
-
-      validate(TextFile(Path.fromString(base) / "regexRuleFailMetaData.csv"), parse(base + "/regexRuleSchema.csvs"), None) must beLike {
-        case Success(_) => ok
-      }
-    }
-
-    "succeed when @noHeader not set" in {
+    "fail when @noHeader not set" in {
       validate(TextFile(Path.fromString(base) / "regexRuleFailMetaData.csv"), parse(base + "/regexRuleSchemaWithoutNoHeaderSet.csvs"), None) must beLike {
-        case Success(_) => ok
+        case Failure(errors) => errors.list mustEqual List(
+          ErrorMessage("regex(\"[0-9]+\") fails for line: 1, column: Age, value: \"twenty\"",Some(1),Some(1))
+        )
       }
     }
   }
@@ -297,9 +292,9 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
       }
     }
 
-    "succeed with unique column ids" in {
+    "fail with unique column ids" in {
       validate(TextFile(Path.fromString(base) / "duplicateColumnIdsMetaData.csv"), parse(base + "/duplicateColumnIdsPassSchema.csvs"), None) must beLike {
-        case Success(_) => ok
+        case Failure(_) => ok
       }
     }
   }

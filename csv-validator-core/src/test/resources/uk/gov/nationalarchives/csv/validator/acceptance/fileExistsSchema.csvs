@@ -1,5 +1,5 @@
 version 1.0
-@totalColumns 3
+@totalColumns 3 @noHeader
 Name:
 Age:
 PasswordFile: fileExists("$$acceptancePath$$")
