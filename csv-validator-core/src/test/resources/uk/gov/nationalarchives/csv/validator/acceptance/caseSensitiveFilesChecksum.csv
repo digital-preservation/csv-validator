@@ -1,4 +1,4 @@
-filename,comment,checksum
+filename,checksum,comment
 caseSensitiveFilesChecksum.csvs,41424313f6052b7f062358ed38640b6e,this one is correct
 casesensitivefileschecksum.csvs,41424313f6052b7f062358ed38640b6e,this one should fail validation
 CASESENSITIVEFILESCHECKSUM.csvs,41424313f6052b7f062358ed38640b6e,this one should also fail validation

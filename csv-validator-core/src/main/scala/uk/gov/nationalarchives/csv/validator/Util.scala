@@ -39,6 +39,10 @@ object Util {
   def containAll[A](l1: List[A], l2: List[A]): Boolean =
     l2 forall  ((l1.toSet) contains)
 
+
+  def diff[A](l1: Set[A], l2: Set[A]): Set[A] =
+    l2.filterNot(l1)
+
   /**
    * List recursively all the files (but not the subfolder) in the folder given as a parameter
    * @param folder
