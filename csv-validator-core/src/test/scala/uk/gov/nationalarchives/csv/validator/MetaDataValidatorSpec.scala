@@ -385,24 +385,6 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       }
     }
 
-//    "fail when first line contains invalid data and noHeader directive is not set" in {
-//      val schema =
-//        """version 1.0
-//           @totalColumns 2
-//           col1:
-//           col2WithRule: regex("[0-9a-z]*") in("dog")
-//        """
-//
-//      val metaData =
-//        """someData,this line is skipped because no header is not set i.e there is a header (this line) to skip
-//           someMore,thisisrubbish
-//        """
-//
-//      validate(metaData, schema, None) must beLike {
-//        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""in("dog") fails for line: 1, column: col2WithRule, value: "thisisrubbish"""",Some(1),Some(1)))
-//      }
-//    }
-
     "fail for completely empty metadata file when this is not permitted" in {
       val schema =
         """version 1.0
