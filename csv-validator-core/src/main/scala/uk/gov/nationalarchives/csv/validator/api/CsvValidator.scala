@@ -75,7 +75,7 @@ trait CsvValidator extends SchemaParser {
           if (Util.containAll(allMetadataFilenames,allContentFilename.toList))
             true.successNel[FailMessage]
           else
-            ErrorMessage(s"[Integrity Check], The file(s) ${Util.diff(allMetadataFilenames.toSet, allContentFilename).mkString(" ")} " +
+            ErrorMessage(s"[Integrity Check], The file(s) ${Util.minus( allContentFilename, allMetadataFilenames.toSet).mkString(" ")} " +
               s"are not listed in the metadata content under ${csvFile.file.parent}").failNel[Any]
         }.getOrElse {
           ErrorMessage(s"[Integrity Check], Cannot find the content folder under ${csvFile.file.parent}").failNel[Any]
