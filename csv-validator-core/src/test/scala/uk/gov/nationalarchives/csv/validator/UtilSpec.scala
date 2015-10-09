@@ -25,6 +25,27 @@ class UtilSpec  extends Specification with TestResources  {
       Util.containAll(l1,l2) mustEqual true
       Util.containAll(l2,l1) mustEqual false
     }
+
+
+    "get set A minus set B" in {
+      val l1 = Set(1,2,3,4)
+      val l2 = Set(1,2,3)
+      val l3 = Set(1,2,3,5)
+
+      Util.minus(l1,l2) mustEqual Set(4)
+      Util.minus(l2,l1) mustEqual Set()
+      Util.minus(l1,l3) mustEqual Set(4)
+    }
+
+    "get difference between set A and set B" in {
+      val l1 = Set(1,2,3,4)
+      val l2 = Set(1,2,3)
+      val l3 = Set(1,2,3,5)
+
+      Util.diff(l1,l2) mustEqual Set(4)
+      Util.diff(l2,l1) mustEqual Set(4)
+      Util.diff(l1,l3) mustEqual Set(4,5)
+    }
     
     "list file in folder" in {
 
