@@ -263,7 +263,7 @@ trait SchemaParser extends RegexParsers
    *                        XsdDateTimeExpr | XsdDateExpr | XsdTimeExpr |
    *                        UkDateExpr | DateExpr | PartialUkDateExpr | PartialDateExpr |
    *                        uuid4Expr |
-   *                        PositiveIntegerExpr)
+   *                        PositiveIntegerExpr | UpperCaseExpr | lowerCaseExpr)
    */
   //TODO need to implement and add DateExpr, PartialDateExpr
   lazy val singleExpr: PackratParser[Rule] = "SingleExpr" ::=
@@ -275,7 +275,7 @@ trait SchemaParser extends RegexParsers
       xsdDateTimeExpr | xsdDateExpr | xsdTimeExpr |
       ukDateExpr | partialUkDateExpr |
       uuid4Expr |
-      positiveIntegerExpr) ^^ {
+      positiveIntegerExpr | upperCaseExpr | lowerCaseExpr) ^^ {
     case explicitContext ~ rule =>
       rule.explicitColumn = explicitContext
       rule
@@ -464,6 +464,16 @@ trait SchemaParser extends RegexParsers
   lazy val positiveIntegerExpr: PackratParser[PositiveIntegerRule] = "PositiveIntegerExpr" ::= "positiveInteger" ^^^ PositiveIntegerRule()
 
   /**
+   * [58] PositiveIntegerExpr ::= "positiveInteger"
+   */
+  lazy val upperCaseExpr: PackratParser[UpperCaseRule] = "UpperCaseExpr" ::= "upperCase" ^^^ UpperCaseRule()
+
+  /**
+   * [58] PositiveIntegerExpr ::= "positiveInteger"
+   */
+  lazy val lowerCaseExpr: PackratParser[LowerCaseRule] = "LowerCaseExpr" ::= "lowerCase" ^^^ LowerCaseRule()
+  
+  /**
    * [59] StringProvider ::= ColumnRef | StringLiteral
    */
   lazy val stringProvider: PackratParser[ArgProvider] = "StringProvider" ::= columnRef | stringLiteral ^^ {
@@ -488,6 +498,7 @@ trait SchemaParser extends RegexParsers
     case Some(s) =>
       FileExistsRule(pathSubstitutions, enforceCaseSensitivePathChecks, s)
   }
+
 
   /**
    * [62] ChecksumExpr ::= "checksum(" FileExpr "," StringLiteral ")" /* first arg is file expr, second arg is algorithm to use for checksum */

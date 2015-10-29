@@ -339,6 +339,10 @@ case class Uuid4Rule() extends PatternRule("uuid4", Uuid4Regex)
 
 case class PositiveIntegerRule() extends PatternRule("positiveInteger", PositiveIntegerRegex)
 
+case class UpperCaseRule() extends PatternRule("upperCase", UpperCaseRegex)
+
+case class LowerCaseRule() extends PatternRule("lowerCase", LowerCaseRegex)
+
 case class UniqueRule() extends Rule("unique") {
   val distinctValues = mutable.HashMap[String, Int]()
 
