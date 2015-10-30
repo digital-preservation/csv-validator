@@ -339,6 +339,14 @@ case class Uuid4Rule() extends PatternRule("uuid4", Uuid4Regex)
 
 case class PositiveIntegerRule() extends PatternRule("positiveInteger", PositiveIntegerRegex)
 
+case class IdenticalRule() extends Rule("identical") {
+
+  override def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
+    
+    ???
+  }
+}
+
 case class UniqueRule() extends Rule("unique") {
   val distinctValues = mutable.HashMap[String, Int]()
 

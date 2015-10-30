@@ -383,6 +383,9 @@ trait SchemaParser extends RegexParsers
    */
   lazy val notEmptyExpr = "NotEmptyExpr" ::= "notEmpty" ^^^ NotEmptyRule()
 
+  
+  lazy val identicalExpr: PackratParser[IdenticalRule] = "IdenticalExpr" ::= "identical" ^^^ IdenticalRule()
+
   /**
    * [48] UniqueExpr ::=  "unique" ("(" ColumnRef ("," ColumnRef)* ")")?
    */
