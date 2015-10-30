@@ -339,6 +339,24 @@ case class Uuid4Rule() extends PatternRule("uuid4", Uuid4Regex)
 
 case class PositiveIntegerRule() extends PatternRule("positiveInteger", PositiveIntegerRegex)
 
+case class IdenticalRule() extends Rule("identical") {
+  
+  var lastValue: Option[String] = None
+
+  override def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
+      if (cellValue.isEmpty) false
+      else if (lastValue.isEmpty){
+        lastValue = Some(cellValue)
+        true
+      }
+      else{
+        val res = cellValue.equals(lastValue.getOrElse(""))
+        lastValue = Some(cellValue)
+        res
+      }
+  }
+}
+
 case class UniqueRule() extends Rule("unique") {
   val distinctValues = mutable.HashMap[String, Int]()
 
@@ -640,16 +658,19 @@ trait FileWildcardSearch[T] {
   }
 }
 
-case class RangeRule(min: BigDecimal, max: BigDecimal) extends Rule("range") {
+case class RangeRule(min: Option[BigDecimal], max: Option[BigDecimal]) extends Rule("range") {
+
   def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
 
     Try[BigDecimal]( BigDecimal(cellValue)) match {
-      case scala.util.Success(callDecimal) => if (callDecimal >= min && callDecimal <= max  ) true  else false
+      
+      case scala.util.Success(callDecimal) =>
+        min.map( callDecimal >= _).getOrElse(true) &&  max.map( callDecimal <= _).getOrElse(true)
       case _ => false
      }
   }
 
-  override def toError = s"""$ruleName($min,$max)"""
+  override def toError = s"""$ruleName(${min.getOrElse("*")},${max.getOrElse("*")})"""
 }
 
 case class LengthRule(from: Option[String], to: String) extends Rule("length") {
