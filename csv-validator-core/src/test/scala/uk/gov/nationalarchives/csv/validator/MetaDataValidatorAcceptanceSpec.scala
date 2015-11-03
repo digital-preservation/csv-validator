@@ -242,6 +242,29 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
     }
   }
 
+  "A identical rule" should {
+
+    "enforce all rows of the same column to be identical between themselves " in {
+      validate(TextFile(Path.fromString(base) / "identicalPassMetaData.csv"), parse(base + "/identicalSchema.csvs"), None).isSuccess mustEqual  true
+    }
+
+    "enforce all rows of the same column to be identical between themselves with header" in {
+      validate(TextFile(Path.fromString(base) / "identicalHeaderMetaData.csv"), parse(base + "/identicalHeaderSchema.csvs"), None).isSuccess mustEqual  true
+    }
+
+    "fail for different rows in the same column  " in {
+      validate(TextFile(Path.fromString(base) / "identicalFailMetaData.csv"), parse(base + "/identicalSchema.csvs"), None) must beLike {
+        case Failure(errors) => errors.list mustEqual List(ErrorMessage("identical fails for line: 3, column: FullName, value: \"eee\"",Some(3),Some(1)))
+      }
+    }
+
+    "fail for empty value   " in {
+      validate(TextFile(Path.fromString(base) / "identicalEmptyMetaData.csv"), parse(base + "/identicalSchema.csvs"), None) must beLike {
+        case Failure(_) => ok
+      }
+    }
+  }
+
   "Validate fail fast" should {
     val app = new CsvValidator with FailFastMetaDataValidator  { val pathSubstitutions = List[(String,String)](); val enforceCaseSensitivePathChecks = false; val trace = false }
 

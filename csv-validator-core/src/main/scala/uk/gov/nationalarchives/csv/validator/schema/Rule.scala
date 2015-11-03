@@ -340,10 +340,20 @@ case class Uuid4Rule() extends PatternRule("uuid4", Uuid4Regex)
 case class PositiveIntegerRule() extends PatternRule("positiveInteger", PositiveIntegerRegex)
 
 case class IdenticalRule() extends Rule("identical") {
+  
+  var lastValue: Option[String] = None
 
   override def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
-    
-    ???
+      if (cellValue.isEmpty) false
+      else if (lastValue.isEmpty){
+        lastValue = Some(cellValue)
+        true
+      }
+      else{
+        val res = cellValue.equals(lastValue.getOrElse(""))
+        lastValue = Some(cellValue)
+        res
+      }
   }
 }
 

@@ -258,7 +258,7 @@ trait SchemaParser extends RegexParsers
    * [34] SingleExpr ::=  ExplicitContextExpr? (IsExpr | NotExpr | InExpr |
    *                        StartsWithExpr | EndsWithExpr | RegExpExpr |
    *                        RangeExpr | LengthExpr |
-   *                        EmptyExpr | NotEmptyExpr | UniqueExpr |
+   *                        EmptyExpr | NotEmptyExpr | UniqueExpr | identicalExpr |
    *                        UriExpr |
    *                        XsdDateTimeExpr | XsdDateExpr | XsdTimeExpr |
    *                        UkDateExpr | DateExpr | PartialUkDateExpr | PartialDateExpr |
@@ -270,7 +270,7 @@ trait SchemaParser extends RegexParsers
     opt(explicitContextExpr) ~ (isExpr | notExpr | inExpr |
       startsWithExpr | endsWithExpr | regExpExpr |
       rangeExpr | lengthExpr |
-      emptyExpr | notEmptyExpr | uniqueExpr |
+      emptyExpr | notEmptyExpr | uniqueExpr | identicalExpr |
       uriExpr |
       xsdDateTimeExpr | xsdDateExpr | xsdTimeExpr |
       ukDateExpr | partialUkDateExpr |
