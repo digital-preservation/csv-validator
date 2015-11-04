@@ -640,16 +640,19 @@ trait FileWildcardSearch[T] {
   }
 }
 
-case class RangeRule(min: BigDecimal, max: BigDecimal) extends Rule("range") {
+case class RangeRule(min: Option[BigDecimal], max: Option[BigDecimal]) extends Rule("range") {
+
   def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema): Boolean = {
 
     Try[BigDecimal]( BigDecimal(cellValue)) match {
-      case scala.util.Success(callDecimal) => if (callDecimal >= min && callDecimal <= max  ) true  else false
+      
+      case scala.util.Success(callDecimal) =>
+        min.map( callDecimal >= _).getOrElse(true) &&  max.map( callDecimal <= _).getOrElse(true)
       case _ => false
      }
   }
 
-  override def toError = s"""$ruleName($min,$max)"""
+  override def toError = s"""$ruleName(${min.getOrElse("*")},${max.getOrElse("*")})"""
 }
 
 case class LengthRule(from: Option[String], to: String) extends Rule("length") {
