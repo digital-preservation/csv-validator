@@ -206,7 +206,7 @@ trait MetaDataValidator {
     if (headerList.sameElements(schemaHeader))
       None
     else
-      Some(ErrorMessage(s"Metadata header, cannot find the column headers ${Util.diff(schemaHeader.toSet, headerList.toSet).mkString(", ")}.${if (icnc.isEmpty) "  (Case sensitive)" else ""}").failNel[Any])
+      Some(ErrorMessage(s"Metadata header, cannot find the column headers - ${Util.diff(schemaHeader.toSet, headerList.toSet).mkString(", ")} - .${if (icnc.isEmpty) "  (Case sensitive)" else ""}").failNel[Any])
   }
 
   def validateRow(row: Row, schema: Schema): MetaDataValidation[Any] = {
