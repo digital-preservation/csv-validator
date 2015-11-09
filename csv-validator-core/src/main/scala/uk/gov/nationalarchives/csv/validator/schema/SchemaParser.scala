@@ -373,7 +373,7 @@ trait SchemaParser extends RegexParsers
   }
 
   /**
-   * [45] PositiveIntegerOrAny ::=  PositiveIntegerLiteral | WildcardLiteral
+   * [45.1] NumericOrAny ::=  NumericLiteral | WildcardLiteral
    */
   def numericOrAny: Parser[Option[BigDecimal]] = "NumericOrAny" ::= (numericLiteral | wildcardLiteral) ^^ {
     case positiveInteger: BigDecimal =>
