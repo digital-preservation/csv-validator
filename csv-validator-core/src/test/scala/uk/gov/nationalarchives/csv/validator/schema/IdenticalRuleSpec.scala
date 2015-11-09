@@ -13,10 +13,7 @@ import uk.gov.nationalarchives.csv.validator.metadata.{Cell, Row}
 
 import scalaz.{Failure, Success}
 
-/**
- * User: Jim Collins
- * Date: 3/7/13
- */
+
 class IdenticalRuleSpec extends Specification {
 
   "IdenticalRule" should  {
