@@ -249,9 +249,6 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
         case Failure(errors) => errors.list mustEqual List(SchemaMessage("""Column: Year_of_birth: Invalid range, minimum greater than maximum in: 'range(100,1)' at line: 4, column: 16""",None,None))
       }
     }
-
-
-
   }
 
 
@@ -270,6 +267,30 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
         )
       }
     }
+  }
+
+  "A identical rule" should {
+
+    "enforce all rows of the same column to be identical between themselves " in {
+      validate(TextFile(Path.fromString(base) / "identicalPassMetaData.csv"), parse(base + "/identicalSchema.csvs"), None).isSuccess mustEqual  true
+    }
+
+    "enforce all rows of the same column to be identical between themselves with header" in {
+      validate(TextFile(Path.fromString(base) / "identicalHeaderMetaData.csv"), parse(base + "/identicalHeaderSchema.csvs"), None).isSuccess mustEqual  true
+    }
+
+     "fail for different rows in the same column  " in {
+       validateE(TextFile(Path.fromString(base) / "identicalFailMetaData.csv"), parseE(base + "/identicalSchema.csvs"), None) must beLike {
+         case Failure(errors) => errors.list mustEqual List(
+           ErrorMessage("""identical fails for line: 3, column: FullName, value: "fff"""",Some(3),Some(1))
+         )
+       }
+     }
+
+     "fail for empty value   " in {
+       validate(TextFile(Path.fromString(base) / "identicalEmptyMetaData.csv"), parse(base + "/identicalSchema.csvs"), None).isFailure mustEqual true
+     }
+
   }
 
   "Validate fail fast" should {
