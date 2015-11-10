@@ -258,7 +258,7 @@ trait SchemaParser extends RegexParsers
    * [34] SingleExpr ::=  ExplicitContextExpr? (IsExpr | NotExpr | InExpr |
    *                        StartsWithExpr | EndsWithExpr | RegExpExpr |
    *                        RangeExpr | LengthExpr |
-   *                        EmptyExpr | NotEmptyExpr | UniqueExpr |
+   *                        EmptyExpr | NotEmptyExpr | UniqueExpr | identicalExpr |
    *                        UriExpr |
    *                        XsdDateTimeExpr | XsdDateExpr | XsdTimeExpr |
    *                        UkDateExpr | DateExpr | PartialUkDateExpr | PartialDateExpr |
@@ -270,7 +270,7 @@ trait SchemaParser extends RegexParsers
     opt(explicitContextExpr) ~ (isExpr | notExpr | inExpr |
       startsWithExpr | endsWithExpr | regExpExpr |
       rangeExpr | lengthExpr |
-      emptyExpr | notEmptyExpr | uniqueExpr |
+      emptyExpr | notEmptyExpr | uniqueExpr | identicalExpr |
       uriExpr |
       xsdDateTimeExpr | xsdDateExpr | xsdTimeExpr |
       ukDateExpr | partialUkDateExpr |
@@ -391,6 +391,9 @@ trait SchemaParser extends RegexParsers
    * [47] NotEmptyExpr ::=  "notEmpty"
    */
   lazy val notEmptyExpr = "NotEmptyExpr" ::= "notEmpty" ^^^ NotEmptyRule()
+
+  
+  lazy val identicalExpr: PackratParser[IdenticalRule] = "IdenticalExpr" ::= "identical" ^^^ IdenticalRule()
 
   /**
    * [48] UniqueExpr ::=  "unique" ("(" ColumnRef ("," ColumnRef)* ")")?
