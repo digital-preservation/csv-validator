@@ -258,19 +258,19 @@ trait SchemaParser extends RegexParsers
    * [34] SingleExpr ::=  ExplicitContextExpr? (IsExpr | NotExpr | InExpr |
    *                        StartsWithExpr | EndsWithExpr | RegExpExpr |
    *                        RangeExpr | LengthExpr |
-   *                        EmptyExpr | NotEmptyExpr | UniqueExpr |
+   *                        EmptyExpr | NotEmptyExpr | UniqueExpr | identicalExpr |
    *                        UriExpr |
    *                        XsdDateTimeExpr | XsdDateExpr | XsdTimeExpr |
    *                        UkDateExpr | DateExpr | PartialUkDateExpr | PartialDateExpr |
    *                        uuid4Expr |
-   *                        PositiveIntegerExpr | UpperCaseExpr | lowerCaseExpr)
+   *                        PositiveIntegerExpr | UpperCaseExpr | LowerCaseExpr)
    */
   //TODO need to implement and add DateExpr, PartialDateExpr
   lazy val singleExpr: PackratParser[Rule] = "SingleExpr" ::=
     opt(explicitContextExpr) ~ (isExpr | notExpr | inExpr |
       startsWithExpr | endsWithExpr | regExpExpr |
       rangeExpr | lengthExpr |
-      emptyExpr | notEmptyExpr | uniqueExpr |
+      emptyExpr | notEmptyExpr | uniqueExpr | identicalExpr |
       uriExpr |
       xsdDateTimeExpr | xsdDateExpr | xsdTimeExpr |
       ukDateExpr | partialUkDateExpr |
@@ -339,11 +339,10 @@ trait SchemaParser extends RegexParsers
   } withFailureMessage("""regex not correctly delimited as ("your regex")""")
 
   /**
-   * [43] RangeExpr ::= "range(" NumericLiteral "," NumericLiteral ")" /* range is inclusive */
+   * [43] RangeExpr ::= "range(" NumericOrAny "," NumericOrAny ")" /* range is inclusive */
    */
-  lazy val rangeExpr: PackratParser[RangeRule] = "RangeExpr" ::= "range(" ~> numericLiteral ~ "," ~ numericLiteral <~ ")"  ^^ {
-    case a ~ "," ~ b =>
-      RangeRule(a, b)
+  lazy val rangeExpr: PackratParser[RangeRule] = "RangeExpr" ::= "range(" ~> numericOrAny ~ "," ~ numericOrAny <~ ")"  ^^ {
+    case a ~ "," ~ b => RangeRule(a,b)
   }
 
   /**
@@ -374,6 +373,16 @@ trait SchemaParser extends RegexParsers
   }
 
   /**
+   * [45.1] NumericOrAny ::=  NumericLiteral | WildcardLiteral
+   */
+  def numericOrAny: Parser[Option[BigDecimal]] = "NumericOrAny" ::= (numericLiteral | wildcardLiteral) ^^ {
+    case positiveInteger: BigDecimal =>
+      Option(positiveInteger)
+    case wildcard =>
+      Option.empty
+  }
+
+  /**
    * [46] EmptyExpr ::= "empty"
    */
   lazy val emptyExpr = "EmptyExpr" ::= "empty" ^^^ EmptyRule()
@@ -382,6 +391,9 @@ trait SchemaParser extends RegexParsers
    * [47] NotEmptyExpr ::=  "notEmpty"
    */
   lazy val notEmptyExpr = "NotEmptyExpr" ::= "notEmpty" ^^^ NotEmptyRule()
+
+  
+  lazy val identicalExpr: PackratParser[IdenticalRule] = "IdenticalExpr" ::= "identical" ^^^ IdenticalRule()
 
   /**
    * [48] UniqueExpr ::=  "unique" ("(" ColumnRef ("," ColumnRef)* ")")?
@@ -463,14 +475,10 @@ trait SchemaParser extends RegexParsers
    */
   lazy val positiveIntegerExpr: PackratParser[PositiveIntegerRule] = "PositiveIntegerExpr" ::= "positiveInteger" ^^^ PositiveIntegerRule()
 
-  /**
-   * [58] PositiveIntegerExpr ::= "positiveInteger"
-   */
+
   lazy val upperCaseExpr: PackratParser[UpperCaseRule] = "UpperCaseExpr" ::= "upperCase" ^^^ UpperCaseRule()
 
-  /**
-   * [58] PositiveIntegerExpr ::= "positiveInteger"
-   */
+
   lazy val lowerCaseExpr: PackratParser[LowerCaseRule] = "LowerCaseExpr" ::= "lowerCase" ^^^ LowerCaseRule()
   
   /**
@@ -803,21 +811,26 @@ trait SchemaParser extends RegexParsers
   }
 
   private def rangeValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
-    def rangeCheck(rule: Rule): Boolean = rule match {
-      case RangeRule(min,max) => min > max
-      case _ => false
+    def rangeCheck(rule: Rule): Option[String] = rule match {
+      case RangeRule(None,None) =>  Some(s"""Invalid range in 'range(*,*)' at least one value needs to be defined""")
+      case RangeRule(Some(min),Some(max)) => if (min > max) Some(s"""Invalid range, minimum greater than maximum in: 'range($min,$max)' at line: ${rule.pos.line}, column: ${rule.pos.column}""") else None
+      case _ => None
     }
 
     val v = for {
       cd <- columnDefinitions
       rule <- cd.rules
-      if (rangeCheck(rule))
+      message = rangeCheck(rule)
+      if (message.isDefined)
     } yield {
-      rule match {
-        case range:RangeRule => s"""Column: ${cd.id}: Invalid range, minimum greater than maximum in: 'range(${range.min},${range.max})' at line: ${rule.pos.line}, column: ${rule.pos.column}"""
+      val errormessage = rule match {
+        case range:RangeRule => message.getOrElse("")
         case _ =>  s"""Column: ${cd.id}: Invalid range, minimum greater than maximum: at line: ${rule.pos.line}, column: ${rule.pos.column}"""
       }
+      s"""Column: ${cd.id}: """ + errormessage
+
     }
+
 
     if (v.isEmpty) None else Some(v.mkString(EOL))
   }
