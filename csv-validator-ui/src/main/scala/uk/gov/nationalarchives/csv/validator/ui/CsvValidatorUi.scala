@@ -51,6 +51,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
 
   def top = new SJXFrame {
     title = "CSV Validator"
+    peer.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
     contents = {
       val settings = new SettingsPanel
 
