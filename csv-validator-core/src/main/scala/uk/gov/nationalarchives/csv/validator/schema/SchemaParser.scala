@@ -275,7 +275,7 @@ trait SchemaParser extends RegexParsers
       xsdDateTimeExpr | xsdDateExpr | xsdTimeExpr |
       ukDateExpr | partialUkDateExpr |
       uuid4Expr |
-      positiveIntegerExpr) ^^ {
+      positiveIntegerExpr | upperCaseExpr | lowerCaseExpr) ^^ {
     case explicitContext ~ rule =>
       rule.explicitColumn = explicitContext
       rule
@@ -474,6 +474,10 @@ trait SchemaParser extends RegexParsers
    * [58] PositiveIntegerExpr ::= "positiveInteger"
    */
   lazy val positiveIntegerExpr: PackratParser[PositiveIntegerRule] = "PositiveIntegerExpr" ::= "positiveInteger" ^^^ PositiveIntegerRule()
+
+  lazy val upperCaseExpr: PackratParser[UpperCaseRule] = "UpperCaseExpr" ::= "upperCase" ^^^ UpperCaseRule()
+
+  lazy val lowerCaseExpr: PackratParser[LowerCaseRule] = "LowerCaseExpr" ::= "lowerCase" ^^^ LowerCaseRule()
 
   /**
    * [59] StringProvider ::= ColumnRef | StringLiteral
