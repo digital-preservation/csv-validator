@@ -27,7 +27,7 @@ trait AllErrorsMetaDataValidator extends MetaDataValidator {
         results.reverse
       } else {
         val row = rows.next()
-        val result = validateRow(row, schema)
+        val result = validateRow(row, schema, Some(rows.hasNext))
         validateRows(result :: results)
       }
     }
@@ -36,17 +36,18 @@ trait AllErrorsMetaDataValidator extends MetaDataValidator {
     v.sequence[MetaDataValidation, Any]
   }
 
-  override protected def rules(row: Row, schema: Schema): MetaDataValidation[List[Any]] = {
+
+  override protected def rules(row: Row, schema: Schema, mayBeLast: Option[Boolean] = None): MetaDataValidation[List[Any]] = {
     val cells: (Int) => Option[Cell] = row.cells.lift
     val v = schema.columnDefinitions.zipWithIndex.map {
       case (columnDefinition, columnIndex) =>
-        validateCell(columnIndex, cells, row, schema)
+        validateCell(columnIndex, cells, row, schema, mayBeLast)
     }
 
     v.sequence[MetaDataValidation, Any]
   }
 
-  override protected def rulesForCell(columnIndex: Int, row: Row, schema: Schema): MetaDataValidation[Any] = {
+  override protected def rulesForCell(columnIndex: Int, row: Row, schema: Schema, mayBeLast: Option[Boolean] = None): MetaDataValidation[Any] = {
 
     val columnDefinition = schema.columnDefinitions(columnIndex)
 
@@ -54,7 +55,7 @@ trait AllErrorsMetaDataValidator extends MetaDataValidator {
     def isOptionDirective: Boolean = columnDefinition.directives.contains(Optional())
 
     if(row.cells(columnIndex).value.trim.isEmpty && isOptionDirective) true.successNel
-    else columnDefinition.rules.map(_.evaluate(columnIndex, row, schema)).map{ ruleResult:Rule#RuleValidation[Any] => {
+    else columnDefinition.rules.map(_.evaluate(columnIndex, row, schema, mayBeLast)).map{ ruleResult:Rule#RuleValidation[Any] => {
       if(isWarningDirective) toWarnings(ruleResult, row.lineNumber, columnIndex) else toErrors(ruleResult, row.lineNumber, columnIndex)
     }}.sequence[MetaDataValidation, Any]
   }
