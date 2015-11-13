@@ -32,7 +32,7 @@ trait FailFastMetaDataValidator extends MetaDataValidator {
         results.reverse
       } else {
         val row = rows.next()
-        val result = validateRow(row, schema)
+        val result = validateRow(row, schema, Some(rows.hasNext))
         validateRows(result :: results)
       }
     }
@@ -41,7 +41,7 @@ trait FailFastMetaDataValidator extends MetaDataValidator {
     v.sequence[MetaDataValidation, Any]
   }
 
-  override protected def rules(row: Row, schema: Schema): MetaDataValidation[List[Any]] = {
+  override protected def rules(row: Row,  schema: Schema, mayBeLast: Option[Boolean] = None): MetaDataValidation[List[Any]] = {
     val cells: (Int) => Option[Cell] = row.cells.lift
 
     @tailrec
@@ -54,7 +54,7 @@ trait FailFastMetaDataValidator extends MetaDataValidator {
           accum.reverse
 
         case (columnDefinition, columnIndex) :: tail =>
-          validateCell(columnIndex, cells, row, schema) match {
+          validateCell(columnIndex, cells, row, schema, mayBeLast) match {
             case failure @ Failure(_) if(!schema.columnDefinitions(columnIndex).directives.contains(Warning())) =>
               validateRules(List.empty, failure :: accum) //stop on first failure which is not a warning
             case result =>
@@ -67,7 +67,7 @@ trait FailFastMetaDataValidator extends MetaDataValidator {
     v.sequence[MetaDataValidation, Any]
   }
 
-  override protected def rulesForCell(columnIndex: Int, row: Row, schema: Schema): MetaDataValidation[Any] = {
+  override protected def rulesForCell(columnIndex: Int, row: Row,  schema: Schema, mayBeLast: Option[Boolean] = None): MetaDataValidation[Any] = {
     val columnDefinition = schema.columnDefinitions(columnIndex)
 
     def isWarningDirective: Boolean = columnDefinition.directives.contains(Warning())
@@ -76,13 +76,13 @@ trait FailFastMetaDataValidator extends MetaDataValidator {
     @tailrec
     def validateRulesForCell(rules: List[Rule]): MetaDataValidation[Any] = rules match {
       case Nil => true.successNel[FailMessage]
-      case rule :: tail => rule.evaluate(columnIndex, row, schema) match {
+      case rule :: tail => rule.evaluate(columnIndex, row, schema, mayBeLast) match {
         case e@Failure(_) => toErrors(e, row.lineNumber, columnIndex)
         case _ => validateRulesForCell(tail)
       }
     }
 
-    def validateAllRulesForCell(rules: List[Rule]): MetaDataValidation[Any] = rules.map(_.evaluate(columnIndex, row, schema)).map(toWarnings(_, row.lineNumber, columnIndex)).sequence[MetaDataValidation, Any]
+    def validateAllRulesForCell(rules: List[Rule]): MetaDataValidation[Any] = rules.map(_.evaluate(columnIndex, row, schema, mayBeLast)).map(toWarnings(_, row.lineNumber, columnIndex)).sequence[MetaDataValidation, Any]
 
     if(row.cells(columnIndex).value.trim.isEmpty && isOptionDirective) true.successNel
     else if(isWarningDirective) validateAllRulesForCell(columnDefinition.rules)

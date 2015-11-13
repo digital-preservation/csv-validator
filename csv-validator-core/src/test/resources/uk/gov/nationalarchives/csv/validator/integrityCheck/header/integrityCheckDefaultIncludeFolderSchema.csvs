@@ -1,5 +1,5 @@
 version 1.0
-@totalColumns 3 @integrityCheck("identifier")
-identifier: fileExists
+@totalColumns 3
+identifier: fileExists integrityCheck("excludeFolder")
 filename:
 size:

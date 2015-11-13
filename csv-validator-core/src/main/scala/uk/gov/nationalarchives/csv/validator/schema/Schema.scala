@@ -25,8 +25,6 @@ case class Quoted() extends GlobalDirective("quoted")
 
 case class TotalColumns(numberOfColumns: BigInt) extends GlobalDirective("totalColumns")
 
-case class IntegrityCheck(filepathColumn: String, includeFolder: Boolean) extends GlobalDirective("integrityCheck")
-
 case class PermitEmpty() extends GlobalDirective("permitEmpty")
 
 case class NoHeader() extends GlobalDirective("noHeader")
@@ -99,4 +97,3 @@ case class Warning() extends ColumnDirective {
 case class IgnoreCase() extends ColumnDirective  {
   override def toString = "ignoreCase"
 }
-
