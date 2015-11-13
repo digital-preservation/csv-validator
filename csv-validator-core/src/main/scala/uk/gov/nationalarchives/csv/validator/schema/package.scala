@@ -22,6 +22,8 @@ package object schema {
 
   val UkDateRegex = """(((0[1-9]|(1|2)[0-9]|3[0-1])\/(0(1|3|5|7|8)|1(0|2)))|((0[1-9]|(1|2)[0-9]|30)\/(0(4|6|9)|11))|((0[1-9]|(1|2)[0-9])\/02))\/[0-9]{4}"""
   val PositiveIntegerRegex = "[0-9]+"
+  val UpperCaseRegex = "^[\\p{Lu}\\p{N}\\p{P}\\s]*$"
+  val LowerCaseRegex = "^[\\p{Ll}\\p{N}\\p{P}\\s]*$"
   val UkDateFormat = "dd/MM/YYYY"
   val PartUkDateRegex = """(([0\?][1-9\?])|([1-2\?][0-9\?])|([3\?][0-1\?])|\*)\/(January|February|March|April|May|June|July|August|September|October|November|December|\?|\*)\/([0-9\?]{4}|\*)"""
 
