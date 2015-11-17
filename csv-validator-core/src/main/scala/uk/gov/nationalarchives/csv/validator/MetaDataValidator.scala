@@ -32,7 +32,6 @@ trait MetaDataValidator {
   type MetaDataValidation[S] = ValidationNel[FailMessage, S]
 
   def validate(csv: JReader, schema: Schema, progress: Option[ProgressCallback]): MetaDataValidation[Any] = {
-
     //try to find the number of rows for the
     //purposes pf reporting progress
     //can only do that if we can reset()
@@ -53,12 +52,12 @@ trait MetaDataValidator {
   }
 
   /**
-   * Browse csv File and return all the titleIndex as a list
-   * @param csv the CSV reader
-   * @param schema the Schema
-   * @param columnIndex the index of the column to be return
-   * @return all the element of the column columnIndex
-   */
+    * Browse csv File and return all the titleIndex as a list
+    * @param csv the CSV reader
+    * @param schema the Schema
+    * @param columnIndex the index of the column to be return
+    * @return all the element of the column columnIndex
+    */
   def getColumn(csv: JReader, schema: Schema, columnIndex: Int): List[String] = {
 
     val separator = schema.globalDirectives.collectFirst {
@@ -134,6 +133,7 @@ trait MetaDataValidator {
         // if 'no header' is not set and the file is empty - this is an error
         // if 'no header' is not set and 'permit empty' is not set but the file contains only one line - this is an error
 
+
         val rowIt = new RowIterator(reader, progress)
 
         val maybeNoData =
@@ -173,16 +173,16 @@ trait MetaDataValidator {
       case Left(ts) =>
         //TODO emit all errors not just first!
         ErrorMessage(ts(0).toString).failureNel[Any]
-        //ts.toList.map(t => ErrorMessage(t.toString).failureNel[Any]).sequence[MetaDataValidation, Any]
+      //ts.toList.map(t => ErrorMessage(t.toString).failureNel[Any]).sequence[MetaDataValidation, Any]
     }
   }
 
   /**
-   * Return the column at the index columnIndex
-   * @param rows the row iterator
-   * @param columnIndex the index of the column
-   * @return List of string of all element at the columnIndex
-   */
+    * Return the column at the index columnIndex
+    * @param rows the row iterator
+    * @param columnIndex the index of the column
+    * @return List of string of all element at the columnIndex
+    */
   def getColumn(rows: Iterator[Row], columnIndex: Int): List[String] =
     rows.foldLeft(List[String]()){ (acc,row) =>
       acc :+ filename(row, columnIndex)
@@ -192,6 +192,7 @@ trait MetaDataValidator {
 
 
   def validateRows(rows: Iterator[Row], schema: Schema): MetaDataValidation[Any]
+
 
   def validateHeader(header: Row, schema: Schema): Option[MetaDataValidation[Any]] = {
     val icnc: Option[IgnoreColumnNameCase] = schema.globalDirectives.collectFirst {case i @ IgnoreColumnNameCase() => i }
@@ -209,9 +210,9 @@ trait MetaDataValidator {
       Some(ErrorMessage(s"Metadata header, cannot find the column headers - ${Util.diff(schemaHeader.toSet, headerList.toSet).mkString(", ")} - .${if (icnc.isEmpty) "  (Case sensitive)" else ""}").failNel[Any])
   }
 
-  def validateRow(row: Row, schema: Schema): MetaDataValidation[Any] = {
+  def validateRow(row: Row,  schema: Schema, mayBeLast: Option[Boolean] = None): MetaDataValidation[Any] = {
     val totalColumnsV = totalColumns(row, schema)
-    val rulesV = rules(row, schema)
+    val rulesV = rules(row,  schema, mayBeLast)
     (totalColumnsV |@| rulesV) { _ :: _ }
   }
 
@@ -224,11 +225,11 @@ trait MetaDataValidator {
     else ErrorMessage(s"Expected @totalColumns of ${tc.get.numberOfColumns} and found ${row.cells.length} on line ${row.lineNumber}", Some(row.lineNumber), Some(row.cells.length)).failureNel[Any]
   }
 
-  protected def rules(row: Row, schema: Schema): MetaDataValidation[List[Any]]
+  protected def rules(row: Row, schema: Schema, mayBeLast: Option[Boolean] = None): MetaDataValidation[List[Any]]
 
-  protected def validateCell(columnIndex: Int, cells: (Int) => Option[Cell], row: Row, schema: Schema): MetaDataValidation[Any] = {
+  protected def validateCell(columnIndex: Int, cells: (Int) => Option[Cell], row: Row, schema: Schema, mayBeLast: Option[Boolean] = None): MetaDataValidation[Any] = {
     cells(columnIndex) match {
-      case Some(c) => rulesForCell(columnIndex, row, schema)
+      case Some(c) => rulesForCell(columnIndex, row, schema, mayBeLast)
       case _ => ErrorMessage(s"Missing value at line: ${row.lineNumber}, column: ${schema.columnDefinitions(columnIndex).id}", Some(row.lineNumber), Some(columnIndex)).failureNel[Any]
     }
   }
@@ -236,7 +237,7 @@ trait MetaDataValidator {
   protected def toWarnings(results: Rule#RuleValidation[Any], lineNumber: Int, columnIndex: Int): MetaDataValidation[Any] = results.leftMap(_.map(WarningMessage(_, Some(lineNumber), Some(columnIndex))))
   protected def toErrors(results: Rule#RuleValidation[Any], lineNumber: Int, columnIndex: Int): MetaDataValidation[Any] = results.leftMap(_.map(ErrorMessage(_, Some(lineNumber), Some(columnIndex))))
 
-  protected def rulesForCell(columnIndex: Int, row: Row, schema: Schema): MetaDataValidation[Any]
+  protected def rulesForCell(columnIndex: Int, row: Row, schema: Schema, mayBeLast: Option[Boolean] = None): MetaDataValidation[Any]
 
   protected def countRows(textFile: TextFile): Int = {
     withReader(textFile) {
@@ -278,9 +279,9 @@ trait MetaDataValidator {
 trait ProgressCallback {
 
   /**
-   * A percentage is always between
-   * 0 and 100 inclusive
-   */
+    * A percentage is always between
+    * 0 and 100 inclusive
+    */
   type Percentage = Float
 
 
