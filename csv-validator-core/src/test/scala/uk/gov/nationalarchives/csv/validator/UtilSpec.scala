@@ -51,7 +51,7 @@ class UtilSpec  extends Specification with TestResources  {
 
       val apiFiles = Util.findAllFiles(true, new File(acceptancePath))
 
-      apiFiles must haveLength(81)
+      apiFiles must haveLength(92)
 
       apiFiles must contain (new File(s"$basePath/uk/gov/nationalarchives/csv/validator/acceptance/twoRulesPassMetaData.csv"))
 
