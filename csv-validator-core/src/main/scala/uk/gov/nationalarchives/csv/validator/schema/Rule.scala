@@ -138,6 +138,17 @@ case class IfRule(condition: Rule, rules: List[Rule], elseRules: Option[List[Rul
   }
 }
 
+case class AnyRule(anyValues: List[ArgProvider]) extends Rule("any", anyValues:_*) {
+  override def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema, mayBeLast: Option[Boolean]  = None): Boolean = {
+
+    val ruleValues = (for (rule <- anyValues) yield rule.referenceValue(columnIndex, row, schema)).toList.flatten
+
+    val (rv, cv) = if (columnDefinition.directives.contains(IgnoreCase())) (ruleValues.map(_.toLowerCase), cellValue.toLowerCase) else (ruleValues, cellValue)
+    rv.contains(cv)
+  }
+}
+
+
 case class SwitchRule(elseRules: Option[List[Rule]], cases:(Rule, List[Rule])*) extends Rule("switch") {
 
 

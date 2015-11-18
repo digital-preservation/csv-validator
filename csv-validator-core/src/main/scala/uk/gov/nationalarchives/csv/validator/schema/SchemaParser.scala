@@ -258,7 +258,7 @@ with TraceableParsers {
     */
   //TODO need to implement and add DateExpr, PartialDateExpr
   lazy val singleExpr: PackratParser[Rule] = "SingleExpr" ::=
-    opt(explicitContextExpr) ~ (isExpr | notExpr | inExpr |
+    opt(explicitContextExpr) ~ (isExpr | anyExpr | notExpr | inExpr |
       startsWithExpr | endsWithExpr | regExpExpr |
       rangeExpr | lengthExpr |
       emptyExpr | notEmptyExpr | uniqueExpr | identicalExpr |
@@ -290,6 +290,14 @@ with TraceableParsers {
   lazy val isExpr: PackratParser[IsRule] = "IsExpr" ::= "is(" ~> stringProvider <~ ")" ^^ {
     IsRule
   }
+
+  /**
+    * [37] AnyExpr ::= "any(" (StringProvider)? ")"
+    */
+  lazy val anyExpr: PackratParser[AnyRule] = "AnyExpr" ::= "any(" ~> rep1sep(stringProvider, ",") <~ ")" ^^ {
+    AnyRule
+  }
+
 
   /**
     * [38] NotExpr ::= "not(" StringProvider ")"
