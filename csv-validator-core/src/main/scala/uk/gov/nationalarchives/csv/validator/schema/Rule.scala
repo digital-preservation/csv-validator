@@ -257,6 +257,17 @@ case class IsRule(isValue: ArgProvider) extends Rule("is", Seq(isValue): _*) {
   }
 }
 
+case class AnyRule(anyValues: List[ArgProvider]) extends Rule("any", anyValues:_*) {
+  override def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema, mayBeLast: Option[Boolean]  = None): Boolean = {
+
+    val ruleValues = (for (rule <- anyValues) yield rule.referenceValue(columnIndex, row, schema)).toList.flatten
+
+    val (rv, cv) = if (columnDefinition.directives.contains(IgnoreCase())) (ruleValues.map(_.toLowerCase), cellValue.toLowerCase) else (ruleValues, cellValue)
+    rv.contains(cv)
+  }
+}
+
+
 
 case class NotRule(notValue: ArgProvider) extends Rule("not", Seq(notValue): _*) {
 

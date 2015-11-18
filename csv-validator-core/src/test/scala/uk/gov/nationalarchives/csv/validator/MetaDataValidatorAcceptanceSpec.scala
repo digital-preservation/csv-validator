@@ -212,6 +212,20 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
     }
   }
 
+  "An any rule" should {
+    "succeed if the column value is in the rule's literal string" in {
+      validate(TextFile(Path.fromString(base) / "anyRulePassMetaData.csv"), parse(base + "/anyRuleSchema.csvs"), None).isSuccess mustEqual true
+    }
+
+    "fail if the column value is not in the rule's literal string" in {
+      validate(TextFile(Path.fromString(base) / "anyRuleFailMetaData.csv"), parse(base + "/anyRuleSchema.csvs"), None) must beLike {
+        case Failure(errors) => errors.list mustEqual List(
+          ErrorMessage("""any("value1", "value2", "value3") fails for line: 4, column: SomeAnyRule, value: "value4"""",Some(4),Some(1))
+        )
+      }
+    }
+  }
+
   "An @optional column directive" should {
     "allow a column to have an empty value and ignore other rules" in {
       validate(TextFile(Path.fromString(base) / "optionalPassMetaData.csv"), parse(base + "/optionalSchema.csvs"), None) must beLike {

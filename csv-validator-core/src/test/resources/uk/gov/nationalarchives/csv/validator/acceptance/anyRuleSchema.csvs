@@ -1,0 +1,4 @@
+version 1.0
+@totalColumns 2 @noHeader
+Name:
+SomeAnyRule: any("value1","value2","value3")
