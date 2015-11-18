@@ -129,6 +129,61 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
     }
   }
 
+  "An if rule" should {
+    "succeed if the conditionExpr and thenExpr are respected" in {
+      validate(TextFile(Path.fromString(base) / "ifRulePassMetaData.csv"), parse(base + "/ifRuleSchema.csvs"), None).isSuccess mustEqual  true
+    }
+
+    "succeed if the condition and thenExpr or elseExpr are respected" in {
+      validate(TextFile(Path.fromString(base) / "ifRulePassMetaData.csv"), parse(base + "/ifElseRuleSchema.csvs"), None).isSuccess mustEqual  true
+    }
+
+    "fail if the conditionExpr is true but the thenExpr is false" in {
+      validate(TextFile(Path.fromString(base) / "ifRuleFailThenMetaData.csv"), parse(base + "/ifElseRuleSchema.csvs"), None) must beLike {
+        case Failure(errors) => errors.list mustEqual List(
+          ErrorMessage("""is("hello world") fails for line: 1, column: SomeIfRule, value: "hello world1"""",Some(1),Some(1))
+        )
+      }
+    }
+
+    "fail if the conditionExpr is fasle but the elseExpr is false" in {
+      validate(TextFile(Path.fromString(base) / "ifRuleFailElseMetaData.csv"), parse(base + "/ifElseRuleSchema.csvs"), None) must beLike {
+        case Failure(errors) => errors.list mustEqual List(
+          ErrorMessage("""upperCase fails for line: 3, column: SomeIfRule, value: "EFQWeGW"""",Some(3),Some(1))
+        )
+      }
+    }
+  }
+
+  "An switch rule" should {
+    "succeed if the conditionExpr and thenExpr are respected - 1" in {
+      validate(TextFile(Path.fromString(base) / "switch1RulePassMetaData.csv"), parse(base + "/switch1RuleSchema.csvs"), None).isSuccess mustEqual  true
+    }
+
+    "succeed if the conditionExpr and thenExpr are respected - 2" in {
+      validate(TextFile(Path.fromString(base) / "switch2RulePassMetaData.csv"), parse(base + "/switch2RuleSchema.csvs"), None).isSuccess mustEqual  true
+    }
+
+    "fail if the conditionExpr is true but the thenExpr is false - 1" in {
+      validate(TextFile(Path.fromString(base) / "switch1RuleFailMetaData.csv"), parse(base + "/switch1RuleSchema.csvs"), None) must beLike {
+        case Failure(errors) => errors.list mustEqual List(
+          ErrorMessage("""is("hello world") fails for line: 1, column: SomeSwitchRule, value: "hello world1"""",Some(1),Some(1))
+        )
+      }
+    }
+
+    "fail if the conditionExpr is true but the thenExpr is false - 2" in {
+      validate(TextFile(Path.fromString(base) / "switch2RuleFailMetaData.csv"), parse(base + "/switch2RuleSchema.csvs"), None) must beLike {
+        case Failure(errors) =>errors.list mustEqual List(
+          ErrorMessage("""is("hello world") fails for line: 1, column: SomeSwitchRule, value: "hello world1"""",Some(1),Some(1)),
+          ErrorMessage("""is("HELLO WORLD") fails for line: 2, column: SomeSwitchRule, value: "HELLO WORLD1"""",Some(2),Some(1))
+        )
+      }
+    }
+
+  }
+
+
   "An in rule" should {
     "succeed if the column value is in the rule's literal string" in {
       validate(TextFile(Path.fromString(base) / "inRulePassMetaData.csv"), parse(base + "/inRuleSchema.csvs"), None) must beLike {
@@ -244,6 +299,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
       }
 
 
+
     "fail with inconsistent limit" in {
       parseSchema(TextFile(Path.fromString(base) / "rangeRuleInvalidSchema.csvs")) must beLike {
         case Failure(errors) => errors.list mustEqual List(SchemaMessage("""Column: Year_of_birth: Invalid range, minimum greater than maximum in: 'range(100,1)' at line: 4, column: 16""",None,None))
@@ -278,18 +334,18 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
       validate(TextFile(Path.fromString(base) / "identicalHeaderMetaData.csv"), parse(base + "/identicalHeaderSchema.csvs"), None).isSuccess mustEqual  true
     }
 
-     "fail for different rows in the same column  " in {
-       validateE(TextFile(Path.fromString(base) / "identicalFailMetaData.csv"), parseE(base + "/identicalSchema.csvs"), None) must beLike {
-         case Failure(errors) => errors.list mustEqual List(
-           ErrorMessage("""identical fails for line: 3, column: FullName, value: "fff"""",Some(3),Some(1))
-         )
-       }
-     }
 
-     "fail for empty value   " in {
-       validate(TextFile(Path.fromString(base) / "identicalEmptyMetaData.csv"), parse(base + "/identicalSchema.csvs"), None).isFailure mustEqual true
-     }
+    "fail for different rows in the same column  " in {
+      validateE(TextFile(Path.fromString(base) / "identicalFailMetaData.csv"), parseE(base + "/identicalSchema.csvs"), None) must beLike {
+        case Failure(errors) => errors.list mustEqual List(
+          ErrorMessage("""identical fails for line: 3, column: FullName, value: "fff"""",Some(3),Some(1))
+        )
+      }
+    }
 
+    "fail for empty value   " in {
+      validate(TextFile(Path.fromString(base) / "identicalEmptyMetaData.csv"), parse(base + "/identicalSchema.csvs"), None).isFailure mustEqual true
+    }
   }
 
   "Validate fail fast" should {

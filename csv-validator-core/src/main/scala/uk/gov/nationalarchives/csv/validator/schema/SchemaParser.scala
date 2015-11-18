@@ -540,7 +540,8 @@ with TraceableParsers {
   /**
     * [66] ConditionalExpr ::= IfExpr
     */
-  lazy val conditionalExpr: PackratParser[Rule] = "ConditionalExpr" ::= ifExpr
+
+  lazy val conditionalExpr: PackratParser[Rule] = "ConditionalExpr" ::= (ifExpr | switchExpr)
 
   /**
     * [67] IfExpr ::= "if(" (CombinatorialExpr | NonConditionalExpr) "," ColumnValidationExpr+ ("," ColumnValidationExpr+)? ")" /* if with optional else */
@@ -549,6 +550,16 @@ with TraceableParsers {
     case condition ~ thenExpr ~ elseExpr =>
       IfRule(condition, thenExpr, elseExpr)
   }) | failure("Invalid rule")
+
+
+  private lazy val switchCaseEpr: PackratParser[(Rule,List[Rule])] = "SwitchCaseExpr" ::= (((combinatorialExpr | nonConditionalExpr) <~ ",") ~ rep1(columnValidationExpr) ^^ {
+    case condition ~ thenExpr => (condition,thenExpr)
+  })
+
+  lazy val switchExpr: PackratParser[SwitchRule] = "SwitchExpr" ::= ( "switch(" ~> repsep( "(" ~> switchCaseEpr <~ ")" , ",") ~ opt("," ~> rep1(columnValidationExpr)) <~ ")" ^^ {
+    case switchCaseEpr ~ maybeElseExpr =>
+      SwitchRule(maybeElseExpr, switchCaseEpr:_*)
+  })
 
   private lazy val endOfColumnDefinition: PackratParser[Any] = "endOfColumnDefinition" ::= whiteSpace ~ (eol | endOfInput | failure("Invalid column definition"))
 

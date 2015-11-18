@@ -1,0 +1,4 @@
+version 1.0
+@totalColumns 2
+Name:
+SomeIfRule: if($Name/starts("hello"),is("hello world"),upperCase)

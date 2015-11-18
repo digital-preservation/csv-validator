@@ -1,0 +1,4 @@
+version 1.0
+@totalColumns 2
+Name:
+SomeSwitchRule: switch(($Name/starts("hello"),is("hello world")))
