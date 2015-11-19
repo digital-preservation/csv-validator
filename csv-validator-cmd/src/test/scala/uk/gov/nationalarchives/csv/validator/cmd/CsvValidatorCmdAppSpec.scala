@@ -19,6 +19,7 @@ class CsvValidatorCmdAppSpec extends Specification with TestResources {
   val badSchemaPath = relResourcePath("badSchema.csvs")
   val standardRulesFailPath = relResourcePath("acceptance/standardRulesFailMetaData.csv")
   val standardRulesSchemaPath = relResourcePath("acceptance/standardRulesSchema.csvs")
+  val nonUtf8File = relResourcePath("windows-1252.csv")
 
   "Check arguments" should {
     "give usage message when no arguments supplied" in {
@@ -138,6 +139,14 @@ class CsvValidatorCmdAppSpec extends Specification with TestResources {
 
     "have exit code 3 when the metadata is invalid" in {
       CsvValidatorCmdApp.run(Array(standardRulesFailPath, standardRulesSchemaPath))._2 mustEqual SystemExitCodes.InvalidCsv
+    }
+
+    "have exit code 0 for non UTF-8 csv file and disabled UTF-8 validation" in {
+      CsvValidatorCmdApp.run(Array("--disable-utf8-validation", nonUtf8File, schemaPath)) mustEqual Tuple2("PASS", SystemExitCodes.ValidCsv)
+    }
+
+    "have exit code 3 for non UTF-8 csv file" in {
+      CsvValidatorCmdApp.run(Array(nonUtf8File, schemaPath))._2 mustEqual SystemExitCodes.InvalidCsv
     }
 
   }
