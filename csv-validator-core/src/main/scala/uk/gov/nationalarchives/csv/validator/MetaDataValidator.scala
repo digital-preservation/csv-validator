@@ -9,12 +9,15 @@
 package uk.gov.nationalarchives.csv.validator
 
 
+import uk.gov.nationalarchives.utf8.validator.{Utf8Validator, ValidationHandler}
+
 import scala.language.postfixOps
 import scalaz._, Scalaz._
 import java.io.{IOException, Reader => JReader, InputStreamReader => JInputStreamReader, FileInputStream => JFileInputStream, LineNumberReader => JLineNumberReader}
 import resource._
 import uk.gov.nationalarchives.csv.validator.schema._
 import uk.gov.nationalarchives.csv.validator.metadata.Cell
+import scalax.file.Path
 
 import com.opencsv.{CSVParser, CSVReader}
 import uk.gov.nationalarchives.csv.validator.metadata.Row
@@ -214,6 +217,29 @@ trait MetaDataValidator {
     val totalColumnsV = totalColumns(row, schema)
     val rulesV = rules(row,  schema, mayBeLast)
     (totalColumnsV |@| rulesV) { _ :: _ }
+  }
+
+  def validateUtf8Encoding(file: Path): MetaDataValidation[Any] = {
+
+    val validationHandler = new ValidationHandler {
+      var errors: List[(Long, String)] = List()
+
+      override def error(message: String, byteOffset: Long): Unit = {
+        errors ::= (byteOffset, message)
+      }
+    }
+
+    new Utf8Validator(validationHandler).validate(new java.io.File(file.path))
+
+    validationHandler.errors.toNel match {
+      case None => true.successNel
+      case Some(nel) => {
+        val ret = nel.reverse.map {
+          case (offset, message) => ErrorMessage(s"[UTF-8 Error][@$offset] ${message}")
+        }
+        ret.failure
+      }
+    }
   }
 
   private def totalColumns(row: Row, schema: Schema): MetaDataValidation[Any] = {
