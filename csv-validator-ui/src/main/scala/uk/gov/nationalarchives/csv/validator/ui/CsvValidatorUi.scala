@@ -249,10 +249,21 @@ object CsvValidatorUi extends SimpleSwingApplication {
 
     private val progressBar = new ProgressBar()
     progressBar.visible = false
+    progressBar.labelPainted = true
+    progressBar.label = ""
     private val progress = new ProgressCallback {
       override def update(complete: this.type#Percentage) {
         Swing.onEDT {
+          progressBar.label = null
           progressBar.value = complete.toInt
+        }
+      }
+
+      override def update(total: Int, processed: Int) {
+        Swing.onEDT {
+          progressBar.max = total.toInt
+          progressBar.value = processed
+          progressBar.label = s"Line ${processed} of ${total}"
         }
       }
     }

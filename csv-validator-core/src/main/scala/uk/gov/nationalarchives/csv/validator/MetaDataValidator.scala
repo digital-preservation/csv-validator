@@ -285,7 +285,9 @@ trait ProgressCallback {
   type Percentage = Float
 
 
-  def update(complete: Percentage)
+  def update(complete: Percentage): Unit
+
+  def update(total: Int, processed: Int): Unit = update((processed.toFloat / total.toFloat) * 100)
 }
 
 class RowIterator(reader: CSVReader, progress: Option[ProgressFor]) extends Iterator[Row] {
@@ -310,7 +312,7 @@ class RowIterator(reader: CSVReader, progress: Option[ProgressFor]) extends Iter
     progress map {
       p =>
         if(p.rowsToValidate != -1) {
-          p.progress.update((index.toFloat / p.rowsToValidate.toFloat) * 100)
+          p.progress.update(p.rowsToValidate, index)
         }
     }
 
