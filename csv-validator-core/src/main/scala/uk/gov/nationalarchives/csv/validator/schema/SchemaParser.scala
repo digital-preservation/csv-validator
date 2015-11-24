@@ -263,7 +263,7 @@ with TraceableParsers {
       rangeExpr | lengthExpr |
       emptyExpr | notEmptyExpr | uniqueExpr | identicalExpr |
       uriExpr |
-      xsdDateTimeExpr | xsdDateExpr | xsdTimeExpr |
+      xsdDateTimeWithTimeZoneExpr | xsdDateTimeExpr  | xsdDateExpr | xsdTimeExpr |
       ukDateExpr | partialUkDateExpr |
       uuid4Expr |
       positiveIntegerExpr | upperCaseExpr | lowerCaseExpr) ^^ {
@@ -415,9 +415,18 @@ with TraceableParsers {
   lazy val xsdDateTimeExpr = "XsdDateTimeExpr" ::= "xDateTime" ~> opt((("(" ~> xsdDateTimeLiteral) <~ ",") ~ (xsdDateTimeLiteral <~ ")")) ^^ {
     case None =>
       XsdDateTimeRule()
-    case Some((from ~ to)) =>
+    case Some(from ~ to) =>
       XsdDateTimeRangeRule(from, to)
   }
+
+
+  lazy val xsdDateTimeWithTimeZoneExpr = "XsdDateTimeWithTimeZoneExpr" ::= "xDateTimeWithTimeZone" ~> opt((("(" ~> xsdDateTimeWithTimeZoneLiteral) <~ ",") ~ (xsdDateTimeWithTimeZoneLiteral <~ ")")) ^^ {
+    case None =>
+     XsdDateTimeWithTimeZoneRule()
+    case Some(from ~ to) =>
+     XsdDateTimeWithTimeZoneRangeRule(from, to)
+  }
+
 
   /**
     * [51] XsdDateExpr ::= "xDate" ("(" XsdDateLiteral "," XsdDateLiteral ")")?
@@ -583,17 +592,19 @@ with TraceableParsers {
   /**
     * [68] XsdDateTimeLiteral ::= XsdDateWithoutTimezoneComponent "T" XsdTimeLiteral
     */
-  lazy val xsdDateTimeLiteral: Parser[String] = "XsdDateTimeLiteral" ::= (xsdDateWithoutTimezoneComponent + "T" + xsdTimeWithoutTimezoneComponent + xsdTimezoneComponent).r
+  lazy val xsdDateTimeLiteral: Parser[String] = "XsdDateTimeLiteral" ::= (xsdDateWithoutTimezoneComponent + "T" + xsdTimeWithoutTimezoneComponent + xsdOptionalTimezoneComponent).r
+
+  lazy val xsdDateTimeWithTimeZoneLiteral: Parser[String] = "XsdDateTimeLiteral" ::= (xsdDateWithoutTimezoneComponent + "T" + xsdTimeWithoutTimezoneComponent + xsdTimezoneComponent).r
 
   /**
     * [69] XsdDateLiteral ::=  XsdDateWithoutTimezoneComponent XsdTimezoneComponent
     */
-  lazy val xsdDateLiteral: Parser[String] = "XsdDateLiteral" ::= (xsdDateWithoutTimezoneComponent + xsdTimezoneComponent).r
+  lazy val xsdDateLiteral: Parser[String] = "XsdDateLiteral" ::= (xsdDateWithoutTimezoneComponent + xsdOptionalTimezoneComponent).r
 
   /**
     * [70] XsdTimeLiteral ::=  XsdTimeWithoutTimezoneComponent XsdTimezoneComponent
     */
-  lazy val xsdTimeLiteral: Parser[String] = "XsdTimeLiteral" ::= (xsdTimeWithoutTimezoneComponent + xsdTimezoneComponent).r
+  lazy val xsdTimeLiteral: Parser[String] = "XsdTimeLiteral" ::= (xsdTimeWithoutTimezoneComponent + xsdOptionalTimezoneComponent).r
 
   /**
     * [71] XsdDateWithoutTimezoneComponent ::= -?[0-9]{4}-(((0(1|3|5|7|8)|1(0|2))-(0[1-9]|(1|2)[0-9]|3[0-1]))|((0(4|6|9)|11)-(0[1-9]|(1|2)[0-9]|30))|(02-(0[1-9]|(1|2)[0-9])))    /* xgc:regular-expression */
@@ -611,7 +622,9 @@ with TraceableParsers {
     * [73] XsdTimezoneComponent ::=  ((\+|-)(0[1-9]|1[0-9]|2[0-4]):(0[0-9]|[1-5][0-9])|Z)?    /* xgc:regular-expression */
     */
   //NOTE - we use a more relaxed regexp here than the spec, as another validation parse is done by the relevant rule class (e.g. schema.XsdTimeRegex, schema.XsdDateRegex or schema.XsdDateTimeRegex)
-  lazy val xsdTimezoneComponent = "(([+-][0-9]{2}:[0-9]{2})|Z)?"
+  lazy val xsdOptionalTimezoneComponent = "(([+-][0-9]{2}:[0-9]{2})|Z)?"
+
+  lazy val xsdTimezoneComponent = "(([+-][0-9]{2}:[0-9]{2})|Z)"
 
   /**
     * [74] UkDateLiteral ::= (((0[1-9]|(1|2)[0-9]|3[0-1])\/(0(1|3|5|7|8)|1(0|2)))|((0[1-9]|(1|2)[0-9]|30)\/(0(4|6|9)|11))|((0[1-9]|(1|2)[0-9])\/02))\/[0-9]{4}

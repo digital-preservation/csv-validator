@@ -392,6 +392,10 @@ case class XsdDateTimeRule() extends DateRule("xDateTime", XsdDateTimeRegex, Iso
 
 case class XsdDateTimeRangeRule(from: String, to: String) extends DateRangeRule("xDateTime", XsdDateTimeRegex, IsoDateTimeParser)
 
+case class XsdDateTimeWithTimeZoneRule() extends DateRule("xDateTimeWithTimeZone", XsdDateTimeWithTimeZoneRegex, IsoDateTimeParser)
+
+case class XsdDateTimeWithTimeZoneRangeRule(from: String, to: String) extends DateRangeRule("xDateTimeWithTimeZone", XsdDateTimeWithTimeZoneRegex, IsoDateTimeParser)
+
 case class XsdDateRule() extends DateRule("xDate", XsdDateRegex, XsdDateParser)
 
 case class XsdDateRangeRule(from: String, to: String) extends DateRangeRule("xDate",  XsdDateRegex, XsdDateParser)
@@ -400,9 +404,9 @@ case class UkDateRule() extends DateRule("ukDate", UkDateRegex, UkDateParser)
 
 case class UkDateRangeRule(from: String, to: String) extends DateRangeRule("ukDate", UkDateRegex, UkDateParser)
 
-case class XsdTimeRule() extends DateRule("xTime", XsdTimeRegex, IsoTimeParser)
+case class XsdTimeRule() extends DateRule("xTime", XsdTimeOptionalTimeZoneRegex, IsoTimeParser)
 
-case class XsdTimeRangeRule(from: String, to: String) extends DateRangeRule("xTime", XsdTimeRegex, IsoTimeParser)
+case class XsdTimeRangeRule(from: String, to: String) extends DateRangeRule("xTime", XsdTimeOptionalTimeZoneRegex, IsoTimeParser)
 
 case class PartUkDateRule() extends PatternRule("partUkDate", PartUkDateRegex)
 
