@@ -17,7 +17,9 @@ import java.nio.charset.{Charset => JCharset}
 
 object CsvValidator {
 
-  final val DEFAULT_ENCODING: JCharset = JCharset.forName("UTF-8")
+  final val UTF_8: JCharset = JCharset.forName("UTF-8")
+
+  final val DEFAULT_ENCODING = UTF_8
 
   type PathFrom = String
   type PathTo = String
@@ -40,19 +42,31 @@ object CsvValidator {
   * If no encoding is specified, then UTF-8 will
   * be assumed.
   */
-case class TextFile(file: Path, encoding: JCharset = CsvValidator.DEFAULT_ENCODING)
+case class TextFile(file: Path, encoding: JCharset = CsvValidator.DEFAULT_ENCODING, validateEncoding: Boolean = true)
 
 trait CsvValidator extends SchemaParser {
   this: MetaDataValidator =>
 
   def validate(csvFile: TextFile, csvSchema: Schema, progress: Option[ProgressCallback]): MetaDataValidation[Any] = {
-    withReader(csvFile) {
+
+    val encodingValidationNel: MetaDataValidation[Any] = validateCsvFileEncoding(csvFile).getOrElse(true.successNel[FailMessage])
+
+    val csvValidation = withReader(csvFile) {
       reader =>
         val totalRows = countRows(csvFile)
         validateKnownRows(reader, csvSchema, progress.map(p => {ProgressFor(totalRows, p)} )  )
     }
+    List(encodingValidationNel,csvValidation).sequence[MetaDataValidation, Any]
   }
 
+
+  def validateCsvFileEncoding(csvFile: TextFile): Option[MetaDataValidation[Any]] = csvFile match {
+      // validateCsvFileEncoding(csvFile).getOrElse(true.successNel[FailMessage])
+
+    case TextFile(_, _, false) => None
+    case TextFile(_, encoding, _) if !encoding.equals(CsvValidator.UTF_8) => None
+    case TextFile(file, _, true)  => Some(validateUtf8Encoding(file))
+  }
 
   def parseSchema(csvSchemaFile: TextFile): ValidationNel[FailMessage, Schema] = {
     withReader(csvSchemaFile) {
