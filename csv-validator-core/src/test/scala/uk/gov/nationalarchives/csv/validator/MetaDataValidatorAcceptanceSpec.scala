@@ -226,6 +226,64 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
     }
   }
 
+  "A xsdDateTime rule" should {
+    "succeed if the column value is in the rule's literal string" in {
+      validate(TextFile(Path.fromString(base) / "xsdDateTimePass.csv"), parse(base + "/xsdDateTime.csvs"), None).isSuccess mustEqual true
+    }
+
+    "fail if the column value is not in the rule's literal string" in {
+      validate(TextFile(Path.fromString(base) / "xsdDateTimeFail.csv"), parse(base + "/xsdDateTime.csvs"), None) must beLike {
+        case Failure(errors) => errors.list mustEqual List(
+          ErrorMessage("""xDateTime fails for line: 2, column: date, value: "2013-03-22"""",Some(2),Some(0))
+        )
+      }
+    }
+  }
+
+  "A xsdDateTimeRange rule" should {
+    "succeed if the column value is in the rule's literal string" in {
+      validate(TextFile(Path.fromString(base) / "xsdDateTimeRangePass.csv"), parse(base + "/xsdDateTimeRange.csvs"), None).isSuccess mustEqual true
+    }
+
+    "fail if the column value is not in the rule's literal string" in {
+      validate(TextFile(Path.fromString(base) / "xsdDateTimeRangeFail.csv"), parse(base + "/xsdDateTimeRange.csvs"), None) must beLike {
+        case Failure(errors) => errors.list  mustEqual List(
+          ErrorMessage("""xDateTime("2012-01-01T01:00:00, 2013-01-01T01:00:00") fails for line: 2, column: date, value: "2014-01-01T01:00:00"""",Some(2),Some(0))
+        )
+      }
+    }
+  }
+
+  "A xsdDateTimeWithTimeZone rule" should {
+    "succeed if the column value is in the rule's literal string" in {
+      validate(TextFile(Path.fromString(base) / "xsdDateTimeWithTimeZonePass.csv"), parse(base + "/xsdDateTimeWithTimeZone.csvs"), None).isSuccess mustEqual true
+    }
+
+    "fail if the column value is invalid" in {
+      validate(TextFile(Path.fromString(base) / "xsdDateTimeWithTimeZoneFail.csv"), parse(base + "/xsdDateTimeWithTimeZone.csvs"), None) must beLike {
+        case Failure(errors) => errors.list mustEqual List(
+          ErrorMessage("""xDateTimeWithTimeZone fails for line: 4, column: date, value: "2012-01-01T00:00:00"""",Some(4),Some(0))
+        )
+      }
+    }
+  }
+
+  "A xsdDateTimeWithTimeZoneRange rule" should {
+    "succeed if the column value is in the rule's literal string" in {
+      validate(TextFile(Path.fromString(base) / "xsdDateTimeWithTimeZoneRangePass.csv"), parse(base + "/xsdDateTimeWithTimeZoneRange.csvs"), None).isSuccess mustEqual true
+    }
+
+    "fail if the column value is not in the rule's literal string" in {
+      validate(TextFile(Path.fromString(base) / "xsdDateTimeWithTimeZoneRangeFail.csv"), parse(base + "/xsdDateTimeWithTimeZoneRange.csvs"), None) must beLike {
+        case Failure(errors) => errors.list  mustEqual List(
+          ErrorMessage("""xDateTimeWithTimeZone("2012-01-01T01:00:00+00:00, 2013-01-01T01:00:00+00:00") fails for line: 2, column: date, value: "2014-01-01T01:00:00+00:00"""",Some(2),Some(0))
+        )
+      }
+    }
+  }
+
+
+
   "An @optional column directive" should {
     "allow a column to have an empty value and ignore other rules" in {
       validate(TextFile(Path.fromString(base) / "optionalPassMetaData.csv"), parse(base + "/optionalSchema.csvs"), None) must beLike {
