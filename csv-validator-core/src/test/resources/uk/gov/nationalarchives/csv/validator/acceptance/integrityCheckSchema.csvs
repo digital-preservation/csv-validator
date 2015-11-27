@@ -1,9 +1,0 @@
-version 1.0
-@totalColumns 7 @noHeader @integrityCheck("uri",true)
-uri:
-xDateTime:
-xDate:
-ukDate:
-xTime:
-uuid4:
-positiveInteger:

@@ -10,6 +10,10 @@ package uk.gov.nationalarchives.csv.validator.schema
 
 import org.specs2.mutable.Specification
 import uk.gov.nationalarchives.csv.validator.metadata.{Cell, Row}
+import uk.gov.nationalarchives.csv.validator.schema.v1_0._
+import uk.gov.nationalarchives.csv.validator.schema.v1_1.{XsdDateTimeWithTimeZoneRangeRule, XsdDateTimeWithTimeZoneRule}
+
+//import uk.gov.nationalarchives.csv.validator.schema.v1_1._
 import scalaz.{Failure, Success}
 
 /**

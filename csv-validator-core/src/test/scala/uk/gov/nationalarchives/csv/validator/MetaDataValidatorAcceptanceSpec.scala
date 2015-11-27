@@ -254,13 +254,14 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
     }
   }
 
+  //FIXME
   "A xsdDateTimeWithTimeZone rule" should {
     "succeed if the column value is in the rule's literal string" in {
-      validate(TextFile(Path.fromString(base) / "xsdDateTimeWithTimeZonePass.csv"), parse(base + "/xsdDateTimeWithTimeZone.csvs"), None).isSuccess mustEqual true
+      validate(TextFile(Path.fromString(base) / "xsdDateTimeTzPass.csv"), parse(base + "/xsdDateTimeTz.csvs"), None).isSuccess mustEqual true
     }
 
     "fail if the column value is invalid" in {
-      validate(TextFile(Path.fromString(base) / "xsdDateTimeWithTimeZoneFail.csv"), parse(base + "/xsdDateTimeWithTimeZone.csvs"), None) must beLike {
+      validate(TextFile(Path.fromString(base) / "xsdDateTimeTzFail.csv"), parse(base + "/xsdDateTimeTz.csvs"), None) must beLike {
         case Failure(errors) => errors.list mustEqual List(
           ErrorMessage("""xDateTimeWithTimeZone fails for line: 4, column: date, value: "2012-01-01T00:00:00"""",Some(4),Some(0))
         )
@@ -270,11 +271,11 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
   "A xsdDateTimeWithTimeZoneRange rule" should {
     "succeed if the column value is in the rule's literal string" in {
-      validate(TextFile(Path.fromString(base) / "xsdDateTimeWithTimeZoneRangePass.csv"), parse(base + "/xsdDateTimeWithTimeZoneRange.csvs"), None).isSuccess mustEqual true
+      validate(TextFile(Path.fromString(base) / "xsdDateTimeTzRangePass.csv"), parse(base + "/xsdDateTimeTzRange.csvs"), None).isSuccess mustEqual true
     }
 
     "fail if the column value is not in the rule's literal string" in {
-      validate(TextFile(Path.fromString(base) / "xsdDateTimeWithTimeZoneRangeFail.csv"), parse(base + "/xsdDateTimeWithTimeZoneRange.csvs"), None) must beLike {
+      validate(TextFile(Path.fromString(base) / "xsdDateTimeTzRangeFail.csv"), parse(base + "/xsdDateTimeTzRange.csvs"), None) must beLike {
         case Failure(errors) => errors.list  mustEqual List(
           ErrorMessage("""xDateTimeWithTimeZone("2012-01-01T01:00:00+00:00, 2013-01-01T01:00:00+00:00") fails for line: 2, column: date, value: "2014-01-01T01:00:00+00:00"""",Some(2),Some(0))
         )
@@ -518,4 +519,10 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
       }
     }
   }
+
+  "Schema 1.1 should be backward compatible" in {
+    parseSchema(TextFile(Path.fromString(base + "/rule1_0.csvs"))).isSuccess mustEqual true
+  }
+
+
 }
