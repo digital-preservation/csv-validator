@@ -11,10 +11,10 @@ package uk.gov.nationalarchives.csv.validator.schema
 import uk.gov.nationalarchives.csv.validator.metadata.Row
 import util.parsing.input.Positional
 
-case class Schema(globalDirectives: List[GlobalDirective], columnDefinitions: List[ColumnDefinition])
+case class Schema(globalDirectives: List[GlobalDirective], columnDefinitions: List[ColumnDefinition], version: String = Schema.version)
 
 object Schema {
-  val version = "1.0"
+  val version = "1.1"
 }
 
 abstract class GlobalDirective(val name: String) extends Positional

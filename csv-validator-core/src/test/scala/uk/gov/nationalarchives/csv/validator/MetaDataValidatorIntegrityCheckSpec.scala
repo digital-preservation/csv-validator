@@ -7,10 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 package uk.gov.nationalarchives.csv.validator
-
-import java.io.File
-import java.lang.management.MemoryUsage
-
 import org.specs2.mutable.Specification
 import uk.gov.nationalarchives.csv.validator.api.{CsvValidator, TextFile}
 import uk.gov.nationalarchives.csv.validator.schema.{TraceableParsers, Schema}

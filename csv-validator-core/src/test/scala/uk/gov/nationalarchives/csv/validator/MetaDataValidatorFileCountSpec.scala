@@ -131,7 +131,7 @@ class MetaDataValidatorFileCountSpec extends Specification with TestResources {
         """version 1.0
            @totalColumns 2 @noHeader
            File:
-           Count: fileCount(file("""" + schemaPath + """", "checksum.csvs"))
+           Count: fileCount(file("""" + schemaPath1_0 + """", "checksum.csvs"))
         """
 
       val metaData = """ABC,1"""
@@ -144,13 +144,13 @@ class MetaDataValidatorFileCountSpec extends Specification with TestResources {
         """version 1.0
            @totalColumns 2 @noHeader
            File:
-           Count: fileCount(file("""" + schemaPath + """", "checksum.csvs"))
+           Count: fileCount(file("""" + schemaPath1_0 + """", "checksum.csvs"))
         """
 
       val metaData = """ABC,99"""
 
       validate(metaData, schema, None) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""fileCount(file("""" + schemaPath + """", "checksum.csvs")) found 1 file(s) for line: 1, column: Count, value: "99"""",Some(1),Some(1)))
+        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""fileCount(file("""" + schemaPath1_0 + """", "checksum.csvs")) found 1 file(s) for line: 1, column: Count, value: "99"""",Some(1),Some(1)))
       }
     }
   }
@@ -162,7 +162,7 @@ class MetaDataValidatorFileCountSpec extends Specification with TestResources {
         """version 1.0
            @totalColumns 2 @noHeader
            File:
-           Count: fileCount(file("""" + schemaPath + """", $File))
+           Count: fileCount(file("""" + schemaPath1_0 + """", $File))
         """
 
       val metaData = """checksum.csvs,1"""
@@ -230,7 +230,7 @@ class MetaDataValidatorFileCountSpec extends Specification with TestResources {
            Count: fileCount(file($Root, $File))
         """
 
-      val metaData = s"$schemaPath,checksum.csvs,1"
+      val metaData = s"$schemaPath1_0,checksum.csvs,1"
 
       validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
@@ -263,7 +263,7 @@ class MetaDataValidatorFileCountSpec extends Specification with TestResources {
            Count: fileCount(file($Root, $File))
         """
 
-      val metaData = s"$schemaPath,**/checksum.csvs,1"
+      val metaData = s"$schemaPath1_0,**/checksum.csvs,1"
 
       validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
@@ -292,7 +292,7 @@ class MetaDataValidatorFileCountSpec extends Specification with TestResources {
            Count: fileCount(file($Root, $File))
         """
 
-      val metaData = s"$schemaPath,checksum.*,1"
+      val metaData = s"$schemaPath1_0,checksum.*,1"
 
       validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }

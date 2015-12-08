@@ -39,7 +39,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
   import TestMetaDataValidator._
 
-  val mustExistForRulePath = resourcePath("schema/mustExistForRule.csvs")
+  val mustExistForRulePath = resourcePath("schema/v1_0/mustExistForRule.csvs")
 
   "Validation" should {
 
@@ -346,7 +346,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
         """version 1.0
            @totalColumns 1 @noHeader
            1: fileExists("""" + relPath._1 + """")
-        """
+                                             """
 
       val metaData = relPath._2
 
@@ -913,9 +913,9 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
       val metaData =
         """02/February/2013
-           0?/February/2013
-           ??/May/2013
-           02/*/2013
+      0?/February/2013
+      ??/May/2013
+      02/*/2013
            */?/*
            12/?/2013
         """
@@ -1053,7 +1053,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
            @totalColumns 2 @noHeader
            File:
            MD5: checksum(file("""" + checksumPath + """"), "MD5")
-        """
+                                                    """
 
       val metaData = s"$checksumPath,232762380299115da6995e4c4ac22fa2"
 
@@ -1065,8 +1065,8 @@ class MetaDataValidatorSpec extends Specification with TestResources {
         """version 1.0
            @totalColumns 2 @noHeader
            File:
-           Count: fileCount(file("""" + schemaPath + """", $File))
-        """
+           Count: fileCount(file("""" + schemaPath1_0 + """", $File))
+                                                        """
 
       val metaData = """checksum.csvs,1"""
 
