@@ -15,7 +15,7 @@ import uk.gov.nationalarchives.csv.validator.schema._
 
 import scalaz.{Failure => FailureZ}
 
-class SchemaParserColumnDirectivesSpec extends SchemaSpecs {
+class SchemaParserColumnDirectivesSpec extends SchemaSpecBase {
 
   import TestSchemaParser._
 

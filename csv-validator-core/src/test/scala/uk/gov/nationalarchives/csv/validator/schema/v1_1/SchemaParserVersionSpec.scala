@@ -13,7 +13,7 @@ import java.io.StringReader
 import uk.gov.nationalarchives.csv.validator.TestResources
 import uk.gov.nationalarchives.csv.validator.schema._
 
-class SchemaParserVersionSpecs extends SchemaSpecs with TestResources{
+class SchemaParserVersionSpec extends SchemaSpecBase with TestResources{
 
   import TestSchemaParser._
 

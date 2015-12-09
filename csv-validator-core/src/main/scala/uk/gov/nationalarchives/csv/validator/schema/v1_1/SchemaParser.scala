@@ -9,7 +9,7 @@
 package uk.gov.nationalarchives.csv.validator.schema.v1_1
 
 import uk.gov.nationalarchives.csv.validator.schema.v1_0.{SchemaParser => SchemaParser1_0}
-import uk.gov.nationalarchives.csv.validator.schema.{Literal, Rule, Schema}
+import uk.gov.nationalarchives.csv.validator.schema._
 
 /**
   * CSV Schema Parser
@@ -94,6 +94,23 @@ trait SchemaParser extends SchemaParser1_0 {
   lazy val xsdDateTimeTzLiteral: Parser[String] = "XsdDateTimeTzLiteral" ::= (xsdDateWithoutTimezoneComponent + "T" + xsdTimeWithoutTimezoneComponent + xsdTimezoneComponent).r
 
   lazy val xsdTimezoneComponent = "(([+-][0-9]{2}:[0-9]{2})|Z)"
+
+  /**
+    * [59] StringProvider ::= ColumnRef | StringLiteral
+    */
+  override lazy val stringProvider: PackratParser[ArgProvider] = "StringProvider" ::= noext | concat | columnRef | stringLiteral ^^ {
+    s => Literal(Some(s))
+  }
+
+
+  lazy val noext: PackratParser[ArgProvider] = "NoExt" ::= "noext(" ~> stringProvider <~ ")" ^^ {
+     NoExt(_)
+  }
+
+  lazy val concat: PackratParser[ArgProvider] = "Concat" ::= ("concat(" ~> stringProvider <~ ",") ~ stringProvider <~ ")" ^^ {
+    case s1 ~ s2 => Concat(s1,
+      s2)
+  }
 
 
 

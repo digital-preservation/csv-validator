@@ -16,7 +16,7 @@ import uk.gov.nationalarchives.csv.validator.schema._
 
 import scalaz.{Failure => FailureZ, Success => SuccessZ}
 
-class SchemaParserRulesSpec extends SchemaSpecs {
+class SchemaParserRulesSpec extends SchemaSpecBase {
 
   val emptyPathSubstitutions = List[(String,String)]()
 

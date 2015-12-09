@@ -13,7 +13,7 @@ import java.io.StringReader
 import uk.gov.nationalarchives.csv.validator.schema._
 
 
-class SchemaParserGlobalDirectivesSpec extends SchemaSpecs {
+class SchemaParserGlobalDirectivesSpec extends SchemaSpecBase {
 
   import TestSchemaParser._
 

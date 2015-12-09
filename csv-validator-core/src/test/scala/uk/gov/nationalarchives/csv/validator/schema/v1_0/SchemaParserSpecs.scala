@@ -11,7 +11,7 @@ package uk.gov.nationalarchives.csv.validator.schema.v1_0
 import java.io.StringReader
 import uk.gov.nationalarchives.csv.validator.schema._
 
-class SchemaParserSpecs extends SchemaSpecs {
+class SchemaParserSpecs extends SchemaSpecBase {
 
   import TestSchemaParser._
 

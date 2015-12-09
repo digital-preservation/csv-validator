@@ -12,12 +12,15 @@ import org.specs2.mutable.Specification
 import uk.gov.nationalarchives.csv.validator.schema.v1_0.NotEmptyRule
 
 
-trait SchemaSpecs  extends Specification {
+trait SchemaSpecBase  extends Specification {
 
   object TestSchemaParser extends SchemaParser { val pathSubstitutions = List[(String,String)](); val enforceCaseSensitivePathChecks = false; val trace = false }
 
   def buildSchema1_0(globalDirective: GlobalDirective*)(columnDefinition: ColumnDefinition*) =
     Schema(globalDirective.toList, columnDefinition.toList, "1.0")
+
+  def buildSchema1_1(globalDirective: GlobalDirective*)(columnDefinition: ColumnDefinition*) =
+    Schema(globalDirective.toList, columnDefinition.toList, "1.1")
 
   def namedColumn(name: String) = ColumnDefinition(NamedColumnIdentifier(name))
 
