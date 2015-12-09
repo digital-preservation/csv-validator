@@ -524,5 +524,43 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
     parseSchema(TextFile(Path.fromString(base + "/rule1_0.csvs"))).isSuccess mustEqual true
   }
 
+  "No ext string provider" should {
+    "should remove filename extension" in {
+      validate(TextFile(Path.fromString(base) / "noextPass.csv"), parse(base + "/noext.csvs"), None).isSuccess mustEqual true
+    }
+
+    "fail for incorrect extension removal" in {
+      validate(TextFile(Path.fromString(base) / "noextFail.csv"), parse(base + "/noext.csvs"), None) must beLike {
+        case Failure(errors) => errors.list mustEqual List(ErrorMessage("""is(noext($identifier)) fails for line: 3, column: noext, value: "file:/a/b/c.txt"""",Some(3),Some(1)))
+      }
+    }
+  }
+
+  "Concat string provider" should {
+    "should remove filename extension" in {
+      validate(TextFile(Path.fromString(base) / "concatPass.csv"), parse(base + "/concat.csvs"), None).isSuccess mustEqual true
+    }
+
+    "fail for incorrect concatenation" in {
+      validate(TextFile(Path.fromString(base) / "concatFail.csv"), parse(base + "/concat.csvs"), None) must beLike {
+        case Failure(errors) => errors.list mustEqual List(ErrorMessage("""is(concat($c1, $c2)) fails for line: 3, column: c3, value: "ccccc"""",Some(3),Some(2)))
+      }
+    }
+  }
+
+
+  "Redacted schema" should {
+    "should remove filename extension" in {
+      validate(TextFile(Path.fromString(base) / "redactedPass.csv"), parse(base + "/redacted.csvs"), None).isSuccess mustEqual true
+    }
+
+    "fail for incorrect concatenation" in {
+      validate(TextFile(Path.fromString(base) / "redactedFail.csv"), parse(base + "/redacted.csvs"), None) must beLike {
+        case Failure(errors) => errors.list mustEqual List(ErrorMessage("""is(concat(noext($original_identifier), "_R.pdf")) fails for line: 2, column: identifier, value: "file:/some/folder/TNA%20Digital%20Preservation%20Strategy%20v0.3%5BA1031178%5D_R1.pdf"""",Some(2),Some(0)))
+      }
+    }
+  }
+
+
 
 }

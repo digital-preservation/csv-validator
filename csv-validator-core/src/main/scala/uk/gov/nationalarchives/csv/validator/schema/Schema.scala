@@ -8,6 +8,7 @@
  */
 package uk.gov.nationalarchives.csv.validator.schema
 
+import org.apache.commons.io.FilenameUtils
 import uk.gov.nationalarchives.csv.validator.metadata.Row
 import util.parsing.input.Positional
 
@@ -77,8 +78,10 @@ case class Literal(value: Option[String]) extends ArgProvider {
 
   def referenceValue(columnIndex: Int, row: Row, schema: Schema): Option[String] = value
 
-  def toError = if (value.isDefined) "\"" + value.get + "\"" else ""
+  def toError = value.map("\"" + _ + "\"").getOrElse("")
 }
+
+
 
 trait ColumnDirective extends Positional
 
