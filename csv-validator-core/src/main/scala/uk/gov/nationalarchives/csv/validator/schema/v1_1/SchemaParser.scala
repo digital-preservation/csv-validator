@@ -11,6 +11,8 @@ package uk.gov.nationalarchives.csv.validator.schema.v1_1
 import uk.gov.nationalarchives.csv.validator.schema.v1_0.{SchemaParser => SchemaParser1_0}
 import uk.gov.nationalarchives.csv.validator.schema._
 
+
+
 /**
   * CSV Schema Parser
   *
@@ -107,10 +109,8 @@ trait SchemaParser extends SchemaParser1_0 {
      NoExt(_)
   }
 
-  lazy val concat: PackratParser[ArgProvider] = "Concat" ::= ("concat(" ~> stringProvider <~ ",") ~ stringProvider <~ ")" ^^ {
-    case s1 ~ s2 => Concat(s1,
-      s2)
-  }
+  lazy val concat: PackratParser[ArgProvider] = "Concat" ::= "concat(" ~> rep1sep(stringProvider,",") <~")" ^^ { Concat(_:_*) }
+
 
 
 

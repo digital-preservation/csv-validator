@@ -1,0 +1,7 @@
+version 1.1
+@totalColumns 5
+c1:
+c2:
+c3:
+c4:
+c5: is(concat($c1,$c2,"hello",$c4))

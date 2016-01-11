@@ -537,13 +537,23 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
   }
 
   "Concat string provider" should {
-    "should remove filename extension" in {
+    "should concatenate string provider" in {
       validate(TextFile(Path.fromString(base) / "concatPass.csv"), parse(base + "/concat.csvs"), None).isSuccess mustEqual true
     }
 
     "fail for incorrect concatenation" in {
       validate(TextFile(Path.fromString(base) / "concatFail.csv"), parse(base + "/concat.csvs"), None) must beLike {
         case Failure(errors) => errors.list mustEqual List(ErrorMessage("""is(concat($c1, $c2)) fails for line: 3, column: c3, value: "ccccc"""",Some(3),Some(2)))
+      }
+    }
+
+    "should concatenate string provider (various arguments)" in {
+      validate(TextFile(Path.fromString(base) / "concat4Pass.csv"), parse(base + "/concat4.csvs"), None).isSuccess mustEqual true
+    }
+
+    "fail for incorrect concatenation (various arguments)" in {
+      validate(TextFile(Path.fromString(base) / "concat4Fail.csv"), parse(base + "/concat4.csvs"), None) must beLike {
+        case Failure(errors) =>  errors.list mustEqual List(ErrorMessage("""is(concat($c1, $c2, "hello", $c4)) fails for line: 2, column: c5, value: "aabbccdd"""",Some(2),Some(4)))
       }
     }
   }

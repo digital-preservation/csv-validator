@@ -33,7 +33,7 @@ object SchemaValidator {
 
    def versionValid(version: String): Option[String] =  {
     if (SemVer(version) > SemVer(Schema.version))
-      Some(s"Invalid schema version. This version of the csv validator supports only ${Schema.version}")
+      Some(s"Invalid schema version. This version of the csv validator supports only ${Schema.version} and below.")
     else
       None
   }
