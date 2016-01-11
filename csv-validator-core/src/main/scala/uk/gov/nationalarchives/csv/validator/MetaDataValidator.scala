@@ -43,7 +43,7 @@ trait MetaDataValidator {
       progress.map {
         p =>
           csv.mark(Integer.MAX_VALUE)
-          val pf = ProgressFor(countRows(csv), p)
+          val pf = ProgressFor(countRows(csv, schema), p)
           csv.reset()
           pf
       }
@@ -265,14 +265,16 @@ trait MetaDataValidator {
 
   protected def rulesForCell(columnIndex: Int, row: Row, schema: Schema, mayBeLast: Option[Boolean] = None): MetaDataValidation[Any]
 
-  protected def countRows(textFile: TextFile): Int = {
+  protected def countRows(textFile: TextFile, schema: Schema): Int = {
     withReader(textFile) {
       reader =>
-        countRows(reader)
+        countRows(reader, schema)
     }
   }
 
-  protected def countRows(reader: JReader): Int = {
+  protected def countRows(reader: JReader, schema: Schema): Int = {
+    val rowsAsHeader =  if(schema.globalDirectives.contains(NoHeader())) 0 else 1
+
     (managed(new JLineNumberReader(reader)) map {
       lineReader =>
 
@@ -286,7 +288,7 @@ trait MetaDataValidator {
           }
         }
         readAll()
-    } opt) getOrElse -1
+    } opt).map(_ - rowsAsHeader) getOrElse -1
   }
 
   protected def withReader[B](textFile: TextFile)(fn: JReader => B): B = {

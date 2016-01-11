@@ -53,7 +53,7 @@ trait CsvValidator extends SchemaParser {
 
     val csvValidation = withReader(csvFile) {
       reader =>
-        val totalRows = countRows(csvFile)
+        val totalRows = countRows(csvFile, csvSchema)
         validateKnownRows(reader, csvSchema, progress.map(p => {ProgressFor(totalRows, p)} )  )
     }
     List(encodingValidationNel,csvValidation).sequence[MetaDataValidation, Any]
