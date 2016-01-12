@@ -90,7 +90,7 @@ object CsvValidatorCmdApp extends App {
 
     override def update(complete: Percentage): Unit = Console.out.println(numberFormat.format(complete/100))
 
-    override def update(total: Int, processed: Int): Unit = Console.out.println(s"${processed}/${total}")
+    override def update(total: Int, processed: Int): Unit = Console.out.println(s"processing ${processed} of ${total}")
   }
 
   private def getShortVersion(): String = {
