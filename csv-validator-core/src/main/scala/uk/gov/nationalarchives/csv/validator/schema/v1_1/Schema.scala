@@ -20,15 +20,17 @@ case class NoExt(value: ArgProvider) extends ArgProvider {
 
 }
 
-case class Concat(s1: ArgProvider, s2: ArgProvider) extends  ArgProvider {
+case class Concat(args: ArgProvider*) extends  ArgProvider {
 
-  def referenceValue(columnIndex: Int, row: Row, schema: Schema): Option[String] = concat(s1.referenceValue(columnIndex, row, schema) , s2.referenceValue(columnIndex, row, schema))
+  def referenceValue(columnIndex: Int, row: Row, schema: Schema): Option[String] = concat(args.map(_.referenceValue(columnIndex, row, schema)))
 
-  def concat(ms1: Option[String], ms2 : Option[String]): Option[String] = (ms1,ms2) match {
-    case (None, None) => None
-    case _ => Some(ms1.getOrElse("") + ms2.getOrElse(""))
-  }
+  def concat(ms: Seq[Option[String]]): Option[String] =
+    if (ms.forall(_.isEmpty))
+      None
+    else {
+      Some(ms.foldLeft(""){case (acc,elem) => acc + elem.getOrElse("")})
+    }
 
-  def toError = "concat(" + s1.toError+ ", " +  s2.toError + ")"
+  def toError = "concat(" + args.map(_.toError).mkString(", ") + ")"
 }
 
