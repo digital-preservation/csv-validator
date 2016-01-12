@@ -1242,16 +1242,16 @@ class MetaDataValidatorSpec extends Specification with TestResources {
     "report same number of processed lines for csv with header" in {
       val schema =
         """version 1.0
-           @totalColumns 3 @noHeader
+           @totalColumns 3
            column1:
            column2:
            column3:
         """
 
       val metaData =
-        """column1, column2, column3
-           col1, col2, col3
-           col1, col2, col3
+        """column1,column2,column3
+           col1,col2,col3
+           col1,col2,col3
         """
 
       val callback = new ProgressCallback {
