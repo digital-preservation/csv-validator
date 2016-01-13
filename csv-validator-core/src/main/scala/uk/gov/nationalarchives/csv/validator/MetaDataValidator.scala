@@ -12,6 +12,7 @@ package uk.gov.nationalarchives.csv.validator
 import uk.gov.nationalarchives.utf8.validator.{Utf8Validator, ValidationHandler}
 
 import scala.language.postfixOps
+import scala.util.Try
 import scalaz._, Scalaz._
 import java.io.{IOException, Reader => JReader, InputStreamReader => JInputStreamReader, FileInputStream => JFileInputStream, LineNumberReader => JLineNumberReader}
 import resource._
@@ -43,7 +44,7 @@ trait MetaDataValidator {
       progress.map {
         p =>
           csv.mark(Integer.MAX_VALUE)
-          val pf = ProgressFor(countRows(csv), p)
+          val pf = ProgressFor(countRows(csv, schema), p)
           csv.reset()
           pf
       }
@@ -265,28 +266,29 @@ trait MetaDataValidator {
 
   protected def rulesForCell(columnIndex: Int, row: Row, schema: Schema, mayBeLast: Option[Boolean] = None): MetaDataValidation[Any]
 
-  protected def countRows(textFile: TextFile): Int = {
+  protected def countRows(textFile: TextFile, schema: Schema): Int = {
     withReader(textFile) {
       reader =>
-        countRows(reader)
+        countRows(reader, schema)
     }
   }
 
-  protected def countRows(reader: JReader): Int = {
-    (managed(new JLineNumberReader(reader)) map {
-      lineReader =>
-
-        @tailrec
-        def readAll(): Int = {
-          val result = Option(lineReader.readLine())
-          if(result.empty) {
-            lineReader.getLineNumber() + 1 //start from 1 not 0
-          } else {
-            readAll()
-          }
+  protected def countRows(reader: JReader, schema: Schema): Int = {
+    val rowsAsHeader =  if(schema.globalDirectives.contains(NoHeader())) 0 else 1
+    Try {
+      val lineReader = new JLineNumberReader(reader) // don't close this JLineNumberReader, because it automatically close original reader.
+                                                     // It's resource/memory safe. JLineReader will be colected by GS.
+      @tailrec
+      def readAll(): Int = {
+        val result = Option(lineReader.readLine())
+        if(result.empty) {
+          lineReader.getLineNumber() + 1 //start from 1 not 0
+        } else {
+          readAll()
         }
-        readAll()
-    } opt) getOrElse -1
+      }
+      readAll()
+    }.map(_ - rowsAsHeader) getOrElse -1
   }
 
   protected def withReader[B](textFile: TextFile)(fn: JReader => B): B = {

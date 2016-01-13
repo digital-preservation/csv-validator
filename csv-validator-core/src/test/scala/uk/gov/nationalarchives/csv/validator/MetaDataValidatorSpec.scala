@@ -1239,5 +1239,37 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       validate(metaData, schema, None) must beLike { case Success(_) => ok }
     }
 
+    "report same number of processed lines for csv with header" in {
+      val schema =
+        """version 1.0
+           @totalColumns 3
+           column1:
+           column2:
+           column3:
+        """
+
+      val metaData =
+        """column1,column2,column3
+           col1,col2,col3
+           col1,col2,col3
+        """
+
+      val callback = new ProgressCallback {
+        var processed = -1
+        var total = -2
+        override def update(complete: Percentage): Unit = ???
+
+        override def update(_total: Int, _processed: Int): Unit = {
+          total = _total
+          processed = _processed
+        }
+      }
+
+      validate(metaData, schema, Some(callback) ) must beLike { case Success(_) => ok }
+
+      callback.processed must beEqualTo(callback.total)
+
+    }
+
   }
 }
