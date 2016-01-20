@@ -104,6 +104,32 @@ class MetaDataValidatorIntegrityCheckSpec extends Specification with TestResourc
       validator.validate(TextFile(Path.fromString(WO95Path) / "tech_acq_metadata_v1_WO95Y14B003.csv"), parse(WO95Path + "/tech_acq_metadata_v1_WO95Y14B000.csvs",validator), None).isSuccess mustEqual true
     }
 
+
+    "succeed with alternative substitution paths - header" in {
+
+      val substitutionPaths = List(("file:///T:/WORK/RF_5/content",headerPath + "content"))
+
+
+      val validator = buildValidator(substitutionPaths)
+      validator.validate(TextFile(Path.fromString(headerPath) / "integrityCheckMetaData.csv"), parse(headerPath + "/integrityCheckSchema.csvs",validator), None).isSuccess mustEqual true
+
+      val substitutionPaths2 = List(("file:///T:/WORK/RF_5/content/",headerPath + "content/"))
+      val validator2 = buildValidator(substitutionPaths2)
+      validator2.validate(TextFile(Path.fromString(headerPath) / "integrityCheckMetaData.csv"), parse(headerPath + "/integrityCheckSchema.csvs",validator), None).isSuccess mustEqual true
+
+      val substitutionPaths3 = List(("file:///T:/WORK/RF_5/content/",headerPath + "content"))
+      val validator3 = buildValidator(substitutionPaths3)
+      validator3.validate(TextFile(Path.fromString(headerPath) / "integrityCheckMetaData.csv"), parse(headerPath + "/integrityCheckSchema.csvs",validator), None).isSuccess mustEqual true
+    }
+
+    "safely fail with incorttectt substitution paths - header" in {
+
+      val substitutionPaths = List(("file:///T:/WORK/RF_5/content123",headerPath + "content123"))
+
+      val validator = buildValidator(substitutionPaths)
+      validator.validate(TextFile(Path.fromString(headerPath) / "integrityCheckMetaData.csv"), parse(headerPath + "/integrityCheckSchema.csvs",validator), None).isFailure mustEqual true
+
+    }
   }
 
 }
