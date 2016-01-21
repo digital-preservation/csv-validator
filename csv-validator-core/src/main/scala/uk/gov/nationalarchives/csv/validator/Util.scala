@@ -208,28 +208,25 @@ object Util {
     val separator: Char = FILE_SEPARATOR
 
     private def substitutePath(filename: String): String = {
-      //TODO Refactor using collect
-      val x = {
-        pathSubstitutions.filter {
-          case (subFrom, _) => filename.contains(subFrom)
-        }.map {
-          case (subFrom, subTo) => filename.replaceFirst(Matcher.quoteReplacement(subFrom), Matcher.quoteReplacement(FileSystem.file2PlatformIndependent(subTo)))
-        }
-      }
-      if(x.isEmpty)
-        filename
 
-      else
-        x.head
+      pathSubstitutions.collectFirst{
+        case (subFrom, subTo) if filename.contains(subFrom) => filename.replaceFirst(Matcher.quoteReplacement(subFrom), Matcher.quoteReplacement(FileSystem.file2PlatformIndependent(subTo)))
+      }.getOrElse(filename)
     }
 
     private def contentDir(filepath: String, topLevelFolder: String): String = {
       val dir = pathSubstitutions.collectFirst{
-        case (subFrom, subTo) if filepath.contains(subFrom) => subTo
+        case (subFrom, subTo) if filepath.contains(subFrom) => FileSystem.file2PlatformIndependent(subTo)
       }  getOrElse {
         (filepath split topLevelFolder).head
       }
-      dir + separator + topLevelFolder
+
+      val sep = "/"
+      val lastfilePath = dir.split(sep).last
+      if (lastfilePath.equals(topLevelFolder) || lastfilePath.equals(topLevelFolder + sep)) {
+        dir
+      } else
+        FileSystem.file2PlatformIndependent(dir + sep + topLevelFolder)
     }
 
     def jointPath: String = {
@@ -277,6 +274,9 @@ object Util {
       else
         throw new FileNotFoundException(s"Cannot find the folder $folder")
     }
+
+
+
 
     def integrityCheck(fileMap: Map[String, Set[File]],  enforceCaseSensitivePathChecks: Boolean, topLevelFolder: String, includeFolder: Boolean): Map[String, Set[File]] = {
       val contentDirectory = contentDir(jointPath, topLevelFolder)
