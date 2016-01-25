@@ -9,7 +9,7 @@ scala:
 #        - "sudo apt-get update"
 #        - "sudo apt-get install openjdk-6-jdk openjdk-7-jdk"
 
-script: "mvn test verify" 
+script: "mvn test verify -Dmaven.javadoc.skip=true"
 
 jdk:
 #        - openjdk6
