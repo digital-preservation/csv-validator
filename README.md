@@ -95,13 +95,9 @@ Examples of CSV Schema can be found in the test cases of the `csv-validator-core
 
 Current Limitations of the CSV Validator Tool
 =============================================
-The CSV Validator implements almost all of `CSV Schema 1.0` language, current limitations and missing functionality are:
+The CSV Validator implements almost all of `CSV Schema 1.1` language, current limitations and missing functionality are:
 
-* No checking of column names in the CSV Schema is performed against the CSV file; as such `@ignoreColumnNameCase` has no effect.
-
-* `@matchIsFalse` column directive is not yet implemented (silently ignored!).
-
-* `DateExpr` is not yet implemented (raises Schema check error).
+* `DateExpr` is not yet fully implemented (may raise Schema check error).
 
 * `PartialDateExpr` is not yet implemented (raises Schema check error).
 
