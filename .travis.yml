@@ -1,16 +1,18 @@
+sudo: false
+
 language: scala
 
 scala:
-        - 2.11.1
+        - 2.11.6
 
-# before_install:
-#        - "sudo apt-get update"
-#        - "sudo apt-get install openjdk-6-jdk openjdk-7-jdk"
-
-script: "mvn test verify" 
+script: "mvn test verify -Dmaven.javadoc.skip=true"
 
 jdk:
 #        - openjdk6
-#        - openjdk7
+        - openjdk7
         - oraclejdk7
         - oraclejdk8
+
+notifications:
+    email:
+        - digitalpreservation@nationalarchives.gov.uk
