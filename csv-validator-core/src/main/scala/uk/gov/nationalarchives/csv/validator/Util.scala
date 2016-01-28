@@ -215,18 +215,9 @@ object Util {
     }
 
     private def contentDir(filepath: String, topLevelFolder: String): String = {
-      val dir = pathSubstitutions.collectFirst{
-        case (subFrom, subTo) if filepath.contains(subFrom) => FileSystem.file2PlatformIndependent(subTo)
-      }  getOrElse {
-        (filepath split topLevelFolder).head
-      }
-
-      val sep = "/"
-      val lastfilePath = dir.split(sep).last
-      if (lastfilePath.equals(topLevelFolder) || lastfilePath.equals(topLevelFolder + sep)) {
-        dir
-      } else
-        FileSystem.file2PlatformIndependent(dir + sep + topLevelFolder)
+      val dir = (substitutePath(filepath) split topLevelFolder).head
+       val sep = "/"
+      FileSystem.file2PlatformIndependent(dir + sep + topLevelFolder)
     }
 
     def jointPath: String = {

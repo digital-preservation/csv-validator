@@ -75,7 +75,7 @@
         <scala.version>2.11</scala.version>
         <scala.lib.version>2.11.6</scala.lib.version>
         <scalaz.version>7.1.1</scalaz.version>
-        <java.version>1.6</java.version>
+        <java.version>1.7</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <contact.email>digitalpreservation@nationalarchives.gov.uk</contact.email>
     </properties>
