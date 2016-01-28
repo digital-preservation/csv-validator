@@ -7,7 +7,7 @@ A Validation Tool and APIs for validating CSV (Comma Separated Value) files by u
 
 Released under the [Mozilla Public Licence version 2.0](http://www.mozilla.org/MPL/2.0/).
 
-A [comprehensive user guide is available in GitHub pages] (http://digital-preservation.github.io/csv-validator/), along with a more [complete specification of the CSV Schema language] (http://digital-preservation.github.io/csv-schema/csv-schema-1.0.html).
+A [comprehensive user guide is available in GitHub pages] (http://digital-preservation.github.io/csv-validator/), along with a more [complete specification of the CSV Schema language] (http://digital-preservation.github.io/csv-schema/csv-schema-1.1.html).
 
 
 Technology
@@ -77,7 +77,7 @@ Likewise, if you wish to use the CSV Validator from your own Scala project, the 
 <dependency>
 	<groupId>uk.gov.nationalarchives</groupId>
     <artifactId>csv-validator-core</artifactId>
-    <version>1.0</version>
+    <version>1.1</version>
 </dependency>
 ```
 
@@ -95,13 +95,9 @@ Examples of CSV Schema can be found in the test cases of the `csv-validator-core
 
 Current Limitations of the CSV Validator Tool
 =============================================
-The CSV Validator implements almost all of `CSV Schema 1.0` language, current limitations and missing functionality are:
+The CSV Validator implements almost all of `CSV Schema 1.1` language, current limitations and missing functionality are:
 
-* No checking of column names in the CSV Schema is performed against the CSV file; as such `@ignoreColumnNameCase` has no effect.
-
-* `@matchIsFalse` column directive is not yet implemented (silently ignored!).
-
-* `DateExpr` is not yet implemented (raises Schema check error).
+* `DateExpr` is not yet fully implemented (may raise Schema check error).
 
 * `PartialDateExpr` is not yet implemented (raises Schema check error).
 

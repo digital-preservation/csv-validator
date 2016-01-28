@@ -8,7 +8,7 @@
  */
 package uk.gov.nationalarchives.csv.validator.schema.v1_1
 
-import java.io.File
+import java.io.{FileNotFoundException, File}
 
 import uk.gov.nationalarchives.csv.validator.Util.FileSystem
 import uk.gov.nationalarchives.csv.validator.metadata.Row
@@ -76,24 +76,33 @@ case class IntegrityCheckRule(pathSubstitutions: List[(String,String)], enforceC
   //TODO introduce state, not very functional
   var filesMap = Map[String, Set[File]]()
 
+  override def evaluate(columnIndex: Int, row: Row,  schema: Schema, mayBeLast: Option[Boolean] = None): RuleValidation[Any] = {
+    try{
+      if (valid(cellValue(columnIndex, row, schema), schema.columnDefinitions(columnIndex), columnIndex, row, schema, mayBeLast)) true.successNel[String] else fail(columnIndex, row, schema)
+    }
+    catch {
+      case ex: FileNotFoundException =>
+        val columnDefinition = schema.columnDefinitions(columnIndex)
+        s"$toError fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${ex.getMessage} with substitution paths ${pathSubstitutions.mkString(", ")}".failureNel[Any]
+    }
+  }
+
   override def valid(filePath: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema, mayBeLast: Option[Boolean]): Boolean = {
 
     if (!filePath.isEmpty){
 
-      val ruleValue = rootPath.referenceValue(columnIndex, row, schema)
+        val ruleValue = rootPath.referenceValue(columnIndex, row, schema)
 
-      filesMap = new FileSystem(ruleValue, filePath, pathSubstitutions).integrityCheck(filesMap, enforceCaseSensitivePathChecks, topLevelFolder, includeFolder)
-      val isLastLine = mayBeLast.map(!_).getOrElse(false)
+        filesMap = new FileSystem(ruleValue, filePath, pathSubstitutions).integrityCheck(filesMap, enforceCaseSensitivePathChecks, topLevelFolder, includeFolder)
+        val isLastLine = mayBeLast.map(!_).getOrElse(false)
 
-      if (isLastLine)
-      { filesMap.forall{case (folder,files) => files.isEmpty} }
-      else
-        true
+        if (isLastLine)
+        { filesMap.forall{case (folder,files) => files.isEmpty} }
+        else
+          true
     }
     else
       false
-
-
   }
 
   override def toError = {  s"""$ruleName""" + (if (rootPath == Literal(None)) "" else s"""(${rootPath.toError})""") }
