@@ -38,7 +38,7 @@ If you wish to use the CSV Validator from your own Java project, we provide a na
 <dependency>
 	<groupId>uk.gov.nationalarchives</groupId>
     <artifactId>csv-validator-java-api</artifactId>
-    <version>1.0</version>
+    <version>1.1</version>
 </dependency>
 ```
 
