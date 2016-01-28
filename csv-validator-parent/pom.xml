@@ -40,6 +40,15 @@
         <developer>
             <name>Adam Retter</name>
         </developer>
+        <developer>
+            <name>Laura Damian</name>
+        </developer>
+        <developer>
+            <name>Radek Hubner</name>
+        </developer>
+        <developer>
+            <name>Valy Diarrassouba</name>
+        </developer>
     </developers>
     <contributors>
         <contributor>
@@ -76,6 +85,8 @@
         <scala.lib.version>2.11.6</scala.lib.version>
         <scalaz.version>7.1.1</scalaz.version>
         <java.version>1.6</java.version>
+        <maven.compiler.source>1.6</maven.compiler.source>
+        <maven.compiler.target>1.6</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <contact.email>digitalpreservation@nationalarchives.gov.uk</contact.email>
     </properties>
