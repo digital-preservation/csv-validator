@@ -20,9 +20,9 @@ The Validation tool and APIs are written in Scala 2.11 and may be used as:
 
 * A library in your Scala project.
 
-* A library in your Java project (We provide a Java 6 interface, to make things simple for Java programmers too).
+* A library in your Java project (We provide a Java 7 interface, to make things simple for Java programmers too).
 
-The Validation Tool and APIs can be used on any Java Virtual Machine which supports Java 6 or better. The source code is
+The Validation Tool and APIs can be used on any Java Virtual Machine which supports Java 7 or better (**NB Java 6 support was removed in version 1.1**). The source code is
 built using the [Apache Maven](http://apache.maven.org) build tool, by executing `mvn clean install`.
 
 
