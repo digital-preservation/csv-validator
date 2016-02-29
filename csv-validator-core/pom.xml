@@ -32,6 +32,8 @@
                     <useZincServer>true</useZincServer>          <!-- NOTE: if you have Zinc server installed and running, you can get faster compilation by enabling this -->
                     <args>
                         <arg>-Yrangepos</arg> <!-- recommended for Specs2 -->
+                        <arg>-feature</arg>
+                        <arg>-deprecation</arg>
                     </args>
                     <javacArgs>
                         <javacArg>-Xlint:unchecked</javacArg>
@@ -78,6 +80,10 @@
                         <include>**/*Spec.*</include>
                     </includes>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-report-plugin</artifactId>
             </plugin>
         </plugins>
     </build>

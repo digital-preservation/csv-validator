@@ -8,7 +8,7 @@
  */
 package uk.gov.nationalarchives.csv.validator
 
-import scala.collection.mutable
+import scala.language.postfixOps
 import scalax.file.Path
 import scalaz._
 import Scalaz._

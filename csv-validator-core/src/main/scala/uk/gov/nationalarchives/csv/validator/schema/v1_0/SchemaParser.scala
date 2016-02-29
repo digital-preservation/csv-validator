@@ -10,6 +10,7 @@ package uk.gov.nationalarchives.csv.validator.schema.v1_0
 
 import java.io.Reader
 
+import scala.language.reflectiveCalls
 import uk.gov.nationalarchives.csv.validator.schema.{SchemaParser => BaseSchemaParser, _}
 
 /**

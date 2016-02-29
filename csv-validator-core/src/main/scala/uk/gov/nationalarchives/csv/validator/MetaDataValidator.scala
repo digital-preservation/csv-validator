@@ -11,7 +11,7 @@ package uk.gov.nationalarchives.csv.validator
 
 import uk.gov.nationalarchives.utf8.validator.{Utf8Validator, ValidationHandler}
 
-import scala.language.postfixOps
+import scala.language.{postfixOps, reflectiveCalls}
 import scala.util.Try
 import scalaz._, Scalaz._
 import java.io.{IOException, Reader => JReader, InputStreamReader => JInputStreamReader, FileInputStream => JFileInputStream, LineNumberReader => JLineNumberReader}
