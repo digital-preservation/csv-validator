@@ -12,8 +12,8 @@ import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.metadata.{Cell, Row}
-import scalaz.{Success, Failure}
 import uk.gov.nationalarchives.csv.validator.schema._
+import scalaz.{Success, Failure, IList}
 
 @RunWith(classOf[JUnitRunner])
 class RangeRuleSpec extends Specification {
@@ -26,7 +26,7 @@ class RangeRuleSpec extends Specification {
       val rangeRule = new RangeRule(1,2)
 
       rangeRule.evaluate(0, Row(List(Cell("Germany")), 1), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual List("""range(1,2) fails for line: 1, column: Country, value: "Germany"""")
+        case Failure(messages) => messages.list mustEqual IList("""range(1,2) fails for line: 1, column: Country, value: "Germany"""")
       }
     }
 
@@ -40,7 +40,7 @@ class RangeRuleSpec extends Specification {
       val rangeRule = new RangeRule(0.01,0.1)
 
       rangeRule.evaluate(0, Row(List(Cell(("0.00999999999999999999999999999999"))), 1), schema)  must beLike {
-        case Failure(messages) => messages.list mustEqual List("""range(0.01,0.1) fails for line: 1, column: Country, value: "0.00999999999999999999999999999999"""")
+        case Failure(messages) => messages.list mustEqual IList("""range(0.01,0.1) fails for line: 1, column: Country, value: "0.00999999999999999999999999999999"""")
       }
     }
   }

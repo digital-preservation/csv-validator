@@ -16,7 +16,7 @@ import uk.gov.nationalarchives.csv.validator.api.CsvValidator.SubstitutePath
 import uk.gov.nationalarchives.csv.validator.metadata.{Cell, Row}
 import uk.gov.nationalarchives.csv.validator.schema._
 
-import scalaz.{Failure, Success}
+import scalaz.{Success, Failure, IList}
 
 @RunWith(classOf[JUnitRunner])
 class ChecksumRuleSpec extends Specification with TestResources {
@@ -31,7 +31,7 @@ class ChecksumRuleSpec extends Specification with TestResources {
       val checksumRule = new ChecksumRule(Literal(Some(checksumPath)), "MD5", false)
 
       checksumRule.evaluate(0, Row(List(Cell("699d61aff25f16a5560372e610da91ab")), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition(NamedColumnIdentifier("column1"))))) must beLike {
-        case Failure(m) => m.list mustEqual List("""checksum(file("""" + checksumPath + """"), "MD5") file """" + checksumPath + """" checksum match fails for line: 1, column: column1, value: "699d61aff25f16a5560372e610da91ab". Computed checksum value:"232762380299115da6995e4c4ac22fa2"""")
+        case Failure(m) => m.list mustEqual IList("""checksum(file("""" + checksumPath + """"), "MD5") file """" + checksumPath + """" checksum match fails for line: 1, column: column1, value: "699d61aff25f16a5560372e610da91ab". Computed checksum value:"232762380299115da6995e4c4ac22fa2"""")
       }
     }
 

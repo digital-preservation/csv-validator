@@ -26,9 +26,9 @@ object Util {
 
   def checkFilesReadable(files: List[Path]) = files.map(fileReadable).sequence[AppValidation, FailMessage]
 
-  def fileReadable(file: Path): AppValidation[FailMessage] = if (file.exists && file.canRead) SchemaMessage(file.path).successNel[FailMessage] else fileNotReadableMessage(file).failureNel[FailMessage]
+  def fileReadable(file: Path): AppValidation[FailMessage] = if (file.exists && file.canRead) FailMessage(SchemaDefinitionError, file.path).successNel[FailMessage] else fileNotReadableMessage(file).failureNel[FailMessage]
 
-  def fileNotReadableMessage(file: Path) = SchemaMessage("Unable to read file : " + file.path)
+  def fileNotReadableMessage(file: Path) = FailMessage(SchemaDefinitionError, "Unable to read file : " + file.path)
 
   /**
     * Check if the list l1 contain all element in l2

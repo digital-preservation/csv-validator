@@ -11,7 +11,7 @@ package uk.gov.nationalarchives.csv.validator.api.java
 import java.util.{List => JList, ArrayList => JArrayList}
 import scalax.file.Path
 import scalaz.{Success => SuccessZ, Failure => FailureZ, _}
-import uk.gov.nationalarchives.csv.validator.{ProgressCallback => SProgressCallback, FailMessage => SFailMessage, WarningMessage => SWarningMessage, ErrorMessage => SErrorMessage, SchemaMessage => SSchemaMessage}
+import uk.gov.nationalarchives.csv.validator.{ProgressCallback => SProgressCallback, FailMessage => SFailMessage, SchemaDefinitionError, ValidationError, ValidationWarning}
 import uk.gov.nationalarchives.csv.validator.Util._
 import uk.gov.nationalarchives.csv.validator.api.CsvValidator.createValidator
 import java.io.{Reader => JReader}
@@ -46,18 +46,18 @@ object CsvValidatorJavaBridge {
 
     checkFilesReadable(csvTextFile.file :: csvSchemaTextFile.file :: Nil) match {
       case FailureZ(errors) =>
-        errors.list.map{ asJavaMessage(_) }.asJava
+        errors.list.map{ asJavaMessage(_) }.toList.asJava
 
       case SuccessZ(_) =>
         val validator = createValidator(failFast, pathSubs, enforceCaseSensitivePathChecks, trace)
         validator.parseSchema(csvSchemaTextFile) match {
 
           case FailureZ(errors) =>
-            errors.list.map(asJavaMessage(_)).asJava
+            errors.list.map(asJavaMessage(_)).toList.asJava
 
           case SuccessZ(schema) =>
             validator.validate(csvTextFile, schema, progress) match {
-              case FailureZ(errors) => errors.list.map(asJavaMessage(_)).asJava
+              case FailureZ(errors) => errors.list.map(asJavaMessage(_)).toList.asJava
               case SuccessZ(_) => new JArrayList[FailMessage]
             }
         }
@@ -84,19 +84,19 @@ object CsvValidatorJavaBridge {
     validator.parseSchema(csvSchema) match {
 
       case FailureZ(errors) =>
-        errors.list.map(asJavaMessage(_)).asJava
+        errors.list.map(asJavaMessage(_)).toList.asJava
 
       case SuccessZ(schema) =>
         validator.validate(csvData, schema, progress) match {
-          case FailureZ(errors) => errors.list.map(asJavaMessage(_)).asJava
+          case FailureZ(errors) => errors.list.map(asJavaMessage(_)).toList.asJava
           case SuccessZ(_) => new JArrayList[FailMessage]
         }
     }
   }
 
   private def asJavaMessage(f: SFailMessage): FailMessage = f match {
-    case SWarningMessage(msg, lineNr, columnIdx) => new WarningMessage(msg, lineNr.getOrElse(-1), columnIdx.getOrElse(-1)).asInstanceOf[FailMessage]
-    case SErrorMessage(msg, lineNr, columnIdx) => new ErrorMessage(msg, lineNr.getOrElse(-1), columnIdx.getOrElse(-1)).asInstanceOf[FailMessage]
-    case SSchemaMessage(msg, lineNr, columnIdx) => new ErrorMessage(msg, lineNr.getOrElse(-1), columnIdx.getOrElse(-1)).asInstanceOf[FailMessage]
+    case SFailMessage(ValidationWarning, msg, lineNr, columnIdx) => new WarningMessage(msg, lineNr.getOrElse(-1), columnIdx.getOrElse(-1)).asInstanceOf[FailMessage]
+    case SFailMessage(ValidationError, msg, lineNr, columnIdx) => new ErrorMessage(msg, lineNr.getOrElse(-1), columnIdx.getOrElse(-1)).asInstanceOf[FailMessage]
+    case SFailMessage(SchemaDefinitionError, msg, lineNr, columnIdx) => new ErrorMessage(msg, lineNr.getOrElse(-1), columnIdx.getOrElse(-1)).asInstanceOf[FailMessage]
   }
 }

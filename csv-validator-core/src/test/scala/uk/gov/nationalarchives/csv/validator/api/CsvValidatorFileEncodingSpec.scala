@@ -14,7 +14,7 @@ import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.TestResources
 import org.specs2.mutable.Specification
 import scalaz._
-import uk.gov.nationalarchives.csv.validator.{TestResources, EOL, SchemaMessage, AllErrorsMetaDataValidator}
+import uk.gov.nationalarchives.csv.validator.{TestResources, EOL, AllErrorsMetaDataValidator}
 import uk.gov.nationalarchives.csv.validator.schema.Schema
 import scalax.file.Path
 import uk.gov.nationalarchives.csv.validator.api.CsvValidator.SubstitutePath

@@ -14,7 +14,7 @@ import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.metadata.{Cell, Row}
 import uk.gov.nationalarchives.csv.validator.schema._
 
-import scalaz.{Failure, Success}
+import scalaz.{Success, Failure, IList}
 
 @RunWith(classOf[JUnitRunner])
 class OrRuleSpec extends Specification {
@@ -54,7 +54,7 @@ class OrRuleSpec extends Specification {
       val orRule = OrRule(leftInRule, rightInRule)
 
       orRule.evaluate(0, Row(List(Cell("SomethingElse")), 1), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual List("""in("This") or in("That") fails for line: 1, column: ThisOrThat, value: "SomethingElse"""")
+        case Failure(messages) => messages.list mustEqual IList("""in("This") or in("That") fails for line: 1, column: ThisOrThat, value: "SomethingElse"""")
       }
     }
 
@@ -107,7 +107,7 @@ class OrRuleSpec extends Specification {
       val orRule =  OrRule( OrRule(leftInRule, middleInRule), rightInRule )
 
       orRule.evaluate(0, Row(List(Cell("up")), 1), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual List("""in("left") or in("middle") or in("right") fails for line: 1, column: Direction, value: "up"""")
+        case Failure(messages) => messages.list mustEqual IList("""in("left") or in("middle") or in("right") fails for line: 1, column: Direction, value: "up"""")
       }
     }
   }

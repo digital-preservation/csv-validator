@@ -99,18 +99,13 @@
         <dependency>
             <groupId>org.scalaz.stream</groupId>
             <artifactId>scalaz-stream_${scala.version}</artifactId>
-            <version>0.6a</version>     <!-- version 0.5a is compatible with scalaz-core 7.1.0 -->
+            <version>0.7.3a</version>
         </dependency>
         <dependency>
-            <groupId>org.typelevel</groupId>
-            <artifactId>scodec-bits_${scala.version}</artifactId>
-            <version>1.0.4</version>
-        </dependency>
-        <!-- dependency>
             <groupId>org.scodec</groupId>
             <artifactId>scodec-bits_${scala.version}</artifactId>
             <version>1.0.6</version>
-        </dependency -->
+        </dependency>
         <dependency>
             <groupId>org.scalaz</groupId>
             <artifactId>scalaz-concurrent_${scala.version}</artifactId>

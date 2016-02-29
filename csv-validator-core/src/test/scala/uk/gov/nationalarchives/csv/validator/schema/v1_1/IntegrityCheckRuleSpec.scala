@@ -55,21 +55,20 @@ class IntegrityCheckRuleSpec extends Specification with TestResources {
       val totalRows: Some[Boolean] = Some(false)
       
       integrityCheckRule.evaluate(0, Row(List(Cell(relIntegrityCheckForRulePath)), 1), schema, totalRows) must beLike {
-        case Failure(messages) => messages.head mustEqual "integrityCheck fails for line: 1, column: column1, files: \"csv-validator-core/target/test-classes/uk/gov/nationalarchives/csv/validator/schema/v1_1/integrityCheck/folder1/content/file#2.txt\" are not listed in the metadata"
+        case Failure(messages) => messages.head mustEqual "integrityCheck fails for line: 1, column: column1, files: \"target/test-classes/uk/gov/nationalarchives/csv/validator/schema/v1_1/integrityCheck/folder1/content/file#2.txt\" are not listed in the metadata"
       }
     }
 
-     "fail for empty file path" in {
-       val integrityCheckRule = IntegrityCheckRule(emptyPathSubstitutions,false)
-       val schema: Schema = Schema(globalDirsTwo, List(ColumnDefinition(NamedColumnIdentifier("column1")), ColumnDefinition(NamedColumnIdentifier("column2"))))
+    "fail for empty file path" in {
+      val integrityCheckRule = IntegrityCheckRule(emptyPathSubstitutions,false)
+      val schema: Schema = Schema(globalDirsTwo, List(ColumnDefinition(NamedColumnIdentifier("column1")), ColumnDefinition(NamedColumnIdentifier("column2"))))
 
-       integrityCheckRule.evaluate(1, Row(List(Cell("abc"), Cell(relIntegrityCheckForRulePath)), 1), schema, Some(true)) mustEqual  Success(true)
+      integrityCheckRule.evaluate(1, Row(List(Cell("abc"), Cell(relIntegrityCheckForRulePath)), 1), schema, Some(true)) mustEqual  Success(true)
 
-       integrityCheckRule.evaluate(1, Row(List(Cell("abc"), Cell("")), 2), schema, Some(false)) must beLike {
-         case Failure(messages) => messages.head mustEqual "integrityCheck fails for line: 2, column: column2, files: \"csv-validator-core/target/test-classes/uk/gov/nationalarchives/csv/validator/schema/v1_1/integrityCheck/folder1/content/file#2.txt\" are not listed in the metadata"
-       }
-
-     }
+      integrityCheckRule.evaluate(1, Row(List(Cell("abc"), Cell("")), 2), schema, Some(false)) must beLike {
+        case Failure(messages) => messages.head mustEqual "integrityCheck fails for line: 2, column: column2, files: \"target/test-classes/uk/gov/nationalarchives/csv/validator/schema/v1_1/integrityCheck/folder1/content/file#2.txt\" are not listed in the metadata"
+      }
+    }
 
     "succeed for file that exists with no root file path" in {
 

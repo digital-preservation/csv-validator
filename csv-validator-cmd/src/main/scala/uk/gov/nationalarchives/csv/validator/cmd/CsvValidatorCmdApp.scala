@@ -149,16 +149,16 @@ object CsvValidatorCmdApp extends App {
 
   private def containsError(l: NonEmptyList[FailMessage]) : Boolean = {
     l.list.find(_ match {
-      case ErrorMessage(_, _, _) => true
+      case FailMessage(ValidationError, _, _, _) => true
       case _ => false
     }).nonEmpty
   }
 
   private def prettyPrint(l: NonEmptyList[FailMessage]): String = l.list.map { i =>
     i match {
-      case WarningMessage(err,_,_) => "Warning: " + err
-      case ErrorMessage(err,_,_) =>   "Error:   " + err
-      case SchemaMessage(err,_,_) =>  err
+      case FailMessage(ValidationWarning, err,_,_) => "Warning: " + err
+      case FailMessage(ValidationError, err,_,_) =>   "Error:   " + err
+      case FailMessage(SchemaDefinitionError, err,_,_) =>  err
     }
-  }.mkString(sys.props("line.separator"))
+  }.toList.mkString(sys.props("line.separator"))
 }

@@ -13,7 +13,7 @@ import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import scalaz._
-import uk.gov.nationalarchives.csv.validator.{TestResources, EOL, SchemaMessage, AllErrorsMetaDataValidator}
+import uk.gov.nationalarchives.csv.validator._
 import uk.gov.nationalarchives.csv.validator.schema.Schema
 import scalax.file.Path
 import uk.gov.nationalarchives.csv.validator.api.CsvValidator.SubstitutePath
@@ -34,7 +34,7 @@ class CsvValidatorSpec extends Specification with TestResources {
 
       app.parseAndValidate(new StringReader(schema)) must beLike {
         case Failure(msgs) =>
-          msgs.list mustEqual List(SchemaMessage(
+          msgs.list mustEqual IList(FailMessage(SchemaDefinitionError,
           "[3.7] failure: Invalid column definition" + EOL
           + EOL
           + """Name: regox("A")""" + EOL

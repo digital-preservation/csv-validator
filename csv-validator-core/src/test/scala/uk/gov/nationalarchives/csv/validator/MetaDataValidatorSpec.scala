@@ -14,8 +14,7 @@ import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.schema._
 import java.io.{Reader, StringReader}
 import uk.gov.nationalarchives.csv.validator.schema.Schema
-import scalaz.Success
-import scalaz.Failure
+import scalaz.{Success, Failure, IList}
 
 @RunWith(classOf[JUnitRunner])
 class MetaDataValidatorSpec extends Specification with TestResources {
@@ -78,7 +77,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
         """
 
       validate(metaData, schema, None) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("Expected @totalColumns of 3 and found 2 on line 2",Some(2),Some(2)), ErrorMessage("Missing value at line: 2, column: column3",Some(2),Some(2)))
+        case Failure(messages) => messages.list mustEqual IList(FailMessage(ValidationError, "Expected @totalColumns of 3 and found 2 on line 2",Some(2),Some(2)), FailMessage(ValidationError, "Missing value at line: 2, column: column3",Some(2),Some(2)))
       }
     }
 
@@ -96,10 +95,10 @@ class MetaDataValidatorSpec extends Specification with TestResources {
         """
 
       validate(metaData, schema, None) must beLike {
-        case Failure(messages) => messages.list mustEqual List (
-          ErrorMessage("""regex("[a-c]*") fails for line: 1, column: second, value: "xxxy"""",Some(1),Some(1)),
-          ErrorMessage("""regex("[3-8]*") fails for line: 2, column: first, value: "abcd"""",Some(2),Some(0)),
-          ErrorMessage("""regex("[a-c]*") fails for line: 2, column: second, value: "uii"""",Some(2),Some(1)))
+        case Failure(messages) => messages.list mustEqual IList (
+          FailMessage(ValidationError, """regex("[a-c]*") fails for line: 1, column: second, value: "xxxy"""",Some(1),Some(1)),
+          FailMessage(ValidationError, """regex("[3-8]*") fails for line: 2, column: first, value: "abcd"""",Some(2),Some(0)),
+          FailMessage(ValidationError, """regex("[a-c]*") fails for line: 2, column: second, value: "uii"""",Some(2),Some(1)))
       }
     }
 
@@ -130,7 +129,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val metaData = "c11,c12"
 
       validate(metaData, schema, None) should beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""regex("C11") fails for line: 1, column: Col1, value: "c11"""",Some(1),Some(0)))
+        case Failure(messages) => messages.list mustEqual IList(FailMessage(ValidationError, """regex("C11") fails for line: 1, column: Col1, value: "c11"""",Some(1),Some(0)))
       }
     }
 
@@ -145,7 +144,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val metaData = "1"
 
       validate(metaData, schema, None) should beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("Expected @totalColumns of 2 and found 1 on line 1",Some(1),Some(1)), ErrorMessage("Missing value at line: 1, column: Col2",Some(1),Some(1)))
+        case Failure(messages) => messages.list mustEqual IList(FailMessage(ValidationError, "Expected @totalColumns of 2 and found 1 on line 1",Some(1),Some(1)), FailMessage(ValidationError, "Missing value at line: 1, column: Col2",Some(1),Some(1)))
       }
     }
 
@@ -171,7 +170,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val metaData = """Scooby"""
 
       validate(metaData, schema, None) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""regex("^T.+") fails for line: 1, column: c1, value: "Scooby"""",Some(1),Some(0)), ErrorMessage("""regex("^X.+") fails for line: 1, column: c1, value: "Scooby"""",Some(1),Some(0)))
+        case Failure(messages) => messages.list mustEqual IList(FailMessage(ValidationError, """regex("^T.+") fails for line: 1, column: c1, value: "Scooby"""",Some(1),Some(0)), FailMessage(ValidationError, """regex("^X.+") fails for line: 1, column: c1, value: "Scooby"""",Some(1),Some(0)))
       }
     }
 
@@ -218,7 +217,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
            blah_andMustBeIn,andMustBeIn"""
 
       validate(metaData, schema, None) should beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""in($col1) fails for line: 1, column: col2WithRule, value: "mustBeIn"""",Some(1),Some(1)))
+        case Failure(messages) => messages.list mustEqual IList(FailMessage(ValidationError, """in($col1) fails for line: 1, column: col2WithRule, value: "mustBeIn"""",Some(1),Some(1)))
       }
     }
 
@@ -263,7 +262,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val metaData = "1,a,3"
 
       validate(metaData, schema, None) should beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""regex("[0-9]") fails for line: 1, column: Col2, value: "a"""",Some(1),Some(1)))
+        case Failure(messages) => messages.list mustEqual IList(FailMessage(ValidationError, """regex("[0-9]") fails for line: 1, column: Col2, value: "a"""",Some(1),Some(1)))
       }
     }
 
@@ -283,10 +282,10 @@ class MetaDataValidatorSpec extends Specification with TestResources {
         """
 
       validate(metaData, schema, None) should beLike {
-        case Failure(messages) => messages.list mustEqual List(
-          ErrorMessage("""regex("[0-9]") fails for line: 1, column: Col3, value: """"",Some(1),Some(2)),
-          ErrorMessage("""regex("[0-9]") fails for line: 2, column: Col2, value: "a"""",Some(2),Some(1)),
-          ErrorMessage("""regex("[0-9]") fails for line: 2, column: Col3, value: """"",Some(2),Some(2)))
+        case Failure(messages) => messages.list mustEqual IList(
+          FailMessage(ValidationError, """regex("[0-9]") fails for line: 1, column: Col3, value: """"",Some(1),Some(2)),
+          FailMessage(ValidationError, """regex("[0-9]") fails for line: 2, column: Col2, value: "a"""",Some(2),Some(1)),
+          FailMessage(ValidationError, """regex("[0-9]") fails for line: 2, column: Col3, value: """"",Some(2),Some(2)))
       }
     }
 
@@ -324,7 +323,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val metaData = "SCOOBY"
 
       validate(metaData, schema, None) should beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""regex("[a-z]+") fails for line: 1, column: Col1, value: "SCOOBY"""",Some(1),Some(0)))
+        case Failure(messages) => messages.list mustEqual IList(FailMessage(ValidationError, """regex("[a-z]+") fails for line: 1, column: Col1, value: "SCOOBY"""",Some(1),Some(0)))
       }
     }
 
@@ -366,7 +365,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val metaData = "some/non/existent/file"
 
       validate(metaData, schema, None) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("fileExists fails for line: 1, column: FirstColumn, value: \"some/non/existent/file\"",Some(1),Some(0)))
+        case Failure(messages) => messages.list mustEqual IList(FailMessage(ValidationError, "fileExists fails for line: 1, column: FirstColumn, value: \"some/non/existent/file\"",Some(1),Some(0)))
       }
     }
 
@@ -384,7 +383,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
         """
 
       validate(metaData, schema, None) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""in("dog") fails for line: 1, column: col2WithRule, value: "thisisrubbish"""",Some(1),Some(1)))
+        case Failure(messages) => messages.list mustEqual IList(FailMessage(ValidationError, """in("dog") fails for line: 1, column: col2WithRule, value: "thisisrubbish"""",Some(1),Some(1)))
       }
     }
 
@@ -399,7 +398,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val metaData = ""
 
       validate(metaData, schema, None) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("metadata file is empty but this has not been permitted"))
+        case Failure(messages) => messages.list mustEqual IList(FailMessage(ValidationError, "metadata file is empty but this has not been permitted"))
       }
     }
 
@@ -428,7 +427,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val metaData = ""
 
       validate(metaData, schema, None) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("metadata file is empty but should contain at least a header"))
+        case Failure(messages) => messages.list mustEqual IList(FailMessage(ValidationError, "metadata file is empty but should contain at least a header"))
       }
     }
 
@@ -455,7 +454,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val metaData = "Name"
 
       validate(metaData, schema, None) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("metadata file has a header but no data and this has not been permitted"))
+        case Failure(messages) => messages.list mustEqual IList(FailMessage(ValidationError, "metadata file has a header but no data and this has not been permitted"))
       }
     }
 
@@ -484,7 +483,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val metaData = "SomethingElse"
 
       validate(metaData, schema, None) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""in("This") or in("That") fails for line: 1, column: ThisOrThat, value: "SomethingElse"""",Some(1),Some(0)))
+        case Failure(messages) => messages.list mustEqual IList(FailMessage(ValidationError, """in("This") or in("That") fails for line: 1, column: ThisOrThat, value: "SomethingElse"""",Some(1),Some(0)))
       }
     }
 
@@ -550,7 +549,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val metaData = "UK"
 
       validate(metaData, schema, None) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""is("France") fails for line: 1, column: Country, value: "UK"""",Some(1),Some(0)))
+        case Failure(messages) => messages.list mustEqual IList(FailMessage(ValidationError, """is("France") fails for line: 1, column: Country, value: "UK"""",Some(1),Some(0)))
       }
     }
 
@@ -565,7 +564,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val metaData = "United,United Kingdom"
 
       validate(metaData, schema, None) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""is($MyCountry) fails for line: 1, column: Country, value: "United"""",Some(1),Some(0)))
+        case Failure(messages) => messages.list mustEqual IList(FailMessage(ValidationError, """is($MyCountry) fails for line: 1, column: Country, value: "United"""",Some(1),Some(0)))
       }
     }
 
@@ -616,7 +615,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val metaData = "United Kingdom"
 
       validate(metaData, schema, None) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""not("United Kingdom") fails for line: 1, column: Country, value: "United Kingdom"""",Some(1),Some(0)))
+        case Failure(messages) => messages.list mustEqual IList(FailMessage(ValidationError, """not("United Kingdom") fails for line: 1, column: Country, value: "United Kingdom"""",Some(1),Some(0)))
       }
     }
 
@@ -631,7 +630,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val metaData = "United Kingdom,United Kingdom"
 
       validate(metaData, schema, None) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""not($MyCountry) fails for line: 1, column: Country, value: "United Kingdom"""",Some(1),Some(0)))
+        case Failure(messages) => messages.list mustEqual IList(FailMessage(ValidationError, """not($MyCountry) fails for line: 1, column: Country, value: "United Kingdom"""",Some(1),Some(0)))
       }
     }
 
@@ -682,7 +681,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val metaData = "United Kingdom"
 
       validate(metaData, schema, None) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""starts("united") fails for line: 1, column: Country, value: "United Kingdom"""",Some(1),Some(0)))
+        case Failure(messages) => messages.list mustEqual IList(FailMessage(ValidationError, """starts("united") fails for line: 1, column: Country, value: "United Kingdom"""",Some(1),Some(0)))
       }
     }
 
@@ -697,7 +696,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val metaData = "United,United Kingdom"
 
       validate(metaData, schema, None) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""starts($MyCountry) fails for line: 1, column: Country, value: "United"""",Some(1),Some(0)))
+        case Failure(messages) => messages.list mustEqual IList(FailMessage(ValidationError, """starts($MyCountry) fails for line: 1, column: Country, value: "United"""",Some(1),Some(0)))
       }
     }
 
@@ -747,7 +746,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val metaData = "United Kingdom"
 
       validate(metaData, schema, None) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""ends("kingdom") fails for line: 1, column: Country, value: "United Kingdom"""",Some(1),Some(0)))
+        case Failure(messages) => messages.list mustEqual IList(FailMessage(ValidationError, """ends("kingdom") fails for line: 1, column: Country, value: "United Kingdom"""",Some(1),Some(0)))
       }
     }
 
@@ -762,7 +761,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val metaData = "United Kingdom,States"
 
       validate(metaData, schema, None) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""ends($MyCountry) fails for line: 1, column: Country, value: "United Kingdom"""",Some(1),Some(0)))
+        case Failure(messages) => messages.list mustEqual IList(FailMessage(ValidationError, """ends($MyCountry) fails for line: 1, column: Country, value: "United Kingdom"""",Some(1),Some(0)))
       }
     }
 
@@ -800,7 +799,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
         """
 
       validate(metaData, schema, None) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("unique fails for line: 4, column: Name, value: \"Jim\" (original at line: 2)",Some(4),Some(0)),ErrorMessage("unique fails for line: 5, column: Name, value: \"Jim\" (original at line: 2)",Some(5),Some(0)))
+        case Failure(messages) => messages.list mustEqual IList(FailMessage(ValidationError, "unique fails for line: 4, column: Name, value: \"Jim\" (original at line: 2)",Some(4),Some(0)),FailMessage(ValidationError, "unique fails for line: 5, column: Name, value: \"Jim\" (original at line: 2)",Some(5),Some(0)))
       }
     }
 
@@ -999,7 +998,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
         """
 
       validate(metaData, schema, None) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("range(18,65) fails for line: 1, column: Age, value: \"10\"",Some(1),Some(1)),ErrorMessage("range(18,65) fails for line: 3, column: Age, value: \"96\"",Some(3),Some(1)))
+        case Failure(messages) => messages.list mustEqual IList(FailMessage(ValidationError, "range(18,65) fails for line: 1, column: Age, value: \"10\"",Some(1),Some(1)),FailMessage(ValidationError, "range(18,65) fails for line: 3, column: Age, value: \"96\"",Some(3),Some(1)))
       }
     }
 
@@ -1017,7 +1016,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
         """
 
       validate(metaData, schema, None) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("length(*,3) fails for line: 3, column: Name, value: \"Benny\"",Some(3),Some(0)),ErrorMessage("length(*,3) fails for line: 5, column: Name, value: \"Timmy\"",Some(5),Some(0)))
+        case Failure(messages) => messages.list mustEqual IList(FailMessage(ValidationError, "length(*,3) fails for line: 3, column: Name, value: \"Benny\"",Some(3),Some(0)),FailMessage(ValidationError, "length(*,3) fails for line: 5, column: Name, value: \"Timmy\"",Some(5),Some(0)))
       }
     }
 
@@ -1046,7 +1045,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
         """
 
       validate(metaData, schema, None) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""(length(5) and length(*,*)) and is("Hello") fails for line: 2, column: Name, value: "World"""",Some(2),Some(0)))
+        case Failure(messages) => messages.list mustEqual IList(FailMessage(ValidationError, """(length(5) and length(*,*)) and is("Hello") fails for line: 2, column: Name, value: "World"""",Some(2),Some(0)))
       }
     }
 
@@ -1124,7 +1123,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
         """
       val metaData ="Joe Bloggs"
       validate(metaData, schema, None) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""ends("Joe") fails for line: 1, column: col1, value: "Joe Bloggs"""",Some(1),Some(0)))
+        case Failure(messages) => messages.list mustEqual IList(FailMessage(ValidationError, """ends("Joe") fails for line: 1, column: col1, value: "Joe Bloggs"""",Some(1),Some(0)))
       }
     }
 
@@ -1146,7 +1145,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
         """
       val metaData ="Joe Bloggs"
       validate(metaData, schema, None) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""ends("Joe") fails for line: 1, column: col1, value: "Joe Bloggs"""",Some(1),Some(0)))
+        case Failure(messages) => messages.list mustEqual IList(FailMessage(ValidationError, """ends("Joe") fails for line: 1, column: col1, value: "Joe Bloggs"""",Some(1),Some(0)))
       }
     }
 
@@ -1178,7 +1177,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
         """
       val metaData ="Joe Bloggs"
       validate(metaData, schema, None) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""length(4) fails for line: 1, column: col1, value: "Joe Bloggs"""",Some(1),Some(0)))
+        case Failure(messages) => messages.list mustEqual IList(FailMessage(ValidationError, """length(4) fails for line: 1, column: col1, value: "Joe Bloggs"""",Some(1),Some(0)))
       }
     }
 
@@ -1221,7 +1220,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
         """
       val metaData ="True"
       validate(metaData, schema, None) must beLike {
-        case Failure(messages) => messages.list mustEqual List(ErrorMessage("""(is("True") or is("True")) and is("False") fails for line: 1, column: col1, value: "True"""",Some(1),Some(0)))
+        case Failure(messages) => messages.list mustEqual IList(FailMessage(ValidationError, """(is("True") or is("True")) and is("False") fails for line: 1, column: col1, value: "True"""",Some(1),Some(0)))
       }
     }
 
