@@ -8,7 +8,9 @@
  */
 package uk.gov.nationalarchives.csv.validator.schema.v1_0
 
+import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
+import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.{FILE_SEPARATOR, TestResources}
 import uk.gov.nationalarchives.csv.validator.api.CsvValidator.SubstitutePath
 import uk.gov.nationalarchives.csv.validator.metadata.{Cell, Row}
@@ -16,6 +18,7 @@ import uk.gov.nationalarchives.csv.validator.schema._
 
 import scalaz.{Failure, Success}
 
+@RunWith(classOf[JUnitRunner])
 class ChecksumRuleSpec extends Specification with TestResources {
 
   override val checksumPath = resourcePath("checksum.csvs")

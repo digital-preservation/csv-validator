@@ -10,9 +10,12 @@ package uk.gov.nationalarchives.csv.validator.schema.v1_1
 
 import java.io.StringReader
 
+import org.junit.runner.RunWith
+import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.schema._
 import uk.gov.nationalarchives.csv.validator.schema.v1_0.IsRule
 
+@RunWith(classOf[JUnitRunner])
 class SchemaParserSpec extends SchemaSpecBase {
 
   import TestSchemaParser._

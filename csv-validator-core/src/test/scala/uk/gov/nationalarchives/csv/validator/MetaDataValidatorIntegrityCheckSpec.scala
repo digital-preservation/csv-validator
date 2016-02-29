@@ -7,14 +7,17 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 package uk.gov.nationalarchives.csv.validator
+
+import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
+import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.api.{CsvValidator, TextFile}
 import uk.gov.nationalarchives.csv.validator.schema.{TraceableParsers, Schema}
 
 import scalax.file.Path
 import scalaz.{Failure, Success}
 
-
+@RunWith(classOf[JUnitRunner])
 class MetaDataValidatorIntegrityCheckSpec extends Specification with TestResources {
 
   def buildValidator(substitutionPath: List[(String,String)]) : CsvValidator = new CsvValidator with AllErrorsMetaDataValidator {

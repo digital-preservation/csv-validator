@@ -10,12 +10,15 @@ package uk.gov.nationalarchives.csv.validator.schema.v1_0
 
 import java.io.StringReader
 
+import org.junit.runner.RunWith
 import org.specs2.mutable._
 import uk.gov.nationalarchives.csv.validator.{EOL, SchemaMessage}
+import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.schema._
 
 import scalaz.{Failure => FailureZ, Success => SuccessZ}
 
+@RunWith(classOf[JUnitRunner])
 class SchemaParserRulesSpec extends SchemaSpecBase {
 
   val emptyPathSubstitutions = List[(String,String)]()

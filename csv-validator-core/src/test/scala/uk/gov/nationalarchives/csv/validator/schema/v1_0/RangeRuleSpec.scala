@@ -8,13 +8,14 @@
  */
 package uk.gov.nationalarchives.csv.validator.schema.v1_0
 
+import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
+import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.metadata.{Cell, Row}
 import scalaz.{Success, Failure}
 import uk.gov.nationalarchives.csv.validator.schema._
 
-
-
+@RunWith(classOf[JUnitRunner])
 class RangeRuleSpec extends Specification {
 
   "RangeRule" should  {

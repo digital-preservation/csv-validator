@@ -12,10 +12,13 @@ import java.io.StringReader
 
 
 import uk.gov.nationalarchives.csv.validator.SchemaMessage
+import org.junit.runner.RunWith
+import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.schema._
 
 import scalaz.{Failure => FailureZ, Success => SuccessZ}
 
+@RunWith(classOf[JUnitRunner])
 class SchemaParserColumnDefinitionsSpecs extends SchemaSpecBase {
 
   import TestSchemaParser._

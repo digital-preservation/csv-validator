@@ -12,7 +12,7 @@ import org.specs2.mutable.Specification
 import uk.gov.nationalarchives.csv.validator.schema.v1_0.NotEmptyRule
 
 
-trait SchemaSpecBase  extends Specification {
+trait SchemaSpecBase extends Specification {
 
   object TestSchemaParser extends SchemaParser { val pathSubstitutions = List[(String,String)](); val enforceCaseSensitivePathChecks = false; val trace = false }
 

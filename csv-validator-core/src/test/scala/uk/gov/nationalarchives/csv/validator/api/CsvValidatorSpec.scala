@@ -9,13 +9,16 @@
 package uk.gov.nationalarchives.csv.validator.api
 
 import java.io.StringReader
+import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
+import org.specs2.runner.JUnitRunner
 import scalaz._
 import uk.gov.nationalarchives.csv.validator.{TestResources, EOL, SchemaMessage, AllErrorsMetaDataValidator}
 import uk.gov.nationalarchives.csv.validator.schema.Schema
 import scalax.file.Path
 import uk.gov.nationalarchives.csv.validator.api.CsvValidator.SubstitutePath
 
+@RunWith(classOf[JUnitRunner])
 class CsvValidatorSpec extends Specification with TestResources {
 
   "Parsing schema" should {

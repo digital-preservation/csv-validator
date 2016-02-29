@@ -8,8 +8,11 @@
  */
 package uk.gov.nationalarchives.csv.validator.cmd
 
+import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
+import org.specs2.runner.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class CsvValidatorCmdAppSpec extends Specification with TestResources {
 
   val schemaPath = relResourcePath("schema.csvs")

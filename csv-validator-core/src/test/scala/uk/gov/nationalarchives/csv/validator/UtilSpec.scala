@@ -10,10 +10,12 @@ package uk.gov.nationalarchives.csv.validator
 
 import java.io.File
 
+import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
+import org.specs2.runner.JUnitRunner
 
-
-class UtilSpec  extends Specification with TestResources  {
+@RunWith(classOf[JUnitRunner])
+class UtilSpec extends Specification with TestResources  {
 
   "Util" should {
     val base = resourcePath("integrityCheck")
