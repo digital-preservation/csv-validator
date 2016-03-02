@@ -65,7 +65,7 @@ class UtilSpec extends Specification with TestResources  {
 
       val integrityCheckFiles =  Util.findAllFiles(true, new File(base))
 
-      integrityCheckFiles  must haveLength(35)
+      integrityCheckFiles  must haveLength(42)
 
       integrityCheckFiles must contain (new File(s"$basePath/uk/gov/nationalarchives/csv/validator/integrityCheck/header/integrityCheckSchema.csvs"))
 
@@ -82,7 +82,7 @@ class UtilSpec extends Specification with TestResources  {
 
       val integrityCheckFilesNoFolder =  Util.findAllFiles(false, new File(base))
 
-      integrityCheckFilesNoFolder  must haveLength(23)
+      integrityCheckFilesNoFolder  must haveLength(28)
 
       integrityCheckFilesNoFolder must contain (new File(s"$basePath/uk/gov/nationalarchives/csv/validator/integrityCheck/header/content/file1"))
 

@@ -210,14 +210,20 @@ object Util {
     private def substitutePath(filename: String): String = {
 
       pathSubstitutions.collectFirst{
-        case (subFrom, subTo) if filename.contains(subFrom) => filename.replaceFirst(Matcher.quoteReplacement(subFrom), Matcher.quoteReplacement(FileSystem.file2PlatformIndependent(subTo)))
+        case (subFrom, subTo) if filename.contains(subFrom) =>
+          filename.replaceFirst(Matcher.quoteReplacement(subFrom),
+            Matcher.quoteReplacement(FileSystem.file2PlatformIndependent(subTo))
+          )
       }.getOrElse(filename)
     }
 
     private def contentDir(filepath: String, topLevelFolder: String): String = {
-      val dir = (substitutePath(filepath) split topLevelFolder).head
-       val sep = "/"
-      FileSystem.file2PlatformIndependent(dir + sep + topLevelFolder)
+      val list = (substitutePath(filepath) split topLevelFolder).toIterator.toList
+      val pathList = if (list.length > 1) list.dropRight(1) else list
+        val dir = pathList.tail.foldLeft(pathList.head){ case (acc, elem) =>
+          acc + topLevelFolder + elem
+        }
+      FileSystem.file2PlatformIndependent(dir +  topLevelFolder)
     }
 
     def jointPath: String = {
@@ -272,14 +278,14 @@ object Util {
     def integrityCheck(fileMap: Map[String, Set[File]],  enforceCaseSensitivePathChecks: Boolean, topLevelFolder: String, includeFolder: Boolean): Map[String, Set[File]] = {
       val contentDirectory = contentDir(jointPath, topLevelFolder)
       val files = fileMap.get(contentDirectory).getOrElse{
-                              val theFiles = FileSystem.createFile(FileSystem.convertPath2Platform(substitutePath(contentDirectory))) match
-                              {
-                                case scala.util.Success(f) => scanDir(f, includeFolder)
-                                case scala.util.Failure(_) => Set[File]()
-                              }
-                              theFiles
-                          }
-      val remainder = FileSystem.createFile(FileSystem.convertPath2Platform(substitutePath(substitutePath(jointPath)))) match {
+            val theFiles = FileSystem.createFile(FileSystem.convertPath2Platform(substitutePath(contentDirectory))) match
+            {
+              case scala.util.Success(f) => scanDir(f, includeFolder)
+              case scala.util.Failure(_) => Set[File]()
+            }
+            theFiles
+        }
+      val remainder = FileSystem.createFile(FileSystem.convertPath2Platform(substitutePath(jointPath))) match {
         case scala.util.Success(f) => files - f
         case _ => files
       }
