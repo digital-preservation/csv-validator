@@ -18,13 +18,14 @@ import java.io.Reader
 import scalaz._
 import Scalaz._
 
-import uk.gov.nationalarchives.csv.validator.{SchemaMessage, FailMessage}
+import uk.gov.nationalarchives.csv.validator.{SchemaDefinitionError, FailMessage}
 
 /**
   * CSV Schema Parser
   *
   * Uses Scala Parser Combinators to parse the CSV Schema language defined in
   * the specification document
+  *
   * @see http://digital-preservation.github.io/csv-validator/csv-schema-1.0.html
   */
 trait SchemaParser extends RegexParsers
@@ -122,9 +123,9 @@ with TraceableParsers {
     parse(reader) match {
       case s @ Success(schema: Schema, next) => {
         val errors = SchemaValidator.validate(schema)
-        if (errors.isEmpty) schema.successNel[FailMessage] else SchemaMessage(errors).failureNel[Schema]
+        if (errors.isEmpty) schema.successNel[FailMessage] else FailMessage(SchemaDefinitionError, errors).failureNel[Schema]
       }
-      case n: NoSuccess => SchemaMessage(formatNoSuccessMessageForPlatform(n.toString)).failureNel[Schema]
+      case n: NoSuccess => FailMessage(SchemaDefinitionError, formatNoSuccessMessageForPlatform(n.toString)).failureNel[Schema]
     }
   }
 

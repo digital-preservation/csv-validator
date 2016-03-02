@@ -8,12 +8,15 @@
  */
 package uk.gov.nationalarchives.csv.validator
 
+import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
+import org.specs2.runner.JUnitRunner
 import scalaz._
 import uk.gov.nationalarchives.csv.validator.schema.Schema
 import uk.gov.nationalarchives.csv.validator.api.{TextFile, CsvValidator}
 import scalax.file.Path
 
+@RunWith(classOf[JUnitRunner])
 class MetaDataValidatorBusinessAcceptanceSpec extends Specification with TestResources {
 
   val base = resourcePath("acceptance/dp")

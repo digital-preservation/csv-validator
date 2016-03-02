@@ -384,7 +384,7 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
         .pipe(getHash(algorithm))
         .map(_.toHex)
         .runLast
-        .attemptRun
+        .unsafePerformSyncAttempt
         .validation
         .leftMap(_.getMessage)
         .rightMap(_.getOrElse("NO CHECKSUM"))

@@ -8,12 +8,15 @@
  */
 package uk.gov.nationalarchives.csv.validator.schema.v1_0
 
+import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
+import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.metadata.{Cell, Row}
 import uk.gov.nationalarchives.csv.validator.schema._
 
-import scalaz.{Failure, Success}
+import scalaz.{Failure, Success, IList}
 
+@RunWith(classOf[JUnitRunner])
 class UniqueMultiRuleSpec extends Specification {
 
   "unique multi rule" should {
@@ -40,7 +43,7 @@ class UniqueMultiRuleSpec extends Specification {
 
       rule.evaluate(0, Row(Cell("r2d2") :: Cell("3") :: Cell("blue") :: Nil, 1), schema)
       rule.evaluate(0, Row(Cell("r2d2") :: Cell("3") :: Cell("blue") :: Nil, 2), schema) must beLike {
-        case Failure(msgs) => msgs.list mustEqual(List("unique( $Legs, $Color ) fails for line: 2, column: Name, value: \"r2d2\" (original at line: 1)"))
+        case Failure(msgs) => msgs.list mustEqual IList("unique( $Legs, $Color ) fails for line: 2, column: Name, value: \"r2d2\" (original at line: 1)")
       }
     }
 

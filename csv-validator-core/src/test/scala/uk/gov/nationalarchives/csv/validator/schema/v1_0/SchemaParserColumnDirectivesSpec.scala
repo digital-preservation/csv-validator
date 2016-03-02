@@ -10,11 +10,14 @@ package uk.gov.nationalarchives.csv.validator.schema.v1_0
 
 import java.io.StringReader
 
-import uk.gov.nationalarchives.csv.validator.SchemaMessage
+import org.junit.runner.RunWith
+import org.specs2.runner.JUnitRunner
+import uk.gov.nationalarchives.csv.validator.{SchemaDefinitionError, FailMessage}
 import uk.gov.nationalarchives.csv.validator.schema._
 
-import scalaz.{Failure => FailureZ}
+import scalaz.{Failure => FailureZ, IList}
 
+@RunWith(classOf[JUnitRunner])
 class SchemaParserColumnDirectivesSpec extends SchemaSpecBase {
 
   import TestSchemaParser._
@@ -42,7 +45,7 @@ class SchemaParserColumnDirectivesSpec extends SchemaSpecBase {
                      |@totalColumns 1
                      |column1: @ignoreCase @ignoreCase""".stripMargin
 
-      parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual List(SchemaMessage(
+      parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual IList(FailMessage(SchemaDefinitionError,
         """[3.23] failure: `warning' expected but `i' found
         |
         |column1: @ignoreCase @ignoreCase
@@ -54,7 +57,7 @@ class SchemaParserColumnDirectivesSpec extends SchemaSpecBase {
                      |@totalColumns 1
                      |column1: @ignoreCase @optional @ignoreCase @optional""".stripMargin
 
-      parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual List(SchemaMessage(
+      parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual IList(FailMessage(SchemaDefinitionError,
        """[3.33] failure: `warning' expected but `i' found
        |
        |column1: @ignoreCase @optional @ignoreCase @optional
@@ -68,7 +71,7 @@ class SchemaParserColumnDirectivesSpec extends SchemaSpecBase {
                      |column2: @optional @ignoreCase
                      |column3: @ignoreCase @ignoreCase @optional @optional""".stripMargin
 
-      parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual List(SchemaMessage(
+      parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual IList(FailMessage(SchemaDefinitionError,
         """[3.33] failure: `warning' expected but `i' found
           |
           |column1: @ignoreCase @optional @ignoreCase @optional

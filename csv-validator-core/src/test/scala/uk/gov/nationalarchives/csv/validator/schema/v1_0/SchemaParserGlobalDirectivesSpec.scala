@@ -10,9 +10,11 @@ package uk.gov.nationalarchives.csv.validator.schema.v1_0
 
 import java.io.StringReader
 
+import org.junit.runner.RunWith
+import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.schema._
 
-
+@RunWith(classOf[JUnitRunner])
 class SchemaParserGlobalDirectivesSpec extends SchemaSpecBase {
 
   import TestSchemaParser._
@@ -50,7 +52,7 @@ class SchemaParserGlobalDirectivesSpec extends SchemaSpecBase {
     }
 
     "@noHeader and @ignoreColumnNameCase global directives (mutually exclusive)" should {
-      "fail for @noHeader followed by @ignoreColumnNameCase" >> pending("Need to improve error messages") {
+      "fail for @noHeader followed by @ignoreColumnNameCase" in {
         val schema =
           """version 1.0
             |@noHeader
@@ -58,9 +60,9 @@ class SchemaParserGlobalDirectivesSpec extends SchemaSpecBase {
             |column1: """.stripMargin
 
         parse(new StringReader(schema)) must beLike { case Failure(message, _) => message mustEqual "Invalid global directive" }
-      }
+      }.pendingUntilFixed("Need to improve error messages")
 
-      "fail for @ignoreColumnNameCase followed by @noHeader" >> pending("Need to improve error messages") {
+      "fail for @ignoreColumnNameCase followed by @noHeader" in {
         val schema =
           """version 1.0
             |@ignoreColumnNameCase
@@ -68,7 +70,7 @@ class SchemaParserGlobalDirectivesSpec extends SchemaSpecBase {
             |column1: """.stripMargin
 
         parse(new StringReader(schema)) must beLike { case Failure(message, _) => message mustEqual "Invalid global directive" }
-      }
+      }.pendingUntilFixed("Need to improve error messages")
     }
 
     "succeed with no global directives" in {

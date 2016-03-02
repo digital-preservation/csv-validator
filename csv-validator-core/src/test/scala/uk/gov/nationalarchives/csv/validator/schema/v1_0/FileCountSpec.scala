@@ -10,16 +10,18 @@ package uk.gov.nationalarchives.csv.validator.schema.v1_0
 
 import java.io.File
 
+import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
+import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.{FILE_SEPARATOR, TestResources}
 import uk.gov.nationalarchives.csv.validator.Util.TypedPath
 import uk.gov.nationalarchives.csv.validator.metadata.{Cell, Row}
 import uk.gov.nationalarchives.csv.validator.schema._
 
 import scalax.file.{Path, PathSet}
-import scalaz.{Failure, Success, ValidationNel}
+import scalaz.{Success, Failure, ValidationNel, IList}
 
-
+@RunWith(classOf[JUnitRunner])
 class FileCountSpec extends Specification with TestResources {
 
   override val threeFilesPath = new File(new File(baseResourcePkgPath).getParentFile.getParent, "fileCountTestFiles/threeFiles").getAbsolutePath
@@ -107,13 +109,13 @@ class FileCountSpec extends Specification with TestResources {
 
     "fail if an invalid relavtive basePath is given" in {
       wildCard.search( ("WRONGPATH/dri/fileCountTestFiles/threeFiles/","file1.jp2") ) must beLike {
-        case Failure(m) => m.list mustEqual List("""incorrect basepath WRONGPATH/dri/fileCountTestFiles/threeFiles/ (localfile: """ + TypedPath("WRONGPATH/dri/fileCountTestFiles/threeFiles/file1.jp2").toPlatform + """) found""")
+        case Failure(m) => m.list mustEqual IList("""incorrect basepath WRONGPATH/dri/fileCountTestFiles/threeFiles/ (localfile: """ + TypedPath("WRONGPATH/dri/fileCountTestFiles/threeFiles/file1.jp2").toPlatform + """) found""")
       }
     }
 
     "fail if invalid filename is given" in {
       wildCard.search( (threeFilesPath + FILE_SEPARATOR,"WRONG.WRONG") ) must beLike {
-        case Failure(m) => m.list mustEqual List("""file """" + threeFilesPath + FILE_SEPARATOR + """WRONG.WRONG" not found""")
+        case Failure(m) => m.list mustEqual IList("""file """" + threeFilesPath + FILE_SEPARATOR + """WRONG.WRONG" not found""")
       }
     }
 
@@ -174,19 +176,19 @@ class FileCountSpec extends Specification with TestResources {
 
     "fail if an invalid relative basePath is given" in {
       wildCard.search( ("WRONGPATH/dri/fileCountTestFiles/threeFiles/","file1.jp2") ) must beLike {
-        case Failure(m) => m.list mustEqual List("""incorrect basepath WRONGPATH/dri/fileCountTestFiles/threeFiles/ (localfile: """ + TypedPath("WRONGPATH/dri/fileCountTestFiles/threeFiles/file1.jp2").toPlatform + """) found""")
+        case Failure(m) => m.list mustEqual IList("""incorrect basepath WRONGPATH/dri/fileCountTestFiles/threeFiles/ (localfile: """ + TypedPath("WRONGPATH/dri/fileCountTestFiles/threeFiles/file1.jp2").toPlatform + """) found""")
       }
     }
 
     "fail if an invalid relative basePath is given" in {
       wildCard.search( ("src/test/dri/fileCountTestFiles/threeFiles/","xfile.jp2") ) must beLike {
-        case Failure(m) => m.list mustEqual List("""incorrect basepath src/test/dri/fileCountTestFiles/threeFiles/ (localfile: """ + TypedPath("src/test/dri/fileCountTestFiles/threeFiles/xfile.jp2").toPlatform + """) found""")
+        case Failure(m) => m.list mustEqual IList("""incorrect basepath src/test/dri/fileCountTestFiles/threeFiles/ (localfile: """ + TypedPath("src/test/dri/fileCountTestFiles/threeFiles/xfile.jp2").toPlatform + """) found""")
       }
     }
 
     "fail if invalid filename is given" in {
       wildCard.search( ("bob/fileCountTestFiles/threeFiles/","WRONG.WRONG") ) must beLike {
-        case Failure(m) => m.list mustEqual List("""file """" + Path.fromString(threeFilesPath).path + FILE_SEPARATOR + """WRONG.WRONG" not found""")
+        case Failure(m) => m.list mustEqual IList("""file """" + Path.fromString(threeFilesPath).path + FILE_SEPARATOR + """WRONG.WRONG" not found""")
       }
     }
 

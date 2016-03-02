@@ -8,7 +8,9 @@
  */
 package uk.gov.nationalarchives.csv.validator.schema.v1_0
 
+import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
+import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.metadata.{Cell, Row}
 import uk.gov.nationalarchives.csv.validator.schema._
 
@@ -18,6 +20,7 @@ import scalaz.{Failure, Success}
   * User: Jim Collins
   * Date: 3/7/13
   */
+@RunWith(classOf[JUnitRunner])
 class IfRuleSpec extends Specification {
 
   "IfRule" should  {

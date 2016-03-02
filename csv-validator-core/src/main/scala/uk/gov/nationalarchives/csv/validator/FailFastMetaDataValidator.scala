@@ -22,9 +22,11 @@ import uk.gov.nationalarchives.csv.validator.metadata.Row
 
 trait FailFastMetaDataValidator extends MetaDataValidator {
 
+  //TODO(AR) work on removing use of `Any`
+
   override def validateRows(rows: Iterator[Row], schema: Schema): MetaDataValidation[Any] = {
 
-    def containsErrors(e: MetaDataValidation[Any]): Boolean = e.fold(_.list.exists(_.isInstanceOf[ErrorMessage]), _ => false)
+    def containsErrors(e: MetaDataValidation[Any]): Boolean = e.fold(_.list.collectFirst(FailMessage.isError).nonEmpty, _ => false)
 
     @tailrec
     def validateRows(results: List[MetaDataValidation[Any]] = List.empty[MetaDataValidation[Any]]) : List[MetaDataValidation[Any]] = {

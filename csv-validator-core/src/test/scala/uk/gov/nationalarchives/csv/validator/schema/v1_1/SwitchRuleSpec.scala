@@ -8,13 +8,16 @@
  */
 package uk.gov.nationalarchives.csv.validator.schema.v1_1
 
+import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
+import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.metadata.{Cell, Row}
 import uk.gov.nationalarchives.csv.validator.schema._
 import uk.gov.nationalarchives.csv.validator.schema.v1_0.{EndsRule, StartsRule}
 
 import scalaz.{Failure, Success}
 
+@RunWith(classOf[JUnitRunner])
 class SwitchRuleSpec extends Specification {
 
   "SwitchRule" should  {

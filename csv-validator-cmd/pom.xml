@@ -29,6 +29,11 @@
                 <configuration>
                     <recompileMode>incremental</recompileMode>   <!-- NOTE: incremental compilation although faster requires passing to MAVEN_OPTS="-XX:MaxPermSize=128m" -->
                     <useZincServer>true</useZincServer>          <!-- NOTE: if you have Zinc server installed and running, you can get faster compilation by enabling this -->
+                    <args>
+                        <arg>-Yrangepos</arg> <!-- recommended for Specs2 -->
+                        <arg>-feature</arg>
+                        <arg>-deprecation</arg>
+                    </args>
                     <javacArgs>
                         <javacArg>-Xlint:unchecked</javacArg>
                         <javacArg>-Xlint:deprecation</javacArg>
@@ -52,17 +57,13 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>com.mmakowski</groupId>
-                <artifactId>maven-specs2-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>verify</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>run-specs</goal>
-                        </goals>
-                    </execution>
-                </executions>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <includes>
+                        <include>**/*Spec.*</include>
+                    </includes>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -135,7 +136,27 @@
         </dependency>
         <dependency>
             <groupId>org.specs2</groupId>
-            <artifactId>specs2_${scala.version}</artifactId>
+            <artifactId>specs2-core_${scala.version}</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.specs2</groupId>
+            <artifactId>specs2-common_${scala.version}</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.specs2</groupId>
+            <artifactId>specs2-matcher_${scala.version}</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.specs2</groupId>
+            <artifactId>specs2-junit_${scala.version}</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

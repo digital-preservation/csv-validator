@@ -8,7 +8,9 @@
  */
 package uk.gov.nationalarchives.csv.validator
 
+import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
+import org.specs2.runner.JUnitRunner
 import scalaz._
 import uk.gov.nationalarchives.csv.validator.schema.Schema
 import uk.gov.nationalarchives.csv.validator.api.{TextFile, CsvValidator}
@@ -16,7 +18,7 @@ import scalax.file.Path
 import java.io.StringReader
 import java.io
 
-
+@RunWith(classOf[JUnitRunner])
 class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
   val base = acceptancePath
@@ -94,8 +96,8 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
     "fail when @noHeader not set" in {
       validate(TextFile(Path.fromString(base) / "regexRuleFailMetaData.csv"), parse(base + "/regexRuleSchemaWithoutNoHeaderSet.csvs"), None) must beLike {
-        case Failure(errors) => errors.list mustEqual List(
-          ErrorMessage("regex(\"[0-9]+\") fails for line: 1, column: Age, value: \"twenty\"",Some(1),Some(1))
+        case Failure(errors) => errors.list mustEqual IList(
+          FailMessage(ValidationError, "regex(\"[0-9]+\") fails for line: 1, column: Age, value: \"twenty\"",Some(1),Some(1))
         )
       }
     }
@@ -104,9 +106,9 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
   "Multiple errors " should {
     "all be reported" in {
       validate(TextFile(Path.fromString(base) / "multipleErrorsMetaData.csv"), parse(base + "/regexRuleSchemaWithNoHeaderSet.csvs"), None) must beLike {
-        case Failure(errors) => errors.list mustEqual List(
-          ErrorMessage("""regex("[0-9]+") fails for line: 1, column: Age, value: "twenty"""",Some(1),Some(1)),
-          ErrorMessage("""regex("[0-9]+") fails for line: 2, column: Age, value: "thirty"""",Some(2),Some(1)))
+        case Failure(errors) => errors.list mustEqual IList(
+          FailMessage(ValidationError, """regex("[0-9]+") fails for line: 1, column: Age, value: "twenty"""",Some(1),Some(1)),
+          FailMessage(ValidationError, """regex("[0-9]+") fails for line: 2, column: Age, value: "thirty"""",Some(2),Some(1)))
       }
     }
   }
@@ -120,11 +122,11 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
     "fail when rules fail for all permutations" in {
       validate(TextFile(Path.fromString(base) / "twoRulesFailMetaData.csv"), parse(base + "/twoRuleSchemaFail.csvs"), None) must beLike {
-        case Failure(errors) => errors.list mustEqual List(
-          ErrorMessage("""in($FullName) fails for line: 1, column: Name, value: "Ben"""",Some(1),Some(0)),
-          ErrorMessage("""regex("[a-z]+") fails for line: 1, column: Name, value: "Ben"""",Some(1),Some(0)),
-          ErrorMessage("""in($FullName) fails for line: 2, column: Name, value: "Dave"""",Some(2),Some(0)),
-          ErrorMessage("""regex("[a-z]+") fails for line: 2, column: Name, value: "Dave"""",Some(2),Some(0)))
+        case Failure(errors) => errors.list mustEqual IList(
+          FailMessage(ValidationError, """in($FullName) fails for line: 1, column: Name, value: "Ben"""",Some(1),Some(0)),
+          FailMessage(ValidationError, """regex("[a-z]+") fails for line: 1, column: Name, value: "Ben"""",Some(1),Some(0)),
+          FailMessage(ValidationError, """in($FullName) fails for line: 2, column: Name, value: "Dave"""",Some(2),Some(0)),
+          FailMessage(ValidationError, """regex("[a-z]+") fails for line: 2, column: Name, value: "Dave"""",Some(2),Some(0)))
       }
     }
   }
@@ -140,16 +142,16 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
     "fail if the conditionExpr is true but the thenExpr is false" in {
       validate(TextFile(Path.fromString(base) / "ifRuleFailThenMetaData.csv"), parse(base + "/ifElseRuleSchema.csvs"), None) must beLike {
-        case Failure(errors) => errors.list mustEqual List(
-          ErrorMessage("""is("hello world") fails for line: 1, column: SomeIfRule, value: "hello world1"""",Some(1),Some(1))
+        case Failure(errors) => errors.list mustEqual IList(
+          FailMessage(ValidationError, """is("hello world") fails for line: 1, column: SomeIfRule, value: "hello world1"""",Some(1),Some(1))
         )
       }
     }
 
     "fail if the conditionExpr is fasle but the elseExpr is false" in {
       validate(TextFile(Path.fromString(base) / "ifRuleFailElseMetaData.csv"), parse(base + "/ifElseRuleSchema.csvs"), None) must beLike {
-        case Failure(errors) => errors.list mustEqual List(
-          ErrorMessage("""upperCase fails for line: 3, column: SomeIfRule, value: "EFQWeGW"""",Some(3),Some(1))
+        case Failure(errors) => errors.list mustEqual IList(
+          FailMessage(ValidationError, """upperCase fails for line: 3, column: SomeIfRule, value: "EFQWeGW"""",Some(3),Some(1))
         )
       }
     }
@@ -166,17 +168,17 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
     "fail if the conditionExpr is true but the thenExpr is false - 1" in {
       validate(TextFile(Path.fromString(base) / "switch1RuleFailMetaData.csv"), parse(base + "/switch1RuleSchema.csvs"), None) must beLike {
-        case Failure(errors) => errors.list mustEqual List(
-          ErrorMessage("""is("hello world") fails for line: 1, column: SomeSwitchRule, value: "hello world1"""",Some(1),Some(1))
+        case Failure(errors) => errors.list mustEqual IList(
+          FailMessage(ValidationError, """is("hello world") fails for line: 1, column: SomeSwitchRule, value: "hello world1"""",Some(1),Some(1))
         )
       }
     }
 
     "fail if the conditionExpr is true but the thenExpr is false - 2" in {
       validate(TextFile(Path.fromString(base) / "switch2RuleFailMetaData.csv"), parse(base + "/switch2RuleSchema.csvs"), None) must beLike {
-        case Failure(errors) =>errors.list mustEqual List(
-          ErrorMessage("""is("hello world") fails for line: 1, column: SomeSwitchRule, value: "hello world1"""",Some(1),Some(1)),
-          ErrorMessage("""is("HELLO WORLD") fails for line: 2, column: SomeSwitchRule, value: "HELLO WORLD1"""",Some(2),Some(1))
+        case Failure(errors) =>errors.list mustEqual IList(
+          FailMessage(ValidationError, """is("hello world") fails for line: 1, column: SomeSwitchRule, value: "hello world1"""",Some(1),Some(1)),
+          FailMessage(ValidationError, """is("HELLO WORLD") fails for line: 2, column: SomeSwitchRule, value: "HELLO WORLD1"""",Some(2),Some(1))
         )
       }
     }
@@ -193,9 +195,9 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
     "fail if the column value is not in the rule's literal string" in {
       validate(TextFile(Path.fromString(base) / "inRuleFailMetaData.csv"), parse(base + "/inRuleSchema.csvs"), None) must beLike {
-        case Failure(errors) => errors.list mustEqual List(
-          ErrorMessage("""in("thevaluemustbeinthisstring") fails for line: 1, column: SomeInRule, value: "valuenotinrule"""",Some(1),Some(1)),
-          ErrorMessage("""in("thevaluemustbeinthisstring") fails for line: 3, column: SomeInRule, value: "thisonewillfailtoo"""",Some(3),Some(1)))
+        case Failure(errors) => errors.list mustEqual IList(
+          FailMessage(ValidationError, """in("thevaluemustbeinthisstring") fails for line: 1, column: SomeInRule, value: "valuenotinrule"""",Some(1),Some(1)),
+          FailMessage(ValidationError, """in("thevaluemustbeinthisstring") fails for line: 3, column: SomeInRule, value: "thisonewillfailtoo"""",Some(3),Some(1)))
       }
     }
 
@@ -207,7 +209,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
     "fail if the column value is not in the rule's cross referenced column" in {
       validate(TextFile(Path.fromString(base) / "inRuleCrossReferenceFailMetaData.csv"), parse(base + "/inRuleCrossReferenceSchema.csvs"), None) must beLike {
-        case Failure(errors) => errors.list mustEqual List(ErrorMessage("""in($FullName) fails for line: 2, column: FirstName, value: "Dave"""",Some(2),Some(0)))
+        case Failure(errors) => errors.list mustEqual IList(FailMessage(ValidationError, """in($FullName) fails for line: 2, column: FirstName, value: "Dave"""",Some(2),Some(0)))
       }
     }
   }
@@ -219,8 +221,8 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
     "fail if the column value is not in the rule's literal string" in {
       validate(TextFile(Path.fromString(base) / "anyRuleFailMetaData.csv"), parse(base + "/anyRuleSchema.csvs"), None) must beLike {
-        case Failure(errors) => errors.list mustEqual List(
-          ErrorMessage("""any("value1", "value2", "value3") fails for line: 4, column: SomeAnyRule, value: "value4"""",Some(4),Some(1))
+        case Failure(errors) => errors.list mustEqual IList(
+          FailMessage(ValidationError, """any("value1", "value2", "value3") fails for line: 4, column: SomeAnyRule, value: "value4"""",Some(4),Some(1))
         )
       }
     }
@@ -233,8 +235,8 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
     "fail if the column value is not in the rule's literal string" in {
       validate(TextFile(Path.fromString(base) / "xsdDateTimeFail.csv"), parse(base + "/xsdDateTime.csvs"), None) must beLike {
-        case Failure(errors) => errors.list mustEqual List(
-          ErrorMessage("""xDateTime fails for line: 2, column: date, value: "2013-03-22"""",Some(2),Some(0))
+        case Failure(errors) => errors.list mustEqual IList(
+          FailMessage(ValidationError, """xDateTime fails for line: 2, column: date, value: "2013-03-22"""",Some(2),Some(0))
         )
       }
     }
@@ -247,8 +249,8 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
     "fail if the column value is not in the rule's literal string" in {
       validate(TextFile(Path.fromString(base) / "xsdDateTimeRangeFail.csv"), parse(base + "/xsdDateTimeRange.csvs"), None) must beLike {
-        case Failure(errors) => errors.list  mustEqual List(
-          ErrorMessage("""xDateTime("2012-01-01T01:00:00, 2013-01-01T01:00:00") fails for line: 2, column: date, value: "2014-01-01T01:00:00"""",Some(2),Some(0))
+        case Failure(errors) => errors.list  mustEqual IList(
+          FailMessage(ValidationError, """xDateTime("2012-01-01T01:00:00, 2013-01-01T01:00:00") fails for line: 2, column: date, value: "2014-01-01T01:00:00"""",Some(2),Some(0))
         )
       }
     }
@@ -262,8 +264,8 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
     "fail if the column value is invalid" in {
       validate(TextFile(Path.fromString(base) / "xsdDateTimeTzFail.csv"), parse(base + "/xsdDateTimeTz.csvs"), None) must beLike {
-        case Failure(errors) => errors.list mustEqual List(
-          ErrorMessage("""xDateTimeWithTimeZone fails for line: 4, column: date, value: "2012-01-01T00:00:00"""",Some(4),Some(0))
+        case Failure(errors) => errors.list mustEqual IList(
+          FailMessage(ValidationError, """xDateTimeWithTimeZone fails for line: 4, column: date, value: "2012-01-01T00:00:00"""",Some(4),Some(0))
         )
       }
     }
@@ -276,8 +278,8 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
     "fail if the column value is not in the rule's literal string" in {
       validate(TextFile(Path.fromString(base) / "xsdDateTimeTzRangeFail.csv"), parse(base + "/xsdDateTimeTzRange.csvs"), None) must beLike {
-        case Failure(errors) => errors.list  mustEqual List(
-          ErrorMessage("""xDateTimeWithTimeZone("2012-01-01T01:00:00+00:00, 2013-01-01T01:00:00+00:00") fails for line: 2, column: date, value: "2014-01-01T01:00:00+00:00"""",Some(2),Some(0))
+        case Failure(errors) => errors.list  mustEqual IList(
+          FailMessage(ValidationError, """xDateTimeWithTimeZone("2012-01-01T01:00:00+00:00, 2013-01-01T01:00:00+00:00") fails for line: 2, column: date, value: "2014-01-01T01:00:00+00:00"""",Some(2),Some(0))
         )
       }
     }
@@ -294,7 +296,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
     "fail if a non empty value fails a rule" in {
       validate(TextFile(Path.fromString(base) / "optionalFailMetaData.csv"), parse(base + "/optionalSchema.csvs"), None) must beLike {
-        case Failure(errors) => errors.list mustEqual List(ErrorMessage("in($FullName) fails for line: 1, column: Name, value: \"BP\"",Some(1),Some(0)))
+        case Failure(errors) => errors.list mustEqual IList(FailMessage(ValidationError, "in($FullName) fails for line: 1, column: Name, value: \"BP\"",Some(1),Some(0)))
       }
     }
   }
@@ -332,9 +334,9 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
     "fail if the file does not exist on the file system" in {
       validate(TextFile(Path.fromString(base) / "fileExistsPassMetaData.csv"), parse(base + "/fileExistsSchemaWithBadBasePath.csvs"), None) must beLike {
-        case Failure(errors) => errors.list mustEqual List(
-          ErrorMessage("""fileExists("src/test/resources/uk/gov/nationalarchives") fails for line: 1, column: PasswordFile, value: "benPass.csvs"""",Some(1),Some(2)),
-          ErrorMessage("""fileExists("src/test/resources/uk/gov/nationalarchives") fails for line: 2, column: PasswordFile, value: "andyPass.csvs"""",Some(2),Some(2)))
+        case Failure(errors) => errors.list mustEqual IList(
+          FailMessage(ValidationError, """fileExists("src/test/resources/uk/gov/nationalarchives") fails for line: 1, column: PasswordFile, value: "benPass.csvs"""",Some(1),Some(2)),
+          FailMessage(ValidationError, """fileExists("src/test/resources/uk/gov/nationalarchives") fails for line: 2, column: PasswordFile, value: "andyPass.csvs"""",Some(2),Some(2)))
       }
     }
 
@@ -345,9 +347,9 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
       val csfSchema = csfSchemaTemplate.replace("$$acceptancePath$$", base)
 
       validateE(TextFile(Path.fromString(base) / "caseSensitiveFiles.csv"), parseE(new StringReader(csfSchema)), None) must beLike {
-        case Failure(errors) => errors.list mustEqual List(
-          ErrorMessage("""fileExists("$$acceptance$$") fails for line: 2, column: filename, value: "casesensitivefiles.csv"""".replace("$$acceptance$$", base),Some(2),Some(0)),
-          ErrorMessage("""fileExists("$$acceptance$$") fails for line: 3, column: filename, value: "CASESENSITIVEFILES.csv"""".replace("$$acceptance$$", base),Some(3),Some(0))
+        case Failure(errors) => errors.list mustEqual IList(
+          FailMessage(ValidationError, """fileExists("$$acceptance$$") fails for line: 2, column: filename, value: "casesensitivefiles.csv"""".replace("$$acceptance$$", base),Some(2),Some(0)),
+          FailMessage(ValidationError, """fileExists("$$acceptance$$") fails for line: 3, column: filename, value: "CASESENSITIVEFILES.csv"""".replace("$$acceptance$$", base),Some(3),Some(0))
         )
       }
     }
@@ -361,20 +363,20 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
     "enforce all element in a call on to be in a range of value" in {
       validate(TextFile(Path.fromString(base) / "rangeRuleFailMetaData.csv"), parse(base + "/rangeRuleSchema.csvs"), None) must beLike {
-        case Failure(errors) => errors.list mustEqual List(ErrorMessage("""range(1910,*) fails for line: 2, column: Year_of_birth, value: "1909"""",Some(2),Some(1)))
+        case Failure(errors) => errors.list mustEqual IList(FailMessage(ValidationError, """range(1910,*) fails for line: 2, column: Year_of_birth, value: "1909"""",Some(2),Some(1)))
       }
     }
 
     "fail with no limit set" in {
       parseSchema(TextFile(Path.fromString(base) / "rangeRuleFailSchema.csvs")) must beLike {
-        case Failure(errors) => errors.list mustEqual List(SchemaMessage("""Column: Year_of_birth: Invalid range in 'range(*,*)' at least one value needs to be defined""",None,None))
+        case Failure(errors) => errors.list mustEqual IList(FailMessage(SchemaDefinitionError, """Column: Year_of_birth: Invalid range in 'range(*,*)' at least one value needs to be defined""",None,None))
       }
     }
 
 
     "fail with inconsistent limit" in {
       parseSchema(TextFile(Path.fromString(base) / "rangeRuleInvalidSchema.csvs")) must beLike {
-        case Failure(errors) => errors.list mustEqual List(SchemaMessage("""Column: Year_of_birth: Invalid range, minimum greater than maximum in: 'range(100,1)' at line: 4, column: 16""",None,None))
+        case Failure(errors) => errors.list mustEqual IList(FailMessage(SchemaDefinitionError, """Column: Year_of_birth: Invalid range, minimum greater than maximum in: 'range(100,1)' at line: 4, column: 16""",None,None))
       }
     }
   }
@@ -388,9 +390,9 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
       val csfSchema = csfSchemaTemplate.replace("$$acceptancePath$$", base)
 
       validateE(TextFile(Path.fromString(base) / "caseSensitiveFilesChecksum.csv"), parseE(new StringReader(csfSchema)), None) must beLike {
-        case Failure(errors) => errors.list mustEqual List(
-          ErrorMessage("""checksum(file("$$acceptance$$", $filename), "MD5") file "$$acceptance$$$$file-sep$$casesensitivefileschecksum.csvs" not found for line: 2, column: checksum, value: "41424313f6052b7f062358ed38640b6e"""".replace("$$acceptance$$", base).replace("$$file-sep$$", FILE_SEPARATOR.toString),Some(2),Some(1)),
-          ErrorMessage("""checksum(file("$$acceptance$$", $filename), "MD5") file "$$acceptance$$$$file-sep$$CASESENSITIVEFILESCHECKSUM.csvs" not found for line: 3, column: checksum, value: "41424313f6052b7f062358ed38640b6e"""".replace("$$acceptance$$", base).replace("$$file-sep$$", FILE_SEPARATOR.toString),Some(3),Some(1))
+        case Failure(errors) => errors.list mustEqual IList(
+          FailMessage(ValidationError, """checksum(file("$$acceptance$$", $filename), "MD5") file "$$acceptance$$$$file-sep$$casesensitivefileschecksum.csvs" not found for line: 2, column: checksum, value: "41424313f6052b7f062358ed38640b6e"""".replace("$$acceptance$$", base).replace("$$file-sep$$", FILE_SEPARATOR.toString),Some(2),Some(1)),
+          FailMessage(ValidationError, """checksum(file("$$acceptance$$", $filename), "MD5") file "$$acceptance$$$$file-sep$$CASESENSITIVEFILESCHECKSUM.csvs" not found for line: 3, column: checksum, value: "41424313f6052b7f062358ed38640b6e"""".replace("$$acceptance$$", base).replace("$$file-sep$$", FILE_SEPARATOR.toString),Some(3),Some(1))
         )
       }
     }
@@ -408,8 +410,8 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
     "fail for different rows in the same column  " in {
       validateE(TextFile(Path.fromString(base) / "identicalFailMetaData.csv"), parseE(base + "/identicalSchema.csvs"), None) must beLike {
-        case Failure(errors) => errors.list mustEqual List(
-          ErrorMessage("""identical fails for line: 3, column: FullName, value: "fff"""",Some(3),Some(1))
+        case Failure(errors) => errors.list mustEqual IList(
+          FailMessage(ValidationError, """identical fails for line: 3, column: FullName, value: "fff"""",Some(3),Some(1))
         )
       }
     }
@@ -425,13 +427,13 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
     "only report first error for invalid @TotalColumns" in {
       app.validate(TextFile(Path.fromString(base) / "totalColumnsFailMetaData.csv"), parse(base + "/totalColumnsSchema.csvs"), None) must beLike {
-        case Failure(errors) => errors.list mustEqual List(ErrorMessage("Expected @totalColumns of 1 and found 2 on line 2",Some(2),Some(2)))
+        case Failure(errors) => errors.list mustEqual IList(FailMessage(ValidationError, "Expected @totalColumns of 1 and found 2 on line 2",Some(2),Some(2)))
       }
     }
 
     "only report first rule fail for multiple rules on a column" in {
       app.validate(TextFile(Path.fromString(base) / "rulesFailMetaData.csv"), parse(base + "/rulesSchema.csvs"), None) must beLike {
-        case Failure(errors) => errors.list mustEqual List(ErrorMessage("""regex("[A-Z][a-z]+") fails for line: 2, column: Name, value: "ben"""",Some(2),Some(0)))
+        case Failure(errors) => errors.list mustEqual IList(FailMessage(ValidationError, """regex("[A-Z][a-z]+") fails for line: 2, column: Name, value: "ben"""",Some(2),Some(0)))
       }
     }
 
@@ -444,19 +446,19 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
     "report warnings" in {
       app.validate(TextFile(Path.fromString(base) / "warnings.csv"), parse(base + "/warnings.csvs"), None) must beLike {
-        case Failure(warnings) => warnings.list mustEqual List(
-          WarningMessage("""is("WO") fails for line: 2, column: department, value: "BT"""", Some(2), Some(0)),
-          WarningMessage("""is("WO") fails for line: 3, column: department, value: "ED"""", Some(3), Some(0))
+        case Failure(warnings) => warnings.list mustEqual IList(
+          FailMessage(ValidationWarning, """is("WO") fails for line: 2, column: department, value: "BT"""", Some(2), Some(0)),
+          FailMessage(ValidationWarning, """is("WO") fails for line: 3, column: department, value: "ED"""", Some(3), Some(0))
         )
       }
     }
 
     "report warnings and only first error" in {
       app.validate(TextFile(Path.fromString(base) / "warningsAndErrors.csv"), parse(base + "/warnings.csvs"), None) must beLike {
-        case Failure(warningsAndError) => warningsAndError.list mustEqual List(
-          WarningMessage("""is("WO") fails for line: 2, column: department, value: "BT"""", Some(2), Some(0)),
-          WarningMessage("""is("WO") fails for line: 3, column: department, value: "ED"""", Some(3), Some(0)),
-          ErrorMessage("""is("13") fails for line: 4, column: division, value: "15"""", Some(4), Some(1))
+        case Failure(warningsAndError) => warningsAndError.list mustEqual IList(
+          FailMessage(ValidationWarning, """is("WO") fails for line: 2, column: department, value: "BT"""", Some(2), Some(0)),
+          FailMessage(ValidationWarning, """is("WO") fails for line: 3, column: department, value: "ED"""", Some(3), Some(0)),
+          FailMessage(ValidationError, """is("13") fails for line: 4, column: division, value: "15"""", Some(4), Some(1))
         )
       }
     }
@@ -466,7 +468,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
     "fail with duplicate column ids" in {
       parseSchema(TextFile(Path.fromString(base) / "duplicateColumnIdsFailSchema.csvs")) must beLike {
-        case Failure(errors) => errors.list mustEqual List(SchemaMessage("""Column: Age has duplicates on lines 3, 8
+        case Failure(errors) => errors.list mustEqual IList(FailMessage(SchemaDefinitionError, """Column: Age has duplicates on lines 3, 8
                                                                            |Column: Country has duplicates on lines 4, 5, 7""".stripMargin))
       }
     }
@@ -488,7 +490,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
     "fail if both the lhs or rhs are fail" in {
       validate(TextFile(Path.fromString(base) / "orWithTwoRulesFailMetaData.csv"), parse(base + "/orWithTwoRulesSchema.csvs"), None) must beLike {
-        case Failure(errors) => errors.list mustEqual List(ErrorMessage("""regex("[A-Z][a-z]+") or regex("[0-9]+") fails for line: 4, column: CountryOrCountryCode, value: "Andromeda9"""",Some(4),Some(1)))
+        case Failure(errors) => errors.list mustEqual IList(FailMessage(ValidationError, """regex("[A-Z][a-z]+") or regex("[0-9]+") fails for line: 4, column: CountryOrCountryCode, value: "Andromeda9"""",Some(4),Some(1)))
       }
     }
 
@@ -500,7 +502,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
     "fail if 'or' rules pass and 'and' rule fails" in {
       validate(TextFile(Path.fromString(base) / "orWithFourRulesFailMetaData.csv"), parse(base + "/orWithFourRulesSchema.csvs"), None) must beLike {
-        case Failure(errors) => errors.list mustEqual List(ErrorMessage("""regex("[A-Z].+") fails for line: 2, column: Country, value: "ngland"""",Some(2),Some(1)))
+        case Failure(errors) => errors.list mustEqual IList(FailMessage(ValidationError, """regex("[A-Z].+") fails for line: 2, column: Country, value: "ngland"""",Some(2),Some(1)))
       }
     }
   }
@@ -514,8 +516,15 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
     "fail if all the rules are not" in {
       validate(TextFile(Path.fromString(base) / "standardRulesFailMetaData.csv"), parse(base + "/standardRulesSchema.csvs"), None) must beLike {
-        case Failure(errors) => errors.list.toString() mustEqual """List(ErrorMessage(uri fails for line: 1, column: uri, value: "http:##datagov.nationalarchives.gov.uk#66#WO#409#9999#0#aaaaaaaa-aaaa-4aaa-9eee-0123456789ab",Some(1),Some(0)), ErrorMessage(xDateTime fails for line: 1, column: xDateTime, value: "2002-999-30T09:00:10",Some(1),Some(1)), ErrorMessage(xDate fails for line: 1, column: xDate, value: "02-99-30",Some(1),Some(2)), ErrorMessage(ukDate fails for line: 1, column: ukDate, value: "99/00/0009",Some(1),Some(3)), ErrorMessage(xTime fails for line: 1, column: xTime, value: "99:00:889",Some(1),Some(4)), ErrorMessage(uuid4 fails for line: 1, column: uuid4, value: "aaaaaaaab-aaaab-4aaa-9eee-0123456789ab",Some(1),Some(5)), ErrorMessage(positiveInteger fails for line: 1, column: positiveInteger, value: "12-0912459",Some(1),Some(6)))"""
-
+        case Failure(errors) => errors.list mustEqual IList(
+          FailMessage(ValidationError, """uri fails for line: 1, column: uri, value: "http:##datagov.nationalarchives.gov.uk#66#WO#409#9999#0#aaaaaaaa-aaaa-4aaa-9eee-0123456789ab"""", Some(1), Some(0)),
+          FailMessage(ValidationError, """xDateTime fails for line: 1, column: xDateTime, value: "2002-999-30T09:00:10"""", Some(1), Some(1)),
+          FailMessage(ValidationError, """xDate fails for line: 1, column: xDate, value: "02-99-30"""", Some(1), Some(2)),
+          FailMessage(ValidationError, """ukDate fails for line: 1, column: ukDate, value: "99/00/0009"""", Some(1), Some(3)),
+          FailMessage(ValidationError, """xTime fails for line: 1, column: xTime, value: "99:00:889"""", Some(1), Some(4)),
+          FailMessage(ValidationError, """uuid4 fails for line: 1, column: uuid4, value: "aaaaaaaab-aaaab-4aaa-9eee-0123456789ab"""", Some(1), Some(5)),
+          FailMessage(ValidationError, """positiveInteger fails for line: 1, column: positiveInteger, value: "12-0912459"""", Some(1), Some(6))
+        )
       }
     }
   }
@@ -531,7 +540,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
     "fail for incorrect extension removal" in {
       validate(TextFile(Path.fromString(base) / "noextFail.csv"), parse(base + "/noext.csvs"), None) must beLike {
-        case Failure(errors) => errors.list mustEqual List(ErrorMessage("""is(noext($identifier)) fails for line: 3, column: noext, value: "file:/a/b/c.txt"""",Some(3),Some(1)))
+        case Failure(errors) => errors.list mustEqual IList(FailMessage(ValidationError, """is(noext($identifier)) fails for line: 3, column: noext, value: "file:/a/b/c.txt"""",Some(3),Some(1)))
       }
     }
   }
@@ -543,7 +552,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
     "fail for incorrect concatenation" in {
       validate(TextFile(Path.fromString(base) / "concatFail.csv"), parse(base + "/concat.csvs"), None) must beLike {
-        case Failure(errors) => errors.list mustEqual List(ErrorMessage("""is(concat($c1, $c2)) fails for line: 3, column: c3, value: "ccccc"""",Some(3),Some(2)))
+        case Failure(errors) => errors.list mustEqual IList(FailMessage(ValidationError, """is(concat($c1, $c2)) fails for line: 3, column: c3, value: "ccccc"""",Some(3),Some(2)))
       }
     }
 
@@ -553,7 +562,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
     "fail for incorrect concatenation (various arguments)" in {
       validate(TextFile(Path.fromString(base) / "concat4Fail.csv"), parse(base + "/concat4.csvs"), None) must beLike {
-        case Failure(errors) =>  errors.list mustEqual List(ErrorMessage("""is(concat($c1, $c2, "hello", $c4)) fails for line: 2, column: c5, value: "aabbccdd"""",Some(2),Some(4)))
+        case Failure(errors) =>  errors.list mustEqual IList(FailMessage(ValidationError, """is(concat($c1, $c2, "hello", $c4)) fails for line: 2, column: c5, value: "aabbccdd"""",Some(2),Some(4)))
       }
     }
   }
@@ -566,7 +575,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
     "fail for incorrect concatenation" in {
       validate(TextFile(Path.fromString(base) / "redactedFail.csv"), parse(base + "/redacted.csvs"), None) must beLike {
-        case Failure(errors) => errors.list mustEqual List(ErrorMessage("""is(concat(noext($original_identifier), "_R.pdf")) fails for line: 2, column: identifier, value: "file:/some/folder/TNA%20Digital%20Preservation%20Strategy%20v0.3%5BA1031178%5D_R1.pdf"""",Some(2),Some(0)))
+        case Failure(errors) => errors.list mustEqual IList(FailMessage(ValidationError, """is(concat(noext($original_identifier), "_R.pdf")) fails for line: 2, column: identifier, value: "file:/some/folder/TNA%20Digital%20Preservation%20Strategy%20v0.3%5BA1031178%5D_R1.pdf"""",Some(2),Some(0)))
       }
     }
   }
