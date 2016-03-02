@@ -30,6 +30,7 @@ class MetaDataValidatorIntegrityCheckSpec extends Specification with TestResourc
 
   "integrity Check" should {
     val headerPath = integrityCheckPath + "/header/"
+    val contentPath = integrityCheckPath + "/content/"
     val noHeaderPath = integrityCheckPath + "/noheader/"
     val WO95Path = integrityCheckPath + "/WO_95/"
 
@@ -125,7 +126,7 @@ class MetaDataValidatorIntegrityCheckSpec extends Specification with TestResourc
       validator3.validate(TextFile(Path.fromString(headerPath) / "integrityCheckMetaData.csv"), parse(headerPath + "/integrityCheckSchema.csvs",validator), None).isSuccess mustEqual true
     }
 
-    "safely fail with incorttectt substitution paths - header" in {
+    "safely fail with incorrect substitution paths - header" in {
 
       val substitutionPaths = List(("file:///T:/WORK/RF_5/content123",headerPath + "content123"))
 
@@ -133,6 +134,13 @@ class MetaDataValidatorIntegrityCheckSpec extends Specification with TestResourc
       validator.validate(TextFile(Path.fromString(headerPath) / "integrityCheckMetaData.csv"), parse(headerPath + "/integrityCheckSchema.csvs",validator), None).isFailure mustEqual true
 
     }
+
+    "succeed with nested top level folder (content/content)" in {
+
+        val substitutionPaths = List(("file:///T:/WORK/RF_5", contentPath))
+        val validator = buildValidator(substitutionPaths)
+        validator.validate(TextFile(Path.fromString(contentPath) / "integrityCheckMetaData.csv"), parse(contentPath + "/integrityCheckSchema.csvs",validator), None).isSuccess mustEqual true
+      }
   }
 
 }
