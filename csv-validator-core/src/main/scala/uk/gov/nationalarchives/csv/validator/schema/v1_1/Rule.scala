@@ -39,7 +39,7 @@ case class SwitchRule(elseRules: Option[List[Rule]], cases:(Rule, List[Rule])*) 
 
   override def evaluate(columnIndex: Int, row: Row, schema: Schema, mayBeLast: Option[Boolean] = None): RuleValidation[Any] = {
     def conditionValid(condition: Rule): Boolean = {
-      val (cellValue,idx) = condition.explicitColumn match {
+      val (cellValue,idx) = findColumnRefence(condition) match {
         case Some(columnRef) =>
           (columnRef.referenceValueEx(columnIndex, row, schema), columnIdentifierToIndex(schema, columnRef.ref))
         case None =>

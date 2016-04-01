@@ -63,11 +63,8 @@ case class ColumnReference(ref: ColumnIdentifier) extends ArgProvider {
 
   @throws[IndexOutOfBoundsException]
   def referenceValueEx(columnIndex: Int, row: Row, schema: Schema): String = {
-    referenceValue(columnIndex, row, schema) match {
-      case Some(rv) =>
-        rv
-      case None =>
-        throw new ArrayIndexOutOfBoundsException(s"Could not access reference column $ref at [$columnIndex:${row.lineNumber}]")
+    referenceValue(columnIndex, row, schema).getOrElse{
+      throw new ArrayIndexOutOfBoundsException(s"Could not access reference column $ref at [$columnIndex:${row.lineNumber}]")
     }
   }
 

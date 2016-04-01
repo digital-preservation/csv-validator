@@ -54,7 +54,9 @@ trait SchemaParser extends SchemaParser1_0 {
       lowerCaseExpr ) ^^ {
       case explicitContext ~ rule =>
         rule.explicitColumn = explicitContext
+        explicitContext.map(rule.explicitColumns += _)
         rule
+
     }
 
   /**
@@ -70,6 +72,7 @@ trait SchemaParser extends SchemaParser1_0 {
   override lazy val externalSingleExpr: PackratParser[Rule] = "ExternalSingleExpr" ::= opt(explicitContextExpr) ~ (fileExistsExpr | integrityCheckExpr | checksumExpr | fileCountExpr) ^^ {
     case explicitContext ~ rule =>
       rule.explicitColumn = explicitContext
+      explicitContext.map(rule.explicitColumns += _)
       rule
   }
 
