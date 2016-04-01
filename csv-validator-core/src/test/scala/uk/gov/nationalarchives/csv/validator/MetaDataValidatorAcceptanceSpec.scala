@@ -48,40 +48,28 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
   "@separator global directive" should {
     "succeed for '$' separator" in {
-      validate(TextFile(Path.fromString(base) / "separated1.dsv"), parse(base + "/separated1.csvs"), None) must beLike {
-        case Success(_) => ok
-      }
+      validate(TextFile(Path.fromString(base) / "separated1.dsv"), parse(base + "/separated1.csvs"), None).isSuccess mustEqual true
     }
 
     "succeed for TAB separator" in {
-      validate(TextFile(Path.fromString(base) / "separated2.tsv"), parse(base + "/separated2.csvs"), None) must beLike {
-        case Success(_) => ok
-      }
+      validate(TextFile(Path.fromString(base) / "separated2.tsv"), parse(base + "/separated2.csvs"), None).isSuccess mustEqual true
     }
 
     "succeed for '\t' separator" in {
-      validate(TextFile(Path.fromString(base) / "separated2.tsv"), parse(base + "/separated2-1.csvs"), None) must beLike {
-        case Success(_) => ok
-      }
+      validate(TextFile(Path.fromString(base) / "separated2.tsv"), parse(base + "/separated2-1.csvs"), None).isSuccess mustEqual true
     }
 
     "with @quoted global directive" should {
       "succeed for '$' separator" in {
-        validate(TextFile(Path.fromString(base) / "separated3.dsv"), parse(base + "/separated3.csvs"), None) must beLike {
-          case Success(_) => ok
-        }
+        validate(TextFile(Path.fromString(base) / "separated3.dsv"), parse(base + "/separated3.csvs"), None).isSuccess mustEqual true
       }
 
       "succeed for TAB separator" in {
-        validate(TextFile(Path.fromString(base) / "separated4.tsv"), parse(base + "/separated4.csvs"), None) must beLike {
-          case Success(_) => ok
-        }
+        validate(TextFile(Path.fromString(base) / "separated4.tsv"), parse(base + "/separated4.csvs"), None).isSuccess mustEqual true
       }
 
       "succeed for '\t' separator" in {
-        validate(TextFile(Path.fromString(base) / "separated4.tsv"), parse(base + "/separated4-1.csvs"), None) must beLike {
-          case Success(_) => ok
-        }
+        validate(TextFile(Path.fromString(base) / "separated4.tsv"), parse(base + "/separated4-1.csvs"), None).isSuccess mustEqual true
       }
     }
   }
@@ -89,9 +77,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
   "Regex rule" should {
 
     "succeed for metadata file with column that passes regex rule" in {
-      validate(TextFile(Path.fromString(base) / "regexRulePassMetaData.csv"), parse(base + "/regexRuleSchema.csvs"), None) must beLike {
-        case Success(_) => ok
-      }
+      validate(TextFile(Path.fromString(base) / "regexRulePassMetaData.csv"), parse(base + "/regexRuleSchema.csvs"), None).isSuccess mustEqual true
     }
 
     "fail when @noHeader not set" in {
@@ -100,6 +86,16 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
           FailMessage(ValidationError, "regex(\"[0-9]+\") fails for line: 1, column: Age, value: \"twenty\"",Some(1),Some(1))
         )
       }
+    }
+  }
+
+
+  "Not empty rule" should {
+    "succeed for metadata file with column that passes regex rule" in {
+      val result = validate(TextFile(Path.fromString(base) / "notempty.csv"), parse(base + "/notempty.csvs"), None)
+      println("End result " + result)
+      result.isSuccess mustEqual true
+
     }
   }
 
@@ -115,9 +111,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
   "Combining two rules" should {
     "succeed when metadata valid" in {
-      validate(TextFile(Path.fromString(base) / "twoRulesPassMetaData.csv"), parse(base + "/twoRuleSchema.csvs"), None) must beLike {
-        case Success(_) => ok
-      }
+      validate(TextFile(Path.fromString(base) / "twoRulesPassMetaData.csv"), parse(base + "/twoRuleSchema.csvs"), None).isSuccess mustEqual true
     }
 
     "fail when rules fail for all permutations" in {
@@ -188,9 +182,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
   "An in rule" should {
     "succeed if the column value is in the rule's literal string" in {
-      validate(TextFile(Path.fromString(base) / "inRulePassMetaData.csv"), parse(base + "/inRuleSchema.csvs"), None) must beLike {
-        case Success(_) => ok
-      }
+      validate(TextFile(Path.fromString(base) / "inRulePassMetaData.csv"), parse(base + "/inRuleSchema.csvs"), None).isSuccess mustEqual true
     }
 
     "fail if the column value is not in the rule's literal string" in {
@@ -202,9 +194,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
     }
 
     "succeed if the column value is in the rule's cross referenced column" in {
-      validate(TextFile(Path.fromString(base) / "inRuleCrossReferencePassMetaData.csv"), parse(base + "/inRuleCrossReferenceSchema.csvs"), None) must beLike {
-        case Success(_) => ok
-      }
+      validate(TextFile(Path.fromString(base) / "inRuleCrossReferencePassMetaData.csv"), parse(base + "/inRuleCrossReferenceSchema.csvs"), None).isSuccess mustEqual true
     }
 
     "fail if the column value is not in the rule's cross referenced column" in {
@@ -289,9 +279,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
   "An @optional column directive" should {
     "allow a column to have an empty value and ignore other rules" in {
-      validate(TextFile(Path.fromString(base) / "optionalPassMetaData.csv"), parse(base + "/optionalSchema.csvs"), None) must beLike {
-        case Success(_) => ok
-      }
+      validate(TextFile(Path.fromString(base) / "optionalPassMetaData.csv"), parse(base + "/optionalSchema.csvs"), None).isSuccess mustEqual true
     }
 
     "fail if a non empty value fails a rule" in {
@@ -303,9 +291,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
   "An @ignoreCase column directive" should {
     "pass a rule ignoring case" in {
-      validate(TextFile(Path.fromString(base) / "ignoreCasePassMetaData.csv"), parse(base + "/ignoreCaseSchema.csvs"), None) must beLike {
-        case Success(_) => ok
-      }
+      validate(TextFile(Path.fromString(base) / "ignoreCasePassMetaData.csv"), parse(base + "/ignoreCaseSchema.csvs"), None).isSuccess mustEqual true
     }
   }
 
@@ -316,9 +302,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
     val schema = schemaTemplate.replace("$$acceptancePath$$", base)
 
     "ensure the file exists on the file system" in {
-      validate(TextFile(Path.fromString(base) / "fileExistsPassMetaData.csv"), parse(new StringReader(schema)), None) must beLike {
-        case Success(_) => ok
-      }
+      validate(TextFile(Path.fromString(base) / "fileExistsPassMetaData.csv"), parse(new StringReader(schema)), None).isSuccess mustEqual true
     }
 
     "ensure the file exists on the file system" in {
@@ -327,9 +311,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
       val csvTemplate = csvPath.lines(includeTerminator = true).mkString
       val csv = csvTemplate.replace("$$acceptancePath$$", base)
 
-      validateR(new StringReader(csv), parse(base + "/fileExistsCrossRefSchema.csvs")) must beLike {
-        case Success(_) => ok
-      }
+      validateR(new StringReader(csv), parse(base + "/fileExistsCrossRefSchema.csvs")).isSuccess mustEqual true
     }
 
     "fail if the file does not exist on the file system" in {
@@ -438,9 +420,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
     }
 
     "succeed for multiple rules with valid metadata" in {
-      app.validate(TextFile(Path.fromString(base) / "twoRulesPassMetaData.csv"), parse(base + "/twoRuleSchema.csvs"), None) must beLike {
-        case Success(_) => ok
-      }
+      app.validate(TextFile(Path.fromString(base) / "twoRulesPassMetaData.csv"), parse(base + "/twoRuleSchema.csvs"), None).isSuccess mustEqual true
     }
 
 
@@ -474,9 +454,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
     }
 
     "fail with unique column ids" in {
-      validate(TextFile(Path.fromString(base) / "duplicateColumnIdsMetaData.csv"), parse(base + "/duplicateColumnIdsPassSchema.csvs"), None) must beLike {
-        case Failure(_) => ok
-      }
+      validate(TextFile(Path.fromString(base) / "duplicateColumnIdsMetaData.csv"), parse(base + "/duplicateColumnIdsPassSchema.csvs"), None).isFailure mustEqual true
     }
   }
 
@@ -495,9 +473,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
     }
 
     "succeed for 2 'or' rules with an 'and' rule" in {
-      validate(TextFile(Path.fromString(base) / "orWithFourRulesPassMetaData.csv"), parse(base + "/orWithFourRulesSchema.csvs"), None) must beLike {
-        case Success(_) => ok
-      }
+      validate(TextFile(Path.fromString(base) / "orWithFourRulesPassMetaData.csv"), parse(base + "/orWithFourRulesSchema.csvs"), None).isSuccess mustEqual true
     }
 
     "fail if 'or' rules pass and 'and' rule fails" in {
@@ -509,9 +485,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
   "No arg standard rules" should {
     "succeed if all the rules are valid" in {
-      validate(TextFile(Path.fromString(base) / "standardRulesPassMetaData.csv"), parse(base + "/standardRulesSchema.csvs"), None) must beLike {
-        case Success(_) => ok
-      }
+      validate(TextFile(Path.fromString(base) / "standardRulesPassMetaData.csv"), parse(base + "/standardRulesSchema.csvs"), None).isSuccess mustEqual true
     }
 
     "fail if all the rules are not" in {
@@ -567,7 +541,6 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
     }
   }
 
-
   "Redacted schema" should {
     "should remove filename extension" in {
       validate(TextFile(Path.fromString(base) / "redactedPass.csv"), parse(base + "/redacted.csvs"), None).isSuccess mustEqual true
@@ -579,7 +552,5 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
       }
     }
   }
-
-
 
 }

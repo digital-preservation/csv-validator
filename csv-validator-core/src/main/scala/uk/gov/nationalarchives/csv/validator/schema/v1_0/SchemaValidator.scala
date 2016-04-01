@@ -219,18 +219,15 @@ class SchemaValidator {
 
  protected def explicitColumnValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
 
-   def invalidColumnNames(rule: Rule) = explicitColumnCheck(rule) match {
-     case Some(x) => x
-     case None => List.empty[ColumnIdentifier]
+   def invalidColumnNames(rule: Rule) = explicitColumnCheck(rule).getOrElse(List.empty[ColumnIdentifier])
+
+   def checkAlternativeOption(rules: Option[List[Rule]]): Option[List[ColumnIdentifier]] = {
+     rules.map{ _.foldLeft(List.empty[ColumnIdentifier]) {
+         case (list, rule: Rule) => list ++ invalidColumnNames(rule)
+       }
+     }
    }
 
-   def checkAlternativeOption(rules: Option[List[Rule]]): Option[List[ColumnIdentifier]] = rules match {
-     case Some(rulesList) => Some(rulesList.foldLeft(List.empty[ColumnIdentifier]) {
-       case (list, rule: Rule) => list ++ invalidColumnNames(rule)
-     })
-
-     case None => None
-   }
 
    def explicitColumnCheck(rule: Rule): Option[List[ColumnIdentifier]] = rule match {
      case IfRule(c, t, f) =>

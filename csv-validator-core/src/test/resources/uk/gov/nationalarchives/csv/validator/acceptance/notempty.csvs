@@ -1,0 +1,6 @@
+version 1.0
+@totalColumns 4
+c1: if($c2/notEmpty, is("aaa"))
+c2: 
+c3: if($c4/notEmpty, is("bbb"))
+c4:

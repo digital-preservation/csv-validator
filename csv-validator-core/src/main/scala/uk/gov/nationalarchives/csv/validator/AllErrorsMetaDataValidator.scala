@@ -55,7 +55,9 @@ trait AllErrorsMetaDataValidator extends MetaDataValidator {
     def isOptionDirective: Boolean = columnDefinition.directives.contains(Optional())
 
     if(row.cells(columnIndex).value.trim.isEmpty && isOptionDirective) true.successNel
-    else columnDefinition.rules.map(_.evaluate(columnIndex, row, schema, mayBeLast)).map{ ruleResult:Rule#RuleValidation[Any] => {
+    else columnDefinition.rules.map{rule =>
+      rule.evaluate(columnIndex, row, schema, mayBeLast)
+    }.map{ ruleResult:Rule#RuleValidation[Any] => {
       if(isWarningDirective) toWarnings(ruleResult, row.lineNumber, columnIndex) else toErrors(ruleResult, row.lineNumber, columnIndex)
     }}.sequence[MetaDataValidation, Any]
   }
