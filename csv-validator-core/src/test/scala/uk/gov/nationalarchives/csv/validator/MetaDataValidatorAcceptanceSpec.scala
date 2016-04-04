@@ -92,10 +92,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
   "Not empty rule" should {
     "succeed for metadata file with column that passes regex rule" in {
-      val result = validate(TextFile(Path.fromString(base) / "notempty.csv"), parse(base + "/notempty.csvs"), None)
-      println("End result " + result)
-      result.isSuccess mustEqual true
-
+      validate(TextFile(Path.fromString(base) / "notempty.csv"), parse(base + "/notempty.csvs"), None).isSuccess mustEqual true
     }
   }
 

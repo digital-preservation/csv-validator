@@ -278,7 +278,7 @@ object Util {
     def integrityCheck(fileMap: Map[String, Set[File]],  enforceCaseSensitivePathChecks: Boolean, topLevelFolder: String, includeFolder: Boolean): Map[String, Set[File]] = {
       val contentDirectory = contentDir(jointPath, topLevelFolder)
       val files = fileMap.get(contentDirectory).getOrElse{
-            val theFiles = FileSystem.createFile(FileSystem.convertPath2Platform(substitutePath(contentDirectory))) match
+        val theFiles = FileSystem.createFile(FileSystem.convertPath2Platform(contentDirectory)) match
             {
               case scala.util.Success(f) => scanDir(f, includeFolder)
               case scala.util.Failure(_) => Set[File]()
