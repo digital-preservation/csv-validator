@@ -11,6 +11,7 @@ package uk.gov.nationalarchives.csv.validator.schema
 import org.joda.time.DateTime
 import uk.gov.nationalarchives.csv.validator.metadata.Row
 
+import scala.collection.mutable.MutableList
 import scala.util.Try
 import scala.util.parsing.input.Positional
 import scalaz._
@@ -22,9 +23,36 @@ abstract class Rule(name: String, val argProviders: ArgProvider*) extends Positi
 
   var explicitColumn: Option[ColumnReference] = None
 
-  def evaluate(columnIndex: Int, row: Row,  schema: Schema, mayBeLast: Option[Boolean] = None): RuleValidation[Any] = {
-    if (valid(cellValue(columnIndex, row, schema), schema.columnDefinitions(columnIndex), columnIndex, row, schema, mayBeLast)) true.successNel[String] else fail(columnIndex, row, schema)
+  def findColumnReference(): Option[ColumnReference] = {
+    if (explicitColumns.nonEmpty){
+      val index =  explicitColumnIndex
+      val result = explicitColumns.get(index)
+      if (index + 1 == explicitColumns.length)
+        explicitColumnIndex = 0
+      else
+        explicitColumnIndex = index + 1
+      result
+    }
+    else{
+      explicitColumn = None
+      None
+    }
   }
+
+
+  def findColumnRefence(rule: Rule): Option[ColumnReference] =
+    rule.findColumnReference()
+
+  var explicitColumnIndex = 0
+
+  val explicitColumns: MutableList[ColumnReference] = MutableList()
+
+  def evaluate(columnIndex: Int, row: Row,  schema: Schema, mayBeLast: Option[Boolean] = None): RuleValidation[Any] = {
+    if (valid(cellValue(columnIndex, row, schema), schema.columnDefinitions(columnIndex), columnIndex, row, schema, mayBeLast))
+      true.successNel[String]
+    else fail(columnIndex, row, schema)
+  }
+
 
   def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int,
             row: Row, schema: Schema, mayBeLast: Option[Boolean] = None): Boolean =
@@ -36,14 +64,17 @@ abstract class Rule(name: String, val argProviders: ArgProvider*) extends Positi
     s"$toError fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}".failureNel[Any]
   }
 
-  def cellValue(columnIndex: Int, row: Row, schema: Schema): String = explicitColumn match {
-    case Some(columnRef) =>
-      columnRef.referenceValueEx(columnIndex, row, schema)
-    case None =>
-      row.cells(columnIndex).value
+  def cellValue(columnIndex: Int, row: Row, schema: Schema): String = {
+    explicitColumn match {
+      case Some(columnRef) =>
+        columnRef.referenceValueEx(columnIndex, row, schema)
+      case None =>
+        row.cells(columnIndex).value
+    }
   }
 
   def explicitName: Option[String] = explicitColumn.map("$" + _.ref + "/")
+
 
   def ruleName: String = explicitName.getOrElse("") + name
 
@@ -57,9 +88,15 @@ abstract class Rule(name: String, val argProviders: ArgProvider*) extends Positi
     }
   }
 
-  def toValueError(row: Row, columnIndex:Int ) =  s"""value: ${'"'}${row.cells(columnIndex).value}${'"'}"""
 
-  def toError = s"""$ruleName""" + (if (argProviders.isEmpty) "" else "(" + argProviders.foldLeft("")((a, b) => (if (a.isEmpty) "" else a + ", ") + b.toError) + ")")
+
+  def toValueError(row: Row, columnIndex:Int ) =
+    s"""value: ${'"'}${row.cells(columnIndex).value}${'"'}"""
+
+
+  def toError =
+    s"""$ruleName""" + (if (argProviders.isEmpty) "" else "(" + argProviders.foldLeft("")((a, b) => (if (a.isEmpty) "" else a + ", ") + b.toError) + ")")
+
 }
 
 abstract class PatternRule(name: String, pattern: String) extends Rule(name) {

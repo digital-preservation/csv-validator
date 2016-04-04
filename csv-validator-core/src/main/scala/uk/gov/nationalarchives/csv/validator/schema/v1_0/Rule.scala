@@ -62,7 +62,7 @@ case class IfRule(condition: Rule, rules: List[Rule], elseRules: Option[List[Rul
   override def evaluate(columnIndex: Int, row: Row, schema: Schema, mayBeLast: Option[Boolean] = None): RuleValidation[Any] = {
 
     def conditionValid: Boolean = {
-      val (cellValue,idx) = condition.explicitColumn match {
+      val (cellValue,idx) = findColumnRefence(condition) match {
         case Some(columnRef) =>
           (columnRef.referenceValueEx(columnIndex, row, schema), columnIdentifierToIndex(schema, columnRef.ref))
         case None =>
@@ -180,7 +180,6 @@ case class NotEmptyRule() extends Rule("notEmpty") {
   }
 }
 
-//case class UriRule() extends PatternRule("uri", UriRegex)
 case class UriRule() extends Rule("uri") {
   override def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema, mayBeLast: Option[Boolean] = None): Boolean = {
     try {
