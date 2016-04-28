@@ -516,6 +516,16 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
     }
   }
 
+  "Url decode string provider" should {
+    "decode url string to normal string" in {
+      validate(TextFile(Path.fromString(base) / "urlDecodePass.csv"), parse(base + "/urlDecode.csvs"), None).isSuccess mustEqual true
+    }
+
+    "fail for wrong url" in {
+      validate(TextFile(Path.fromString(base) / "urlDecodeFail.csv"), parse(base + "/urlDecode.csvs"), None).isFailure mustEqual true
+    }
+  }
+
   "Concat string provider" should {
     "should concatenate string provider" in {
       validate(TextFile(Path.fromString(base) / "concatPass.csv"), parse(base + "/concat.csvs"), None).isSuccess mustEqual true

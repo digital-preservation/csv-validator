@@ -22,6 +22,9 @@ trait SchemaSpecBase extends Specification {
   def buildSchema1_1(globalDirective: GlobalDirective*)(columnDefinition: ColumnDefinition*) =
     Schema(globalDirective.toList, columnDefinition.toList, "1.1")
 
+  def buildSchema1_2(globalDirective: GlobalDirective*)(columnDefinition: ColumnDefinition*) =
+    Schema(globalDirective.toList, columnDefinition.toList, "1.2")
+
   def namedColumn(name: String) = ColumnDefinition(NamedColumnIdentifier(name))
 
   def nonEmptyColumn(name: String): ColumnDefinition =
