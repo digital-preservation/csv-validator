@@ -24,11 +24,18 @@ class SchemaSpec extends SchemaSpecBase {
 
     "decode url parameter" in {
 
-      val result = UrlDecode(Literal(Some("text%20text"))).referenceValue(1, Row(List(Cell("Germany")), 1), buildSchema1_2(TotalColumns(0))())
+      val result = UrlDecode(Literal(Some("text%20text")), None).referenceValue(1, Row(List(Cell("Germany")), 1), buildSchema1_2(TotalColumns(0))())
 
       result must beSome("text text")
 
     }
+
+    "decode URL parameter with different encoding" in {
+      val result = UrlDecode(Literal(Some("text%9Atext")), Some(Literal(Some("windows-1252")))).referenceValue(1, Row(List(Cell("Germany")), 1), buildSchema1_2(TotalColumns(0))())
+
+      result must beSome("text\u0161text")
+    }
+
   }
 
 }
