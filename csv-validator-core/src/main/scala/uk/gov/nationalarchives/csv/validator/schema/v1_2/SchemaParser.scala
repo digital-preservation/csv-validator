@@ -8,10 +8,6 @@
  */
 package uk.gov.nationalarchives.csv.validator.schema.v1_2
 
-/**
- * Created by rhubner on 4/26/16.
- */
-
 import scala.language.reflectiveCalls
 import uk.gov.nationalarchives.csv.validator.schema.{Literal, ArgProvider}
 import uk.gov.nationalarchives.csv.validator.schema.v1_1.{SchemaParser => SchemaParser1_1}
@@ -26,7 +22,7 @@ trait SchemaParser extends SchemaParser1_1 {
   }
 
   lazy val urlDecode: PackratParser[ArgProvider] = "UrlDecode" ::= "urlDecode(" ~> stringProvider ~ opt("," ~> stringProvider)  <~ ")" ^^ {
-    case value ~ enconding => UrlDecode(value, enconding)
+    case value ~ charset => UrlDecode(value, charset)
   }
 
 }

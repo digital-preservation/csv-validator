@@ -8,29 +8,17 @@
  */
 package uk.gov.nationalarchives.csv.validator.schema.v1_2
 
-import java.nio.charset.Charset
-
-import collection.JavaConverters._
 import uk.gov.nationalarchives.csv.validator.metadata.Row
 import uk.gov.nationalarchives.csv.validator.schema.{Schema, ArgProvider}
 import java.net.{URLDecoder => JURLDecoder}
-import java.net.{URLEncoder => JURLEncoder}
 
+case class UrlDecode(value: ArgProvider, charset: Option[ArgProvider]) extends ArgProvider {
 
-/**
- * Created by rhubner on 4/26/16.
- */
-
-//case class NoExt(value: ArgProvider) extends ArgProvider
-
-
-case class UrlDecode(value: ArgProvider, enconding: Option[ArgProvider]) extends ArgProvider {
-
-  val DefaultEncoding = "UTF-8"
+  val DefaultCharset = "UTF-8"
 
   override def referenceValue(columnIndex: Int, row: Row, schema: Schema): Option[String] = value.referenceValue(columnIndex, row, schema).map( value => {
 
-    val codepage = enconding.flatMap(x => x.referenceValue(columnIndex, row, schema)).getOrElse(DefaultEncoding)
+    val codepage = charset.flatMap(x => x.referenceValue(columnIndex, row, schema)).getOrElse(DefaultCharset)
 
     JURLDecoder.decode(value,codepage)
 
