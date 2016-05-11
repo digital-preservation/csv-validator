@@ -12,7 +12,7 @@ import uk.gov.nationalarchives.csv.validator.metadata.Row
 import uk.gov.nationalarchives.csv.validator.schema.{Schema, ArgProvider}
 import java.net.{URLDecoder => JURLDecoder}
 
-case class UrlDecode(value: ArgProvider, charset: Option[ArgProvider]) extends ArgProvider {
+case class UriDecode(value: ArgProvider, charset: Option[ArgProvider]) extends ArgProvider {
 
   val DefaultCharset = "UTF-8"
 
@@ -24,5 +24,5 @@ case class UrlDecode(value: ArgProvider, charset: Option[ArgProvider]) extends A
 
   })
 
-  override def toError: String = "urlDecode(" + value.toError + ")"
+  override def toError: String = "uriDecode(" + value.toError + ")"
 }

@@ -20,18 +20,18 @@ import uk.gov.nationalarchives.csv.validator.schema.v1_1.NoExt
 @RunWith(classOf[JUnitRunner])
 class SchemaSpec extends SchemaSpecBase {
 
-  "UrlDecode Arg provider" should {
+  "UriDecode Arg provider" should {
 
     "decode url parameter" in {
 
-      val result = UrlDecode(Literal(Some("text%20text")), None).referenceValue(1, Row(List(Cell("Germany")), 1), buildSchema1_2(TotalColumns(0))())
+      val result = UriDecode(Literal(Some("text%20text")), None).referenceValue(1, Row(List(Cell("Germany")), 1), buildSchema1_2(TotalColumns(0))())
 
       result must beSome("text text")
 
     }
 
     "decode URL parameter with different charset" in {
-      val result = UrlDecode(Literal(Some("text%9Atext")), Some(Literal(Some("windows-1252")))).referenceValue(1, Row(List(Cell("Germany")), 1), buildSchema1_2(TotalColumns(0))())
+      val result = UriDecode(Literal(Some("text%9Atext")), Some(Literal(Some("windows-1252")))).referenceValue(1, Row(List(Cell("Germany")), 1), buildSchema1_2(TotalColumns(0))())
 
       result must beSome("text\u0161text")
     }

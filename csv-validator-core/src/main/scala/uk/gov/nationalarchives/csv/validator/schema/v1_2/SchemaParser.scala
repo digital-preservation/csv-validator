@@ -21,8 +21,8 @@ trait SchemaParser extends SchemaParser1_1 {
     s => Literal(Some(s))
   }
 
-  lazy val urlDecode: PackratParser[ArgProvider] = "UrlDecode" ::= "urlDecode(" ~> stringProvider ~ opt("," ~> stringProvider)  <~ ")" ^^ {
-    case value ~ charset => UrlDecode(value, charset)
+  lazy val urlDecode: PackratParser[ArgProvider] = "UriDecode" ::= "uriDecode(" ~> stringProvider ~ opt("," ~> stringProvider)  <~ ")" ^^ {
+    case value ~ charset => UriDecode(value, charset)
   }
 
 }
