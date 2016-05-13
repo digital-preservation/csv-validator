@@ -168,7 +168,9 @@ trait SchemaParser extends BaseSchemaParser {
   /**
     * [24] OptionalDirective ::= DirectivePrefix "optional"
     */
-  lazy val optionalDirective = "OptionalDirective" ::= directivePrefix ~> "optional" ^^^ Optional()
+  lazy val optionalDirective = "OptionalDirective" ::= directivePrefix ~> "optional" ^^ {
+    case _ => Optional()
+  }
 
   /**
     * [25] MatchIsFalseDirective ::= DirectivePrefix "matchIsFalse"
@@ -352,12 +354,16 @@ trait SchemaParser extends BaseSchemaParser {
   /**
     * [46] EmptyExpr ::= "empty"
     */
-  lazy val emptyExpr = "EmptyExpr" ::= "empty" ^^^ EmptyRule()
+  lazy val emptyExpr = "EmptyExpr" ::= "empty" ^^ {
+    case _ => EmptyRule()
+  }
 
   /**
     * [47] NotEmptyExpr ::=  "notEmpty"
     */
-  lazy val notEmptyExpr = "NotEmptyExpr" ::= "notEmpty" ^^^ NotEmptyRule()
+  lazy val notEmptyExpr = "NotEmptyExpr" ::= "notEmpty" ^^ {
+    case _ => NotEmptyRule()
+  }
 
 
 
@@ -374,7 +380,9 @@ trait SchemaParser extends BaseSchemaParser {
   /**
     * [49] UriExpr ::= "uri"
     */
-  lazy val uriExpr = "UriExpr" ::= "uri" ^^^ UriRule()
+  lazy val uriExpr = "UriExpr" ::= "uri" ^^ {
+    case _ => UriRule()
+  }
 
   /**
     * [50] XsdDateTimeExpr ::= "xDateTime" ("(" XsdDateTimeLiteral "," XsdDateTimeLiteral ")")?
@@ -425,7 +433,9 @@ trait SchemaParser extends BaseSchemaParser {
   /**
     * [55] PartialUkDateExpr ::= "partUkDate"
     */
-  lazy val partialUkDateExpr: PackratParser[PartUkDateRule] = "PartialUkDateExpr" ::= "partUkDate" ^^^ PartUkDateRule()
+  lazy val partialUkDateExpr: PackratParser[PartUkDateRule] = "PartialUkDateExpr" ::= "partUkDate" ^^ {
+    case _ => PartUkDateRule()
+  }
 
   /**
     * [56] PartialDateExpr ::= "partDate(" StringProvider "," StringProvider "," StringProvider ")"
@@ -435,12 +445,16 @@ trait SchemaParser extends BaseSchemaParser {
   /**
     * [57] Uuid4Expr ::= "uuid4"
     */
-  lazy val uuid4Expr: PackratParser[Uuid4Rule] = "Uuid4Expr" ::= "uuid4" ^^^ Uuid4Rule()
+  lazy val uuid4Expr: PackratParser[Uuid4Rule] = "Uuid4Expr" ::= "uuid4" ^^ {
+    case _ => Uuid4Rule()
+  }
 
   /**
     * [58] PositiveIntegerExpr ::= "positiveInteger"
     */
-  lazy val positiveIntegerExpr: PackratParser[PositiveIntegerRule] = "PositiveIntegerExpr" ::= "positiveInteger" ^^^ PositiveIntegerRule()
+  lazy val positiveIntegerExpr: PackratParser[PositiveIntegerRule] = "PositiveIntegerExpr" ::= "positiveInteger" ^^ {
+    case _ => PositiveIntegerRule()
+  }
 
 
 
