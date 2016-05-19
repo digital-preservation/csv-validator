@@ -40,6 +40,15 @@
         <developer>
             <name>Adam Retter</name>
         </developer>
+        <developer>
+            <name>Laura Damian</name>
+        </developer>
+        <developer>
+            <name>Radek Hubner</name>
+        </developer>
+        <developer>
+            <name>Valy Diarrassouba</name>
+        </developer>
     </developers>
     <contributors>
         <contributor>
@@ -293,6 +302,10 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
+                <version>1.6</version>
+                <configuration>
+                    <useAgent>true</useAgent>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
