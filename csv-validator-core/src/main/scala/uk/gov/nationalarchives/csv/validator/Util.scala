@@ -207,7 +207,7 @@ object Util {
 
     val separator: Char = FILE_SEPARATOR
 
-    private def substitutePath(filename: String): String = {
+    def substitutePath(filename: String): String = {
 
       pathSubstitutions.collectFirst{
         case (subFrom, subTo) if filename.contains(subFrom) =>
