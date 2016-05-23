@@ -84,11 +84,17 @@ trait SchemaParser extends SchemaParser1_0 {
   }
 
 
-  lazy val identicalExpr: PackratParser[IdenticalRule] = "IdenticalExpr" ::= "identical" ^^^ IdenticalRule()
+  lazy val identicalExpr: PackratParser[IdenticalRule] = "IdenticalExpr" ::= "identical" ^^ {
+    case _ => IdenticalRule()
+  }
 
-  lazy val upperCaseExpr: PackratParser[UpperCaseRule] = "UpperCaseExpr" ::= "upperCase" ^^^ UpperCaseRule()
+  lazy val upperCaseExpr: PackratParser[UpperCaseRule] = "UpperCaseExpr" ::= "upperCase" ^^ {
+    case _ => UpperCaseRule()
+  }
 
-  lazy val lowerCaseExpr: PackratParser[LowerCaseRule] = "LowerCaseExpr" ::= "lowerCase" ^^^ LowerCaseRule()
+  lazy val lowerCaseExpr: PackratParser[LowerCaseRule] = "LowerCaseExpr" ::= "lowerCase" ^^ {
+    case _ => LowerCaseRule()
+  }
 
   lazy val xsdDateTimeTzExpr = "XsdDateTimeTzExpr" ::= "xDateTimeTz" ~> opt((("(" ~> xsdDateTimeTzLiteral) <~ ",") ~ (xsdDateTimeTzLiteral <~ ")")) ^^ {
     case None =>
