@@ -51,7 +51,7 @@ class SchemaParserVersionSpec extends SchemaSpecBase with TestResources{
                       LastName: @IgnoreCase regex ("[a]")"""
 
       parse(new StringReader(schema)) must beLike {
-        case Failure(messages, _) => messages mustEqual s"Invalid schema version. This version of the csv validator supports only 1.1 and below."
+        case Failure(messages, _) => messages mustEqual s"Invalid schema version. This version of the csv validator supports only 1.2 and below."
       }
     }
 

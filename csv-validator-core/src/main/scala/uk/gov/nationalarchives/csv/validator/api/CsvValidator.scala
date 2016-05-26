@@ -12,8 +12,8 @@ import uk.gov.nationalarchives.csv.validator.schema.{Schema, SchemaParser}
 import scalaz._, Scalaz._
 import scalax.file.Path
 import uk.gov.nationalarchives.csv.validator._
-import java.io.{Reader => JReader, File}
-import java.nio.charset.{Charset => JCharset}
+import _root_.java.io.{Reader => JReader, File}
+import _root_.java.nio.charset.{Charset => JCharset}
 
 object CsvValidator {
 

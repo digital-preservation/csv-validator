@@ -516,6 +516,21 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
     }
   }
 
+  "Url decode string provider" should {
+    "decode url string to normal string" in {
+      validate(TextFile(Path.fromString(base) / "uriDecodePass.csv"), parse(base + "/uriDecode.csvs"), None).isSuccess mustEqual true
+    }
+
+    "fail for wrong url" in {
+      validate(TextFile(Path.fromString(base) / "uriDecodeFail.csv"), parse(base + "/uriDecode.csvs"), None).isFailure mustEqual true
+    }
+
+    "decode URL with optional charset parameter" in {
+
+      validate(TextFile(Path.fromString(base) / "uriDecodeWithCharsetPass.csv"), parse(base + "/uriDecodeWithCharset.csvs"), None).isSuccess mustEqual true
+    }
+  }
+
   "Concat string provider" should {
     "should concatenate string provider" in {
       validate(TextFile(Path.fromString(base) / "concatPass.csv"), parse(base + "/concat.csvs"), None).isSuccess mustEqual true

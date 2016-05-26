@@ -108,6 +108,13 @@ class MetaDataValidatorIntegrityCheckSpec extends Specification with TestResourc
       validator.validate(TextFile(Path.fromString(WO95Path) / "tech_acq_metadata_v1_WO95Y14B003.csv"), parse(WO95Path + "/tech_acq_metadata_v1_WO95Y14B000.csvs",validator), None).isSuccess mustEqual true
     }
 
+    "Validate WO 95 with 1.2 schema version to test backward compatibility" in {
+
+      val substitutionPaths = List(("file:///WO_95",WO95Path))
+      val validator = buildValidator(substitutionPaths)
+      validator.validate(TextFile(Path.fromString(WO95Path) / "tech_acq_metadata_v1_WO95Y14B003.csv"), parse(WO95Path + "/tech_acq_metadata_v1_WO95Y14B000_v1.2.csvs",validator), None).isSuccess mustEqual true
+    }
+
 
     "succeed with alternative substitution paths - header" in {
 

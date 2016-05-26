@@ -10,6 +10,7 @@ package uk.gov.nationalarchives.csv.validator.schema
 
 import uk.gov.nationalarchives.csv.validator.schema.v1_0.{SchemaParser => SchemaParser1_0}
 import uk.gov.nationalarchives.csv.validator.schema.v1_1.{SchemaParser => SchemaParser1_1, _}
+import uk.gov.nationalarchives.csv.validator.schema.v1_2.{SchemaParser => SchemaParser1_2, _}
 
 import scala.util.parsing.combinator._
 import scala.language.reflectiveCalls
@@ -147,6 +148,18 @@ with TraceableParsers {
 
     SchemaValidator.versionValid(version).map(Failure(_, next)).getOrElse {
       version match {
+        case "1.2" =>
+          val parser1_2 = new SchemaParser1_2 {override val enforceCaseSensitivePathChecks: Boolean = ecspc
+            override val pathSubstitutions: List[(String, String)] = ps
+            override val trace: Boolean = t
+          }
+
+          parser1_2.parseVersionAware(reader) match {
+            case parser1_2.Success(s, n) => Success(s, n)
+            case parser1_2.Failure(msg, n) => Failure(msg, n)
+            case parser1_2.Error(msg, n) => Error(msg, n)
+          }
+
         case "1.1" =>
           val parser1_1 = new SchemaParser1_1 {override val enforceCaseSensitivePathChecks: Boolean = ecspc
             override val pathSubstitutions: List[(String, String)] = ps
