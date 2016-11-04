@@ -17,7 +17,7 @@ import uk.gov.nationalarchives.csv.validator.Util.{FileSystem, TypedPath}
 import uk.gov.nationalarchives.csv.validator.api.CsvValidator._
 import uk.gov.nationalarchives.csv.validator.metadata.Row
 import uk.gov.nationalarchives.csv.validator.schema._
-
+import java.util.regex.{Pattern, Matcher}
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.util.Try
@@ -92,12 +92,22 @@ case class IfRule(condition: Rule, rules: List[Rule], elseRules: Option[List[Rul
   }
 }
 
+abstract class PatternRule(name: String, pattern: String) extends Rule(name) {
+  // Uses the cache to retrieve a compiled regex representation for the pattern string.
+  override def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema, mayBeLast: Option[Boolean] = None): Boolean ={
+    RegexCache.getCompiledRegex(pattern).matcher(cellValue).matches()
+
+  }
+
+}
 
 case class RegExpRule(regex: String) extends Rule("regex") {
   override def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema, mayBeLast: Option[Boolean] = None): Boolean = {
 
     val regexp = if (columnDefinition.directives.contains(IgnoreCase())) "(?i)" + regex else regex
-    cellValue matches regexp
+    
+    RegexCache.getCompiledRegex(regexp).matcher(cellValue).matches()
+
   }
 
   override def toError = {
