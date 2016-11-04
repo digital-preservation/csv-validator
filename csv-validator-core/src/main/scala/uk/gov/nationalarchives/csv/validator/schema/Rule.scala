@@ -16,6 +16,7 @@ import scala.util.Try
 import scala.util.parsing.input.Positional
 import scalaz._
 import scalaz.Scalaz._
+import java.util.regex.{Pattern, Matcher}
 
 abstract class Rule(name: String, val argProviders: ArgProvider*) extends Positional {
 
@@ -75,7 +76,6 @@ abstract class Rule(name: String, val argProviders: ArgProvider*) extends Positi
 
   def explicitName: Option[String] = explicitColumn.map("$" + _.ref + "/")
 
-
   def ruleName: String = explicitName.getOrElse("") + name
 
   def columnIdentifierToIndex(schema: Schema, id: ColumnIdentifier): Int = {
@@ -89,7 +89,6 @@ abstract class Rule(name: String, val argProviders: ArgProvider*) extends Positi
   }
 
 
-
   def toValueError(row: Row, columnIndex:Int ) =
     s"""value: ${'"'}${row.cells(columnIndex).value}${'"'}"""
 
@@ -99,8 +98,36 @@ abstract class Rule(name: String, val argProviders: ArgProvider*) extends Positi
 
 }
 
+/** 
+ *  This object is a place to store the precompilled regexs
+ *  @author Jess Flanagan 
+ */
+object RegexCache
+{
+  val cache  = collection.mutable.Map[String, Pattern]()
+  
+/** 
+ *  This function returns compiled regexs. 
+ *  First we check to see if its already in the cache. Otherwise we compile it, add it to the cache and return the 
+ *  compiled version. This results in a significant speed up for processing large files.
+ *  @param pattern A regex pattern string.
+ *  @returns A compiled representation of a regular expression.
+ *  @author Jess Flanagan 
+ */
+  def getCompiledRegex(pattern: String): Pattern ={
+    if (!cache.contains(pattern)){
+       cache += (pattern -> Pattern.compile(pattern)) 
+    }
+    cache(pattern);
+  }
+}
+
 abstract class PatternRule(name: String, pattern: String) extends Rule(name) {
-  override def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema, mayBeLast: Option[Boolean] = None): Boolean = cellValue matches pattern
+  // Uses the cache to retrieve a compiled regex representation for the pattern string.
+  override def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema, mayBeLast: Option[Boolean] = None): Boolean ={
+    RegexCache.getCompiledRegex(pattern).matcher(cellValue).matches()
+
+  }
 }
 
 trait DateParser {

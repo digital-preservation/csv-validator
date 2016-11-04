@@ -46,9 +46,15 @@ object FailMessage {
   }
 }
 
+
+
 case class ProgressFor(rowsToValidate: Int, progress: ProgressCallback)
 
 trait MetaDataValidator {
+  // Helper functions for checking if a result contains a warning or error.
+  def containsErrors(e: MetaDataValidation[Any]): Boolean = e.fold(_.list.collectFirst(FailMessage.isError).nonEmpty, _ => false)
+  def containsWarnings(e: MetaDataValidation[Any]): Boolean = e.fold(_.list.collectFirst(FailMessage.isWarning).nonEmpty, _ => false)
+
   type MetaDataValidation[S] = ValidationNel[FailMessage, S]
 
   def validate(csv: JReader, schema: Schema, progress: Option[ProgressCallback]): MetaDataValidation[Any] = {

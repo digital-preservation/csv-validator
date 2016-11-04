@@ -26,8 +26,6 @@ trait FailFastMetaDataValidator extends MetaDataValidator {
 
   override def validateRows(rows: Iterator[Row], schema: Schema): MetaDataValidation[Any] = {
 
-    def containsErrors(e: MetaDataValidation[Any]): Boolean = e.fold(_.list.collectFirst(FailMessage.isError).nonEmpty, _ => false)
-
     @tailrec
     def validateRows(results: List[MetaDataValidation[Any]] = List.empty[MetaDataValidation[Any]]) : List[MetaDataValidation[Any]] = {
       if(results.headOption.map(containsErrors(_)).getOrElse(false) || !rows.hasNext) {
@@ -35,7 +33,15 @@ trait FailFastMetaDataValidator extends MetaDataValidator {
       } else {
         val row = rows.next()
         val result = validateRow(row, schema, Some(rows.hasNext))
-        validateRows(result :: results)
+        /*
+        **  Only store the results if they contain a warning or a failure.  This means the validator is not limited by the available memory 
+        **  when processing large files.
+        */
+        if (containsErrors(result) || containsWarnings(result) ) {           
+          validateRows(result :: results)
+         } else {
+            validateRows(results)
+        }
       }
     }
 
