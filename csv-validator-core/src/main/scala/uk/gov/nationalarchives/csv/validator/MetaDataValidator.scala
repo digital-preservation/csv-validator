@@ -71,66 +71,6 @@ trait MetaDataValidator {
     validateKnownRows(csv, schema, pf)
   }
 
-  /**
-    * Browse csv File and return all the titleIndex as a list
-    * @param csv the CSV reader
-    * @param schema the Schema
-    * @param columnIndex the index of the column to be return
-    * @return all the element of the column columnIndex
-    */
-  def getColumn(csv: JReader, schema: Schema, columnIndex: Int): List[String] = {
-
-    val separator = schema.globalDirectives.collectFirst {
-      case Separator(sep) =>
-        sep
-    }.getOrElse(CSVParser.DEFAULT_SEPARATOR)
-
-    val quote = schema.globalDirectives.collectFirst {
-      case q: Quoted =>
-        CSVParser.DEFAULT_QUOTE_CHARACTER
-    }
-
-    //TODO CSVReader does not appear to be RFC 4180 compliant as it does not support escaping a double-quote with a double-quote between double-quotes
-    //TODO CSVReader does not seem to allow you to enable/disable quoted columns
-    //we need a better CSV Reader!
-    (managed(new CSVReader(csv, separator, CSVParser.DEFAULT_QUOTE_CHARACTER, CSVParser.NULL_CHARACTER)) map {
-      reader =>
-        // if 'no header' is set but the file is empty and 'permit empty' has not been set - this is an error
-        // if 'no header' is not set and the file is empty - this is an error
-        // if 'no header' is not set and 'permit empty' is not set but the file contains only one line - this is an error
-
-        val rowIt = new RowIterator(reader, None)
-
-        val maybeNoData =
-          if (schema.globalDirectives.contains(NoHeader())) {
-            if (!rowIt.hasNext && !schema.globalDirectives.contains(PermitEmpty())) {
-              Some(FailMessage(ValidationError, "metadata file is empty but this has not been permitted").failureNel[Any])
-            } else {
-              None
-            }
-          } else {
-            if(!rowIt.hasNext) {
-              Some(FailMessage(ValidationError, "metadata file is empty but should contain at least a header").failureNel[Any])
-            } else {
-              if(!rowIt.hasNext && !schema.globalDirectives.contains(PermitEmpty())) {
-                Some(FailMessage(ValidationError, "metadata file has a header but no data and this has not been permitted").failureNel[Any])
-              } else {
-                None
-              }
-            }
-          }
-
-        maybeNoData match {
-          case Some(noData) =>
-            Nil
-          case None =>
-            getColumn(rowIt, columnIndex)
-
-        }
-    } opt).getOrElse(Nil)
-  }
-
-
   def validateKnownRows(csv: JReader, schema: Schema, progress: Option[ProgressFor]): MetaDataValidation[Any] = {
 
     val separator = schema.globalDirectives.collectFirst {
