@@ -98,35 +98,29 @@ abstract class Rule(name: String, val argProviders: ArgProvider*) extends Positi
 
 }
 
-/** 
- *  This object is a place to store the precompilled regexs
- *  @author Jess Flanagan 
+/**
+ * This object is a place to store the precompiled regexs
+ * @author Jess Flanagan
  */
-object RegexCache
-{
+object RegexCache {
   val cache  = collection.mutable.Map[String, Pattern]()
   
-/** 
- *  This function returns compiled regexs. 
- *  First we check to see if its already in the cache. Otherwise we compile it, add it to the cache and return the 
- *  compiled version. This results in a significant speed up for processing large files.
- *  @param pattern A regex pattern string.
- *  @returns A compiled representation of a regular expression.
- *  @author Jess Flanagan 
- */
-  def getCompiledRegex(pattern: String): Pattern ={
-    if (!cache.contains(pattern)){
-       cache += (pattern -> Pattern.compile(pattern)) 
-    }
-    cache(pattern);
-  }
+  /**
+   * This function returns compiled regexs.
+   * First we check to see if its already in the cache. Otherwise we compile it, add it to the cache and return the
+   * compiled version. This results in a significant speed up for processing large files.
+   * @param pattern A regex pattern string.
+   *
+   * @return A compiled representation of a regular expression.
+   * @author Jess Flanagan
+   */
+  def getCompiledRegex(pattern: String): Pattern = cache.getOrElseUpdate(pattern, Pattern.compile(pattern))
 }
 
 abstract class PatternRule(name: String, pattern: String) extends Rule(name) {
   // Uses the cache to retrieve a compiled regex representation for the pattern string.
-  override def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema, mayBeLast: Option[Boolean] = None): Boolean ={
+  override def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema, mayBeLast: Option[Boolean] = None): Boolean = {
     RegexCache.getCompiledRegex(pattern).matcher(cellValue).matches()
-
   }
 }
 

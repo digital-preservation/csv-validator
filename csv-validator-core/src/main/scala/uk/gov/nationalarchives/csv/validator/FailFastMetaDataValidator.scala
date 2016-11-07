@@ -34,10 +34,10 @@ trait FailFastMetaDataValidator extends MetaDataValidator {
         val row = rows.next()
         val result = validateRow(row, schema, Some(rows.hasNext))
         /*
-        **  Only store the results if they contain a warning or a failure.  This means the validator is not limited by the available memory 
-        **  when processing large files.
+        Only store the results if they contain a warning or a failure.  This means the validator is not limited by the
+        available memory when processing large files.
         */
-        if (containsErrors(result) || containsWarnings(result) ) {           
+        if (containsErrors(result) || containsWarnings(result)) {
           validateRows(result :: results)
          } else {
             validateRows(results)
