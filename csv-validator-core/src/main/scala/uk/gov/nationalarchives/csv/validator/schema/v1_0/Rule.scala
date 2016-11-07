@@ -92,13 +92,6 @@ case class IfRule(condition: Rule, rules: List[Rule], elseRules: Option[List[Rul
   }
 }
 
-abstract class PatternRule(name: String, pattern: String) extends Rule(name) {
-  // Uses the cache to retrieve a compiled regex representation for the pattern string.
-  override def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema, mayBeLast: Option[Boolean] = None): Boolean = {
-    RegexCache.getCompiledRegex(pattern).matcher(cellValue).matches()
-  }
-}
-
 case class RegExpRule(regex: String) extends Rule("regex") {
   override def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema, mayBeLast: Option[Boolean] = None): Boolean = {
     val regexp = if (columnDefinition.directives.contains(IgnoreCase())) "(?i)" + regex else regex
