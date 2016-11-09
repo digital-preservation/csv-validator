@@ -96,10 +96,9 @@ trait MetaDataValidator {
         CSVParser.DEFAULT_QUOTE_CHARACTER
     }
 
-    //TODO CSVReader does not appear to be RFC 4180 compliant as it does not support escaping a double-quote with a double-quote between double-quotes
     //TODO CSVReader does not seem to allow you to enable/disable quoted columns
     //we need a better CSV Reader!
-    (managed(new CSVReader(csv, separator, CSVParser.DEFAULT_QUOTE_CHARACTER, CSVParser.NULL_CHARACTER)) map {
+    (managed(new CSVReader(csv, separator, CSVParser.DEFAULT_QUOTE_CHARACTER, CSVParser.DEFAULT_ESCAPE_CHARACTER)) map {
       reader =>
         // if 'no header' is set but the file is empty and 'permit empty' has not been set - this is an error
         // if 'no header' is not set and the file is empty - this is an error
@@ -149,10 +148,9 @@ trait MetaDataValidator {
         CSVParser.DEFAULT_QUOTE_CHARACTER
     }
 
-    //TODO CSVReader does not appear to be RFC 4180 compliant as it does not support escaping a double-quote with a double-quote between double-quotes
     //TODO CSVReader does not seem to allow you to enable/disable quoted columns
     //we need a better CSV Reader!
-    managed(new CSVReader(csv, separator, CSVParser.DEFAULT_QUOTE_CHARACTER, CSVParser.NULL_CHARACTER)) map {
+    managed(new CSVReader(csv, separator, CSVParser.DEFAULT_QUOTE_CHARACTER, CSVParser.DEFAULT_ESCAPE_CHARACTER)) map {
       reader =>
 
         // if 'no header' is set but the file is empty and 'permit empty' has not been set - this is an error
