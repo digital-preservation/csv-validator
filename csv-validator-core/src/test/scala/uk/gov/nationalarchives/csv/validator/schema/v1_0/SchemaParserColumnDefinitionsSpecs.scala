@@ -211,5 +211,18 @@ class SchemaParserColumnDefinitionsSpecs extends SchemaSpecBase {
                                                                                namedColumn("Column2"))
       }
     }
+
+
+    "fail when one invalid column reference 1" in {
+      val schema = """version 1.1
+                     @totalColumns 2
+                     |Column1: in($Column2) and in($Column2) and in($NotAColumn)
+                     |Column2:""".stripMargin
+
+      parseAndValidate(new StringReader(schema)) must beLike {
+        case FailureZ(msgs) => msgs.list mustEqual IList(FailMessage(SchemaDefinitionError, "Column: Column1 has invalid cross reference in($NotAColumn) at line: 3, column: 44"))
+      }
+    }
+
   }
 }

@@ -13,6 +13,7 @@ import java.security.MessageDigest
 import uk.gov.nationalarchives.csv.validator._
 import uk.gov.nationalarchives.csv.validator.schema._
 
+import scala.annotation.tailrec
 import scala.collection.immutable.TreeMap
 import scala.util.Try
 
@@ -130,8 +131,34 @@ class SchemaValidator {
  }
 
  protected def crossColumnsValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
+
+   def getAllRules(cds:ColumnDefinition): List[Rule] = {
+
+     @tailrec
+     def getAllRules(rules: List[Rule], acc: List[Rule]): List[Rule] = rules match {
+       case Nil => acc
+       case rule :: tail => rule match {
+           case AndRule(left, right) =>
+             getAllRules(tail :+ left :+ right, acc)
+           case OrRule(left, right) =>
+             getAllRules(tail :+ left :+ right, acc)
+           case _ => getAllRules(tail, acc :+ rule)
+         }
+     }
+     getAllRules(cds.rules, List())
+   }
+
+   def checkRuleIsReferenced(rule: Rule): Boolean = {
+     def undefinedCross(a: ArgProvider) = a match {
+         case ColumnReference(name) => !columnDefinitions.exists(col => col.id == name)
+         case _ => false
+     }
+     rule.argProviders.foldLeft(false)((acc, arg) =>  acc || undefinedCross(arg))
+   }
+
+
    def filterRules(cds: ColumnDefinition ): List[Rule] = { // List of failing rules
-     cds.rules.filter(rule => {
+     getAllRules(cds).filter(rule => {
        def undefinedCross(a: ArgProvider) = a match {
          case ColumnReference(name) => !columnDefinitions.exists(col => col.id == name)
          case _ => false
