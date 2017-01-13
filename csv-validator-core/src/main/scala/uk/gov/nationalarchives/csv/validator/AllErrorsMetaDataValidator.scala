@@ -28,7 +28,15 @@ trait AllErrorsMetaDataValidator extends MetaDataValidator {
       } else {
         val row = rows.next()
         val result = validateRow(row, schema, Some(rows.hasNext))
-        validateRows(result :: results)
+        /*
+        Only store the results if they contain a warning or a failure.  This means the validator is not limited by the
+        available memory when processing large files.
+         */
+        if (containsErrors(result) || containsWarnings(result)) {
+            validateRows(result :: results)
+         } else {
+            validateRows(results)
+        }
       }
     }
 
