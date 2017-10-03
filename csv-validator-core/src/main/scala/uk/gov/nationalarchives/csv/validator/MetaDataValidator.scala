@@ -15,11 +15,14 @@ import scala.language.{postfixOps, reflectiveCalls}
 import scala.util.Try
 import scalaz._, Scalaz._
 import java.io.{IOException, Reader => JReader, InputStreamReader => JInputStreamReader, FileInputStream => JFileInputStream, LineNumberReader => JLineNumberReader}
+import java.nio.charset.StandardCharsets;
 import resource._
 import uk.gov.nationalarchives.csv.validator.schema._
 import uk.gov.nationalarchives.csv.validator.metadata.Cell
 import scalax.file.Path
 
+import org.apache.commons.io.input.BOMInputStream;
+import org.apache.commons.io.ByteOrderMark;
 import com.opencsv.{CSVParser, CSVReader}
 import uk.gov.nationalarchives.csv.validator.metadata.Row
 import scala.annotation.tailrec
@@ -254,7 +257,15 @@ trait MetaDataValidator {
   }
 
   protected def withReader[B](textFile: TextFile)(fn: JReader => B): B = {
-    managed(new JInputStreamReader(new JFileInputStream(textFile.file.path), textFile.encoding)).map {
+    val inputStream = new JFileInputStream(textFile.file.path);
+
+    val bomInputStream = if(textFile.encoding == StandardCharsets.UTF_8) {
+      new BOMInputStream(inputStream)
+    } else {
+      inputStream
+    };
+
+    managed(new JInputStreamReader(bomInputStream, textFile.encoding)).map {
       reader =>
         fn(reader)
     }.either match {
