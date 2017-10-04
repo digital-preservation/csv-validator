@@ -257,18 +257,17 @@ trait MetaDataValidator {
   }
 
   protected def withReader[B](textFile: TextFile)(fn: JReader => B): B = {
-    val inputStream = new JFileInputStream(textFile.file.path);
+    val inputStream = managed(new JFileInputStream(textFile.file.path));
 
     val bomInputStream = if(textFile.encoding == StandardCharsets.UTF_8) {
-      new BOMInputStream(inputStream)
+      inputStream.flatMap(stream => managed(new BOMInputStream(stream)))
     } else {
       inputStream
     };
 
-    managed(new JInputStreamReader(bomInputStream, textFile.encoding)).map {
-      reader =>
-        fn(reader)
-    }.either match {
+    val reader = bomInputStream.flatMap(stream => managed(new JInputStreamReader(stream, textFile.encoding)));
+
+    reader.map(fn).either match {
       case Left(ioError) =>
         throw ioError(0)
       case Right(result) =>
