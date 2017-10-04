@@ -8,9 +8,8 @@ scala:
 script: "mvn test verify -Dmaven.javadoc.skip=true"
 
 jdk:
-#        - openjdk6
         - openjdk7
-        - oraclejdk7
+        - openjdk8
         - oraclejdk8
 
 notifications:
