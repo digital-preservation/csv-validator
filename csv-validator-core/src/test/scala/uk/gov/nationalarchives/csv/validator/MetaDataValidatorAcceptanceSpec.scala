@@ -565,4 +565,9 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
     }
   }
 
+  "Reader" should {
+    "successfully parse byte order marks" in {
+      validate(TextFile(Path.fromString(base) / "bom.csv"), parse(base + "/bom.csvs"), None).isSuccess mustEqual true
+    }
+  }
 }
