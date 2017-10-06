@@ -154,7 +154,7 @@ trait MetaDataValidator {
             validateRows(rowIt, schema)
         }
 
-    } either match {
+    }.either.either match {
       case Right(metadataValidation) =>
         metadataValidation
 

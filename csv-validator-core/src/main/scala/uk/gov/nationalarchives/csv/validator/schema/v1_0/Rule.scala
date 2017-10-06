@@ -10,6 +10,7 @@ package uk.gov.nationalarchives.csv.validator.schema.v1_0
 
 import java.io.File
 import java.net.{URI, URISyntaxException}
+import java.security.MessageDigest
 
 import org.joda.time.format.{DateTimeFormat, DateTimeFormatterBuilder, ISODateTimeFormat}
 import org.joda.time.{DateTime, Interval}
@@ -17,12 +18,16 @@ import uk.gov.nationalarchives.csv.validator.Util.{FileSystem, TypedPath}
 import uk.gov.nationalarchives.csv.validator.api.CsvValidator._
 import uk.gov.nationalarchives.csv.validator.metadata.Row
 import uk.gov.nationalarchives.csv.validator.schema._
-import java.util.regex.{Pattern, Matcher}
+
 import scala.annotation.tailrec
 import scala.collection.mutable
+import scala.language.higherKinds
 import scala.util.Try
 import scalax.file.{Path, PathSet}
 import scalaz.Scalaz._
+import cats.effect.{IO, Sync}
+import fs2.{Chunk, Pipe, Stream, hash, io}
+
 import scalaz.{Failure => FailureZ, Success => SuccessZ, _}
 
 case class OrRule(left: Rule, right: Rule) extends Rule("or") {
@@ -360,31 +365,36 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
 
     def checksum(f: File): ValidationNel[String, String] = {
 
-      import scalaz.stream._
-
-      def getHash(algorithm: String) : Process1[scodec.bits.ByteVector, scodec.bits.ByteVector] = {
-        val hashes = Map(
-          ("md2", () => hash.md2),
-          ("md5", () => hash.md5),
-          ("sha1", () => hash.sha1),
-          ("sha256", () => hash.sha256),
-          ("sha384", () => hash.sha384),
-          ("sha512", () => hash.sha512)
+      def getHash[F[_]](algorithm: String) : Pipe[F, Byte, Byte] = {
+        val hashes = Map[String, Pipe[F, Byte, Byte]](
+          ("md2", bugFixedHash.md2),
+          ("md5", bugFixedHash.md5),
+          ("sha1", bugFixedHash.sha1),
+          ("sha256", bugFixedHash.sha256),
+          ("sha384", bugFixedHash.sha384),
+          ("sha512", bugFixedHash.sha512)
+//          ("md2", hash.md2),
+//          ("md5", hash.md5),
+//          ("sha1", hash.sha1),
+//          ("sha256", hash.sha256),
+//          ("sha384", hash.sha384),
+//          ("sha512", hash.sha512)
         )
-        hashes(algorithm.toLowerCase().replace("-", ""))()
+        hashes(algorithm.toLowerCase().replace("-", ""))
       }
 
       val bufSize = 16384 //16KB
-      Process.constant(bufSize)
-        .toSource
-        .through(io.fileChunkR(f.getAbsolutePath, bufSize))
-        .pipe(getHash(algorithm))
-        .map(_.toHex)
-        .runLast
-        .unsafePerformSyncAttempt
+
+      def checksummer[F[_]](implicit F: Sync[F]): F[Vector[Byte]] =
+        io.file.readAll[F](f.toPath, bufSize)
+        .through(getHash(algorithm))
+        .runLog
+
+      checksummer[IO].attempt.unsafeRunSync()
+        .map(_.map("%02x" format _))
+        .map(_.mkString)
         .validation
         .leftMap(_.getMessage)
-        .rightMap(_.getOrElse("NO CHECKSUM"))
         .toValidationNel
     }
 
@@ -403,6 +413,43 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
       case scala.util.Failure(_) =>
         s"""file "${FileSystem.file2PatformDependent(file)}" not found""".failureNel[String]
     }
+  }
+
+  /**
+   * Temporary bug fixed version of fs2.hash
+   *
+   * @see https://github.com/functional-streams-for-scala/fs2/pull/943
+   */
+  object bugFixedHash {
+
+    /** Computes an MD2 digest. */
+    def md2[F[_]]: Pipe[F,Byte,Byte] = digest(MessageDigest.getInstance("MD2"))
+
+    /** Computes an MD5 digest. */
+    def md5[F[_]]: Pipe[F,Byte,Byte] = digest(MessageDigest.getInstance("MD5"))
+
+    /** Computes a SHA-1 digest. */
+    def sha1[F[_]]: Pipe[F,Byte,Byte] = digest(MessageDigest.getInstance("SHA-1"))
+
+    /** Computes a SHA-256 digest. */
+    def sha256[F[_]]: Pipe[F,Byte,Byte] = digest(MessageDigest.getInstance("SHA-256"))
+
+    /** Computes a SHA-384 digest. */
+    def sha384[F[_]]: Pipe[F,Byte,Byte] = digest(MessageDigest.getInstance("SHA-384"))
+
+    /** Computes a SHA-512 digest. */
+    def sha512[F[_]]: Pipe[F,Byte,Byte] = digest(MessageDigest.getInstance("SHA-512"))
+
+    /**
+     * Computes the digest of the the source stream, emitting the digest as a chunk
+     * after completion of the source stream.
+     */
+    def digest[F[_]](digest: => MessageDigest): Pipe[F,Byte,Byte] =
+      in => Stream.suspend {
+        in.chunks.
+          fold(digest) { (d, c) => d.update(Chunk.Bytes(c.toArray, 0, c.size).values); d }.
+          flatMap { d => Stream.chunk(Chunk.bytes(d.digest())) }
+      }
   }
 }
 

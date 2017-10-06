@@ -108,14 +108,19 @@
             <artifactId>scalaz-core_${scala.compat.version}</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.scalaz.stream</groupId>
-            <artifactId>scalaz-stream_${scala.compat.version}</artifactId>
-            <version>0.7.3a</version>
+            <groupId>org.typelevel</groupId>
+            <artifactId>cats-effect_${scala.version}</artifactId>
+            <version>0.4</version>
         </dependency>
         <dependency>
-            <groupId>org.scodec</groupId>
-            <artifactId>scodec-bits_${scala.compat.version}</artifactId>
-            <version>1.1.27</version>
+            <groupId>co.fs2</groupId>
+            <artifactId>fs2-core_${scala.version}</artifactId>
+            <version>0.10.0-M6</version>
+        </dependency>
+        <dependency>
+            <groupId>co.fs2</groupId>
+            <artifactId>fs2-io_${scala.version}</artifactId>
+            <version>0.10.0-M6</version>
         </dependency>
         <dependency>
             <groupId>org.scalaz</groupId>
@@ -123,16 +128,16 @@
             <version>${scalaz.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.github.scala-incubator.io</groupId>
-            <artifactId>scala-io-file_${scala.compat.version}</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.github.scala-incubator.io</groupId>
-            <artifactId>scala-io-core_${scala.compat.version}</artifactId>
+            <groupId>com.madgag</groupId>
+            <artifactId>scala-io-file_${scala.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>com.madgag</groupId>
-            <artifactId>scala-arm_${scala.compat.version}</artifactId>
+            <artifactId>scala-io-core_${scala.version}</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.michaelpollmeier</groupId>
+            <artifactId>scala-arm_${scala.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>joda-time</groupId>

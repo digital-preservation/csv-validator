@@ -126,14 +126,8 @@
             <artifactId>scalaz-core_${scala.compat.version}</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.github.scala-incubator.io</groupId>
-            <artifactId>scala-io-file_${scala.compat.version}</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.scala-lang.modules</groupId>
-                    <artifactId>scala-parser-combinators_${scala.compat.version}</artifactId>
-                </exclusion>
-            </exclusions>
+            <groupId>com.madgag</groupId>
+            <artifactId>scala-io-file_${scala.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>

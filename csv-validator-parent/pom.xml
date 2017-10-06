@@ -81,11 +81,11 @@
   </scm>
 
     <properties>
-        <scala.compat.version>2.11</scala.compat.version>
-        <scala.version>2.11.12</scala.version>
+        <scala.version>2.12</scala.version>
+        <scala.lib.version>2.12.3</scala.lib.version>
         <scalaz.version>7.2.30</scalaz.version>
-        <specs2.version>3.7.1</specs2.version>
-        <java.version>1.7</java.version>
+        <specs2.version>3.8.6</specs2.version>
+        <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <contact.email>digitalpreservation@nationalarchives.gov.uk</contact.email>
 
@@ -347,19 +347,19 @@
                 <version>${scalaz.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.github.scala-incubator.io</groupId>
-                <artifactId>scala-io-file_${scala.compat.version}</artifactId>
-                <version>0.4.3-1</version>
-            </dependency>
-            <dependency>
-                <groupId>com.github.scala-incubator.io</groupId>
-                <artifactId>scala-io-core_${scala.compat.version}</artifactId>
-                <version>0.4.3-1</version>
+                <groupId>com.madgag</groupId>
+                <artifactId>scala-io-file_${scala.version}</artifactId>
+                <version>0.4.9</version>
             </dependency>
             <dependency>
                 <groupId>com.madgag</groupId>
-                <artifactId>scala-arm_${scala.compat.version}</artifactId>
-                <version>1.3.4</version>
+                <artifactId>scala-io-core_${scala.version}</artifactId>
+                <version>0.4.9</version>
+            </dependency>
+            <dependency>
+                <groupId>com.michaelpollmeier</groupId>
+                <artifactId>scala-arm_${scala.version}</artifactId>
+                <version>2.1</version>
             </dependency>
             <dependency>
                 <groupId>org.specs2</groupId>
