@@ -31,4 +31,14 @@ package object validator {
   val UNIX_FILE_SEPARATOR = '/'
 
   val URI_PATH_SEPARATOR = '/'
+
+  val CSV_RFC1480_SEPARATOR: Char = ','
+
+  val CSV_RFC1480_QUOTE_CHARACTER: Char = '"'
+
+  val CSV_RFC1480_QUOTE_ESCAPE_CHARACTER: Char = '"'
+
+  val CSV_RFC1480_LINE_SEPARATOR = Array('\r', '\n')
+
+
 }
