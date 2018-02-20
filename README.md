@@ -7,7 +7,7 @@ A Validation Tool and APIs for validating CSV (Comma Separated Value) files by u
 
 Released under the [Mozilla Public Licence version 2.0](http://www.mozilla.org/MPL/2.0/).
 
-A [comprehensive user guide is available in GitHub pages] (http://digital-preservation.github.io/csv-validator/), along with a more [complete specification of the CSV Schema language] (http://digital-preservation.github.io/csv-schema/csv-schema-1.1.html).
+A [comprehensive user guide is available in GitHub pages](http://digital-preservation.github.io/csv-validator/), along with a more [complete specification of the CSV Schema language](http://digital-preservation.github.io/csv-schema/csv-schema-1.1.html).
 
 
 Technology
