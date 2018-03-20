@@ -115,18 +115,18 @@
         <dependency>
             <groupId>com.github.scopt</groupId>
             <artifactId>scopt_${scala.version}</artifactId>
-            <version>3.3.0</version>
+            <version>3.7.0</version>
         </dependency>
         <dependency>
             <groupId>org.scalaz</groupId>
             <artifactId>scalaz-core_${scala.version}</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.madgag</groupId>
+            <groupId>com.jsuereth</groupId>
             <artifactId>scala-arm_${scala.version}</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.github.scala-incubator.io</groupId>
+            <groupId>com.madgag</groupId>
             <artifactId>scala-io-file_${scala.version}</artifactId>
         </dependency>
         <dependency>

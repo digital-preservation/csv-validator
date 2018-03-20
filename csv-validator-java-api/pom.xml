@@ -128,7 +128,7 @@
             <artifactId>scalaz-core_${scala.version}</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.github.scala-incubator.io</groupId>
+            <groupId>com.madgag</groupId>
             <artifactId>scala-io-file_${scala.version}</artifactId>
         </dependency>
         <dependency>

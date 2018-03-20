@@ -75,7 +75,6 @@ class SchemaParserColumnDirectivesSpec extends SchemaSpecBase {
         """[3.33] failure: `warning' expected but `i' found
           |
           |column1: @ignoreCase @optional @ignoreCase @optional
-          |
           |                                ^""".stripMargin)) }
     }
 

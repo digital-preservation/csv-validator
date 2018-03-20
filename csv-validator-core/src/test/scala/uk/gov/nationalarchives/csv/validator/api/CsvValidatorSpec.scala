@@ -38,7 +38,6 @@ class CsvValidatorSpec extends Specification with TestResources {
           "[3.7] failure: Invalid column definition" + EOL
           + EOL
           + """Name: regox("A")""" + EOL
-          + EOL
           + "      ^"))
       }
     }

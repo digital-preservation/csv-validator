@@ -13,18 +13,21 @@ import uk.gov.nationalarchives.utf8.validator.{Utf8Validator, ValidationHandler}
 
 import scala.language.{postfixOps, reflectiveCalls}
 import scala.util.Try
-import scalaz._, Scalaz._
-import java.io.{IOException, Reader => JReader, InputStreamReader => JInputStreamReader, FileInputStream => JFileInputStream, LineNumberReader => JLineNumberReader}
-import java.nio.charset.StandardCharsets;
+import scalaz._
+import Scalaz._
+import java.io.{IOException, FileInputStream => JFileInputStream, InputStreamReader => JInputStreamReader, LineNumberReader => JLineNumberReader, Reader => JReader}
+import java.nio.charset.StandardCharsets
+
 import resource._
 import uk.gov.nationalarchives.csv.validator.schema._
 import uk.gov.nationalarchives.csv.validator.metadata.Cell
-import scalax.file.Path
 
-import org.apache.commons.io.input.BOMInputStream;
-import org.apache.commons.io.ByteOrderMark;
-import com.opencsv.{CSVParser, CSVReader}
+import scalax.file.Path
+import org.apache.commons.io.input.BOMInputStream
+import org.apache.commons.io.ByteOrderMark
+import com.opencsv._
 import uk.gov.nationalarchives.csv.validator.metadata.Row
+
 import scala.annotation.tailrec
 import uk.gov.nationalarchives.csv.validator.api.TextFile
 
@@ -85,17 +88,27 @@ trait MetaDataValidator {
     val separator = schema.globalDirectives.collectFirst {
       case Separator(sep) =>
         sep
-    }.getOrElse(CSVParser.DEFAULT_SEPARATOR)
+    }.getOrElse(ICSVParser.DEFAULT_SEPARATOR)
 
     val quote = schema.globalDirectives.collectFirst {
       case q: Quoted =>
-        CSVParser.DEFAULT_QUOTE_CHARACTER
+        ICSVParser.DEFAULT_QUOTE_CHARACTER
     }
 
     //TODO CSVReader does not appear to be RFC 4180 compliant as it does not support escaping a double-quote with a double-quote between double-quotes
     //TODO CSVReader does not seem to allow you to enable/disable quoted columns
     //we need a better CSV Reader!
-    managed(new CSVReader(csv, separator, CSVParser.DEFAULT_QUOTE_CHARACTER, CSVParser.NULL_CHARACTER)) map {
+
+    val csvParser = new CSVParserBuilder()
+      .withSeparator(separator)
+      .withQuoteChar(ICSVParser.DEFAULT_QUOTE_CHARACTER)
+      .withEscapeChar(ICSVParser.NULL_CHARACTER)
+      .build()
+
+    val csvReaderBuilder = new CSVReaderBuilder(csv)
+        .withCSVParser(csvParser)
+
+    managed(csvReaderBuilder.build()).map {
       reader =>
 
         // if 'no header' is set but the file is empty and 'permit empty' has not been set - this is an error
@@ -135,7 +148,7 @@ trait MetaDataValidator {
             validateRows(rowIt, schema)
         }
 
-    } either match {
+    }.either.either match {
       case Right(metadataValidation) =>
         metadataValidation
 
@@ -267,7 +280,7 @@ trait MetaDataValidator {
 
     val reader = bomInputStream.flatMap(stream => managed(new JInputStreamReader(stream, textFile.encoding)));
 
-    reader.map(fn).either match {
+    reader.map(fn).either.either match {
       case Left(ioError) =>
         throw ioError(0)
       case Right(result) =>
