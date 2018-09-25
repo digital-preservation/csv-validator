@@ -25,24 +25,36 @@ import java.nio.charset.Charset
  */
 object CsvValidatorJavaBridge {
 
+  @deprecated
   def validate(csvFile: String, csvEncoding: Charset, csvSchemaFile: String, csvSchemaEncoding: Charset, failFast: Boolean, pathSubstitutionsList: JList[Substitution], enforceCaseSensitivePathChecks: Boolean, trace: Boolean): JList[FailMessage] =
-    validate(csvFile, csvEncoding, csvSchemaFile, csvSchemaEncoding, failFast, pathSubstitutionsList, enforceCaseSensitivePathChecks, trace, None)
+    validate(csvFile, csvEncoding, true, csvSchemaFile, csvSchemaEncoding, false, failFast, pathSubstitutionsList, enforceCaseSensitivePathChecks, trace, None)
 
+  @deprecated
   def validate(csvFile: String, csvEncoding: Charset, csvSchemaFile: String, csvSchemaEncoding: Charset, failFast: Boolean, pathSubstitutionsList: JList[Substitution], enforceCaseSensitivePathChecks: Boolean, trace: Boolean, progress: ProgressCallback): JList[FailMessage] = {
     val sProgressCallback = new SProgressCallback {
       override def update(complete: this.type#Percentage) = progress.update(complete)
     }
-    validate(csvFile, csvEncoding, csvSchemaFile, csvSchemaEncoding, failFast, pathSubstitutionsList, enforceCaseSensitivePathChecks, trace, Some(sProgressCallback))
+    validate(csvFile, csvEncoding, true, csvSchemaFile, csvSchemaEncoding, false, failFast, pathSubstitutionsList, enforceCaseSensitivePathChecks, trace, Some(sProgressCallback))
   }
 
-  private def validate(csvFile: String, csvEncoding: Charset, csvSchemaFile: String, csvSchemaEncoding: Charset, failFast: Boolean, pathSubstitutionsList: JList[Substitution], enforceCaseSensitivePathChecks: Boolean, trace: Boolean, progress: Option[SProgressCallback]): JList[FailMessage] = {
+  def validate(csvFile: String, csvEncoding: Charset, validateCsvEncoding: Boolean, csvSchemaFile: String, csvSchemaEncoding: Charset, validateCsvSchemaEncoding: Boolean, failFast: Boolean, pathSubstitutionsList: JList[Substitution], enforceCaseSensitivePathChecks: Boolean, trace: Boolean): JList[FailMessage] =
+    validate(csvFile, csvEncoding, validateCsvEncoding, csvSchemaFile, csvSchemaEncoding, validateCsvSchemaEncoding, failFast, pathSubstitutionsList, enforceCaseSensitivePathChecks, trace, None)
+
+  def validate(csvFile: String, csvEncoding: Charset, validateCsvEncoding: Boolean, csvSchemaFile: String, csvSchemaEncoding: Charset, validateCsvSchemaEncoding: Boolean, failFast: Boolean, pathSubstitutionsList: JList[Substitution], enforceCaseSensitivePathChecks: Boolean, trace: Boolean, progress: ProgressCallback): JList[FailMessage] = {
+    val sProgressCallback = new SProgressCallback {
+      override def update(complete: this.type#Percentage) = progress.update(complete)
+    }
+    validate(csvFile, csvEncoding, validateCsvEncoding, csvSchemaFile, csvSchemaEncoding, validateCsvSchemaEncoding, failFast, pathSubstitutionsList, enforceCaseSensitivePathChecks, trace, Some(sProgressCallback))
+  }
+
+  private def validate(csvFile: String, csvEncoding: Charset, validateCsvEncoding: Boolean, csvSchemaFile: String, csvSchemaEncoding: Charset, validateCsvSchemaEncoding: Boolean, failFast: Boolean, pathSubstitutionsList: JList[Substitution], enforceCaseSensitivePathChecks: Boolean, trace: Boolean, progress: Option[SProgressCallback]): JList[FailMessage] = {
 
     import scala.collection.JavaConverters._
 
     val pathSubs: List[(String,String)] = pathSubstitutionsList.asScala.map( x => (x.getFrom, x.getTo)).toList
 
-    val csvTextFile = TextFile(Path.fromString(csvFile), csvEncoding)
-    val csvSchemaTextFile = TextFile(Path.fromString(csvSchemaFile), csvSchemaEncoding)
+    val csvTextFile = TextFile(Path.fromString(csvFile), csvEncoding, validateCsvEncoding)
+    val csvSchemaTextFile = TextFile(Path.fromString(csvSchemaFile), csvSchemaEncoding, validateCsvSchemaEncoding)
 
     checkFilesReadable(csvTextFile.file :: csvSchemaTextFile.file :: Nil) match {
       case FailureZ(errors) =>
