@@ -13,18 +13,21 @@ import uk.gov.nationalarchives.utf8.validator.{Utf8Validator, ValidationHandler}
 
 import scala.language.{postfixOps, reflectiveCalls}
 import scala.util.Try
-import scalaz._, Scalaz._
-import java.io.{IOException, Reader => JReader, InputStreamReader => JInputStreamReader, FileInputStream => JFileInputStream, LineNumberReader => JLineNumberReader}
-import java.nio.charset.StandardCharsets;
+import scalaz._
+import Scalaz._
+import java.io.{BufferedInputStream, IOException, FileInputStream => JFileInputStream, InputStreamReader => JInputStreamReader, LineNumberReader => JLineNumberReader, Reader => JReader}
+import java.nio.charset.{Charset, StandardCharsets}
+
 import resource._
 import uk.gov.nationalarchives.csv.validator.schema._
 import uk.gov.nationalarchives.csv.validator.metadata.Cell
-import scalax.file.Path
 
-import org.apache.commons.io.input.BOMInputStream;
-import org.apache.commons.io.ByteOrderMark;
+import scalax.file.Path
+import org.apache.commons.io.input.BOMInputStream
+import org.apache.commons.io.ByteOrderMark
 import com.opencsv.{CSVParser, CSVReader}
 import uk.gov.nationalarchives.csv.validator.metadata.Row
+
 import scala.annotation.tailrec
 import uk.gov.nationalarchives.csv.validator.api.TextFile
 
@@ -257,17 +260,17 @@ trait MetaDataValidator {
   }
 
   protected def withReader[B](textFile: TextFile)(fn: JReader => B): B = {
-    val inputStream = managed(new JFileInputStream(textFile.file.path));
+    def inputStreamReader(encoding: Charset)() = {
+      val bis = new BufferedInputStream(new JFileInputStream(textFile.file.path))
+      val is = if(encoding == StandardCharsets.UTF_8) {
+        new BOMInputStream(bis)
+      } else {
+        bis
+      }
+      new JInputStreamReader(is, encoding)
+    }
 
-    val bomInputStream = if(textFile.encoding == StandardCharsets.UTF_8) {
-      inputStream.flatMap(stream => managed(new BOMInputStream(stream)))
-    } else {
-      inputStream
-    };
-
-    val reader = bomInputStream.flatMap(stream => managed(new JInputStreamReader(stream, textFile.encoding)));
-
-    reader.map(fn).either match {
+    managed(inputStreamReader(textFile.encoding)).map(fn).either match {
       case Left(ioError) =>
         throw ioError(0)
       case Right(result) =>
