@@ -533,7 +533,8 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
   "Concat string provider" should {
     "should concatenate string provider" in {
-      validate(TextFile(Path.fromString(base) / "concatPass.csv"), parse(base + "/concat.csvs"), None).isSuccess mustEqual true
+      val x = validate(TextFile(Path.fromString(base) / "concatPass.csv"), parse(base + "/concat.csvs"), None)
+      x.isSuccess mustEqual true
     }
 
     "fail for incorrect concatenation" in {

@@ -24,8 +24,8 @@ import uk.gov.nationalarchives.csv.validator.metadata.Cell
 
 import scalax.file.Path
 import org.apache.commons.io.input.BOMInputStream
-import org.apache.commons.io.ByteOrderMark
-import com.opencsv.{CSVParser, CSVReader}
+import com.univocity.parsers.common.TextParsingException
+import com.univocity.parsers.csv.{CsvParser, CsvParserSettings}
 import uk.gov.nationalarchives.csv.validator.metadata.Row
 
 import scala.annotation.tailrec
@@ -85,20 +85,36 @@ trait MetaDataValidator {
 
   def validateKnownRows(csv: JReader, schema: Schema, progress: Option[ProgressFor]): MetaDataValidation[Any] = {
 
-    val separator = schema.globalDirectives.collectFirst {
+    val separator: Char = schema.globalDirectives.collectFirst {
       case Separator(sep) =>
         sep
-    }.getOrElse(CSVParser.DEFAULT_SEPARATOR)
+    }.getOrElse(CSV_RFC1480_SEPARATOR)
 
-    val quote = schema.globalDirectives.collectFirst {
+    val quote: Option[Char] = schema.globalDirectives.collectFirst {
       case q: Quoted =>
-        CSVParser.DEFAULT_QUOTE_CHARACTER
+        CSV_RFC1480_QUOTE_CHARACTER
     }
 
-    //TODO CSVReader does not appear to be RFC 4180 compliant as it does not support escaping a double-quote with a double-quote between double-quotes
-    //TODO CSVReader does not seem to allow you to enable/disable quoted columns
+    val settings = new CsvParserSettings()
+    val format = settings.getFormat
+    format.setDelimiter(separator)
+    quote.map(format.setQuote)
+
+    /* Set RFC 1480 settings */
+    settings.setIgnoreLeadingWhitespaces(false)
+    settings.setIgnoreTrailingWhitespaces(false)
+    settings.setLineSeparatorDetectionEnabled(true)
+    // TODO(AR) should we be friendly and auto-detect line separator, or enforce RFC 1480?
+    format.setQuoteEscape(CSV_RFC1480_QUOTE_ESCAPE_CHARACTER)
+    //format.setLineSeparator(CSV_RFC1480_LINE_SEPARATOR)  // CRLF
+
     //we need a better CSV Reader!
-    managed(new CSVReader(csv, separator, CSVParser.DEFAULT_QUOTE_CHARACTER, CSVParser.NULL_CHARACTER)) map {
+    makeManagedResource {
+      val parser = new CsvParser(settings)
+      parser.beginParsing(csv)
+      parser
+    } (_.stopParsing()) (List(classOf[IOException], classOf[TextParsingException], classOf[IllegalStateException]))
+      .map {
       reader =>
 
         // if 'no header' is set but the file is empty and 'permit empty' has not been set - this is an error
@@ -160,7 +176,7 @@ trait MetaDataValidator {
       acc :+ filename(row, columnIndex)
     }
 
-  def filename(row: Row,titleIndex: Int): String = row.cells.map(_.value).apply(titleIndex)
+  def filename(row: Row,titleIndex: Int): String = row.cells(titleIndex).value
 
 
   def validateRows(rows: Iterator[Row], schema: Schema): MetaDataValidation[Any]
@@ -293,10 +309,10 @@ trait ProgressCallback {
   def update(total: Int, processed: Int): Unit = update((processed.toFloat / total.toFloat) * 100)
 }
 
-class RowIterator(reader: CSVReader, progress: Option[ProgressFor]) extends Iterator[Row] {
+class RowIterator(parser: CsvParser, progress: Option[ProgressFor]) extends Iterator[Row] {
 
   private var index = 1
-  private var current = toRow(Option(reader.readNext()))
+  private var current = toRow(Option(parser.parseNext()))
 
   @throws(classOf[IOException])
   override def next(): Row = {
@@ -310,7 +326,7 @@ class RowIterator(reader: CSVReader, progress: Option[ProgressFor]) extends Iter
 
     //move to the next
     this.index = index + 1
-    this.current = toRow(Option(reader.readNext()))
+    this.current = toRow(Option(parser.parseNext()))
 
     progress map {
       p =>
@@ -330,5 +346,5 @@ class RowIterator(reader: CSVReader, progress: Option[ProgressFor]) extends Iter
 
   override def hasNext: Boolean = current.nonEmpty
 
-  private def toRow(rowData: Option[Array[String]]): Option[Row] = rowData.map(data => Row(data.toList.map(Cell(_)), index))
+  private def toRow(rowData: Option[Array[String]]): Option[Row] = rowData.map(data => Row(data.toList.map(d => Cell(Option(d).getOrElse(""))), index))
 }
