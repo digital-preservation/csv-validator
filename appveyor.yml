@@ -1,0 +1,20 @@
+version: '{build}'
+build_script:
+- cmd: mvn compile -Dmaven.javadoc.skip=true
+test_script:
+- cmd: mvn test verify -Dmaven.javadoc.skip=true package
+artifacts:
+- path: csv-validator-core\target\csv-validator-core-*.jar
+  name: csv-validator-core
+- path: csv-validator-cmd\target\csv-validator-cmd-*.jar
+  name: csv-validator-cmd
+- path: csv-validator-cmd\target\csv-validator-cmd-*application.jar
+  name: csv-validator-cmd-app-jar
+- path: csv-validator-cmd\target\csv-validator-cmd-*application.zip
+  name: csv-validator-cmd-app-zip
+- path: csv-validator-ui\target\csv-validator-ui-*.jar
+  name: csv-validator-ui
+- path: csv-validator-ui\target\csv-validator-ui-*application.jar
+  name: csv-validator-ui-app-jar
+- path: csv-validator-ui\target\csv-validator-ui-*application.zip
+  name: csv-validator-ui-app-zip
