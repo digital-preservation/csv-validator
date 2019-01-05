@@ -12,24 +12,33 @@ import scala.swing._
 import resource._
 import javax.swing._
 import net.java.dev.designgridlayout._
-import java.io.{FileOutputStream, FileInputStream, File, PrintWriter}
+import java.io.{File, FileInputStream, FileOutputStream, PrintWriter}
+
 import table.DefaultTableModel
 import uk.gov.nationalarchives.csv.validator.cmd.CsvValidatorCmdApp
+
 import swing.GridBagPanel.Anchor
 import uk.gov.nationalarchives.csv.validator.ui.DesignGridImplicits._
+
 import scala.swing.PopupMenuImplicits._
 import ScalaSwingHelpers._
-import java.awt.{Font, Cursor}
+import java.awt.{Cursor, Font}
 import java.util.Properties
+
 import scalax.file.Path
 import uk.gov.nationalarchives.csv.validator.ProgressCallback
 import java.nio.charset.Charset
+
 import uk.gov.nationalarchives.csv.validator.api.TextFile
-import java.util.jar.{Manifest, Attributes}
+import java.util.jar.{Attributes, Manifest}
 import java.net.URL
+import java.nio.charset.StandardCharsets.UTF_8
+import java.nio.file.{Files, StandardOpenOption}
+
 import scala.swing.Dialog.Message
 import scala.swing.event.ButtonClicked
 import javax.swing
+
 import scala.swing
 
 /**
@@ -145,12 +154,8 @@ object CsvValidatorUi extends SimpleSwingApplication {
    * @param f
    */
   private def saveToFile(s: String, f: File) {
-    val printWriter = new PrintWriter(f)
-    try {
-      printWriter.write(s)
-    } finally {
-      printWriter.close
-    }
+    val data : Array[Byte] =  s.getBytes(UTF_8)
+    Files.write(f.toPath, data, StandardOpenOption.WRITE)
   }
 
   case class Settings(lastCsvPath: File, lastCsvSchemaPath: File, lastReportPath: File)
