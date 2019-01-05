@@ -3,7 +3,7 @@ CSV Validator
 
 A Validation Tool and APIs for validating CSV (Comma Separated Value) files by using [CSV Schema](https://github.com/digital-preservation/csv-schema).
 
-[![Build Status](https://travis-ci.org/digital-preservation/csv-validator.png?branch=master)](https://travis-ci.org/digital-preservation/csv-validator) [![Build status](https://ci.appveyor.com/api/projects/status/k181v2efj35w6hv5/branch/master?svg=true)](https://ci.appveyor.com/project/AdamRetter/csv-validator/branch/master)
+[![Build Status](https://travis-ci.org/digital-preservation/csv-validator.png?branch=master)](https://travis-ci.org/digital-preservation/csv-validator)
 
 Released under the [Mozilla Public Licence version 2.0](http://www.mozilla.org/MPL/2.0/).
 
