@@ -191,6 +191,8 @@
                         <exclude>**/pom.xml</exclude>
                         <exclude>**/*.sbt</exclude>
                         <exclude>**/project/**</exclude>
+                        <exclude>**/.travis.yml</exclude>
+                        <exclude>**/appveyor.yml</exclude>
                         <exclude>**/csv-schema-grammar.ebnf</exclude>
                         <exclude>**/README.md</exclude>
                         <exclude>**/LICENSE</exclude>
