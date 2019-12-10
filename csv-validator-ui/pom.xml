@@ -105,16 +105,16 @@
         </dependency>
         <dependency>
             <groupId>org.scala-lang.modules</groupId>
-            <artifactId>scala-swing_${scala.version}</artifactId>
+            <artifactId>scala-swing_${scala.compat.version}</artifactId>
             <version>2.0.0-M2</version>
         </dependency>
         <dependency>
             <groupId>com.madgag</groupId>
-            <artifactId>scala-arm_${scala.version}</artifactId>
+            <artifactId>scala-arm_${scala.compat.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>com.github.scala-incubator.io</groupId>
-            <artifactId>scala-io-file_${scala.version}</artifactId>
+            <artifactId>scala-io-file_${scala.compat.version}</artifactId>
             <exclusions>
                 <exclusion>
                     <!-- see https://github.com/jesseeichar/scala-io/issues/94 -->

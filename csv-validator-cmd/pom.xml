@@ -114,20 +114,20 @@
         </dependency>
         <dependency>
             <groupId>com.github.scopt</groupId>
-            <artifactId>scopt_${scala.version}</artifactId>
+            <artifactId>scopt_${scala.compat.version}</artifactId>
             <version>3.3.0</version>
         </dependency>
         <dependency>
             <groupId>org.scalaz</groupId>
-            <artifactId>scalaz-core_${scala.version}</artifactId>
+            <artifactId>scalaz-core_${scala.compat.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>com.madgag</groupId>
-            <artifactId>scala-arm_${scala.version}</artifactId>
+            <artifactId>scala-arm_${scala.compat.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>com.github.scala-incubator.io</groupId>
-            <artifactId>scala-io-file_${scala.version}</artifactId>
+            <artifactId>scala-io-file_${scala.compat.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
@@ -136,22 +136,22 @@
         </dependency>
         <dependency>
             <groupId>org.specs2</groupId>
-            <artifactId>specs2-core_${scala.version}</artifactId>
+            <artifactId>specs2-core_${scala.compat.version}</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.specs2</groupId>
-            <artifactId>specs2-common_${scala.version}</artifactId>
+            <artifactId>specs2-common_${scala.compat.version}</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.specs2</groupId>
-            <artifactId>specs2-matcher_${scala.version}</artifactId>
+            <artifactId>specs2-matcher_${scala.compat.version}</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.specs2</groupId>
-            <artifactId>specs2-junit_${scala.version}</artifactId>
+            <artifactId>specs2-junit_${scala.compat.version}</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
