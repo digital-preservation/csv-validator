@@ -54,6 +54,11 @@
                         <goals>
                             <goal>doc-jar</goal>
                         </goals>
+                        <configuration>
+                            <args>
+                                <arg>-nobootcp</arg>
+                            </args>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
