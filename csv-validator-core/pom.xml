@@ -110,7 +110,7 @@
         <dependency>
             <groupId>org.scalaz.stream</groupId>
             <artifactId>scalaz-stream_${scala.compat.version}</artifactId>
-            <version>0.7.3a</version>
+            <version>0.8.6</version>
         </dependency>
         <dependency>
             <groupId>org.scodec</groupId>
