@@ -54,6 +54,11 @@
                         <goals>
                             <goal>doc-jar</goal>
                         </goals>
+                        <configuration>
+                            <args>
+                                <arg>-nobootcp</arg>
+                            </args>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -95,39 +100,39 @@
         </dependency>
         <dependency>
             <groupId>org.scala-lang.modules</groupId>
-            <artifactId>scala-parser-combinators_${scala.version}</artifactId>
+            <artifactId>scala-parser-combinators_${scala.compat.version}</artifactId>
             <version>1.0.3</version>
         </dependency>
         <dependency>
             <groupId>org.scalaz</groupId>
-            <artifactId>scalaz-core_${scala.version}</artifactId>
+            <artifactId>scalaz-core_${scala.compat.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.scalaz.stream</groupId>
-            <artifactId>scalaz-stream_${scala.version}</artifactId>
+            <artifactId>scalaz-stream_${scala.compat.version}</artifactId>
             <version>0.7.3a</version>
         </dependency>
         <dependency>
             <groupId>org.scodec</groupId>
-            <artifactId>scodec-bits_${scala.version}</artifactId>
+            <artifactId>scodec-bits_${scala.compat.version}</artifactId>
             <version>1.0.6</version>
         </dependency>
         <dependency>
             <groupId>org.scalaz</groupId>
-            <artifactId>scalaz-concurrent_${scala.version}</artifactId>
+            <artifactId>scalaz-concurrent_${scala.compat.version}</artifactId>
             <version>${scalaz.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.scala-incubator.io</groupId>
-            <artifactId>scala-io-file_${scala.version}</artifactId>
+            <artifactId>scala-io-file_${scala.compat.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>com.github.scala-incubator.io</groupId>
-            <artifactId>scala-io-core_${scala.version}</artifactId>
+            <artifactId>scala-io-core_${scala.compat.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>com.madgag</groupId>
-            <artifactId>scala-arm_${scala.version}</artifactId>
+            <artifactId>scala-arm_${scala.compat.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>joda-time</groupId>
@@ -141,7 +146,7 @@
         </dependency>
         <dependency>
             <groupId>com.gilt</groupId>
-            <artifactId>gfc-semver_${scala.version}</artifactId>
+            <artifactId>gfc-semver_${scala.compat.version}</artifactId>
             <version>0.1.0</version>
         </dependency>
         <dependency>
@@ -156,22 +161,22 @@
         </dependency>
         <dependency>
             <groupId>org.specs2</groupId>
-            <artifactId>specs2-core_${scala.version}</artifactId>
+            <artifactId>specs2-core_${scala.compat.version}</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.specs2</groupId>
-            <artifactId>specs2-common_${scala.version}</artifactId>
+            <artifactId>specs2-common_${scala.compat.version}</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.specs2</groupId>
-            <artifactId>specs2-matcher_${scala.version}</artifactId>
+            <artifactId>specs2-matcher_${scala.compat.version}</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.specs2</groupId>
-            <artifactId>specs2-junit_${scala.version}</artifactId>
+            <artifactId>specs2-junit_${scala.compat.version}</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

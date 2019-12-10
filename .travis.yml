@@ -3,14 +3,15 @@ sudo: false
 language: scala
 
 scala:
-        - 2.11.6
+        - 2.11.12
 
 script: "mvn test verify -Dmaven.javadoc.skip=true"
 
 jdk:
-        - openjdk7
         - openjdk8
-        - oraclejdk8
+        - openjdk9
+        - openjdk10
+        - openjdk11
 
 notifications:
     email:
