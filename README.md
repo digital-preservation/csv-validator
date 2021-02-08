@@ -102,3 +102,15 @@ The CSV Validator implements almost all of `CSV Schema 1.1` language, current li
 * `PartialDateExpr` is not yet implemented (raises Schema check error).
 
 * At least `MD5`, `SHA-1`, `SHA-2`, `SHA-3`, and `SHA-256` checksum algorithms are supported. Probably many more as well as we defer to Java's `java.security.MessageDigest` class.
+
+# Internationalization
+
+The CSV Validator for Java API implements almost internationalization through Resource Bundle messages:
+
+* metadata.empty.notBeenPermitted - alternative message for "metadata file is empty but this has not been permitted"
+* metadata.empty.noHeader - alternative message for "metadata file is empty but should contain at least a header"
+* metadata.empty.noData - alternative message for "metadata file has a header but no data and this has not been permitted"
+* metadata.empty.missingColumns - alternative message for "Metadata header, cannot find the column headers"
+* metadata.utf8 - alternative message for "[UTF-8 Error]"
+* metadata.expectedTotalColumns - alternative message for "Expected @totalColumns of ${tc.get.numberOfColumns} and found ${row.cells.length} on line ${row.lineNumber}"
+* metadata.missingValue - alternative message for "Missing value at line: ${row.lineNumber}, column: ${schema.columnDefinitions(columnIndex).id}"

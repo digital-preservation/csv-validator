@@ -107,8 +107,8 @@ object CsvValidatorJavaBridge {
   }
 
   private def asJavaMessage(f: SFailMessage): FailMessage = f match {
-    case SFailMessage(ValidationWarning, msg, lineNr, columnIdx) => new WarningMessage(msg, lineNr.getOrElse(-1), columnIdx.getOrElse(-1)).asInstanceOf[FailMessage]
-    case SFailMessage(ValidationError, msg, lineNr, columnIdx) => new ErrorMessage(msg, lineNr.getOrElse(-1), columnIdx.getOrElse(-1)).asInstanceOf[FailMessage]
-    case SFailMessage(SchemaDefinitionError, msg, lineNr, columnIdx) => new ErrorMessage(msg, lineNr.getOrElse(-1), columnIdx.getOrElse(-1)).asInstanceOf[FailMessage]
+    case SFailMessage(ValidationWarning, msg, lineNr, columnIdx, resrcTag) => new WarningMessage(msg, lineNr.getOrElse(-1), columnIdx.getOrElse(-1),resrcTag.getOrElse("general.tag")).asInstanceOf[FailMessage]
+    case SFailMessage(ValidationError, msg, lineNr, columnIdx, resrcTag) => new ErrorMessage(msg, lineNr.getOrElse(-1), columnIdx.getOrElse(-1),resrcTag.getOrElse("general.tag")).asInstanceOf[FailMessage]
+    case SFailMessage(SchemaDefinitionError, msg, lineNr, columnIdx, resrcTag) => new ErrorMessage(msg, lineNr.getOrElse(-1), columnIdx.getOrElse(-1),resrcTag.getOrElse("general.tag")).asInstanceOf[FailMessage]
   }
 }

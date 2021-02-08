@@ -16,4 +16,7 @@ public class WarningMessage extends FailMessage {
     public WarningMessage(final String message, final int lineNumber, final int columnIndex) {
         super(message, lineNumber, columnIndex);
     }
+    public WarningMessage(final String message, final int lineNumber, final int columnIndex, final String resourceTag){
+        super(message, lineNumber, columnIndex,resourceTag);
+    }
 }

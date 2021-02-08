@@ -1,10 +1,11 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>uk.gov.nationalarchives</groupId>
         <artifactId>csv-validator-parent</artifactId>
-        <version>1.2-RC3-SNAPSHOT</version>
+        <version>1.2.1</version>
         <relativePath>../csv-validator-parent</relativePath>
     </parent>
 
@@ -18,8 +19,8 @@
         <connection>scm:git:https://github.com/digital-preservation/csv-validator.git</connection>
         <developerConnection>scm:git:https://github.com/digital-preservation/csv-validator.git</developerConnection>
         <url>scm:git:https://github.com/digital-preservation/csv-validator.git</url>
-      <tag>HEAD</tag>
-  </scm>
+        <tag>HEAD</tag>
+    </scm>
 
     <build>
         <plugins>
@@ -73,6 +74,23 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+			  <groupId>org.apache.maven.plugins</groupId>
+			  <artifactId>maven-assembly-plugin</artifactId>
+			  <executions>
+			    <execution>
+			      <phase>package</phase>
+			      <goals>
+			        <goal>single</goal>
+			      </goals>
+			      <configuration>
+			        <descriptorRefs>
+			          <descriptorRef>jar-with-dependencies</descriptorRef>
+			        </descriptorRefs>
+			      </configuration>
+			    </execution>
+			  </executions>
+			</plugin>
             <plugin>
                 <!-- Attach javadoc jars -->
                 <groupId>org.apache.maven.plugins</groupId>
