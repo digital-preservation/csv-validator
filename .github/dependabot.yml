@@ -1,0 +1,22 @@
+version: 2
+updates:
+- package-ecosystem: maven
+  directory: "/"
+  schedule:
+    interval: daily
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: org.scodec:scodec-bits_2.11
+    versions:
+    - 1.1.23
+    - 1.1.24
+    - 1.1.25
+  - dependency-name: joda-time:joda-time
+    versions:
+    - 2.10.9
+  - dependency-name: com.github.scopt:scopt_2.11
+    versions:
+    - 4.0.0
+  - dependency-name: org.scala-lang:scala-library
+    versions:
+    - 2.13.4
