@@ -3,7 +3,8 @@ CSV Validator
 
 A Validation Tool and APIs for validating CSV (Comma Separated Value) files by using [CSV Schema](https://github.com/digital-preservation/csv-schema).
 
-[![Build Status](https://travis-ci.org/digital-preservation/csv-validator.png?branch=master)](https://travis-ci.org/digital-preservation/csv-validator) [![Build status](https://ci.appveyor.com/api/projects/status/k181v2efj35w6hv5/branch/master?svg=true)](https://ci.appveyor.com/project/AdamRetter/csv-validator/branch/master)
+[![CI](https://github.com/digital-preservation/csv-validator/workflows/CI/badge.svg)](https://github.com/digital-preservation/csv-validator/actions?query=workflow%3ACI)
+[![Build status](https://ci.appveyor.com/api/projects/status/k181v2efj35w6hv5/branch/master?svg=true)](https://ci.appveyor.com/project/AdamRetter/csv-validator/branch/master)
 
 Released under the [Mozilla Public Licence version 2.0](http://www.mozilla.org/MPL/2.0/).
 
@@ -77,7 +78,7 @@ Likewise, if you wish to use the CSV Validator from your own Scala project, the 
 <dependency>
 	<groupId>uk.gov.nationalarchives</groupId>
     <artifactId>csv-validator-core</artifactId>
-    <version>1.1</version>
+    <version>1.1.5</version>
 </dependency>
 ```
 
