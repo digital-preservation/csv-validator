@@ -84,7 +84,7 @@
         <scala.compat.version>2.11</scala.compat.version>
         <scala.version>2.11.12</scala.version>
         <scalaz.version>7.2.30</scalaz.version>
-        <specs2.version>3.7.1</specs2.version>
+        <specs2.version>4.10.6</specs2.version>
         <java.version>1.7</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <contact.email>digitalpreservation@nationalarchives.gov.uk</contact.email>
