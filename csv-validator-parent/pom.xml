@@ -88,6 +88,9 @@
         <java.version>1.7</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <contact.email>digitalpreservation@nationalarchives.gov.uk</contact.email>
+
+        <!-- needed just for the license-maven-plugin in this module! -->
+        <project.parent.relativePath>.</project.parent.relativePath>
     </properties>
 
     <build>
@@ -97,7 +100,7 @@
                 <plugin>
                     <groupId>com.mycila</groupId>
                     <artifactId>license-maven-plugin</artifactId>
-                    <version>4.1</version>
+                    <version>4.0.rc1</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
