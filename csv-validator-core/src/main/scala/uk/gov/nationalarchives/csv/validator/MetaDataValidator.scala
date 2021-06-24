@@ -37,18 +37,18 @@ sealed trait ErrorType
 case object ValidationWarning extends ErrorType
 case object ValidationError extends ErrorType
 case object SchemaDefinitionError extends ErrorType
-case class FailMessage(`type`: ErrorType, message : String, lineNumber: Option[Int] = None, columnIndex: Option[Int] = None) //TODO(AR) consider a better name, e.g. CsvValidationFailure
+case class FailMessage(`type`: ErrorType, message : String, lineNumber: Option[Int] = None, columnIndex: Option[Int] = None,resourceTag:Option[String] = None) //TODO(AR) consider a better name, e.g. CsvValidationFailure
 object FailMessage {
   def isWarning : PartialFunction[FailMessage, FailMessage] = {
-    case fm @ FailMessage(ValidationWarning, _, _, _) => fm
+    case fm @ FailMessage(ValidationWarning, _, _, _, _) => fm
   }
 
   def isError : PartialFunction[FailMessage, FailMessage] = {
-    case fm @ FailMessage(ValidationError, _, _, _) => fm
+    case fm @ FailMessage(ValidationError, _, _, _, _) => fm
   }
 
   def isSchemaDefinitionError : PartialFunction[FailMessage, FailMessage] = {
-    case fm @ FailMessage(SchemaDefinitionError, _, _, _) => fm
+    case fm @ FailMessage(SchemaDefinitionError, _, _, _, _) => fm
   }
 }
 
@@ -127,19 +127,19 @@ trait MetaDataValidator {
         val maybeNoData =
           if (schema.globalDirectives.contains(NoHeader())) {
             if (!rowIt.hasNext && !schema.globalDirectives.contains(PermitEmpty())) {
-              Some(FailMessage(ValidationError, "metadata file is empty but this has not been permitted").failureNel[Any])
+              Some(FailMessage(ValidationError, "metadata file is empty but this has not been permitted",resourceTag = Some("metadata.empty.notBeenPermitted")).failureNel[Any])
             } else {
               None
             }
           } else {
             if(!rowIt.hasNext) {
-              Some(FailMessage(ValidationError, "metadata file is empty but should contain at least a header").failureNel[Any])
+              Some(FailMessage(ValidationError, "metadata file is empty but should contain at least a header",resourceTag = Some("metadata.empty.noHeader")).failureNel[Any])
             } else {
               val header = rowIt.skipHeader()
               val headerValidation = validateHeader(header, schema)
               headerValidation.orElse {
                 if(!rowIt.hasNext && !schema.globalDirectives.contains(PermitEmpty())) {
-                  Some(FailMessage(ValidationError, "metadata file has a header but no data and this has not been permitted").failureNel[Any])
+                  Some(FailMessage(ValidationError, "metadata file has a header but no data and this has not been permitted",resourceTag = Some("metadata.empty.noData")).failureNel[Any])
                 } else {
                   None
                 }
@@ -195,7 +195,7 @@ trait MetaDataValidator {
     if (headerList.sameElements(schemaHeader))
       None
     else
-      Some(FailMessage(ValidationError, s"Metadata header, cannot find the column headers - ${Util.diff(schemaHeader.toSet, headerList.toSet).mkString(", ")} - .${if (icnc.isEmpty) "  (Case sensitive)" else ""}").failureNel[Any])
+      Some(FailMessage(ValidationError, s"Metadata header, cannot find the column headers - ${Util.diff(schemaHeader.toSet, headerList.toSet).mkString(", ")} - .${if (icnc.isEmpty) "  (Case sensitive)" else ""}", resourceTag = Some("metadata.empty.missingColumns")).failureNel[Any])
   }
 
   def validateRow(row: Row,  schema: Schema, mayBeLast: Option[Boolean] = None): MetaDataValidation[Any] = {
@@ -220,7 +220,7 @@ trait MetaDataValidator {
       case None => true.successNel
       case Some(nel) => {
         val ret = nel.reverse.map {
-          case (offset, message) => FailMessage(ValidationError, s"[UTF-8 Error][@$offset] ${message}")
+          case (offset, message) => FailMessage(ValidationError, s"[UTF-8 Error][@$offset] ${message}", resourceTag = Some("metadata.utf8"))
         }
         ret.failure
       }
@@ -233,7 +233,7 @@ trait MetaDataValidator {
     }
 
     if (tc.isEmpty || tc.get.numberOfColumns == row.cells.length) true.successNel[FailMessage]
-    else FailMessage(ValidationError, s"Expected @totalColumns of ${tc.get.numberOfColumns} and found ${row.cells.length} on line ${row.lineNumber}", Some(row.lineNumber), Some(row.cells.length)).failureNel[Any]
+    else FailMessage(ValidationError, s"Expected @totalColumns of ${tc.get.numberOfColumns} and found ${row.cells.length} on line ${row.lineNumber}", Some(row.lineNumber), Some(row.cells.length), Some("metadata.expectedTotalColumns")).failureNel[Any]
   }
 
   protected def rules(row: Row, schema: Schema, mayBeLast: Option[Boolean] = None): MetaDataValidation[List[Any]]
@@ -241,7 +241,7 @@ trait MetaDataValidator {
   protected def validateCell(columnIndex: Int, cells: (Int) => Option[Cell], row: Row, schema: Schema, mayBeLast: Option[Boolean] = None): MetaDataValidation[Any] = {
     cells(columnIndex) match {
       case Some(c) => rulesForCell(columnIndex, row, schema, mayBeLast)
-      case _ => FailMessage(ValidationError, s"Missing value at line: ${row.lineNumber}, column: ${schema.columnDefinitions(columnIndex).id}", Some(row.lineNumber), Some(columnIndex)).failureNel[Any]
+      case _ => FailMessage(ValidationError, s"Missing value at line: ${row.lineNumber}, column: ${schema.columnDefinitions(columnIndex).id}", Some(row.lineNumber), Some(columnIndex), Some("metadata.missingValue")).failureNel[Any]
     }
   }
 

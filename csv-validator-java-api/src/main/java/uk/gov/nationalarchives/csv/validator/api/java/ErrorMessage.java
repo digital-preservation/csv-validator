@@ -16,4 +16,7 @@ public class ErrorMessage extends FailMessage {
     public ErrorMessage(final String message, final int lineNumber, final int columnIndex) {
         super(message, lineNumber, columnIndex);
     }
+    public ErrorMessage(final String message, final int lineNumber, final int columnIndex,final String resourceTag) {
+        super(message, lineNumber, columnIndex,resourceTag);
+    }
 }

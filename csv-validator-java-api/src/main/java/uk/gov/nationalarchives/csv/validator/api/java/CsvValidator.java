@@ -10,7 +10,13 @@ package uk.gov.nationalarchives.csv.validator.api.java;
 
 import java.io.Reader;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.ResourceBundle;
+
+import uk.gov.nationalarchives.csv.validator.api.java.exceptions.FailMessageException;
+import uk.gov.nationalarchives.csv.validator.api.java.exceptions.ResourceBundleException;
+
 import static uk.gov.nationalarchives.csv.validator.api.CsvValidator$.MODULE$;
 
 /**
@@ -163,6 +169,31 @@ public class CsvValidator {
      */
     public static List<FailMessage> validate(final Reader csvData, final Reader csvSchema, final boolean failFast, final List<Substitution> pathSubstitutions, final Boolean enforceCaseSensitivePathChecks, final Boolean trace, final ProgressCallback progress) {
         return CsvValidatorJavaBridge.validate(csvData, csvSchema, failFast, pathSubstitutions, enforceCaseSensitivePathChecks, trace, progress);
+    }
+    /**
+     * Translate CSV FailMessage with ResourceBundle
+     *
+     * @param originMessages FailMessages don't translated
+     * @param resource is ResourceBudle with messages in language destiny
+     *
+     * @return List of FailMessage with message translated.
+     */
+    public static List<FailMessage> translate(List<FailMessage> originMessages,ResourceBundle resource) throws ResourceBundleException,FailMessageException{
+        if(originMessages==null||originMessages.isEmpty()){
+            throw new FailMessageException("FailMessage was not provided to translate");
+        }
+        if(resource==null){
+            throw new ResourceBundleException("ResourceBundle was not null");
+        }
+        List<FailMessage> translatedMessage = new ArrayList<>();
+        for(FailMessage failMessage:originMessages){
+            if(resource.containsKey(failMessage.getResourceTag())){
+                String messageTranslate = resource.getString(failMessage.getResourceTag());
+                translatedMessage.add(
+                    new ErrorMessage(messageTranslate,failMessage.getLineNumber(),failMessage.getColumnIndex(),failMessage.getResourceTag()));
+            }
+        }
+        return translatedMessage;
     }
 }
 

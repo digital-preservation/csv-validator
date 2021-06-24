@@ -15,7 +15,20 @@ public abstract class FailMessage {
     private final String message;
     private final int lineNumber;
     private final int columnIndex;
+    private final String resourceTag;
 
+    /**
+     * @param message The failure message
+     * @param lineNumber The original line number in the file
+     * @param columnIndex Zero-based column index
+     * @param resourceTag ResourceTag parameter
+     */
+    public FailMessage(final String message, final int lineNumber, final int columnIndex,final String resourceTag) {
+        this.message = message;
+        this.lineNumber = lineNumber;
+        this.columnIndex = columnIndex;
+        this.resourceTag = resourceTag;
+    }
     /**
      * @param message The failure message
      * @param lineNumber The original line number in the file
@@ -25,6 +38,7 @@ public abstract class FailMessage {
         this.message = message;
         this.lineNumber = lineNumber;
         this.columnIndex = columnIndex;
+        this.resourceTag = "general.tag";
     }
 
     public String getMessage() {
@@ -39,5 +53,8 @@ public abstract class FailMessage {
     public int getColumnIndex()
     {
         return columnIndex;
+    }
+    public String getResourceTag(){
+        return resourceTag;
     }
 }
