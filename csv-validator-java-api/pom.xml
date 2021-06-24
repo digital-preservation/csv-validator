@@ -86,9 +86,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <links>
-                        <link>${project.url}</link>
-                    </links>
+                    <source>${java.version}</source>
                     <packagesheader>CSV uk.gov.nationalarchives.csv.validator.api.java.CsvValidator Packages</packagesheader>
                     <doctitle>CSV uk.gov.nationalarchives.csv.validator.api.java.CsvValidator ${project.version}</doctitle>
                     <windowtitle>CSV uk.gov.nationalarchives.csv.validator.api.java.CsvValidator ${project.version}</windowtitle>

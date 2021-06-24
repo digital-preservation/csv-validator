@@ -16,12 +16,12 @@
 
     <name>csv-validator-parent</name>
     <description>Validation tool for CSV and CSV Schema files</description>
-    <url>http://digital-preservation.github.com/csv-validator/</url>
+    <url>https://digital-preservation.github.io/csv-validator/</url>
     <inceptionYear>2013</inceptionYear>
 
     <organization>
         <name>The National Archives</name>
-        <url>http://www.nationalarchives.gov.uk</url>
+        <url>https://www.nationalarchives.gov.uk</url>
     </organization>
 
     <developers>
