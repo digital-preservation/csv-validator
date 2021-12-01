@@ -115,7 +115,7 @@
         <dependency>
             <groupId>org.scodec</groupId>
             <artifactId>scodec-bits_${scala.compat.version}</artifactId>
-            <version>1.1.27</version>
+            <version>1.1.30</version>
         </dependency>
         <dependency>
             <groupId>org.scalaz</groupId>
