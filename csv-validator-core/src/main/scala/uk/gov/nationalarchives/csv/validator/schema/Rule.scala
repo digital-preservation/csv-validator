@@ -11,12 +11,13 @@ package uk.gov.nationalarchives.csv.validator.schema
 import org.joda.time.DateTime
 import uk.gov.nationalarchives.csv.validator.metadata.Row
 
-import scala.collection.mutable.MutableList
+import scala.collection.mutable.{ListBuffer => MutableListBuffer, Map => MutableMap}
 import scala.util.Try
 import scala.util.parsing.input.Positional
 import scalaz._
 import scalaz.Scalaz._
-import java.util.regex.{Pattern, Matcher}
+
+import java.util.regex.Pattern
 
 abstract class Rule(name: String, val argProviders: ArgProvider*) extends Positional {
 
@@ -27,7 +28,7 @@ abstract class Rule(name: String, val argProviders: ArgProvider*) extends Positi
   def findColumnReference(): Option[ColumnReference] = {
     if (explicitColumns.nonEmpty){
       val index =  explicitColumnIndex
-      val result = explicitColumns.get(index)
+      val result = Try(explicitColumns(index)).map(Some(_)).getOrElse(None)
       if (index + 1 == explicitColumns.length)
         explicitColumnIndex = 0
       else
@@ -46,7 +47,7 @@ abstract class Rule(name: String, val argProviders: ArgProvider*) extends Positi
 
   var explicitColumnIndex = 0
 
-  val explicitColumns: MutableList[ColumnReference] = MutableList()
+  val explicitColumns: MutableListBuffer[ColumnReference] = MutableListBuffer()
 
   def evaluate(columnIndex: Int, row: Row,  schema: Schema, mayBeLast: Option[Boolean] = None): RuleValidation[Any] = {
     if (valid(cellValue(columnIndex, row, schema), schema.columnDefinitions(columnIndex), columnIndex, row, schema, mayBeLast))
@@ -103,7 +104,7 @@ abstract class Rule(name: String, val argProviders: ArgProvider*) extends Positi
  * @author Jess Flanagan
  */
 object RegexCache {
-  val cache  = collection.mutable.Map[String, Pattern]()
+  val cache = MutableMap[String, Pattern]()
   
   /**
    * This function returns compiled regexs.

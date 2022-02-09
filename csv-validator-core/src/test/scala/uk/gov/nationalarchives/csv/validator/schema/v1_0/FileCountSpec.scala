@@ -8,8 +8,6 @@
  */
 package uk.gov.nationalarchives.csv.validator.schema.v1_0
 
-import java.io.File
-
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -17,15 +15,16 @@ import uk.gov.nationalarchives.csv.validator.{FILE_SEPARATOR, TestResources}
 import uk.gov.nationalarchives.csv.validator.Util.TypedPath
 import uk.gov.nationalarchives.csv.validator.metadata.{Cell, Row}
 import uk.gov.nationalarchives.csv.validator.schema._
+import scalaz.{Failure, IList, Success, ValidationNel}
 
-import scalax.file.{Path, PathSet}
-import scalaz.{Success, Failure, ValidationNel, IList}
+import java.nio.file.Paths
+import java.nio.file.Path
 
 @RunWith(classOf[JUnitRunner])
 class FileCountSpec extends Specification with TestResources {
 
-  override val threeFilesPath = new File(new File(baseResourcePkgPath).getParentFile.getParent, "fileCountTestFiles/threeFiles").getAbsolutePath
-  override val threeFilesInSubDirPath = new File(new File(baseResourcePkgPath).getParentFile.getParent, "fileCountTestFiles/threeFilesinSubDir").getAbsolutePath
+  override val threeFilesPath = Paths.get(baseResourcePkgPath).getParent.getParent.resolve("fileCountTestFiles/threeFiles").toAbsolutePath.toString
+  override val threeFilesInSubDirPath = Paths.get(baseResourcePkgPath).getParent.getParent.resolve("fileCountTestFiles/threeFilesinSubDir").toAbsolutePath.toString
 
   val relThreeFilesPath = relResourcePath("../../fileCountTestFiles/threeFiles")
   val relThreeFilesInSubDirPath = relResourcePath("../../fileCountTestFiles/threeFilesinSubDir")
@@ -33,28 +32,28 @@ class FileCountSpec extends Specification with TestResources {
   "File wildcards selection" should {
 
     "count multiple files in single directory using wildcards" in {
-      val rootPath = Path.fromString(threeFilesPath)
+      val rootPath = Paths.get(threeFilesPath)
       val scalaFiles = rootPath.matcher("**/*.jp2")
 
       rootPath.descendants().collect{ case s @ scalaFiles(_) => s }.size mustEqual 3
     }
 
     "count multiple files in subdirectories using wildcards" in {
-      val rootPath = Path.fromString(threeFilesInSubDirPath)
+      val rootPath = Paths.get(threeFilesInSubDirPath)
       val scalaFiles = rootPath.matcher("**/*.jp2")
 
       rootPath.descendants().collect{ case s @ scalaFiles(_) => s }.size mustEqual 3
     }
 
     "count multiple files in subdirectories, using wildcards" in {
-      val rootPath = Path.fromString(threeFilesInSubDirPath)
+      val rootPath = Paths.get(threeFilesInSubDirPath)
       val scalaFiles = rootPath.matcher("**/file*a.jp2")
 
       rootPath.descendants().collect{ case s @ scalaFiles(_) => s }.size mustEqual 3
     }
 
     "count files without looking in subdirectories, NO wildcards" in {
-      val rootPath = Path.fromString(threeFilesInSubDirPath)
+      val rootPath = Paths.get(threeFilesInSubDirPath)
       val scalaFiles = rootPath.matcher("**/file1a.jp2")
 
       rootPath.descendants().collect{ case s @ scalaFiles(_) => s }.size mustEqual 1
@@ -94,7 +93,7 @@ class FileCountSpec extends Specification with TestResources {
 
     val wildCard = new FileWildcardSearch[Int]{
       val pathSubstitutions: List[(String, String)] = List.empty
-      def matchWildcardPaths(matchList: PathSet[Path], fullPath: String): ValidationNel[String, Int] = matchList.size.successNel[String]
+      def matchWildcardPaths(matchList: Seq[Path], fullPath: String): ValidationNel[String, Int] = matchList.size.successNel[String]
       def matchSimplePath(fullPath: String): ValidationNel[String, Int] = 1.successNel[String]
     }
 
@@ -140,7 +139,7 @@ class FileCountSpec extends Specification with TestResources {
       val pathSubstitutions: List[(String, String)] = List[(String,String)](
         ("bob", basePath + "/uk/gov/nationalarchives/csv/validator")
       )
-      def matchWildcardPaths(matchList: PathSet[Path], fullPath: String): ValidationNel[String, Int] = matchList.size.successNel[String]
+      def matchWildcardPaths(matchList: Seq[Path], fullPath: String): ValidationNel[String, Int] = matchList.size.successNel[String]
       def matchSimplePath(fullPath: String): ValidationNel[String, Int] = 1.successNel[String]
     }
 
@@ -162,7 +161,7 @@ class FileCountSpec extends Specification with TestResources {
           ("file:///bob", substituted)
         )
 
-        def matchWildcardPaths(matchList: PathSet[Path], fullPath: String): ValidationNel[String, Int] = matchList.size.successNel[String]
+        def matchWildcardPaths(matchList: Seq[Path], fullPath: String): ValidationNel[String, Int] = matchList.size.successNel[String]
         def matchSimplePath(fullPath: String): ValidationNel[String, Int] = 1.successNel[String]
       }
 
@@ -188,7 +187,7 @@ class FileCountSpec extends Specification with TestResources {
 
     "fail if invalid filename is given" in {
       wildCard.search( ("bob/fileCountTestFiles/threeFiles/","WRONG.WRONG") ) must beLike {
-        case Failure(m) => m.list mustEqual IList("""file """" + Path.fromString(threeFilesPath).path + FILE_SEPARATOR + """WRONG.WRONG" not found""")
+        case Failure(m) => m.list mustEqual IList("""file """" + Paths.get(threeFilesPath).toString + FILE_SEPARATOR + """WRONG.WRONG" not found""")
       }
     }
 

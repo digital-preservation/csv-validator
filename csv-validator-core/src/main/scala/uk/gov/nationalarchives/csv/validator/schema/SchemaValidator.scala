@@ -8,7 +8,7 @@
  */
 package uk.gov.nationalarchives.csv.validator.schema
 
-import com.gilt.gfc.semver.SemVer
+import org.gfccollective.semver.SemVer
 import uk.gov.nationalarchives.csv.validator.schema.v1_0.{SchemaValidator => SchemaValidator1_0}
 import uk.gov.nationalarchives.csv.validator.schema.v1_1.{SchemaValidator => SchemaValidator1_1}
 

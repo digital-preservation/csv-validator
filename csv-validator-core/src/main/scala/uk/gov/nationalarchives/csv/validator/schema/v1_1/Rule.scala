@@ -8,8 +8,7 @@
  */
 package uk.gov.nationalarchives.csv.validator.schema.v1_1
 
-import java.io.{FileNotFoundException, File}
-
+import java.io.FileNotFoundException
 import uk.gov.nationalarchives.csv.validator.Util.FileSystem
 import uk.gov.nationalarchives.csv.validator.metadata.Row
 import uk.gov.nationalarchives.csv.validator.schema._
@@ -18,6 +17,8 @@ import uk.gov.nationalarchives.csv.validator.schema.v1_0.{DateRangeRule, IsoDate
 import scala.util.Try
 import scalaz.Scalaz._
 import scalaz.{Failure => FailureZ, Success => SuccessZ}
+
+import java.nio.file.Path
 
 
 
@@ -74,7 +75,7 @@ case class SwitchRule(elseRules: Option[List[Rule]], cases:(Rule, List[Rule])*) 
 case class IntegrityCheckRule(pathSubstitutions: List[(String,String)], enforceCaseSensitivePathChecks: Boolean, rootPath: ArgProvider = Literal(None), topLevelFolder: String = "content", includeFolder: Boolean = false) extends Rule("integrityCheck", Seq(rootPath): _*) {
 
   //TODO introduce state, not very functional
-  var filesMap = Map[String, Set[File]]()
+  var filesMap = Map[String, Set[Path]]()
 
   override def evaluate(columnIndex: Int, row: Row,  schema: Schema, mayBeLast: Option[Boolean] = None): RuleValidation[Any] = {
     try{

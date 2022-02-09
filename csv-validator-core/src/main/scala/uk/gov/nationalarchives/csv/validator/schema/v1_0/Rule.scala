@@ -8,13 +8,11 @@
  */
 package uk.gov.nationalarchives.csv.validator.schema.v1_0
 
-import java.io.File
 import java.net.{URI, URISyntaxException}
 import java.security.MessageDigest
-
 import org.joda.time.format.{DateTimeFormat, DateTimeFormatterBuilder, ISODateTimeFormat}
 import org.joda.time.{DateTime, Interval}
-import uk.gov.nationalarchives.csv.validator.Util.{FileSystem, TypedPath}
+import uk.gov.nationalarchives.csv.validator.Util.{FileSystem, TypedPath, children, descendants}
 import uk.gov.nationalarchives.csv.validator.api.CsvValidator._
 import uk.gov.nationalarchives.csv.validator.metadata.Row
 import uk.gov.nationalarchives.csv.validator.schema._
@@ -23,12 +21,12 @@ import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.language.higherKinds
 import scala.util.Try
-import scalax.file.{Path, PathSet}
 import scalaz.Scalaz._
 import cats.effect.{IO, Sync}
 import fs2.{Chunk, Pipe, Stream, hash, io}
-
 import scalaz.{Failure => FailureZ, Success => SuccessZ, _}
+
+import java.nio.file.{Files, Path}
 
 case class OrRule(left: Rule, right: Rule) extends Rule("or") {
   override def evaluate(columnIndex: Int, row: Row,  schema: Schema, mayBeLast: Option[Boolean] = None): RuleValidation[Any] = {
@@ -353,8 +351,8 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
     }
   }
 
-  def matchWildcardPaths(matchList: PathSet[Path],fullPath: String): ValidationNel[String, String] = matchList.size match {
-    case 1 => calcChecksum(matchList.head.path)
+  def matchWildcardPaths(matchList: Seq[Path], fullPath: String): ValidationNel[String, String] = matchList.size match {
+    case 1 => calcChecksum(matchList.head.toAbsolutePath.toString)
     case 0 => s"""no files for $fullPath found""".failureNel[String]
     case _ => s"""multiple files for ${TypedPath(fullPath).toPlatform} found""".failureNel[String]
   }
@@ -363,7 +361,7 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
 
   def calcChecksum(file: String): ValidationNel[String, String] = {
 
-    def checksum(f: File): ValidationNel[String, String] = {
+    def checksum(f: Path): ValidationNel[String, String] = {
 
       def getHash[F[_]](algorithm: String) : Pipe[F, Byte, Byte] = {
         val hashes = Map[String, Pipe[F, Byte, Byte]](
@@ -385,12 +383,14 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
 
       val bufSize = 16384 //16KB
 
-      def checksummer[F[_]](implicit F: Sync[F]): F[Vector[Byte]] =
-        io.file.readAll[F](f.toPath, bufSize)
-        .through(getHash(algorithm))
-        .runLog
+      def checksummer[F[_]](implicit F: fs2.io.file.Files[F]): Stream[F, Byte] =
+        fs2.io.file.Files[F]
+          .readAll(f, bufSize)
+        . through(getHash(algorithm))
 
-      checksummer[IO].attempt.unsafeRunSync()
+      import cats.effect.unsafe.implicits.global
+
+      checksummer[IO].compile.toVector.attempt.unsafeRunSync()
         .map(_.map("%02x" format _))
         .map(_.mkString)
         .validation
@@ -399,7 +399,7 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
     }
 
     FileSystem.createFile(file) match {
-      case scala.util.Success(f) if(f.exists) =>
+      case scala.util.Success(f) if(Files.exists(f)) =>
         if(enforceCaseSensitivePathChecks) {
           if(FileSystem.caseSensitivePathMatchesFs(f)) {
             checksum(f)
@@ -444,11 +444,11 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
      * Computes the digest of the the source stream, emitting the digest as a chunk
      * after completion of the source stream.
      */
-    def digest[F[_]](digest: => MessageDigest): Pipe[F,Byte,Byte] =
+    def digest[F[_]](digest: => MessageDigest): Pipe[F, Byte, Byte] =
       in => Stream.suspend {
         in.chunks.
-          fold(digest) { (d, c) => d.update(Chunk.Bytes(c.toArray, 0, c.size).values); d }.
-          flatMap { d => Stream.chunk(Chunk.bytes(d.digest())) }
+          fold(digest) { (d, c) => d.update(Chunk.array(c.toArray, 0, c.size).toArray); d }.
+          flatMap { d => Stream.chunk(Chunk.array(d.digest())) }
       }
   }
 }
@@ -487,7 +487,7 @@ case class FileCountRule(rootPath: ArgProvider, file: ArgProvider, pathSubstitut
     }
   }
 
-  def matchWildcardPaths(matchList: PathSet[Path],fullPath: String): ValidationNel[String, Int] = matchList.size.successNel[String]
+  def matchWildcardPaths(matchList: Seq[Path], fullPath: String): ValidationNel[String, Int] = matchList.size.successNel[String]
 
   def matchSimplePath(fullPath: String): ValidationNel[String, Int]  = 1.successNel[String]  // file found so ok
 }
@@ -495,11 +495,11 @@ case class FileCountRule(rootPath: ArgProvider, file: ArgProvider, pathSubstitut
 trait FileWildcardSearch[T] {
 
   val pathSubstitutions: List[SubstitutePath]
-  def matchWildcardPaths(matchList: PathSet[Path], fullPath: String): ValidationNel[String, T]
+  def matchWildcardPaths(matchList: Seq[Path], fullPath: String): ValidationNel[String, T]
   def matchSimplePath(fullPath: String): ValidationNel[String, T]
 
-  val wildcardPath = (p: Path, matchPath: String) => p.descendants( p.matcher( matchPath))
-  val wildcardFile = (p: Path, matchPath: String) => p.children( p.matcher( "**/" +matchPath))
+  val wildcardPath = (p: Path, matchPath: String) => descendants(p, matchPath)
+  val wildcardFile = (p: Path, matchPath: String) => children(p, "**/" + matchPath)
 
   //TODO consider re-writing the FileSystem stuff to use TypedPath now that we have toPlatform - just need a better File approach and handling of parent/child - maybe use scalax.file.Path
 
@@ -530,23 +530,23 @@ trait FileWildcardSearch[T] {
       val (basePath, matchPath) = findBase(fullPath)
 
       val path: Option[Path] = {
-        FileSystem.createFile( basePath.toPlatform.toString ) match {
-          case scala.util.Success(f) => Some(Path(f))
+        FileSystem.createFile(basePath.toPlatform.toString) match {
+          case scala.util.Success(f) => Some(f)
           case scala.util.Failure(_) => None
         }
       }
 
       def pathString = s"${filePaths._1} (localfile: ${TypedPath(fullPath).toPlatform})"
 
-      def findMatches(wc: (Path, String) => PathSet[Path] ): ValidationNel[String, T] = {
+      def findMatches(wc: (Path, String) => Seq[Path] ): ValidationNel[String, T] = {
         path match {
           case Some(p) =>  matchWildcardPaths( wc(p, matchPath ), fullPath )
           case None => "no file".failureNel[T]
         }
       }
 
-      def basePathExists: Boolean =   filePaths._1.length>0 && (!(FileSystem.createFile( basePath.toPlatform.toString ) match {
-        case scala.util.Success(f) =>   f.exists
+      def basePathExists: Boolean = filePaths._1.length > 0 && (!(FileSystem.createFile( basePath.toPlatform.toString ) match {
+        case scala.util.Success(f) => Files.exists(f)
         case scala.util.Failure(_) => false
       }))
 
@@ -561,7 +561,7 @@ trait FileWildcardSearch[T] {
         val path = platformPath.toString + platformPath.separator + matchPath
 
         FileSystem.createFile( path ) match {
-          case scala.util.Success(file) =>   file.exists
+          case scala.util.Success(file) => Files.exists(file)
           case scala.util.Failure(_) => false
         }
       }

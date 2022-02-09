@@ -11,9 +11,9 @@ package uk.gov.nationalarchives.csv.validator.schema.v1_0
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-
-import scalax.file.{Path, PathSet}
 import scalaz._
+
+import java.nio.file.Path
 
 @RunWith(classOf[JUnitRunner])
 class FileWildcardSearchSpec extends Specification {
@@ -23,7 +23,7 @@ class FileWildcardSearchSpec extends Specification {
 
     val pathSubstitutions = List.empty
     def matchSimplePath(fullPath : String) : ValidationNel[String, Int] = 0.successNel[String]
-    def matchWildcardPaths(matchList: PathSet[Path], fullPath: String): ValidationNel[String, Int] = 0.successNel[String]
+    def matchWildcardPaths(matchList: Seq[Path], fullPath: String): ValidationNel[String, Int] = 0.successNel[String]
 
     def findBaseWrapper(path: String) : (String, String) = {
       val result = super.findBase(path)

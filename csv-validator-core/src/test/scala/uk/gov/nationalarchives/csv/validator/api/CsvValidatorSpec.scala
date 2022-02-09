@@ -15,8 +15,9 @@ import org.specs2.runner.JUnitRunner
 import scalaz._
 import uk.gov.nationalarchives.csv.validator._
 import uk.gov.nationalarchives.csv.validator.schema.Schema
-import scalax.file.Path
 import uk.gov.nationalarchives.csv.validator.api.CsvValidator.SubstitutePath
+
+import java.nio.file.Paths
 
 @RunWith(classOf[JUnitRunner])
 class CsvValidatorSpec extends Specification with TestResources {
@@ -46,16 +47,16 @@ class CsvValidatorSpec extends Specification with TestResources {
   "Validation" should {
     val app = new CsvValidator with AllErrorsMetaDataValidator { val pathSubstitutions = List[(String,String)](); val enforceCaseSensitivePathChecks = false; val trace = false }
 
-    def parse(filePath: String): Schema = app.parseSchema(TextFile(Path.fromString(filePath))) fold (f => throw new IllegalArgumentException(f.toString()), s => s)
+    def parse(filePath: String): Schema = app.parseSchema(TextFile(Paths.get(filePath))) fold (f => throw new IllegalArgumentException(f.toString()), s => s)
 
     "succeed for valid schema and metadata file" in {
-      app.validate(TextFile(Path.fromString(baseResourcePkgPath) / "metaData.csv"), parse(baseResourcePkgPath + "/schema.csvs"), None) must beLike {
+      app.validate(TextFile(Paths.get(baseResourcePkgPath).resolve("metaData.csv")), parse(baseResourcePkgPath + "/schema.csvs"), None) must beLike {
         case Success(_) => ok
       }
     }
 
     "succeed for valid @totalColumns in schema and metadata file" in {
-      app.validate(TextFile(Path.fromString(baseResourcePkgPath) / "metaData.csv"), parse(baseResourcePkgPath + "/schema.csvs"), None) must beLike {
+      app.validate(TextFile(Paths.get(baseResourcePkgPath).resolve("metaData.csv")), parse(baseResourcePkgPath + "/schema.csvs"), None) must beLike {
         case Success(_) => ok
       }
     }

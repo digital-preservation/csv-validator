@@ -12,17 +12,14 @@ package uk.gov.nationalarchives.csv.validator
 import uk.gov.nationalarchives.utf8.validator.{Utf8Validator, ValidationHandler}
 
 import scala.language.{postfixOps, reflectiveCalls}
-import scala.util.Try
+import scala.util.{Try, Using}
 import scalaz._
 import Scalaz._
+
 import java.io.{BufferedInputStream, IOException, FileInputStream => JFileInputStream, InputStreamReader => JInputStreamReader, LineNumberReader => JLineNumberReader, Reader => JReader}
 import java.nio.charset.{Charset, StandardCharsets}
-
-import resource._
 import uk.gov.nationalarchives.csv.validator.schema._
 import uk.gov.nationalarchives.csv.validator.metadata.Cell
-
-import scalax.file.Path
 import org.apache.commons.io.input.BOMInputStream
 import com.univocity.parsers.common.TextParsingException
 import com.univocity.parsers.csv.{CsvParser, CsvParserSettings}
@@ -30,6 +27,8 @@ import uk.gov.nationalarchives.csv.validator.metadata.Row
 
 import scala.annotation.tailrec
 import uk.gov.nationalarchives.csv.validator.api.TextFile
+
+import java.nio.file.{Files, Path}
 
 
 //error reporting classes
@@ -109,12 +108,11 @@ trait MetaDataValidator {
     //format.setLineSeparator(CSV_RFC1480_LINE_SEPARATOR)  // CRLF
 
     //we need a better CSV Reader!
-    makeManagedResource {
+    val result : Try[MetaDataValidation[Any]] = Using {
       val parser = new CsvParser(settings)
       parser.beginParsing(csv)
       parser
-    } (_.stopParsing()) (List(classOf[IOException], classOf[TextParsingException], classOf[IllegalStateException]))
-      .map {
+    } {
       reader =>
 
         // if 'no header' is set but the file is empty and 'permit empty' has not been set - this is an error
@@ -154,13 +152,15 @@ trait MetaDataValidator {
             validateRows(rowIt, schema)
         }
 
-    }.either.either match {
-      case Right(metadataValidation) =>
+    } (_.stopParsing());
+
+    result match {
+      case util.Success(metadataValidation) =>
         metadataValidation
 
-      case Left(ts) =>
+      case util.Failure(ts) =>
         //TODO(AR) emit all errors not just first!
-        FailMessage(ValidationError, ts(0).toString).failureNel[Any]
+        FailMessage(ValidationError, ts.toString).failureNel[Any]
 //      ts.toList.map(t => FailMessage(ValidationError, t.toString).failureNel[Any]).sequence[MetaDataValidation, Any]
     }
   }
@@ -214,7 +214,7 @@ trait MetaDataValidator {
       }
     }
 
-    new Utf8Validator(validationHandler).validate(new java.io.File(file.path))
+    new Utf8Validator(validationHandler).validate(file.toFile)
 
     validationHandler.errors.toNel match {
       case None => true.successNel
@@ -276,8 +276,8 @@ trait MetaDataValidator {
   }
 
   protected def withReader[B](textFile: TextFile)(fn: JReader => B): B = {
-    def inputStreamReader(encoding: Charset)() = {
-      val bis = new BufferedInputStream(new JFileInputStream(textFile.file.path))
+    def inputStreamReader(encoding: Charset) : JInputStreamReader = {
+      val bis = new BufferedInputStream(Files.newInputStream(textFile.file))
       val is = if(encoding == StandardCharsets.UTF_8) {
         new BOMInputStream(bis)
       } else {
@@ -286,10 +286,10 @@ trait MetaDataValidator {
       new JInputStreamReader(is, encoding)
     }
 
-    managed(inputStreamReader(textFile.encoding)).map(fn).either match {
-      case Left(ioError) =>
-        throw ioError(0)
-      case Right(result) =>
+    Using(inputStreamReader(textFile.encoding))(fn) match {
+      case util.Failure(ioError) =>
+        throw ioError
+      case util.Success(result) =>
         result
     }
   }

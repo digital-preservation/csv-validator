@@ -123,11 +123,7 @@
         </dependency>
         <dependency>
             <groupId>org.scalaz</groupId>
-            <artifactId>scalaz-core_${scala.compat.version}</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.madgag</groupId>
-            <artifactId>scala-io-file_${scala.version}</artifactId>
+            <artifactId>scalaz-core_${scala.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>

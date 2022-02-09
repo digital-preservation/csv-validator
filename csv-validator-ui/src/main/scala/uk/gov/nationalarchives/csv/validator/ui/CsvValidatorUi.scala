@@ -9,8 +9,6 @@
 package uk.gov.nationalarchives.csv.validator.ui
 
 import scala.swing._
-import resource._
-
 import javax.swing._
 import net.java.dev.designgridlayout._
 
@@ -26,7 +24,6 @@ import ScalaSwingHelpers._
 
 import java.awt.Cursor
 import java.util.Properties
-import scalax.file.Path
 import uk.gov.nationalarchives.csv.validator.ProgressCallback
 
 import java.nio.charset.Charset
@@ -35,7 +32,8 @@ import uk.gov.nationalarchives.csv.validator.api.TextFile
 import java.util.jar.{Attributes, Manifest}
 import java.net.URL
 import java.nio.charset.StandardCharsets.UTF_8
-import java.nio.file.{Files, StandardOpenOption}
+import java.nio.file.{Files, Path, Paths, StandardOpenOption}
+import scala.util.Using
 
 /**
  * Simple GUI for the CSV Validator
@@ -101,16 +99,16 @@ object CsvValidatorUi extends SimpleSwingApplication {
       None // Class not from JAR
     } else {
       val manifestPath = classPath.substring(0, classPath.lastIndexOf("!") + 1) + "/META-INF/MANIFEST.MF"
-      managed(new URL(manifestPath).openStream()).map {
+      Using(new URL(manifestPath).openStream()) {
         is =>
           val manifest = new Manifest(is)
           extractor(manifest.getMainAttributes)
-      }.opt
+      }.map(Some(_)).getOrElse(None)
     }
   }
 
   private def displayWait(suspendUi: => Unit, action: (String => Unit) => Unit, output: String => Unit, resumeUi: => Unit) {
-    import scala.concurrent.{future, Future}
+    import scala.concurrent.Future
     import scala.concurrent.ExecutionContext.Implicits.global
     import scala.util.{Success, Failure}
 
@@ -133,8 +131,8 @@ object CsvValidatorUi extends SimpleSwingApplication {
   private def validate(csvFilePath: String, csvEncoding: Charset, csvSchemaFilePath: String, csvSchemaEncoding: Charset, failOnFirstError: Boolean, pathSubstitutions: List[(String, String)], enforceCaseSensitivePathChecks: Boolean, progress: Option[ProgressCallback], validateEncoding: Boolean)(output: String => Unit) {
     output("")
     output(CsvValidatorCmdApp.validate(
-      TextFile(Path.fromString(csvFilePath), csvEncoding, validateEncoding),
-      TextFile(Path.fromString(csvSchemaFilePath), csvSchemaEncoding),
+      TextFile(Paths.get(csvFilePath), csvEncoding, validateEncoding),
+      TextFile(Paths.get(csvSchemaFilePath), csvSchemaEncoding),
       failOnFirstError,
       pathSubstitutions,
       enforceCaseSensitivePathChecks,
@@ -149,7 +147,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
    * @param s
    * @param f
    */
-  private def saveToFile(s: String, f: File) : Option[IOException] = {
+  private def saveToFile(s: String, f: Path) : Option[IOException] = {
     val data : Array[Byte] =  s.getBytes(UTF_8)
     try {
       Files.write(f.toPath, data, StandardOpenOption.WRITE, StandardOpenOption.CREATE_NEW)
@@ -159,36 +157,36 @@ object CsvValidatorUi extends SimpleSwingApplication {
     }
   }
 
-  case class Settings(lastCsvPath: File, lastCsvSchemaPath: File, lastReportPath: File)
+  case class Settings(lastCsvPath: Path, lastCsvSchemaPath: Path, lastReportPath: Path)
 
-  lazy val settingsFile = new File(System.getProperty("user.home") + "/.csv-validator/csv-validator.properties")
-  lazy val userDir = new File(System.getProperty("user.dir"))
+  lazy val settingsFile : Path = Paths.get(System.getProperty("user.home")).resolve(".csv-validator").resolve("csv-validator.properties")
+  lazy val userDir = Paths.get(System.getProperty("user.dir"))
 
   private def loadSettings: Option[Settings] = {
-    if(settingsFile.exists()) {
+    if(Files.exists(settingsFile)) {
       val props = new Properties
-      managed(new FileInputStream(settingsFile)).map {
+      Using(Files.newInputStream(settingsFile)) {
         is =>
           props.load(is)
-          Settings(new File(props.getProperty("last.csv.path")), new File(props.getProperty("last.csv.uk.gov.nationalarchives.csv.validator.schema.path")), new File(props.getProperty("last.report.path")))
-      }.opt
+          Settings(Paths.get(props.getProperty("last.csv.path")), Paths.get(props.getProperty("last.csv.uk.gov.nationalarchives.csv.validator.schema.path")), Paths.get(props.getProperty("last.report.path")))
+      }.map(Some(_)).getOrElse(None)
     } else {
       None
     }
   }
 
   private def saveSettings(settings: Settings) {
-    if(!settingsFile.exists) {
-      settingsFile.getParentFile.mkdirs
+    if(!Files.exists(settingsFile)) {
+      Files.createDirectories(settingsFile.getParent)
     }
     val props = new Properties
-    props.setProperty("last.csv.path", settings.lastCsvPath.getAbsolutePath)
-    props.setProperty("last.csv.uk.gov.nationalarchives.csv.validator.schema.path", settings.lastCsvSchemaPath.getAbsolutePath)
-    props.setProperty("last.report.path", settings.lastReportPath.getAbsolutePath)
-    managed(new FileOutputStream(settingsFile)).map {
+    props.setProperty("last.csv.path", settings.lastCsvPath.normalize.toAbsolutePath.toString)
+    props.setProperty("last.csv.uk.gov.nationalarchives.csv.validator.schema.path", settings.lastCsvSchemaPath.normalize.toAbsolutePath.toString)
+    props.setProperty("last.report.path", settings.lastReportPath.normalize.toAbsolutePath.toString)
+    Using(Files.newOutputStream(settingsFile)) {
       os =>
         props.store(os, "CSV Validator")
-    }.opt.getOrElse(Unit)
+    }.map(Some(_)).getOrElse(None)
   }
 
   /**
@@ -204,9 +202,9 @@ object CsvValidatorUi extends SimpleSwingApplication {
     private val txtCsvFile = new TextField(30)
     private val csvFileChooser = new FileChooser(loadSettings match {
       case Some(s) =>
-        s.lastCsvPath
+        s.lastCsvPath.toFile
       case None =>
-        userDir
+        userDir.toFile
     })
     private val btnChooseCsvFile = new Button("...")
 
@@ -227,9 +225,9 @@ object CsvValidatorUi extends SimpleSwingApplication {
     private val txtCsvSchemaFile = new TextField(30)
     private val csvSchemaFileChooser = new FileChooser(loadSettings match {
       case Some(s) =>
-        s.lastCsvSchemaPath
+        s.lastCsvSchemaPath.toFile
       case None =>
-        userDir
+        userDir.toFile
     })
     private val btnChooseCsvSchemaFile = new Button("...")
     btnChooseCsvSchemaFile.reactions += onClick {
@@ -304,9 +302,9 @@ object CsvValidatorUi extends SimpleSwingApplication {
 
     private val reportFileChooser = new FileChooser(loadSettings match {
       case Some(s) =>
-        s.lastReportPath
+        s.lastReportPath.toFile
       case None =>
-        userDir
+        userDir.toFile
     })
     private val btnSave = new Button("Save")
     btnSave.reactions += onClick {
@@ -346,10 +344,10 @@ object CsvValidatorUi extends SimpleSwingApplication {
     layout.row.grid(lblVersion)
   }
 
-  def updateLastPath(fileChooser: FileChooser, sink: File => Settings) {
+  def updateLastPath(fileChooser: FileChooser, sink: Path => Settings) {
     Option(fileChooser.selectedFile) match {
       case Some(selection) =>
-        saveSettings(sink(selection.getParentFile))
+        saveSettings(sink(selection.toPath.getParent))
       case None =>
     }
   }
