@@ -29,36 +29,37 @@ class FileCountSpec extends Specification with TestResources {
   val relThreeFilesPath = relResourcePath("../../fileCountTestFiles/threeFiles")
   val relThreeFilesInSubDirPath = relResourcePath("../../fileCountTestFiles/threeFilesinSubDir")
 
-  "File wildcards selection" should {
-
-    "count multiple files in single directory using wildcards" in {
-      val rootPath = Paths.get(threeFilesPath)
-      val scalaFiles = rootPath.matcher("**/*.jp2")
-
-      rootPath.descendants().collect{ case s @ scalaFiles(_) => s }.size mustEqual 3
-    }
-
-    "count multiple files in subdirectories using wildcards" in {
-      val rootPath = Paths.get(threeFilesInSubDirPath)
-      val scalaFiles = rootPath.matcher("**/*.jp2")
-
-      rootPath.descendants().collect{ case s @ scalaFiles(_) => s }.size mustEqual 3
-    }
-
-    "count multiple files in subdirectories, using wildcards" in {
-      val rootPath = Paths.get(threeFilesInSubDirPath)
-      val scalaFiles = rootPath.matcher("**/file*a.jp2")
-
-      rootPath.descendants().collect{ case s @ scalaFiles(_) => s }.size mustEqual 3
-    }
-
-    "count files without looking in subdirectories, NO wildcards" in {
-      val rootPath = Paths.get(threeFilesInSubDirPath)
-      val scalaFiles = rootPath.matcher("**/file1a.jp2")
-
-      rootPath.descendants().collect{ case s @ scalaFiles(_) => s }.size mustEqual 1
-    }
-  }
+  //TODO(AR) disabled these tests as they seem to be testing the scalax.file.Path library rather than CSV Validator code
+//  "File wildcards selection" should {
+//
+//    "count multiple files in single directory using wildcards" in {
+//      val rootPath = Paths.get(threeFilesPath)
+//      val scalaFiles = rootPath.matcher("**/*.jp2")
+//
+//      rootPath.descendants().collect{ case s @ scalaFiles(_) => s }.size mustEqual 3
+//    }
+//
+//    "count multiple files in subdirectories using wildcards" in {
+//      val rootPath = Paths.get(threeFilesInSubDirPath)
+//      val scalaFiles = rootPath.matcher("**/*.jp2")
+//
+//      rootPath.descendants().collect{ case s @ scalaFiles(_) => s }.size mustEqual 3
+//    }
+//
+//    "count multiple files in subdirectories, using wildcards" in {
+//      val rootPath = Paths.get(threeFilesInSubDirPath)
+//      val scalaFiles = rootPath.matcher("**/file*a.jp2")
+//
+//      rootPath.descendants().collect{ case s @ scalaFiles(_) => s }.size mustEqual 3
+//    }
+//
+//    "count files without looking in subdirectories, NO wildcards" in {
+//      val rootPath = Paths.get(threeFilesInSubDirPath)
+//      val scalaFiles = rootPath.matcher("**/file1a.jp2")
+//
+//      rootPath.descendants().collect{ case s @ scalaFiles(_) => s }.size mustEqual 1
+//    }
+//  }
 
   "fileCount" should {
     "find a match on a directory" in {

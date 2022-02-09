@@ -15,7 +15,7 @@ import Scalaz._
 import java.util.regex.{Matcher, Pattern}
 import java.net.URI
 import scala.util.{Try, Using}
-import java.io.{FileNotFoundException, FilenameFilter}
+import java.io.FileNotFoundException
 import java.net.URLDecoder
 import java.nio.file.{FileVisitOption, Files, Path, Paths, SimpleFileVisitor}
 import java.util.stream.Collectors
@@ -230,8 +230,8 @@ object Util {
       * This ensures case-sensitivity
       * and is useful on platforms such as
       * Windows NTFS which are case-insensitive,
-      * where new File("test.txt").exists
-      * and new File("TEST.TXT").exists
+      * where {@code Files.exists(Paths.get("test.txt"))}
+      * and {@code Files.exists(Paths.get("TEST.TXT"))}
       * may both return true when there is
       * only one file.
       */
