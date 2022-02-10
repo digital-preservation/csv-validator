@@ -25,8 +25,8 @@ class PopupMenu(title0: String) extends SequentialContainer.Wrapper { self: Popu
  * scala.swing classes
  */
 object PopupMenuImplicits {
-  implicit def componentPopupMenu(component: Component): { def popupMenu(menu: PopupMenu) } = new {
-    def popupMenu(menu: PopupMenu) {
+  implicit def componentPopupMenu(component: Component): { def popupMenu(menu: PopupMenu) : Unit } = new {
+    def popupMenu(menu: PopupMenu) : Unit = {
       component.peer.setComponentPopupMenu(menu.peer)
     }
   }

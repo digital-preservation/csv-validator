@@ -100,7 +100,7 @@ object Util {
     } match {
       case util.Success(list) if list.nonEmpty =>
         list
-      case util.Failure(_) =>
+      case _ =>
         Seq.empty
     }
   }
@@ -121,9 +121,9 @@ object Util {
         .collect(Collectors.toList[P])
         .asScala.toSeq.map(_.asInstanceOf[Path])
     } match {
-      case util.Success(list) if list.nonEmpty =>
+      case util.Success(list) =>
         list
-      case util.Failure(_) =>
+      case _ =>
         Seq.empty
     }
   }

@@ -29,7 +29,7 @@ object ScalaSwingHelpers {
    * @param output A text component which displays the absolute path of the chosen file
    * @param locateOver A component over which the FileChooser dialog should be located
    */
-  def chooseFile(fileChooser: FileChooser, output: TextComponent, locateOver: Component) {
+  def chooseFile(fileChooser: FileChooser, output: TextComponent, locateOver: Component) : Unit = {
     chooseFile(fileChooser, {f => output.text = f.toAbsolutePath.toString; None}, locateOver)
   }
 
@@ -40,7 +40,7 @@ object ScalaSwingHelpers {
    * @param result A function which takes the chosen file
    * @param locateOver A component over which the FileChooser dialog should be located
    */
-  def chooseFile(fileChooser: FileChooser, result: Path => Option[IOException], locateOver: Component) {
+  def chooseFile(fileChooser: FileChooser, result: Path => Option[IOException], locateOver: Component) : Unit = {
     fileChooser.showSaveDialog(locateOver) match {
       case Result.Approve =>
         result(fileChooser.selectedFile.toPath) match {
@@ -62,7 +62,7 @@ object ScalaSwingHelpers {
    * @param table The table to create a dialog for
    * @param result A function which takes a row as the result of the dialog box
    */
-  def addToTableDialog(owner: Window, title: String, table: Table, result: Array[String] => Unit) {
+  def addToTableDialog(owner: Window, title: String, table: Table, result: Array[String] => Unit) : Unit = {
 
     val btnOk = new Button("Ok")
 
@@ -100,7 +100,7 @@ object ScalaSwingHelpers {
       } yield component.asInstanceOf[TextField].text
       textValues.toArray}
     ))
-    btnOk.reactions += onClick(dialog.close)
+    btnOk.reactions += onClick(dialog.close())
 
     dialog.visible = true
   }
@@ -130,6 +130,8 @@ object ScalaSwingHelpers {
   }
 
   def PropertyChangeListener(f: PropertyChangeEvent => Unit) = new PropertyChangeListener {
-    def propertyChange(e: PropertyChangeEvent) { f(e) }
+    def propertyChange(e: PropertyChangeEvent) : Unit = {
+      f(e)
+    }
   }
 }

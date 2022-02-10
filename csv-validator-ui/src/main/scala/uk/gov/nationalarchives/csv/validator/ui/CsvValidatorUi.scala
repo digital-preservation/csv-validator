@@ -35,6 +35,8 @@ import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.{Files, Path, Paths, StandardOpenOption}
 import scala.util.Using
 
+import scala.language.reflectiveCalls
+
 /**
  * Simple GUI for the CSV Validator
  *
@@ -42,7 +44,7 @@ import scala.util.Using
  */
 object CsvValidatorUi extends SimpleSwingApplication {
 
-  override def startup(args: Array[String]) {
+  override def startup(args: Array[String]) : Unit = {
     try {
       UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName)
     } catch {
@@ -107,7 +109,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
     }
   }
 
-  private def displayWait(suspendUi: => Unit, action: (String => Unit) => Unit, output: String => Unit, resumeUi: => Unit) {
+  private def displayWait(suspendUi: => Unit, action: (String => Unit) => Unit, output: String => Unit, resumeUi: => Unit) : Unit = {
     import scala.concurrent.Future
     import scala.concurrent.ExecutionContext.Implicits.global
     import scala.util.{Success, Failure}
@@ -128,7 +130,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
     }
   }
 
-  private def validate(csvFilePath: String, csvEncoding: Charset, csvSchemaFilePath: String, csvSchemaEncoding: Charset, failOnFirstError: Boolean, pathSubstitutions: List[(String, String)], enforceCaseSensitivePathChecks: Boolean, progress: Option[ProgressCallback], validateEncoding: Boolean)(output: String => Unit) {
+  private def validate(csvFilePath: String, csvEncoding: Charset, csvSchemaFilePath: String, csvSchemaEncoding: Charset, failOnFirstError: Boolean, pathSubstitutions: List[(String, String)], enforceCaseSensitivePathChecks: Boolean, progress: Option[ProgressCallback], validateEncoding: Boolean)(output: String => Unit) : Unit = {
     output("")
     output(CsvValidatorCmdApp.validate(
       TextFile(Paths.get(csvFilePath), csvEncoding, validateEncoding),
@@ -175,7 +177,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
     }
   }
 
-  private def saveSettings(settings: Settings) {
+  private def saveSettings(settings: Settings) : Unit = {
     if(!Files.exists(settingsFile)) {
       Files.createDirectories(settingsFile.getParent)
     }
@@ -256,14 +258,14 @@ object CsvValidatorUi extends SimpleSwingApplication {
     progressBar.labelPainted = true
     progressBar.label = ""
     private val progress = new ProgressCallback {
-      override def update(complete: this.type#Percentage) {
+      override def update(complete: this.type#Percentage) : Unit = {
         Swing.onEDT {
           progressBar.label = null
           progressBar.value = complete.toInt
         }
       }
 
-      override def update(total: Int, processed: Int) {
+      override def update(total: Int, processed: Int) : Unit = {
         Swing.onEDT {
           progressBar.max = total.toInt
           progressBar.value = processed
@@ -272,7 +274,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
       }
     }
 
-    def outputToReport(data: String) {
+    def outputToReport(data: String) : Unit = {
       Swing.onEDT {
         txtArReport.text = data
       }
@@ -298,7 +300,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
     private val separator2 = new Separator
 
     private val btnClose = new Button("Close")
-    btnClose.reactions += onClick(quit)
+    btnClose.reactions += onClick(quit())
 
     private val reportFileChooser = new FileChooser(loadSettings match {
       case Some(s) =>
@@ -344,7 +346,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
     layout.row.grid(lblVersion)
   }
 
-  def updateLastPath(fileChooser: FileChooser, sink: Path => Settings) {
+  def updateLastPath(fileChooser: FileChooser, sink: Path => Settings) : Unit = {
     Option(fileChooser.selectedFile) match {
       case Some(selection) =>
         saveSettings(sink(selection.toPath.getParent))
@@ -387,11 +389,11 @@ object CsvValidatorUi extends SimpleSwingApplication {
       preferredViewportSize = new Dimension(500, 70)
       model = new DefaultTableModel(Array[Object]("From", "To"), 0)
 
-      def addRow(rowData: Array[String]) {
+      def addRow(rowData: Array[String]) : Unit = {
         model.asInstanceOf[DefaultTableModel].addRow(rowData.asInstanceOf[Array[AnyRef]])
       }
 
-      def removeSelectedRow() {
+      def removeSelectedRow() : Unit = {
         model.asInstanceOf[DefaultTableModel].removeRow(peer.getSelectedRow)
       }
 
@@ -402,7 +404,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
 
     private val popupMenu = new PopupMenu
     private val miRemove = new MenuItem("Remove Path Substitution")
-    miRemove.reactions += onClick(tblPathSubstitutions.removeSelectedRow)
+    miRemove.reactions += onClick(tblPathSubstitutions.removeSelectedRow())
     popupMenu.contents += miRemove
     tblPathSubstitutions.popupMenu(popupMenu)
 

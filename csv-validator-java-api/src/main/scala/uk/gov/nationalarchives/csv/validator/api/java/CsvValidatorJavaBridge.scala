@@ -90,7 +90,7 @@ object CsvValidatorJavaBridge {
 
   private def validate(csvData: JReader, csvSchema: JReader, failFast: Boolean, pathSubstitutionsList: JList[Substitution],  enforceCaseSensitivePathChecks: Boolean, trace: Boolean, progress: Option[SProgressCallback]): JList[FailMessage] = {
 
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
 
     val pathSubs: List[(String,String)] = pathSubstitutionsList.asScala.map( x => (x.getFrom, x.getTo)).toList
 

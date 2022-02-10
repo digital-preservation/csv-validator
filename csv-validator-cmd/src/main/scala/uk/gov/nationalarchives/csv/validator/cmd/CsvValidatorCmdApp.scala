@@ -69,7 +69,7 @@ object CsvValidatorCmdApp extends App {
         opt[Charset]('x', "csv-encoding").optional().action { (x,c) => c.copy(csvEncoding = x) } text("Defines the charset encoding used in the CSV file")
         opt[Charset]('y', "csv-schema-encoding").optional().action { (x,c) => c.copy(csvSchemaEncoding = x) }.text("Defines the charset encoding used in the CSV Schema file")
         opt[Unit]("disable-utf8-validation").optional().action {(_, c) => c.copy(disableUtf8Validation = true)}.text("Disable UTF-8 validation for CSV files.")
-        opt[Unit]("show-progress").optional().action {(_, c) => c.copy(progressCallback = Some(commandLineProgressCallback))}.text("Show progress")
+        opt[Unit]("show-progress").optional().action {(_, c) => c.copy(progressCallback = Some(commandLineProgressCallback()))}.text("Show progress")
         arg[Path]("<csv-path>").validate { x => if(Files.exists(x) && Files.isReadable(x)) success else failure(s"Cannot access CSV file: ${x.toString}") }.action { (x,c) => c.copy(csvPath = x) }.text("The path to the CSV file to validate")
         arg[Path]("<csv-schema-path>").validate { x => if(Files.exists(x) && Files.isReadable(x)) success else failure(s"Cannot access CSV Schema file: ${x.toString}") }.action { (x,c) => c.copy(csvSchemaPath = x) }.text("The path to the CSV Schema file to use for validation")
     }

@@ -55,11 +55,12 @@ trait FailFastMetaDataValidator extends MetaDataValidator {
     @tailrec
     def validateRules(columnDefinitions: List[(ColumnDefinition, Int)], accum: List[MetaDataValidation[Any]] = List.empty) : List[MetaDataValidation[Any]] = {
       columnDefinitions match {
-        case Nil if(accum.isEmpty) =>
-          List(true.successNel[FailMessage])
-
-        case Nil if(accum.nonEmpty) =>
-          accum.reverse
+        case Nil =>
+          if (accum.isEmpty) {
+            List(true.successNel[FailMessage])
+          } else {
+            accum.reverse
+          }
 
         case (columnDefinition, columnIndex) :: tail =>
           validateCell(columnIndex, cells, row, schema, mayBeLast) match {

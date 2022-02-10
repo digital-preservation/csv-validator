@@ -410,7 +410,7 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
           checksum(f)
         }
 
-      case scala.util.Failure(_) =>
+      case _ =>
         s"""file "${FileSystem.file2PatformDependent(file)}" not found""".failureNel[String]
     }
   }
@@ -577,7 +577,7 @@ trait FileWildcardSearch[T] {
       } else if(!fileExists) {
         s"""file "${TypedPath(fullPath).toPlatform}" not found""".failureNel[T]
       } else {
-        matchSimplePath(basePath + System.getProperty("file.separator") + matchPath)
+        matchSimplePath(basePath.toString + System.getProperty("file.separator") + matchPath)
       }
     } catch {
       case err:Throwable =>
