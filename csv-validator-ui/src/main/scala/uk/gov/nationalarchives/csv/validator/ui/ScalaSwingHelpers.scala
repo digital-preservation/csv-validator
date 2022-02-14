@@ -41,7 +41,7 @@ object ScalaSwingHelpers {
    * @param locateOver A component over which the FileChooser dialog should be located
    */
   def chooseFile(fileChooser: FileChooser, result: File => Unit, locateOver: Component) {
-    fileChooser.showOpenDialog(locateOver) match {
+    fileChooser.showSaveDialog(locateOver) match {
       case Result.Approve =>
         result(fileChooser.selectedFile)
       case Result.Cancel =>
