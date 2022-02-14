@@ -10,10 +10,11 @@ package uk.gov.nationalarchives.csv.validator.ui
 
 import scala.swing._
 import resource._
+
 import javax.swing._
 import net.java.dev.designgridlayout._
-import java.io.{File, FileInputStream, FileOutputStream, PrintWriter}
 
+import java.io.{File, FileInputStream, FileOutputStream, IOException}
 import table.DefaultTableModel
 import uk.gov.nationalarchives.csv.validator.cmd.CsvValidatorCmdApp
 
@@ -22,24 +23,19 @@ import uk.gov.nationalarchives.csv.validator.ui.DesignGridImplicits._
 
 import scala.swing.PopupMenuImplicits._
 import ScalaSwingHelpers._
-import java.awt.{Cursor, Font}
-import java.util.Properties
 
+import java.awt.Cursor
+import java.util.Properties
 import scalax.file.Path
 import uk.gov.nationalarchives.csv.validator.ProgressCallback
-import java.nio.charset.Charset
 
+import java.nio.charset.Charset
 import uk.gov.nationalarchives.csv.validator.api.TextFile
+
 import java.util.jar.{Attributes, Manifest}
 import java.net.URL
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.{Files, StandardOpenOption}
-
-import scala.swing.Dialog.Message
-import scala.swing.event.ButtonClicked
-import javax.swing
-
-import scala.swing
 
 /**
  * Simple GUI for the CSV Validator
@@ -153,9 +149,14 @@ object CsvValidatorUi extends SimpleSwingApplication {
    * @param s
    * @param f
    */
-  private def saveToFile(s: String, f: File) {
+  private def saveToFile(s: String, f: File) : Option[IOException] = {
     val data : Array[Byte] =  s.getBytes(UTF_8)
-    Files.write(f.toPath, data, StandardOpenOption.WRITE)
+    try {
+      Files.write(f.toPath, data, StandardOpenOption.WRITE, StandardOpenOption.CREATE_NEW)
+      None
+    } catch {
+      case ioe: IOException => Some(ioe)
+    }
   }
 
   case class Settings(lastCsvPath: File, lastCsvSchemaPath: File, lastReportPath: File)
