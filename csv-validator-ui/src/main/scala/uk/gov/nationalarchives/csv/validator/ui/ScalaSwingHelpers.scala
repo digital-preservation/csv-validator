@@ -9,12 +9,12 @@
 package uk.gov.nationalarchives.csv.validator.ui
 
 import swing._
-import scala.swing.event.{MouseClicked, KeyPressed, Key, ButtonClicked}
-import java.io.File
+import scala.swing.event.{ButtonClicked, Key, KeyPressed, MouseClicked}
+import java.io.{File, IOException}
 import swing.FileChooser.Result
 import swing.GridBagPanel.Anchor
-import java.awt.event.{MouseEvent, MouseListener, ActionListener, ActionEvent}
 import java.beans.{PropertyChangeEvent, PropertyChangeListener}
+import scala.swing.Dialog.Message
 
 /**
  * Some simple helpers to ease
@@ -30,7 +30,7 @@ object ScalaSwingHelpers {
    * @param locateOver A component over which the FileChooser dialog should be located
    */
   def chooseFile(fileChooser: FileChooser, output: TextComponent, locateOver: Component) {
-    chooseFile(fileChooser, f => output.text = f.getAbsolutePath, locateOver)
+    chooseFile(fileChooser, {f => output.text = f.getAbsolutePath; None}, locateOver)
   }
 
   /**
@@ -40,10 +40,15 @@ object ScalaSwingHelpers {
    * @param result A function which takes the chosen file
    * @param locateOver A component over which the FileChooser dialog should be located
    */
-  def chooseFile(fileChooser: FileChooser, result: File => Unit, locateOver: Component) {
+  def chooseFile(fileChooser: FileChooser, result: File => Option[IOException], locateOver: Component) {
     fileChooser.showSaveDialog(locateOver) match {
       case Result.Approve =>
-        result(fileChooser.selectedFile)
+        result(fileChooser.selectedFile) match {
+          case Some(ioe) =>
+            ioe.printStackTrace()
+            Dialog.showMessage(fileChooser, s"${ioe.getClass.getName}: ${ioe.getMessage}", "Unable to Save file", Message.Error)
+          case None =>
+        }
       case Result.Cancel =>
     }
   }
