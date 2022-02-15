@@ -12,14 +12,15 @@ import scala.language.postfixOps
 import scalaz._
 import Scalaz._
 
-import java.util.regex.{Matcher, Pattern}
-import java.net.URI
-import scala.util.{Try, Using}
 import java.io.FileNotFoundException
+import java.net.URI
 import java.net.URLDecoder
+import java.nio.file.FileSystems
 import java.nio.file.{FileVisitOption, Files, Path, Paths, SimpleFileVisitor}
+import java.util.regex.{Matcher, Pattern}
 import java.util.stream.Collectors
 import scala.annotation.tailrec
+import scala.util.{Try, Using}
 import scala.jdk.CollectionConverters._
 
 
@@ -82,17 +83,13 @@ object Util {
 
   }
 
-  def descendants[P >: Path](path: Path, pattern: String) : Seq[Path] = {
-    val matcher = Pattern.compile(pattern).matcher("")
-    descendants(path, path => {
-        matcher.reset(path.getFileName.toString)
-        matcher.matches()
-    })
+  def descendants[P >: Path](path: Path, globPattern: String) : Seq[Path] = {
+    val pathMatcher = FileSystems.getDefault.getPathMatcher(s"glob:$globPattern")
+    descendants(path, pathMatcher.matches(_))
   }
 
   def descendants[P >: Path](path: Path, predicate: P => Boolean) : Seq[Path] = {
-    val x = Files.walk(path, Array.empty[FileVisitOption] :_*)
-    Using(x) { stream =>
+    Using(Files.walk(path, Array.empty[FileVisitOption] :_*)) { stream =>
       stream
         .filter(p => predicate(p))
         .collect(Collectors.toList[P])
@@ -105,19 +102,15 @@ object Util {
     }
   }
 
-  def children[P >: Path](path: Path, pattern: String) : Seq[Path] = {
-    val matcher = Pattern.compile(pattern).matcher("")
-    children(path, path => {
-      matcher.reset(path.getFileName.toString)
-      matcher.matches()
-    })
+  def children[P >: Path](path: Path, globPattern: String) : Seq[Path] = {
+    val pathMatcher = FileSystems.getDefault.getPathMatcher(s"glob:$globPattern")
+    children(path, pathMatcher.matches(_))
   }
 
   def children[P >: Path](path: Path, predicate: P => Boolean) : Seq[Path] = {
-    val x = Files.walk(path, 1, Array.empty[FileVisitOption] :_*)
-    Using(x) { stream =>
+    Using(Files.list(path)) { stream =>
       stream
-        .filter(p => predicate(p))
+        .filter(predicate(_))
         .collect(Collectors.toList[P])
         .asScala.toSeq.map(_.asInstanceOf[Path])
     } match {
@@ -296,7 +289,7 @@ object Util {
 
       FileSystem.createFile(FileSystem.convertPath2Platform(substitutePath(jointPath))) match {
         case scala.util.Success(f) => {
-          val exists = Files.exists(f)
+          val exists = Files.exists(f) && !f.getFileName.toString.isEmpty
           if(exists && enforceCaseSensitivePathChecks) {
             FileSystem.caseSensitivePathMatchesFs(f)
           } else {

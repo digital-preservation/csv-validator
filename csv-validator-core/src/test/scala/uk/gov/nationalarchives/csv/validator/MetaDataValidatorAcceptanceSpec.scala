@@ -298,7 +298,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
   "A fileExists rule" should {
 
     val schemaPath = Paths.get(base).resolve("fileExistsSchema.csvs")
-    val schemaTemplate = Files.readAllLines(schemaPath).asScala.mkString
+    val schemaTemplate = Files.readAllLines(schemaPath).asScala.mkString(EOL)
     val schema = schemaTemplate.replace("$$acceptancePath$$", base)
 
     "ensure the file exists on the file system" in {
@@ -308,7 +308,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
     "ensure the file exists on the file system" in {
 
       val csvPath = Paths.get(base).resolve("fileExistsCrossRefPassMetaData.csv")
-      val csvTemplate = Files.readAllLines(csvPath).asScala.mkString
+      val csvTemplate = Files.readAllLines(csvPath).asScala.mkString(EOL)
       val csv = csvTemplate.replace("$$acceptancePath$$", base)
 
       validateR(new StringReader(csv), parse(base + "/fileExistsCrossRefSchema.csvs")).isSuccess mustEqual true
@@ -325,7 +325,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
     "enforce case-sensitive comparisons when case-sensitive comparisons are set" in {
 
       val csfSchemaPath = Paths.get(base).resolve("caseSensitiveFiles.csvs")
-      val csfSchemaTemplate = Files.readAllLines(csfSchemaPath).asScala.mkString
+      val csfSchemaTemplate = Files.readAllLines(csfSchemaPath).asScala.mkString(EOL)
       val csfSchema = csfSchemaTemplate.replace("$$acceptancePath$$", base)
 
       validateE(TextFile(Paths.get(base).resolve("caseSensitiveFiles.csv")), parseE(new StringReader(csfSchema)), None) must beLike {
@@ -368,7 +368,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
     "enforce case-sensitive comparisons when case-sensitive comparisons are set" in {
 
       val csfSchemaPath = Paths.get(base).resolve("caseSensitiveFilesChecksum.csvs")
-      val csfSchemaTemplate = Files.readAllLines(csfSchemaPath).asScala.mkString
+      val csfSchemaTemplate = Files.readAllLines(csfSchemaPath).asScala.mkString(EOL)
       val csfSchema = csfSchemaTemplate.replace("$$acceptancePath$$", base)
 
       validateE(TextFile(Paths.get(base).resolve("caseSensitiveFilesChecksum.csv")), parseE(new StringReader(csfSchema)), None) must beLike {
