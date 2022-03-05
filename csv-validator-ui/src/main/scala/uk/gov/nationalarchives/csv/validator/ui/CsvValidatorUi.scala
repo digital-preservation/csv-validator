@@ -34,7 +34,6 @@ import java.net.URL
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.{Files, Path, Paths, StandardOpenOption}
 import scala.util.Using
-import scalax.file.{Path => SXPath}
 
 import scala.language.reflectiveCalls
 
@@ -134,8 +133,8 @@ object CsvValidatorUi extends SimpleSwingApplication {
   private def validate(csvFilePath: String, csvEncoding: Charset, csvSchemaFilePath: String, csvSchemaEncoding: Charset, failOnFirstError: Boolean, pathSubstitutions: List[(String, String)], enforceCaseSensitivePathChecks: Boolean, progress: Option[ProgressCallback], validateEncoding: Boolean)(output: String => Unit) : Unit = {
     output("")
     output(CsvValidatorCmdApp.validate(
-      TextFile(SXPath.fromString(csvFilePath), csvEncoding, validateEncoding),
-      TextFile(SXPath.fromString(csvSchemaFilePath), csvSchemaEncoding),
+      TextFile(Paths.get(csvFilePath), csvEncoding, validateEncoding),
+      TextFile(Paths.get(csvSchemaFilePath), csvSchemaEncoding),
       failOnFirstError,
       pathSubstitutions,
       enforceCaseSensitivePathChecks,

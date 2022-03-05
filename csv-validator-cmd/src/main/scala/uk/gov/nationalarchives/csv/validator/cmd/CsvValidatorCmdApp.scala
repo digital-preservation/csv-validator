@@ -77,7 +77,15 @@ object CsvValidatorCmdApp extends App {
     //parse the command line arguments
     parser.parse(args, new Config()) map {
       config =>
-        validate(TextFile(config.csvPath, config.csvEncoding, !config.disableUtf8Validation), TextFile(config.csvSchemaPath, config.csvSchemaEncoding), config.failFast, config.substitutePaths, config.caseSensitivePaths, config.traceParser, config.progressCallback)
+        validate(
+          TextFile(config.csvPath, config.csvEncoding, !config.disableUtf8Validation),
+          TextFile(config.csvSchemaPath, config.csvSchemaEncoding),
+          config.failFast,
+          config.substitutePaths,
+          config.caseSensitivePaths,
+          config.traceParser,
+          config.progressCallback
+        )
     } getOrElse {
       //arguments are bad, usage message will have been displayed
       ("", SystemExitCodes.IncorrectArguments)
