@@ -152,7 +152,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
   private def saveToFile(s: String, f: Path) : Option[IOException] = {
     val data : Array[Byte] =  s.getBytes(UTF_8)
     try {
-      Files.write(f.toPath, data, StandardOpenOption.WRITE, StandardOpenOption.CREATE_NEW)
+      Files.write(f, data, StandardOpenOption.WRITE, StandardOpenOption.CREATE_NEW)
       None
     } catch {
       case ioe: IOException => Some(ioe)
