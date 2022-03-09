@@ -15,6 +15,7 @@ import swing.GridBagPanel.Anchor
 import java.beans.{PropertyChangeEvent, PropertyChangeListener}
 import java.nio.file.Path
 import scala.swing.Dialog.Message
+import java.io.IOException
 
 /**
  * Some simple helpers to ease
