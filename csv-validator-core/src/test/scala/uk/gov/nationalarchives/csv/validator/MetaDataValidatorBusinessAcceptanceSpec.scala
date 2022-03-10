@@ -13,8 +13,9 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import scalaz._
 import uk.gov.nationalarchives.csv.validator.schema.Schema
-import uk.gov.nationalarchives.csv.validator.api.{TextFile, CsvValidator}
-import scalax.file.Path
+import uk.gov.nationalarchives.csv.validator.api.{CsvValidator, TextFile}
+
+import java.nio.file.Paths
 
 @RunWith(classOf[JUnitRunner])
 class MetaDataValidatorBusinessAcceptanceSpec extends Specification with TestResources {
@@ -24,18 +25,18 @@ class MetaDataValidatorBusinessAcceptanceSpec extends Specification with TestRes
   val v: CsvValidator = new CsvValidator with AllErrorsMetaDataValidator { val pathSubstitutions = List[(String,String)](); val enforceCaseSensitivePathChecks = false; val trace = false }
   import v.{validate, parseSchema}
 
-  def parse(filePath: String): Schema = parseSchema(TextFile(Path.fromString(filePath))) fold (f => throw new IllegalArgumentException(f.toString()), s => s)
+  def parse(filePath: String): Schema = parseSchema(TextFile(Paths.get(filePath))) fold (f => throw new IllegalArgumentException(f.toString()), s => s)
 
   "Regex rule" should {
 
     "succeed" in {
-      validate(TextFile(Path.fromString(base) / "regexRulePassMetaData.csv"), parse(base + "/regexRuleSchema.csvs"), None) must beLike {
+      validate(TextFile(Paths.get(base).resolve("regexRulePassMetaData.csv")), parse(base + "/regexRuleSchema.csvs"), None) must beLike {
         case Success(_) => ok
       }
     }
 
     "fail" in {
-      validate(TextFile(Path.fromString(base) / "regexRuleFailMetaData.csv"), parse(base + "/regexRuleSchema.csvs"), None) must beLike {
+      validate(TextFile(Paths.get(base).resolve("regexRuleFailMetaData.csv")), parse(base + "/regexRuleSchema.csvs"), None) must beLike {
         case Failure(_) => ok
       }
     }

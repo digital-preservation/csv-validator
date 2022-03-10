@@ -12,10 +12,10 @@ import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.api.{CsvValidator, TextFile}
-import uk.gov.nationalarchives.csv.validator.schema.{TraceableParsers, Schema}
+import uk.gov.nationalarchives.csv.validator.schema.Schema
+import scalaz.Failure
 
-import scalax.file.Path
-import scalaz.{Failure, Success}
+import java.nio.file.Paths
 
 @RunWith(classOf[JUnitRunner])
 class MetaDataValidatorIntegrityCheckSpec extends Specification with TestResources {
@@ -26,7 +26,7 @@ class MetaDataValidatorIntegrityCheckSpec extends Specification with TestResourc
     val trace = false
   }
 
-  def parse(filePath: String, validator: CsvValidator): Schema = validator.parseSchema(TextFile(Path.fromString(filePath))) fold (f => throw new IllegalArgumentException(f.toString()), s => s)
+  def parse(filePath: String, validator: CsvValidator): Schema = validator.parseSchema(TextFile(Paths.get(filePath))) fold (f => throw new IllegalArgumentException(f.toString()), s => s)
 
   "integrity Check" should {
     val headerPath = integrityCheckPath + "/header/"
@@ -38,7 +38,7 @@ class MetaDataValidatorIntegrityCheckSpec extends Specification with TestResourc
 
       val substitutionPaths = List(("file:///T:/WORK/RF_5/",headerPath))
       val validator = buildValidator(substitutionPaths)
-      validator.validate(TextFile(Path.fromString(headerPath) / "integrityCheckMetaData.csv"), parse(headerPath + "/integrityCheckSchema.csvs",validator), None).isSuccess mustEqual true
+      validator.validate(TextFile(Paths.get(headerPath).resolve("integrityCheckMetaData.csv")), parse(headerPath + "/integrityCheckSchema.csvs",validator), None).isSuccess mustEqual true
 
 
     }
@@ -47,7 +47,7 @@ class MetaDataValidatorIntegrityCheckSpec extends Specification with TestResourc
 
       val substitutionPaths = List(("file:///T:/WORK/RF_5/",headerPath))
       val validator = buildValidator(substitutionPaths)
-      validator.validate(TextFile(Path.fromString(headerPath) / "integrityCheckMetaData.csv"), parse(headerPath + "/integrityCheckDefaultIncludeFolderSchema.csvs",validator), None).isSuccess mustEqual true
+      validator.validate(TextFile(Paths.get(headerPath).resolve("integrityCheckMetaData.csv")), parse(headerPath + "/integrityCheckDefaultIncludeFolderSchema.csvs",validator), None).isSuccess mustEqual true
 
     }
 
@@ -57,7 +57,7 @@ class MetaDataValidatorIntegrityCheckSpec extends Specification with TestResourc
       val substitutionPaths = List(("file:///T:/WORK/RF_5/",headerPath))
       //      val validator = buildValidator(substitutionPaths, Some("filename"))
       val validator = buildValidator(substitutionPaths)
-      val result = validator.validate(TextFile(Path.fromString(headerPath) / "integrityCheckMetaData-missing-files.csv"), parse(headerPath + "/integrityCheckSchema.csvs",validator), None)
+      val result = validator.validate(TextFile(Paths.get(headerPath).resolve("integrityCheckMetaData-missing-files.csv")), parse(headerPath + "/integrityCheckSchema.csvs",validator), None)
 
       result.isFailure mustEqual true
       val Failure(message) = result
@@ -70,7 +70,7 @@ class MetaDataValidatorIntegrityCheckSpec extends Specification with TestResourc
 
       val substitutionPaths = List(("file:///T:/WORK/RF_5/",headerPath))
       val validator = buildValidator(substitutionPaths)
-      val result = validator.validate(TextFile(Path.fromString(headerPath) / "integrityCheckMetaData-missing-files.csv"), parse(headerPath + "/integrityCheckSchema.csvs",validator), None)
+      val result = validator.validate(TextFile(Paths.get(headerPath).resolve("integrityCheckMetaData-missing-files.csv")), parse(headerPath + "/integrityCheckSchema.csvs",validator), None)
 
       result.isFailure mustEqual true
       val Failure(message) = result
@@ -85,7 +85,7 @@ class MetaDataValidatorIntegrityCheckSpec extends Specification with TestResourc
       val substitutionPaths = List(("file:///T:/WORK/RF_5/",noHeaderPath))
       val validator = buildValidator(substitutionPaths)
       val schema: Schema = parse(noHeaderPath + "/integrityCheckSchema.csvs", validator)
-      validator.validate(TextFile(Path.fromString(noHeaderPath) / "integrityCheckMetaData.csv"), schema, None).isSuccess mustEqual true
+      validator.validate(TextFile(Paths.get(noHeaderPath).resolve("integrityCheckMetaData.csv")), schema, None).isSuccess mustEqual true
 
     }
 
@@ -94,7 +94,7 @@ class MetaDataValidatorIntegrityCheckSpec extends Specification with TestResourc
 
       val substitutionPaths = List(("file:///T:/WORK/RF_5/",noHeaderPath))
       val validator = buildValidator(substitutionPaths)
-      val result = validator.validate(TextFile(Path.fromString(noHeaderPath) / "integrityCheckMetaData.csv"), parse(noHeaderPath + "/badIntegrityCheckSchema.csvs",validator), None)
+      val result = validator.validate(TextFile(Paths.get(noHeaderPath).resolve("integrityCheckMetaData.csv")), parse(noHeaderPath + "/badIntegrityCheckSchema.csvs",validator), None)
       result.isFailure mustEqual true
       val Failure(message) = result
       // println(message)
@@ -105,14 +105,14 @@ class MetaDataValidatorIntegrityCheckSpec extends Specification with TestResourc
 
       val substitutionPaths = List(("file:///WO_95",WO95Path))
       val validator = buildValidator(substitutionPaths)
-      validator.validate(TextFile(Path.fromString(WO95Path) / "tech_acq_metadata_v1_WO95Y14B003.csv"), parse(WO95Path + "/tech_acq_metadata_v1_WO95Y14B000.csvs",validator), None).isSuccess mustEqual true
+      validator.validate(TextFile(Paths.get(WO95Path).resolve("tech_acq_metadata_v1_WO95Y14B003.csv")), parse(WO95Path + "/tech_acq_metadata_v1_WO95Y14B000.csvs",validator), None).isSuccess mustEqual true
     }
 
     "Validate WO 95 with 1.2 schema version to test backward compatibility" in {
 
       val substitutionPaths = List(("file:///WO_95",WO95Path))
       val validator = buildValidator(substitutionPaths)
-      validator.validate(TextFile(Path.fromString(WO95Path) / "tech_acq_metadata_v1_WO95Y14B003.csv"), parse(WO95Path + "/tech_acq_metadata_v1_WO95Y14B000_v1.2.csvs",validator), None).isSuccess mustEqual true
+      validator.validate(TextFile(Paths.get(WO95Path).resolve("tech_acq_metadata_v1_WO95Y14B003.csv")), parse(WO95Path + "/tech_acq_metadata_v1_WO95Y14B000_v1.2.csvs",validator), None).isSuccess mustEqual true
     }
 
 
@@ -122,15 +122,15 @@ class MetaDataValidatorIntegrityCheckSpec extends Specification with TestResourc
 
 
       val validator = buildValidator(substitutionPaths)
-      validator.validate(TextFile(Path.fromString(headerPath) / "integrityCheckMetaData.csv"), parse(headerPath + "/integrityCheckSchema.csvs",validator), None).isSuccess mustEqual true
+      validator.validate(TextFile(Paths.get(headerPath).resolve("integrityCheckMetaData.csv")), parse(headerPath + "/integrityCheckSchema.csvs",validator), None).isSuccess mustEqual true
 
       val substitutionPaths2 = List(("file:///T:/WORK/RF_5/content/",headerPath + "content/"))
       val validator2 = buildValidator(substitutionPaths2)
-      validator2.validate(TextFile(Path.fromString(headerPath) / "integrityCheckMetaData.csv"), parse(headerPath + "/integrityCheckSchema.csvs",validator), None).isSuccess mustEqual true
+      validator2.validate(TextFile(Paths.get(headerPath).resolve("integrityCheckMetaData.csv")), parse(headerPath + "/integrityCheckSchema.csvs",validator), None).isSuccess mustEqual true
 
       val substitutionPaths3 = List(("file:///T:/WORK/RF_5/content/",headerPath + "content"))
       val validator3 = buildValidator(substitutionPaths3)
-      validator3.validate(TextFile(Path.fromString(headerPath) / "integrityCheckMetaData.csv"), parse(headerPath + "/integrityCheckSchema.csvs",validator), None).isSuccess mustEqual true
+      validator3.validate(TextFile(Paths.get(headerPath).resolve("integrityCheckMetaData.csv")), parse(headerPath + "/integrityCheckSchema.csvs",validator), None).isSuccess mustEqual true
     }
 
     "safely fail with incorrect substitution paths - header" in {
@@ -138,7 +138,7 @@ class MetaDataValidatorIntegrityCheckSpec extends Specification with TestResourc
       val substitutionPaths = List(("file:///T:/WORK/RF_5/content123",headerPath + "content123"))
 
       val validator = buildValidator(substitutionPaths)
-      validator.validate(TextFile(Path.fromString(headerPath) / "integrityCheckMetaData.csv"), parse(headerPath + "/integrityCheckSchema.csvs",validator), None).isFailure mustEqual true
+      validator.validate(TextFile(Paths.get(headerPath).resolve("integrityCheckMetaData.csv")), parse(headerPath + "/integrityCheckSchema.csvs",validator), None).isFailure mustEqual true
 
     }
 
@@ -146,7 +146,7 @@ class MetaDataValidatorIntegrityCheckSpec extends Specification with TestResourc
 
         val substitutionPaths = List(("file:///T:/WORK/RF_5", contentPath))
         val validator = buildValidator(substitutionPaths)
-        validator.validate(TextFile(Path.fromString(contentPath) / "integrityCheckMetaData.csv"), parse(contentPath + "/integrityCheckSchema.csvs",validator), None).isSuccess mustEqual true
+        validator.validate(TextFile(Paths.get(contentPath).resolve("integrityCheckMetaData.csv")), parse(contentPath + "/integrityCheckSchema.csvs",validator), None).isSuccess mustEqual true
       }
   }
 

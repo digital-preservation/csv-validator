@@ -18,7 +18,7 @@ import uk.gov.nationalarchives.csv.validator.ui.SJXTaskPane.ViewStateChanged
  * scala.swing compatible implementation of JXFrame
  */
 class SJXFrame(gc: java.awt.GraphicsConfiguration = null) extends Frame(gc) {
-  override lazy val peer: JFrame with InterfaceMixin = new JXFrame(gc) with InterfaceMixin with SuperMixin
+  override lazy val peer: JFrame with InterfaceMixin2 = new JXFrame(gc) with InterfaceMixin2 with SuperMixin
 }
 
 /**
@@ -45,7 +45,7 @@ class SJXTaskPane(title: String) extends Panel with Publisher {
   }
   def add(component: Component) = peer.add(component.peer)
   def collapsed = peer.isCollapsed
-  def collapsed_= (c : Boolean) {
+  def collapsed_= (c : Boolean) : Unit = {
     peer.setCollapsed(c)
   }
 }

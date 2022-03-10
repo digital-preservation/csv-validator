@@ -46,7 +46,7 @@ class SchemaParserColumnDirectivesSpec extends SchemaSpecBase {
                      |column1: @ignoreCase @ignoreCase""".stripMargin
 
       parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual IList(FailMessage(SchemaDefinitionError,
-        """[3.23] failure: `warning' expected but `i' found
+        """[3.23] failure: Invalid column definition
         |
         |column1: @ignoreCase @ignoreCase
         |                      ^""".stripMargin)) }
@@ -58,7 +58,7 @@ class SchemaParserColumnDirectivesSpec extends SchemaSpecBase {
                      |column1: @ignoreCase @optional @ignoreCase @optional""".stripMargin
 
       parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual IList(FailMessage(SchemaDefinitionError,
-       """[3.33] failure: `warning' expected but `i' found
+       """[3.33] failure: Invalid column definition
        |
        |column1: @ignoreCase @optional @ignoreCase @optional
        |                                ^""".stripMargin)) }
@@ -72,10 +72,9 @@ class SchemaParserColumnDirectivesSpec extends SchemaSpecBase {
                      |column3: @ignoreCase @ignoreCase @optional @optional""".stripMargin
 
       parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual IList(FailMessage(SchemaDefinitionError,
-        """[3.33] failure: `warning' expected but `i' found
+        """[3.33] failure: Invalid column definition
           |
           |column1: @ignoreCase @optional @ignoreCase @optional
-          |
           |                                ^""".stripMargin)) }
     }
 

@@ -9,15 +9,19 @@
 package uk.gov.nationalarchives.csv.validator
 
 import scala.language.postfixOps
-import scalax.file.Path
 import scalaz._
 import Scalaz._
-import java.util.regex.{Matcher, Pattern}
+
+import java.io.FileNotFoundException
 import java.net.URI
-import scala.util.Try
-import java.io.{FileNotFoundException, FilenameFilter, File}
 import java.net.URLDecoder
+import java.nio.file.FileSystems
+import java.nio.file.{FileVisitOption, Files, Path, Paths, SimpleFileVisitor}
+import java.util.regex.{Matcher, Pattern}
+import java.util.stream.Collectors
 import scala.annotation.tailrec
+import scala.util.{Try, Using}
+import scala.jdk.CollectionConverters._
 
 
 object Util {
@@ -26,9 +30,9 @@ object Util {
 
   def checkFilesReadable(files: List[Path]) = files.map(fileReadable).sequence[AppValidation, FailMessage]
 
-  def fileReadable(file: Path): AppValidation[FailMessage] = if (file.exists && file.canRead) FailMessage(SchemaDefinitionError, file.path).successNel[FailMessage] else fileNotReadableMessage(file).failureNel[FailMessage]
+  def fileReadable(file: Path): AppValidation[FailMessage] = if (Files.exists(file) && Files.isReadable(file)) FailMessage(SchemaDefinitionError, file.toAbsolutePath.toString).successNel[FailMessage] else fileNotReadableMessage(file).failureNel[FailMessage]
 
-  def fileNotReadableMessage(file: Path) = FailMessage(SchemaDefinitionError, "Unable to read file : " + file.path)
+  def fileNotReadableMessage(file: Path) = FailMessage(SchemaDefinitionError, "Unable to read file : " + file.toAbsolutePath)
 
   /**
     * Check if the list l1 contain all element in l2
@@ -65,17 +69,59 @@ object Util {
     * @param folder
     * @return List of all filename
     */
-  def findAllFiles(includeFolder : Boolean,folder: File): Set[File] = {
-    if (folder.exists()){
-      val these = folder.listFiles.toSet
+  def findAllFiles(includeFolder : Boolean, folder: Path): Set[Path] = {
+    if (Files.exists(folder)) {
+      val these = children(folder, _ => true).toSet
       val head = if (includeFolder) Set(folder) else Nil
-      (head ++ these.filter( f => if (!includeFolder) f.isFile else true) ++ these.filter(f => f.isDirectory && !(f.getName == "RECYCLER") && !(f.getName == "$RECYCLE.BIN")).flatMap(file => findAllFiles(includeFolder, file))).toSet
+      (head ++ these.filter( f => if (!includeFolder) !Files.isDirectory(f) else true) ++ these.filter(f => Files.isDirectory(f) && !(f.getFileName.toString == "RECYCLER") && !(f.getFileName.toString == "$RECYCLE.BIN")).flatMap(file => findAllFiles(includeFolder, file))).toSet
     }
     else
       throw new FileNotFoundException(s"Cannot find the folder $folder")
   }
 
+  class fileTreePredicateVisitor extends SimpleFileVisitor[Path] {
 
+  }
+
+  def descendants[P >: Path](path: Path, globPattern: String) : Seq[Path] = {
+    val pathMatcher = FileSystems.getDefault.getPathMatcher(s"glob:$globPattern")
+    descendants(path, pathMatcher.matches(_))
+  }
+
+  def descendants[P >: Path](path: Path, predicate: P => Boolean) : Seq[Path] = {
+    Using(Files.walk(path, Array.empty[FileVisitOption] :_*)) { stream =>
+      stream
+        .filter(p => predicate(p))
+        .collect(Collectors.toList[P])
+        .asScala.toSeq.map(_.asInstanceOf[Path])
+    } match {
+      case util.Success(list) if list.nonEmpty =>
+        list
+      case _ =>
+        Seq.empty
+    }
+  }
+
+  def children[P >: Path](path: Path, globPattern: String) : Seq[Path] = {
+    val pathMatcher = FileSystems.getDefault.getPathMatcher(s"glob:$globPattern")
+    children(path, pathMatcher.matches(_))
+  }
+
+  def children[P >: Path](path: Path, predicate: P => Boolean) : Seq[Path] = {
+    Using(Files.list(path)) { stream =>
+      stream
+        .filter(predicate(_))
+        .collect(Collectors.toList[P])
+        .asScala.toSeq.map(_.asInstanceOf[Path])
+    } match {
+      case util.Success(list) =>
+        list
+      case _ =>
+        Seq.empty
+    }
+  }
+
+  def listFiles(path: Path) : Seq[Path] = children(path, p => !Files.isDirectory(p))
 
   abstract class TypedPath {
 
@@ -152,7 +198,7 @@ object Util {
 
 
   object FileSystem {
-    def createFile(filename: String): Try[File] =  Try{ if( filename.startsWith("file:")) new File( new URI(file2PlatformIndependent(filename))) else  new File( URLDecoder.decode(filename, ENCODING.name()) )} //TODO encoding shudld not be hard-coded here. Should be determined from cmd-line/ui user setting
+    def createFile(filename: String): Try[Path] =  Try{ if( filename.startsWith("file:")) Paths.get(new URI(file2PlatformIndependent(filename))) else Paths.get(URLDecoder.decode(filename, ENCODING.name()) )} //TODO encoding shudld not be hard-coded here. Should be determined from cmd-line/ui user setting
 
     def replaceSpaces(file: String): String = file.replace(" ", "%20")
 
@@ -177,23 +223,21 @@ object Util {
       * This ensures case-sensitivity
       * and is useful on platforms such as
       * Windows NTFS which are case-insensitive,
-      * where new File("test.txt").exists
-      * and new File("TEST.TXT").exists
+      * where {@code Files.exists(Paths.get("test.txt"))}
+      * and {@code Files.exists(Paths.get("TEST.TXT"))}
       * may both return true when there is
       * only one file.
       */
     @tailrec
-    final def caseSensitivePathMatchesFs(f: File): Boolean = {
+    final def caseSensitivePathMatchesFs(f: Path): Boolean = {
 
-      val parent = Option(f.getAbsoluteFile.getParentFile)
+      val parent : Option[Path] = Option(f.toAbsolutePath.getParent)
       parent match {
         case None =>
           true //used to exit
 
         case Some(p) =>
-          val foundChild = p.list(new FilenameFilter {
-            def accept(dir: File, name: String): Boolean = name == f.getName
-          })
+          val foundChild = children(p, p => p.getFileName.toString == f.getFileName.toString)
           foundChild.nonEmpty && caseSensitivePathMatchesFs(p)
       }
     }
@@ -245,7 +289,7 @@ object Util {
 
       FileSystem.createFile(FileSystem.convertPath2Platform(substitutePath(jointPath))) match {
         case scala.util.Success(f) => {
-          val exists = f.exists
+          val exists = Files.exists(f) && !f.getFileName.toString.isEmpty
           if(exists && enforceCaseSensitivePathChecks) {
             FileSystem.caseSensitivePathMatchesFs(f)
           } else {
@@ -256,13 +300,13 @@ object Util {
       }
     }
 
-    def scanDir(dir: File, includeFolder: Boolean): Set[File] = findAllFiles(dir, includeFolder)
+    def scanDir(dir: Path, includeFolder: Boolean): Set[Path] = findAllFiles(dir, includeFolder)
 
-    def findAllFiles(folder: File, includeFolder : Boolean): Set[File] = {
-      if (folder.exists()){
-        val these = folder.listFiles.toSet
+    def findAllFiles(folder: Path, includeFolder : Boolean): Set[Path] = {
+      if (Files.exists(folder)) {
+        val these = listFiles(folder).toSet
         val head = if (includeFolder) Set(folder) else Nil
-        (head ++ these.filter( f => if (!includeFolder) f.isFile else true) ++ these.filter(f => f.isDirectory && !(f.getName == "RECYCLER") && !(f.getName == "$RECYCLE.BIN")).flatMap(file => findAllFiles(file, includeFolder))).toSet
+        (head ++ these.filter( f => if (!includeFolder) !Files.isDirectory(f) else true) ++ these.filter(f => Files.isDirectory(f) && !(f.getFileName.toString == "RECYCLER") && !(f.getFileName.toString == "$RECYCLE.BIN")).flatMap(file => findAllFiles(file, includeFolder))).toSet
       }
       else
         throw new FileNotFoundException(s"Cannot find the folder $folder")
@@ -271,13 +315,13 @@ object Util {
 
 
 
-    def integrityCheck(fileMap: Map[String, Set[File]],  enforceCaseSensitivePathChecks: Boolean, topLevelFolder: String, includeFolder: Boolean): Map[String, Set[File]] = {
+    def integrityCheck(fileMap: Map[String, Set[Path]], enforceCaseSensitivePathChecks: Boolean, topLevelFolder: String, includeFolder: Boolean): Map[String, Set[Path]] = {
       val contentDirectory = contentDir(jointPath, topLevelFolder)
       val files = fileMap.get(contentDirectory).getOrElse{
         val theFiles = FileSystem.createFile(FileSystem.convertPath2Platform(contentDirectory)) match
             {
               case scala.util.Success(f) => scanDir(f, includeFolder)
-              case scala.util.Failure(_) => Set[File]()
+              case scala.util.Failure(_) => Set[Path]()
             }
             theFiles
         }
@@ -286,7 +330,7 @@ object Util {
         case _ => files
       }
 
-      fileMap.filterKeys(_ == contentDirectory) + (contentDirectory -> remainder)
+      fileMap.view.filterKeys(_ == contentDirectory).toMap + (contentDirectory -> remainder)
     }
 
     def expandBasePath: String = {

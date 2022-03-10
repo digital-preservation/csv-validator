@@ -8,11 +8,11 @@
  */
 package uk.gov.nationalarchives.csv.validator
 
-import java.io.File
-
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.nio.file.Paths
 
 @RunWith(classOf[JUnitRunner])
 class UtilSpec extends Specification with TestResources  {
@@ -51,46 +51,46 @@ class UtilSpec extends Specification with TestResources  {
     
     "list file in folder" in {
 
-      val apiFiles = Util.findAllFiles(true, new File(acceptancePath))
+      val apiFiles = Util.findAllFiles(true, Paths.get(acceptancePath))
 
       apiFiles must haveLength(127)
 
-      apiFiles must contain (new File(s"$basePath/uk/gov/nationalarchives/csv/validator/acceptance/twoRulesPassMetaData.csv"))
+      apiFiles must contain (Paths.get(s"$basePath/uk/gov/nationalarchives/csv/validator/acceptance/twoRulesPassMetaData.csv"))
 
-      apiFiles must contain (new File(s"$basePath/uk/gov/nationalarchives/csv/validator/acceptance/dp/regexRuleSchema.csvs"))
+      apiFiles must contain (Paths.get(s"$basePath/uk/gov/nationalarchives/csv/validator/acceptance/dp/regexRuleSchema.csvs"))
 
-      apiFiles must contain (new File(s"$basePath/uk/gov/nationalarchives/csv/validator/acceptance/dp"))
+      apiFiles must contain (Paths.get(s"$basePath/uk/gov/nationalarchives/csv/validator/acceptance/dp"))
 
-      apiFiles must contain (new File(s"$basePath/uk/gov/nationalarchives/csv/validator/acceptance"))
+      apiFiles must contain (Paths.get(s"$basePath/uk/gov/nationalarchives/csv/validator/acceptance"))
 
-      val integrityCheckFiles =  Util.findAllFiles(true, new File(base))
+      val integrityCheckFiles =  Util.findAllFiles(true, Paths.get(base))
 
       integrityCheckFiles  must haveLength(43)
 
-      integrityCheckFiles must contain (new File(s"$basePath/uk/gov/nationalarchives/csv/validator/integrityCheck/header/integrityCheckSchema.csvs"))
+      integrityCheckFiles must contain (Paths.get(s"$basePath/uk/gov/nationalarchives/csv/validator/integrityCheck/header/integrityCheckSchema.csvs"))
 
-      integrityCheckFiles must contain (new File(s"$basePath/uk/gov/nationalarchives/csv/validator/integrityCheck/header/content/file1"))
+      integrityCheckFiles must contain (Paths.get(s"$basePath/uk/gov/nationalarchives/csv/validator/integrityCheck/header/content/file1"))
 
-      integrityCheckFiles must contain (new File(s"$basePath/uk/gov/nationalarchives/csv/validator/integrityCheck/header/content"))
+      integrityCheckFiles must contain (Paths.get(s"$basePath/uk/gov/nationalarchives/csv/validator/integrityCheck/header/content"))
 
 
-      integrityCheckFiles must contain (new File(s"$basePath/uk/gov/nationalarchives/csv/validator/integrityCheck/noheader/content"))
+      integrityCheckFiles must contain (Paths.get(s"$basePath/uk/gov/nationalarchives/csv/validator/integrityCheck/noheader/content"))
 
-      integrityCheckFiles must contain (new File(s"$basePath/uk/gov/nationalarchives/csv/validator/integrityCheck/WO_95/content"))
+      integrityCheckFiles must contain (Paths.get(s"$basePath/uk/gov/nationalarchives/csv/validator/integrityCheck/WO_95/content"))
 
-      integrityCheckFiles must contain (new File(s"$basePath/uk/gov/nationalarchives/csv/validator/integrityCheck"))
+      integrityCheckFiles must contain (Paths.get(s"$basePath/uk/gov/nationalarchives/csv/validator/integrityCheck"))
 
-      val integrityCheckFilesNoFolder =  Util.findAllFiles(false, new File(base))
+      val integrityCheckFilesNoFolder =  Util.findAllFiles(false, Paths.get(base))
 
       integrityCheckFilesNoFolder  must haveLength(29)
 
-      integrityCheckFilesNoFolder must contain (new File(s"$basePath/uk/gov/nationalarchives/csv/validator/integrityCheck/header/content/file1"))
+      integrityCheckFilesNoFolder must contain (Paths.get(s"$basePath/uk/gov/nationalarchives/csv/validator/integrityCheck/header/content/file1"))
 
-      integrityCheckFilesNoFolder must contain (new File(s"$basePath/uk/gov/nationalarchives/csv/validator/integrityCheck/header/integrityCheckSchema.csvs"))
+      integrityCheckFilesNoFolder must contain (Paths.get(s"$basePath/uk/gov/nationalarchives/csv/validator/integrityCheck/header/integrityCheckSchema.csvs"))
 
-      integrityCheckFilesNoFolder must not contain (new File(s"$basePath/uk/gov/nationalarchives/csv/validator/integrityCheck/noheader/content"))
+      integrityCheckFilesNoFolder must not contain (Paths.get(s"$basePath/uk/gov/nationalarchives/csv/validator/integrityCheck/noheader/content"))
 
-      integrityCheckFilesNoFolder must not contain (new File(s"$basePath/uk/gov/nationalarchives/csv/validator/integrityCheck/WO_95/content"))
+      integrityCheckFilesNoFolder must not contain (Paths.get(s"$basePath/uk/gov/nationalarchives/csv/validator/integrityCheck/WO_95/content"))
 
 
     }

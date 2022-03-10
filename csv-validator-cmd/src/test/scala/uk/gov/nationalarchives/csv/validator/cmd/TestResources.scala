@@ -8,9 +8,10 @@
  */
 package uk.gov.nationalarchives.csv.validator.cmd
 
-import java.io.File
 import org.specs2.mutable.Specification
 import uk.gov.nationalarchives.csv.validator.FILE_SEPARATOR
+
+import java.nio.file.Paths
 
 trait TestResources {
 
@@ -22,16 +23,16 @@ trait TestResources {
    *
    * @param resource The path of the resource relative to the spec test
    */
-  def resourcePath(resource: String) : String = new File(baseResourcePkgPath, resource).getAbsolutePath
+  def resourcePath(resource: String) : String = Paths.get(baseResourcePkgPath).resolve(resource).toAbsolutePath.toString
 
-  def baseResourcePkgPath : String = new File(basePath, spec.getClass.getPackage.getName.replace('.', '/')).getAbsolutePath
+  def baseResourcePkgPath : String  = Paths.get(basePath).resolve(spec.getClass.getPackage.getName.replace('.', '/')).toAbsolutePath.toString
 
   def basePath : String = {
     val url = spec.getClass.getClassLoader.getResource(".")
-    new File(url.toURI).getAbsolutePath
+    Paths.get(url.toURI).toAbsolutePath.toString
   }
 
   def relBasePath : String = basePath.replace(System.getProperty("user.dir") + FILE_SEPARATOR, "")
-  def relBaseResourcePkgPath : String = new File(relBasePath, spec.getClass.getPackage.getName.replace('.', '/')).getPath
-  def relResourcePath(resource: String) : String = new File(relBaseResourcePkgPath, resource).getPath
+  def relBaseResourcePkgPath : String = Paths.get(relBasePath).resolve(spec.getClass.getPackage.getName.replace('.', '/')).toString
+  def relResourcePath(resource: String) : String = Paths.get(relBaseResourcePkgPath).resolve(resource).toString
 }

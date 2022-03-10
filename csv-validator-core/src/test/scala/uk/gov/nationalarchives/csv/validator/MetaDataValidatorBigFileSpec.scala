@@ -13,9 +13,10 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import scalaz._
 import uk.gov.nationalarchives.csv.validator.schema.Schema
-import uk.gov.nationalarchives.csv.validator.api.{TextFile, CsvValidator}
-import scalax.file.Path
+import uk.gov.nationalarchives.csv.validator.api.{CsvValidator, TextFile}
 import uk.gov.nationalarchives.csv.validator.api.CsvValidator.SubstitutePath
+
+import java.nio.file.Paths
 
 @RunWith(classOf[JUnitRunner])
 class MetaDataValidatorBigFileSpec extends Specification with TestResources {
@@ -26,16 +27,16 @@ class MetaDataValidatorBigFileSpec extends Specification with TestResources {
 
     "succeed with no stack overflow for all errors" in {
       val v = new CsvValidator with AllErrorsMetaDataValidator { val pathSubstitutions = List[SubstitutePath](); val enforceCaseSensitivePathChecks = false; val trace = false }
-      def parse(filePath: String): Schema = v.parseSchema(TextFile(Path.fromString(filePath))) fold (f => throw new IllegalArgumentException(f.toString()), s => s)
+      def parse(filePath: String): Schema = v.parseSchema(TextFile(Paths.get(filePath))) fold (f => throw new IllegalArgumentException(f.toString()), s => s)
 
-      v.validate(TextFile(Path.fromString(base) / "bigMetaData.csv"), parse(base + "/bigSchema.csvs"), None) must beLike { case Success(_) => ok }
+      v.validate(TextFile(Paths.get(base).resolve("bigMetaData.csv")), parse(base + "/bigSchema.csvs"), None) must beLike { case Success(_) => ok }
     }
 
     "succeed with no stack overflow for fail fast" in {
       val v = new CsvValidator with FailFastMetaDataValidator { val pathSubstitutions = List[SubstitutePath](); val enforceCaseSensitivePathChecks = false; val trace = false }
-      def parse(filePath: String): Schema = v.parseSchema(TextFile(Path.fromString(filePath))) fold (f => throw new IllegalArgumentException(f.toString()), s => s)
+      def parse(filePath: String): Schema = v.parseSchema(TextFile(Paths.get(filePath))) fold (f => throw new IllegalArgumentException(f.toString()), s => s)
 
-      v.validate(TextFile(Path.fromString(base) / "bigMetaData.csv"), parse(base + "/bigSchema.csvs"), None) must beLike { case Success(_) => ok }
+      v.validate(TextFile(Paths.get(base).resolve("bigMetaData.csv")), parse(base + "/bigSchema.csvs"), None) must beLike { case Success(_) => ok }
     }
   }
 }

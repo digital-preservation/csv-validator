@@ -8,15 +8,17 @@
  */
 package uk.gov.nationalarchives.csv.validator.api.java
 
-import java.util.{List => JList, ArrayList => JArrayList}
-import scalax.file.Path
-import scalaz.{Success => SuccessZ, Failure => FailureZ, _}
-import uk.gov.nationalarchives.csv.validator.{ProgressCallback => SProgressCallback, FailMessage => SFailMessage, SchemaDefinitionError, ValidationError, ValidationWarning}
+import java.util.{ArrayList => JArrayList, List => JList}
+import scalaz.{Failure => FailureZ, Success => SuccessZ, _}
+import uk.gov.nationalarchives.csv.validator.{SchemaDefinitionError, ValidationError, ValidationWarning, FailMessage => SFailMessage, ProgressCallback => SProgressCallback}
 import uk.gov.nationalarchives.csv.validator.Util._
 import uk.gov.nationalarchives.csv.validator.api.CsvValidator.createValidator
+
 import java.io.{Reader => JReader}
 import uk.gov.nationalarchives.csv.validator.api.TextFile
+
 import java.nio.charset.Charset
+import java.nio.file.Paths
 
 /**
  * Simple bridge from Java API to Scala API
@@ -49,12 +51,12 @@ object CsvValidatorJavaBridge {
 
   private def validate(csvFile: String, csvEncoding: Charset, validateCsvEncoding: Boolean, csvSchemaFile: String, csvSchemaEncoding: Charset, validateCsvSchemaEncoding: Boolean, failFast: Boolean, pathSubstitutionsList: JList[Substitution], enforceCaseSensitivePathChecks: Boolean, trace: Boolean, progress: Option[SProgressCallback]): JList[FailMessage] = {
 
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
 
     val pathSubs: List[(String,String)] = pathSubstitutionsList.asScala.map( x => (x.getFrom, x.getTo)).toList
 
-    val csvTextFile = TextFile(Path.fromString(csvFile), csvEncoding, validateCsvEncoding)
-    val csvSchemaTextFile = TextFile(Path.fromString(csvSchemaFile), csvSchemaEncoding, validateCsvSchemaEncoding)
+    val csvTextFile = TextFile(Paths.get(csvFile), csvEncoding, validateCsvEncoding)
+    val csvSchemaTextFile = TextFile(Paths.get(csvSchemaFile), csvSchemaEncoding, validateCsvSchemaEncoding)
 
     checkFilesReadable(csvTextFile.file :: csvSchemaTextFile.file :: Nil) match {
       case FailureZ(errors) =>
@@ -88,7 +90,7 @@ object CsvValidatorJavaBridge {
 
   private def validate(csvData: JReader, csvSchema: JReader, failFast: Boolean, pathSubstitutionsList: JList[Substitution],  enforceCaseSensitivePathChecks: Boolean, trace: Boolean, progress: Option[SProgressCallback]): JList[FailMessage] = {
 
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
 
     val pathSubs: List[(String,String)] = pathSubstitutionsList.asScala.map( x => (x.getFrom, x.getTo)).toList
 

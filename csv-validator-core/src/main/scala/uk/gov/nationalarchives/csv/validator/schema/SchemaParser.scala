@@ -8,6 +8,7 @@
  */
 package uk.gov.nationalarchives.csv.validator.schema
 
+import uk.gov.nationalarchives.csv.validator.schema.SchemaValidator
 import uk.gov.nationalarchives.csv.validator.schema.v1_0.{SchemaParser => SchemaParser1_0}
 import uk.gov.nationalarchives.csv.validator.schema.v1_1.{SchemaParser => SchemaParser1_1, _}
 import uk.gov.nationalarchives.csv.validator.schema.v1_2.{SchemaParser => SchemaParser1_2, _}

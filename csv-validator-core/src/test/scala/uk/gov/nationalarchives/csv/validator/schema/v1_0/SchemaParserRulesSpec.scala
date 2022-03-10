@@ -53,7 +53,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                       Age:"""
 
       parse(new StringReader(schema)) must beLike {
-        case Failure(message, _) => message mustEqual """regex not correctly delimited as ("your regex")"""
+        case Failure(message, _) => message mustEqual """Invalid column definition"""
       }
     }
 
@@ -62,7 +62,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                       @totalColumns 1
                       Something: regex"""
 
-      parse(new StringReader(schema)) must beLike { case Failure(message, _) => (message mustEqual "regex not correctly delimited as (\"your regex\")") }
+      parse(new StringReader(schema)) must beLike { case Failure(message, _) => (message mustEqual "Invalid column definition") }
     }
 
     "succeed for more than 1 regex rule" in {
@@ -143,9 +143,8 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
            @totalColumns 1
            Country: in("UK") or"""
 
-
 //        parse(new StringReader(schema)) must beLike { case Failure(error, _) => error mustEqual "`switch(' expected but end of source found" }
-      parse(new StringReader(schema)) must beLike { case Failure("Base Failure", _) => ok } //TODO(AR) it is not clear why we get a `Base Failure` see http://stackoverflow.com/questions/29300925/scala-packratparser-ignores-failure-parser
+      parse(new StringReader(schema)) must beLike { case Failure("Invalid column definition", _) => ok }
 
     }
 
