@@ -46,8 +46,7 @@ object CsvValidator {
   */
 case class TextFile(file: Path, encoding: JCharset = CsvValidator.DEFAULT_ENCODING, validateEncoding: Boolean = true)
 
-trait CsvValidator extends SchemaParser {
-  this: MetaDataValidator =>
+trait CsvValidator extends SchemaParser with MetaDataValidator {
 
   def validate(csvFile: TextFile, csvSchema: Schema, progress: Option[ProgressCallback]): MetaDataValidation[Any] = {
 
