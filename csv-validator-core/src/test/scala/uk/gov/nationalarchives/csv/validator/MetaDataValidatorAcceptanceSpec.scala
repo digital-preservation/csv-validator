@@ -514,7 +514,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
     "fail for incorrect extension removal" in {
       validate(TextFile(Paths.get(base).resolve("noextFail.csv")), parse(base + "/noext.csvs"), None) must beLike {
-        case Failure(errors) => errors.list mustEqual IList(FailMessage(ValidationError, """is(noext($identifier)) fails for line: 3, column: noext, value: "file:/a/b/c.txt"""",Some(3),Some(1)))
+        case Failure(errors) => errors.list mustEqual IList(FailMessage(ValidationError, """is(noExt($identifier)) fails for line: 3, column: noext, value: "file:/a/b/c.txt"""",Some(3),Some(1)))
       }
     }
   }
@@ -564,7 +564,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
     "fail for incorrect concatenation" in {
       validate(TextFile(Paths.get(base).resolve("redactedFail.csv")), parse(base + "/redacted.csvs"), None) must beLike {
-        case Failure(errors) => errors.list mustEqual IList(FailMessage(ValidationError, """is(concat(noext($original_identifier), "_R.pdf")) fails for line: 2, column: identifier, value: "file:/some/folder/TNA%20Digital%20Preservation%20Strategy%20v0.3%5BA1031178%5D_R1.pdf"""",Some(2),Some(0)))
+        case Failure(errors) => errors.list mustEqual IList(FailMessage(ValidationError, """is(concat(noExt($original_identifier), "_R.pdf")) fails for line: 2, column: identifier, value: "file:/some/folder/TNA%20Digital%20Preservation%20Strategy%20v0.3%5BA1031178%5D_R1.pdf"""",Some(2),Some(0)))
       }
     }
   }

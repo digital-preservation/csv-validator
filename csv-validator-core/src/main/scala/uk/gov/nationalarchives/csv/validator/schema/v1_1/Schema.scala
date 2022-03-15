@@ -16,7 +16,7 @@ case class NoExt(value: ArgProvider) extends ArgProvider {
 
   def referenceValue(columnIndex: Int, row: Row, schema: Schema): Option[String] = value.referenceValue(columnIndex, row, schema).map(FilenameUtils.removeExtension(_))
 
-  def toError = "noext(" + value.toError + ")"
+  def toError = "noExt(" + value.toError + ")"
 
 }
 
