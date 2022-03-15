@@ -1,5 +1,5 @@
 version 1.1
 @totalColumns 3
-identifier: if($original_identifier/notEmpty,is(concat(noext($original_identifier),"_R.pdf")))
+identifier: if($original_identifier/notEmpty,is(concat(noExt($original_identifier),"_R.pdf")))
 file_name:
 original_identifier:

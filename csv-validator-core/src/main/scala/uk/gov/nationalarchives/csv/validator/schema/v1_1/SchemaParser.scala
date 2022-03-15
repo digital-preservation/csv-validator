@@ -115,7 +115,7 @@ trait SchemaParser extends SchemaParser1_0 {
   }
 
 
-  lazy val noExt: PackratParser[ArgProvider] = "NoExt" ::= "no[eE]xt\\(".r ~> stringProvider <~ ")" ^^ {
+  lazy val noExt: PackratParser[ArgProvider] = "NoExt" ::= "noExt(" ~> stringProvider <~ ")" ^^ {
      NoExt(_)
   }
 
