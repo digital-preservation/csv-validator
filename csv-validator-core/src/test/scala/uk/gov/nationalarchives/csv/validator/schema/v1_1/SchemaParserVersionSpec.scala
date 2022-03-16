@@ -128,7 +128,7 @@ class SchemaParserVersionSpec extends SchemaSpecBase with TestResources{
     }
 
     "fail if the schema defined rule that are only supported by future version - switch" in {
-      val Name = "$Name"
+      val Name: String = "$Name"
       def schema(version: String) = s"""version $version
                                         |    @totalColumns 2
                                         |    Name:
