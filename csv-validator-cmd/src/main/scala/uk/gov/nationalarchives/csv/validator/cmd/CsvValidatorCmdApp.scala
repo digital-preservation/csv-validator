@@ -160,7 +160,7 @@ object CsvValidatorCmdApp extends App {
           progress,
           onRow
         )
-        if (pass) ("PASS", SystemExitCodes.ValidCsv) else ("", SystemExitCodes.InvalidCsv)
+        if (pass) ("PASS", SystemExitCodes.ValidCsv) else ("FAIL", SystemExitCodes.InvalidCsv)
     }
   }
 

@@ -14,7 +14,7 @@ import net.java.dev.designgridlayout._
 
 import java.io.{File, FileInputStream, FileOutputStream, IOException}
 import table.DefaultTableModel
-import uk.gov.nationalarchives.csv.validator.cmd.CsvValidatorCmdApp
+import uk.gov.nationalarchives.csv.validator.cmd.{CsvValidatorCmdApp, SystemExitCodes}
 
 import swing.GridBagPanel.Anchor
 import uk.gov.nationalarchives.csv.validator.ui.DesignGridImplicits._
@@ -132,11 +132,27 @@ object CsvValidatorUi extends SimpleSwingApplication {
 
   private def validate(csvFilePath: String, csvEncoding: Charset, csvSchemaFilePath: String, csvSchemaEncoding: Charset, failOnFirstError: Boolean, pathSubstitutions: List[(String, String)], enforceCaseSensitivePathChecks: Boolean, progress: Option[ProgressCallback], validateEncoding: Boolean)(output: String => Unit) : Unit = {
 
+    def toConsole(msg: String) = Swing.onEDT {
+      output(msg)
+    }
+
+    var badLines = 0
+    var truncated = false
+
     def rowCallback(row: ValidationNel[FailMessage, Any]): Unit = row match {
+
       case FailureZ(failures) =>
-        Swing.onEDT {
-          output(CsvValidatorCmdApp.prettyPrint(failures))
+        if (badLines > 2000) {
+          if (!truncated) {
+            toConsole("Too many errors/warnings, truncating")
+            truncated = true
+          }
+        } else {
+          toConsole(CsvValidatorCmdApp.prettyPrint(failures))
         }
+
+        badLines += failures.size
+
       case _ =>
     }
 
@@ -149,7 +165,12 @@ object CsvValidatorUi extends SimpleSwingApplication {
       false,
       progress,
       rowCallback
-    )
+    )._2 match {
+      case SystemExitCodes.ValidCsv => toConsole("PASS")
+      case _ => toConsole("FAIL")        
+    }
+
+
   }
 
   /**
@@ -286,7 +307,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
 
     def outputToReport(data: String) : Unit = 
       Swing.onEDT {
-        txtArReport.append(data)
+        txtArReport.append(data+"\n")
       }
 
 
