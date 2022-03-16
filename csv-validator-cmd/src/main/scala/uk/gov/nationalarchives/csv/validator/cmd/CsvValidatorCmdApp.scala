@@ -134,23 +134,33 @@ object CsvValidatorCmdApp extends App {
     }
   }
 
-  def validate(csvFile: TextFile, schemaFile: TextFile, failFast: Boolean, pathSubstitutionsList: List[SubstitutePath], enforceCaseSensitivePathChecks: Boolean, trace: Boolean, progress: Option[ProgressCallback]): ExitStatus = {
+  def rowCallback(row: ValidationNel[FailMessage, Any]): Unit = row match {
+    case FailureZ(failures) =>
+      println(prettyPrint(failures))
+    case _ =>
+  }
+
+  def validate(
+    csvFile: TextFile,
+    schemaFile: TextFile,
+    failFast: Boolean,
+    pathSubstitutionsList: List[SubstitutePath],
+    enforceCaseSensitivePathChecks: Boolean,
+    trace: Boolean,
+    progress: Option[ProgressCallback],
+    onRow: ValidationNel[FailMessage, Any] => Unit = rowCallback
+  ): ExitStatus = {
     val validator = createValidator(failFast, pathSubstitutionsList, enforceCaseSensitivePathChecks, trace)
     validator.parseSchema(schemaFile) match {
       case FailureZ(errors) => (prettyPrint(errors), SystemExitCodes.InvalidSchema)
       case SuccessZ(schema) =>
-        validator.validate(csvFile, schema, progress) match {
-          case FailureZ(failures) =>
-            val failuresMsg = prettyPrint(failures)
-            if(containsError(failures))  //checks for just warnings to determine exit code
-              (failuresMsg + EOL + "FAIL",
-                SystemExitCodes.InvalidCsv)
-            else
-              (failuresMsg + EOL + "PASS", //just warnings!
-                SystemExitCodes.ValidCsv)
-
-          case SuccessZ(_) => ("PASS", SystemExitCodes.ValidCsv)
-        }
+        val pass = validator.validateCsvFile(
+          csvFile,
+          schema,
+          progress,
+          onRow
+        )
+        if (pass) ("PASS", SystemExitCodes.ValidCsv) else ("", SystemExitCodes.InvalidCsv)
     }
   }
 
@@ -161,7 +171,7 @@ object CsvValidatorCmdApp extends App {
     }).nonEmpty
   }
 
-  private def prettyPrint(l: NonEmptyList[FailMessage]): String = l.list.map { i =>
+  def prettyPrint(l: NonEmptyList[FailMessage]): String = l.list.map { i =>
     i match {
       case FailMessage(ValidationWarning, err,_,_) => "Warning: " + err
       case FailMessage(ValidationError, err,_,_) =>   "Error:   " + err

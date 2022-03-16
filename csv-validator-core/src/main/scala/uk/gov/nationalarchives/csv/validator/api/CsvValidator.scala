@@ -16,6 +16,7 @@ import uk.gov.nationalarchives.csv.validator._
 import java.io.{Reader => JReader}
 import java.nio.charset.{Charset => JCharset}
 import java.nio.file.Path
+import cats.data.Chain
 
 object CsvValidator {
 
@@ -49,16 +50,46 @@ case class TextFile(file: Path, encoding: JCharset = CsvValidator.DEFAULT_ENCODI
 trait CsvValidator extends SchemaParser {
   this: MetaDataValidator =>
 
-  def validate(csvFile: TextFile, csvSchema: Schema, progress: Option[ProgressCallback]): MetaDataValidation[Any] = {
+  @deprecated("use validateReader or validateCsvFile")
+  def validate(
+    csvFile: TextFile,    
+    schema: Schema,
+    progress: Option[ProgressCallback]
+  ): MetaDataValidation[Any] = {
+    import scalaz.{Failure => FailureZ}
+    var results: Chain[List[FailMessage]] = Chain.empty
+    validateCsvFile(
+      csvFile,
+      schema,
+      progress,
+      {
+        case FailureZ(x) =>
+          results = results :+ x.toList
+        case _ => 
+      }
+    )
+    results.toList.flatten.toNel match {
+      case None => ().success
+      case Some(errors) => scalaz.Validation.failure(errors)
+    }
+  }
+
+  def validateCsvFile(
+    csvFile: TextFile,
+    csvSchema: Schema,
+    progress: Option[ProgressCallback],
+    rowCallback: MetaDataValidation[Any] => Unit
+  ): Boolean = {
 
     val encodingValidationNel: MetaDataValidation[Any] = validateCsvFileEncoding(csvFile).getOrElse(true.successNel[FailMessage])
+    rowCallback(encodingValidationNel)
 
     val csvValidation = withReader(csvFile) {
       reader =>
         val totalRows = countRows(csvFile, csvSchema)
-        validateKnownRows(reader, csvSchema, progress.map(p => {ProgressFor(totalRows, p)} )  )
+        validateKnownRows(reader, csvSchema, progress.map(p => {ProgressFor(totalRows, p)} ), rowCallback)
     }
-    List(encodingValidationNel,csvValidation).sequence[MetaDataValidation, Any]
+    encodingValidationNel.isSuccess && csvValidation
   }
 
 

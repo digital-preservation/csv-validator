@@ -24,29 +24,28 @@ trait FailFastMetaDataValidator extends MetaDataValidator {
 
   //TODO(AR) work on removing use of `Any`
 
-  override def validateRows(rows: Iterator[Row], schema: Schema): MetaDataValidation[Any] = {
+  override def validateRows(
+    rows: Iterator[Row],
+    schema: Schema,
+    rowCallback: MetaDataValidation[Any] => Unit = {_ => ()}    
+  ): Boolean = {
 
     @tailrec
-    def validateRows(results: List[MetaDataValidation[Any]] = List.empty[MetaDataValidation[Any]]) : List[MetaDataValidation[Any]] = {
-      if(results.headOption.map(containsErrors(_)).getOrElse(false) || !rows.hasNext) {
-        results.reverse
+    def inner(passing: Boolean) : Boolean = {
+      if(!rows.hasNext) {
+        passing
       } else {
         val row = rows.next()
         val result = validateRow(row, schema, Some(rows.hasNext))
-        /*
-        Only store the results if they contain a warning or a failure.  This means the validator is not limited by the
-        available memory when processing large files.
-        */
-        if (containsErrors(result) || containsWarnings(result)) {
-          validateRows(result :: results)
-         } else {
-            validateRows(results)
-        }
+        rowCallback(result)
+        if(!containsErrors(result))
+          inner(passing)
+        else 
+          false
       }
     }
 
-    val v = validateRows()
-    v.sequence[MetaDataValidation, Any]
+    inner(true)
   }
 
   override protected def rules(row: Row,  schema: Schema, mayBeLast: Option[Boolean] = None): MetaDataValidation[List[Any]] = {

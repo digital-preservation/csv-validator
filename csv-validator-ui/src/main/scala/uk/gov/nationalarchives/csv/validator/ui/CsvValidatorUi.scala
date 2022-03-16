@@ -24,7 +24,7 @@ import ScalaSwingHelpers._
 
 import java.awt.Cursor
 import java.util.Properties
-import uk.gov.nationalarchives.csv.validator.ProgressCallback
+import uk.gov.nationalarchives.csv.validator.{ProgressCallback, FailMessage}
 
 import java.nio.charset.Charset
 import uk.gov.nationalarchives.csv.validator.api.TextFile
@@ -34,7 +34,7 @@ import java.net.URL
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.{Files, Path, Paths, StandardOpenOption}
 import scala.util.Using
-
+import scalaz.{Failure => FailureZ, _}
 import scala.language.reflectiveCalls
 
 /**
@@ -131,16 +131,25 @@ object CsvValidatorUi extends SimpleSwingApplication {
   }
 
   private def validate(csvFilePath: String, csvEncoding: Charset, csvSchemaFilePath: String, csvSchemaEncoding: Charset, failOnFirstError: Boolean, pathSubstitutions: List[(String, String)], enforceCaseSensitivePathChecks: Boolean, progress: Option[ProgressCallback], validateEncoding: Boolean)(output: String => Unit) : Unit = {
-    output("")
-    output(CsvValidatorCmdApp.validate(
+
+    def rowCallback(row: ValidationNel[FailMessage, Any]): Unit = row match {
+      case FailureZ(failures) =>
+        Swing.onEDT {
+          output(CsvValidatorCmdApp.prettyPrint(failures))
+        }
+      case _ =>
+    }
+
+    CsvValidatorCmdApp.validate(
       TextFile(Paths.get(csvFilePath), csvEncoding, validateEncoding),
       TextFile(Paths.get(csvSchemaFilePath), csvSchemaEncoding),
       failOnFirstError,
       pathSubstitutions,
       enforceCaseSensitivePathChecks,
       false,
-      progress
-    )._1)
+      progress,
+      rowCallback
+    )
   }
 
   /**
@@ -190,6 +199,8 @@ object CsvValidatorUi extends SimpleSwingApplication {
         props.store(os, "CSV Validator")
     }.map(Some(_)).getOrElse(None)
   }
+
+  private val txtArReport = new TextArea(12,30)
 
   /**
    * The main UI of the application
@@ -248,7 +259,6 @@ object CsvValidatorUi extends SimpleSwingApplication {
     private val separator1 = new Separator
 
     private val scrollPane = new ScrollPane
-    private val txtArReport = new TextArea(12,30)
     scrollPane.viewportView = txtArReport
 
     private val btnValidate = new Button("Validate")
@@ -274,11 +284,11 @@ object CsvValidatorUi extends SimpleSwingApplication {
       }
     }
 
-    def outputToReport(data: String) : Unit = {
+    def outputToReport(data: String) : Unit = 
       Swing.onEDT {
-        txtArReport.text = data
+        txtArReport.append(data)
       }
-    }
+
 
     btnValidate.reactions += onClick(displayWait(
       suspendUi = {
@@ -288,7 +298,20 @@ object CsvValidatorUi extends SimpleSwingApplication {
         this.progressBar.visible = true
 
       },
-      action = CsvValidatorUi.this.validate(txtCsvFile.text, settingsPanel.csvEncoding, txtCsvSchemaFile.text, settingsPanel.csvSchemaEncoding, settingsPanel.failOnFirstError, settingsPanel.pathSubstitutions, settingsPanel.enforceCaseSensitivePathChecks,  Some(progress), settingsPanel.validateUtf8),
+      action = {
+        txtArReport.text = ""
+        CsvValidatorUi.this.validate(
+          txtCsvFile.text,
+          settingsPanel.csvEncoding,
+          txtCsvSchemaFile.text,
+          settingsPanel.csvSchemaEncoding,
+          settingsPanel.failOnFirstError,
+          settingsPanel.pathSubstitutions,
+          settingsPanel.enforceCaseSensitivePathChecks,
+          Some(progress),
+          settingsPanel.validateUtf8
+        )
+      },
       output = outputToReport,
       resumeUi = {
         btnValidate.enabled = true
