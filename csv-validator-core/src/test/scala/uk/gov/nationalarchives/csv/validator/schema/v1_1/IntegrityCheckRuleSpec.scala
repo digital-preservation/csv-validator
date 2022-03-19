@@ -16,7 +16,7 @@ import uk.gov.nationalarchives.csv.validator.api.CsvValidator.SubstitutePath
 import uk.gov.nationalarchives.csv.validator.metadata.{Cell, Row}
 import uk.gov.nationalarchives.csv.validator.schema._
 
-import scalaz.{Failure, Success}
+import cats.data.Validated
 
 @RunWith(classOf[JUnitRunner])
 class IntegrityCheckRuleSpec extends Specification with TestResources {
@@ -55,7 +55,7 @@ class IntegrityCheckRuleSpec extends Specification with TestResources {
       val totalRows: Some[Boolean] = Some(false)
       
       integrityCheckRule.evaluate(0, Row(List(Cell(relIntegrityCheckForRulePath)), 1), schema, totalRows) must beLike {
-        case Failure(messages) => messages.head must be matching "integrityCheck fails for line: 1, column: column1, files: \"[a-z0-9._\\\\/-]*integrityCheck[\\\\/]folder1[\\\\/]content[\\\\/]file#2.txt\" are not listed in the metadata"
+        case Validated.Invalid(messages) => messages.head must be matching "integrityCheck fails for line: 1, column: column1, files: \"[a-z0-9._\\\\/-]*integrityCheck[\\\\/]folder1[\\\\/]content[\\\\/]file#2.txt\" are not listed in the metadata"
       }
     }
 
@@ -63,10 +63,10 @@ class IntegrityCheckRuleSpec extends Specification with TestResources {
       val integrityCheckRule = IntegrityCheckRule(emptyPathSubstitutions,false)
       val schema: Schema = Schema(globalDirsTwo, List(ColumnDefinition(NamedColumnIdentifier("column1")), ColumnDefinition(NamedColumnIdentifier("column2"))))
 
-      integrityCheckRule.evaluate(1, Row(List(Cell("abc"), Cell(relIntegrityCheckForRulePath)), 1), schema, Some(true)) mustEqual  Success(true)
+      integrityCheckRule.evaluate(1, Row(List(Cell("abc"), Cell(relIntegrityCheckForRulePath)), 1), schema, Some(true)) mustEqual Validated.Valid(true)
 
       integrityCheckRule.evaluate(1, Row(List(Cell("abc"), Cell("")), 2), schema, Some(false)) must beLike {
-        case Failure(messages) => messages.head must be matching "integrityCheck fails for line: 2, column: column2, files: \"[a-z0-9._\\\\/-]*integrityCheck[\\\\/]folder1[\\\\/]content[\\\\/]file#2.txt\" are not listed in the metadata"
+        case Validated.Invalid(messages) => messages.head must be matching "integrityCheck fails for line: 2, column: column2, files: \"[a-z0-9._\\\\/-]*integrityCheck[\\\\/]folder1[\\\\/]content[\\\\/]file#2.txt\" are not listed in the metadata"
       }
     }
 
@@ -76,8 +76,8 @@ class IntegrityCheckRuleSpec extends Specification with TestResources {
 
       val schema: Schema = Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))
 
-      integrityCheckRule.evaluate(0, Row(List(Cell(relIntegrityCheckForRulePath)), 1), schema, Some(true)) mustEqual  Success(true)
-      integrityCheckRule.evaluate(0, Row(List(Cell(relIntegrityCheckForRulePath2)), 2), schema, Some(false)) mustEqual  Success(true)
+      integrityCheckRule.evaluate(0, Row(List(Cell(relIntegrityCheckForRulePath)), 1), schema, Some(true)) mustEqual Validated.Valid(true)
+      integrityCheckRule.evaluate(0, Row(List(Cell(relIntegrityCheckForRulePath2)), 2), schema, Some(false)) mustEqual Validated.Valid(true)
 
     }
 
@@ -87,8 +87,8 @@ class IntegrityCheckRuleSpec extends Specification with TestResources {
      val schema: Schema = Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))
 
 
-    integrityCheckRule.evaluate(0, Row(List(Cell(relPath2._2)), 1), schema, Some(true)) must be_==(Success(true))
-    integrityCheckRule.evaluate(0, Row(List(Cell(relPath3._2)), 2), schema, Some(false)) must be_==(Success(true))
+    integrityCheckRule.evaluate(0, Row(List(Cell(relPath2._2)), 1), schema, Some(true)) must be_==(Validated.Valid(true))
+    integrityCheckRule.evaluate(0, Row(List(Cell(relPath3._2)), 2), schema, Some(false)) must be_==(Validated.Valid(true))
 
   }
 
@@ -98,8 +98,8 @@ class IntegrityCheckRuleSpec extends Specification with TestResources {
 
      val schema: Schema = Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))
 
-     integrityCheckRule.evaluate(0, Row(List(Cell(relPath2._2)), 1), schema, Some(true)) must be_==(Success(true))
-     integrityCheckRule.evaluate(0, Row(List(Cell(relPath3._2)), 2), schema, Some(false)) must be_==(Success(true))
+     integrityCheckRule.evaluate(0, Row(List(Cell(relPath2._2)), 1), schema, Some(true)) must be_==(Validated.Valid(true))
+     integrityCheckRule.evaluate(0, Row(List(Cell(relPath3._2)), 2), schema, Some(false)) must be_==(Validated.Valid(true))
 
    }
 

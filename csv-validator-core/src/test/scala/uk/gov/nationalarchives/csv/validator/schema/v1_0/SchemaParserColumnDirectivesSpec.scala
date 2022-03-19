@@ -9,13 +9,12 @@
 package uk.gov.nationalarchives.csv.validator.schema.v1_0
 
 import java.io.StringReader
-
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
-import uk.gov.nationalarchives.csv.validator.{SchemaDefinitionError, FailMessage}
+import uk.gov.nationalarchives.csv.validator.{FailMessage, SchemaDefinitionError}
 import uk.gov.nationalarchives.csv.validator.schema._
 import uk.gov.nationalarchives.csv.validator.TestHelper._
-import scalaz.{Failure => FailureZ, IList}
+import cats.data.{NonEmptyList, Validated}
 
 @RunWith(classOf[JUnitRunner])
 class SchemaParserColumnDirectivesSpec extends SchemaSpecBase {
@@ -45,7 +44,7 @@ class SchemaParserColumnDirectivesSpec extends SchemaSpecBase {
                      |@totalColumns 1
                      |column1: @ignoreCase @ignoreCase""".stripMargin
 
-      parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list.map(_.removeCR) mustEqual IList(FailMessage(SchemaDefinitionError,
+      parseAndValidate(new StringReader(schema)) must beLike { case Validated.Invalid(msgs) => msgs.map(_.removeCR) mustEqual NonEmptyList.one(FailMessage(SchemaDefinitionError,
         """[3.23] failure: Invalid column definition
         |
         |column1: @ignoreCase @ignoreCase
@@ -57,7 +56,7 @@ class SchemaParserColumnDirectivesSpec extends SchemaSpecBase {
                      |@totalColumns 1
                      |column1: @ignoreCase @optional @ignoreCase @optional""".stripMargin
 
-      parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list.map(_.removeCR) mustEqual IList(FailMessage(SchemaDefinitionError,
+      parseAndValidate(new StringReader(schema)) must beLike { case Validated.Invalid(msgs) => msgs.map(_.removeCR) mustEqual NonEmptyList.one(FailMessage(SchemaDefinitionError,
        """[3.33] failure: Invalid column definition
        |
        |column1: @ignoreCase @optional @ignoreCase @optional
@@ -71,7 +70,7 @@ class SchemaParserColumnDirectivesSpec extends SchemaSpecBase {
                      |column2: @optional @ignoreCase
                      |column3: @ignoreCase @ignoreCase @optional @optional""".stripMargin
 
-      parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list.map(_.removeCR) mustEqual IList(FailMessage(SchemaDefinitionError,
+      parseAndValidate(new StringReader(schema)) must beLike { case Validated.Invalid(msgs) => msgs.map(_.removeCR) mustEqual NonEmptyList.one(FailMessage(SchemaDefinitionError,
         """[3.33] failure: Invalid column definition
           |
           |column1: @ignoreCase @optional @ignoreCase @optional

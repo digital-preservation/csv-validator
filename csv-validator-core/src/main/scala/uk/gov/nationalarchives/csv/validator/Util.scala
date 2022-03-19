@@ -9,9 +9,6 @@
 package uk.gov.nationalarchives.csv.validator
 
 import scala.language.postfixOps
-import scalaz._
-import Scalaz._
-
 import java.io.FileNotFoundException
 import java.net.URI
 import java.net.URLDecoder
@@ -23,14 +20,16 @@ import scala.annotation.tailrec
 import scala.util.{Try, Using}
 import scala.jdk.CollectionConverters._
 
+import cats.implicits._
+import cats.data.ValidatedNel
 
 object Util {
 
-  type AppValidation[S] = ValidationNel[FailMessage, S]
+  type AppValidation[S] = ValidatedNel[FailMessage, S]
 
   def checkFilesReadable(files: List[Path]) = files.map(fileReadable).sequence[AppValidation, FailMessage]
 
-  def fileReadable(file: Path): AppValidation[FailMessage] = if (Files.exists(file) && Files.isReadable(file)) FailMessage(SchemaDefinitionError, file.toAbsolutePath.toString).successNel[FailMessage] else fileNotReadableMessage(file).failureNel[FailMessage]
+  def fileReadable(file: Path): AppValidation[FailMessage] = if (Files.exists(file) && Files.isReadable(file)) FailMessage(SchemaDefinitionError, file.toAbsolutePath.toString).validNel[FailMessage] else fileNotReadableMessage(file).invalidNel[FailMessage]
 
   def fileNotReadableMessage(file: Path) = FailMessage(SchemaDefinitionError, "Unable to read file : " + file.toAbsolutePath)
 

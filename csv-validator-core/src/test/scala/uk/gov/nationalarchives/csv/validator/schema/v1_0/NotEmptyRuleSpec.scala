@@ -14,7 +14,7 @@ import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.metadata.{Cell, Row}
 import uk.gov.nationalarchives.csv.validator.schema.{ColumnDefinition, NamedColumnIdentifier, Schema, TotalColumns}
 
-import scalaz.{Failure, Success}
+import cats.data.Validated
 
 @RunWith(classOf[JUnitRunner])
 class NotEmptyRuleSpec extends Specification {
@@ -26,7 +26,7 @@ class NotEmptyRuleSpec extends Specification {
      "File if cell is empty" in {
        val notEmptyRule = NotEmptyRule()
        notEmptyRule.evaluate(0, Row(List(Cell("")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) must beLike {
-         case Failure(messages) => messages.head mustEqual """notEmpty fails for line: 1, column: column1, value: """""
+         case Validated.Invalid(messages) => messages.head mustEqual """notEmpty fails for line: 1, column: column1, value: """""
        }
 
 
@@ -34,7 +34,7 @@ class NotEmptyRuleSpec extends Specification {
 
      "Succeed if cell is NOT empty" in {
        val notEmptyRule = NotEmptyRule()
-       notEmptyRule.evaluate(0, Row(List(Cell("something")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) mustEqual Success(true)
+       notEmptyRule.evaluate(0, Row(List(Cell("something")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) mustEqual Validated.Valid(true)
      }
    }
  }

@@ -8,10 +8,7 @@
  */
 package uk.gov.nationalarchives.csv.validator
 
-import scalaz._
-import Scalaz._
 import annotation.tailrec
-import scalaz.Failure
 import uk.gov.nationalarchives.csv.validator.schema.ColumnDefinition
 import uk.gov.nationalarchives.csv.validator.schema.Optional
 import uk.gov.nationalarchives.csv.validator.schema.Rule
@@ -19,6 +16,8 @@ import uk.gov.nationalarchives.csv.validator.schema.Schema
 import uk.gov.nationalarchives.csv.validator.schema.Warning
 import uk.gov.nationalarchives.csv.validator.metadata.Cell
 import uk.gov.nationalarchives.csv.validator.metadata.Row
+import cats.data.Validated.{Invalid => Failure}
+import cats.syntax.all._
 
 trait FailFastMetaDataValidator extends MetaDataValidator {
 
@@ -57,7 +56,7 @@ trait FailFastMetaDataValidator extends MetaDataValidator {
       columnDefinitions match {
         case Nil =>
           if (accum.isEmpty) {
-            List(true.successNel[FailMessage])
+            List(true.validNel[FailMessage])
           } else {
             accum.reverse
           }
@@ -84,7 +83,7 @@ trait FailFastMetaDataValidator extends MetaDataValidator {
 
     @tailrec
     def validateRulesForCell(rules: List[Rule]): MetaDataValidation[Any] = rules match {
-      case Nil => true.successNel[FailMessage]
+      case Nil => true.validNel[FailMessage]
       case rule :: tail => rule.evaluate(columnIndex, row, schema, mayBeLast) match {
         case e@Failure(_) => toErrors(e, row.lineNumber, columnIndex)
         case _ => validateRulesForCell(tail)
@@ -93,7 +92,7 @@ trait FailFastMetaDataValidator extends MetaDataValidator {
 
     def validateAllRulesForCell(rules: List[Rule]): MetaDataValidation[Any] = rules.map(_.evaluate(columnIndex, row, schema, mayBeLast)).map(toWarnings(_, row.lineNumber, columnIndex)).sequence[MetaDataValidation, Any]
 
-    if(row.cells(columnIndex).value.trim.isEmpty && isOptionDirective) true.successNel
+    if(row.cells(columnIndex).value.trim.isEmpty && isOptionDirective) true.validNel
     else if(isWarningDirective) validateAllRulesForCell(columnDefinition.rules)
     else validateRulesForCell(columnDefinition.rules)
   }

@@ -14,7 +14,7 @@ import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.metadata.{Cell, Row}
 import uk.gov.nationalarchives.csv.validator.schema._
 
-import scalaz.{Failure, Success}
+import cats.data.Validated
 
 /**
   * User: Jim Collins
@@ -34,37 +34,37 @@ class IfRuleSpec extends Specification {
 
     "condition and 'if body' is true and no 'else'" in {
       val ifRule = IfRule(startsRule("hello world"),endsRules("world"), None)
-      ifRule.evaluate(0, row, schema) mustEqual Success(List(true))
+      ifRule.evaluate(0, row, schema) mustEqual Validated.Valid(List(true))
     }
 
     "condition is true and no else, 'if body' rule fails" in {
       val ifRule = IfRule(startsRule("hello world"),endsRules("hello"), None)
       ifRule.evaluate(0, row, schema) must beLike {
-        case Failure(messages) => messages.head mustEqual "ends(\"hello\") fails for line: 1, column: column1, value: \"hello world\""
+        case Validated.Invalid(messages) => messages.head mustEqual "ends(\"hello\") fails for line: 1, column: column1, value: \"hello world\""
       }
     }
 
     "condition is true and there is an 'else' that is true and 'if' body that is false" in {
       val ifRule = IfRule(startsRule("hello"),endsRules("hello"), Some(endsRules("world")))
       ifRule.evaluate(0, row, schema) must beLike {
-        case Failure(messages) => messages.head mustEqual "ends(\"hello\") fails for line: 1, column: column1, value: \"hello world\""
+        case Validated.Invalid(messages) => messages.head mustEqual "ends(\"hello\") fails for line: 1, column: column1, value: \"hello world\""
       }
     }
 
     "condition is false and there is no 'else' and 'if' body that is true" in {
       val ifRule = IfRule(startsRule("sello"),endsRules("world"), None)
-      ifRule.evaluate(0, row, schema) mustEqual Success(List())
+      ifRule.evaluate(0, row, schema) mustEqual Validated.Valid(List())
     }
 
     "condition is false and there is an 'else' that is true and body that is true" in {
       val ifRule = IfRule(StartsRule(Literal(Some("sello"))),endsRules("world"), Some(endsRules("world")))
-      ifRule.evaluate(0, row, schema) mustEqual Success(List(true))
+      ifRule.evaluate(0, row, schema) mustEqual Validated.Valid(List(true))
     }
 
     "condition is false and there is an 'else' that is false and 'if' body that is true" in {
       val ifRule = IfRule(startsRule("sello"),endsRules("world"), Some(endsRules("hello")))
       ifRule.evaluate(0, row, schema) must beLike {
-        case Failure(messages) => messages.head mustEqual "ends(\"hello\") fails for line: 1, column: column1, value: \"hello world\""
+        case Validated.Invalid(messages) => messages.head mustEqual "ends(\"hello\") fails for line: 1, column: column1, value: \"hello world\""
       }
     }
 
@@ -74,7 +74,7 @@ class IfRuleSpec extends Specification {
           IfRule(startsRule("sello"),endsRules("world"), None)
         ))
       )
-      ifRule.evaluate(0, row, schema) mustEqual Success(List(List()))
+      ifRule.evaluate(0, row, schema) mustEqual Validated.Valid(List(List()))
     }
 
     "condition is false and 'else' has nested 'if' that is true with no 'else'" in {
@@ -83,7 +83,7 @@ class IfRuleSpec extends Specification {
           IfRule(startsRule("hello"),endsRules("world"), None)
         ))
       )
-      ifRule.evaluate(0, row, schema) mustEqual Success(List(List(true)))
+      ifRule.evaluate(0, row, schema) mustEqual Validated.Valid(List(List(true)))
     }
 
     "nested if'" in {
@@ -95,7 +95,7 @@ class IfRuleSpec extends Specification {
             ,endsRules("world"), Some(endsRules("world")))
         ))
       )
-      ifRule.evaluate(0, row, schema) mustEqual Success(List(List(true)))
+      ifRule.evaluate(0, row, schema) mustEqual Validated.Valid(List(List(true)))
     }
 
   }

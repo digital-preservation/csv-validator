@@ -8,7 +8,6 @@
  */
 package uk.gov.nationalarchives.csv.validator
 
-import scalaz._, Scalaz._
 import uk.gov.nationalarchives.csv.validator.schema.Optional
 import uk.gov.nationalarchives.csv.validator.schema.Rule
 import uk.gov.nationalarchives.csv.validator.schema.Schema
@@ -16,6 +15,7 @@ import uk.gov.nationalarchives.csv.validator.schema.Warning
 import uk.gov.nationalarchives.csv.validator.metadata.Cell
 import uk.gov.nationalarchives.csv.validator.metadata.Row
 import scala.annotation.tailrec
+import cats.syntax.all._
 
 trait AllErrorsMetaDataValidator extends MetaDataValidator {
 
@@ -62,7 +62,7 @@ trait AllErrorsMetaDataValidator extends MetaDataValidator {
     def isWarningDirective: Boolean = columnDefinition.directives.contains(Warning())
     def isOptionDirective: Boolean = columnDefinition.directives.contains(Optional())
 
-    if(row.cells(columnIndex).value.trim.isEmpty && isOptionDirective) true.successNel
+    if(row.cells(columnIndex).value.trim.isEmpty && isOptionDirective) true.validNel
     else columnDefinition.rules.map{rule =>
       rule.evaluate(columnIndex, row, schema, mayBeLast)
     }.map{ ruleResult:Rule#RuleValidation[Any] => {

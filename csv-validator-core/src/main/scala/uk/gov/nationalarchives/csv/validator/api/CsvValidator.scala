@@ -9,14 +9,13 @@
 package uk.gov.nationalarchives.csv.validator.api
 
 import uk.gov.nationalarchives.csv.validator.schema.{Schema, SchemaParser}
-import scalaz._
-import Scalaz._
 import uk.gov.nationalarchives.csv.validator._
 
 import java.io.{Reader => JReader}
 import java.nio.charset.{Charset => JCharset}
 import java.nio.file.Path
-
+import cats.data.ValidatedNel
+import cats.implicits._
 object CsvValidator {
 
   final val UTF_8: JCharset = JCharset.forName("UTF-8")
@@ -51,7 +50,7 @@ trait CsvValidator extends SchemaParser {
 
   def validate(csvFile: TextFile, csvSchema: Schema, progress: Option[ProgressCallback]): MetaDataValidation[Any] = {
 
-    val encodingValidationNel: MetaDataValidation[Any] = validateCsvFileEncoding(csvFile).getOrElse(true.successNel[FailMessage])
+    val encodingValidationNel: MetaDataValidation[Any] = validateCsvFileEncoding(csvFile).getOrElse(true.validNel[FailMessage])
 
     val csvValidation = withReader(csvFile) {
       reader =>
@@ -63,19 +62,19 @@ trait CsvValidator extends SchemaParser {
 
 
   def validateCsvFileEncoding(csvFile: TextFile): Option[MetaDataValidation[Any]] = csvFile match {
-      // validateCsvFileEncoding(csvFile).getOrElse(true.successNel[FailMessage])
+      // validateCsvFileEncoding(csvFile).getOrElse(true.validNel[FailMessage])
 
     case TextFile(_, _, false) => None
     case TextFile(_, encoding, _) if !encoding.equals(CsvValidator.UTF_8) => None
     case TextFile(file, _, true)  => Some(validateUtf8Encoding(file))
   }
 
-  def parseSchema(csvSchemaFile: TextFile): ValidationNel[FailMessage, Schema] = {
+  def parseSchema(csvSchemaFile: TextFile): ValidatedNel[FailMessage, Schema] = {
     withReader(csvSchemaFile) {
       reader =>
         parseAndValidate(reader)
     }
   }
 
-  def parseSchema(csvSchema: JReader): ValidationNel[FailMessage, Schema] = parseAndValidate(csvSchema)
+  def parseSchema(csvSchema: JReader): ValidatedNel[FailMessage, Schema] = parseAndValidate(csvSchema)
 }

@@ -14,7 +14,7 @@ import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.metadata.{Cell, Row}
 import uk.gov.nationalarchives.csv.validator.schema._
 
-import scalaz.{Success, Failure, IList}
+import cats.data.Validated
 
 @RunWith(classOf[JUnitRunner])
 class AndRuleSpec extends Specification {
@@ -30,7 +30,7 @@ class AndRuleSpec extends Specification {
       val andRule = AndRule(leftInRule, rightInRule)
 
       andRule.evaluate(0, Row(List(Cell("Germany")), 1), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual IList("""in("Germany") and in("France") fails for line: 1, column: Country, value: "Germany"""")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("""in("Germany") and in("France") fails for line: 1, column: Country, value: "Germany"""")
       }
     }
 
@@ -44,7 +44,7 @@ class AndRuleSpec extends Specification {
       val andRule = AndRule(leftInRule, rightInRule)
 
       andRule.evaluate(0, Row(List(Cell("France")), 1), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual IList("""in("Germany") and in("France") fails for line: 1, column: Country, value: "France"""")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("""in("Germany") and in("France") fails for line: 1, column: Country, value: "France"""")
       }
     }
 
@@ -58,7 +58,7 @@ class AndRuleSpec extends Specification {
       val andRule = AndRule(leftInRule, rightInRule)
 
       andRule.evaluate(0, Row(List(Cell("SomethingElse")), 1), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual IList("""in("This") and in("That") fails for line: 1, column: ThisOrThat, value: "SomethingElse"""")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("""in("This") and in("That") fails for line: 1, column: ThisOrThat, value: "SomethingElse"""")
       }
     }
 
@@ -71,7 +71,7 @@ class AndRuleSpec extends Specification {
 
       val andRule = AndRule(leftInRule, rightInRule)
 
-      andRule.evaluate(0, Row(List(Cell("UK")), 1), schema) mustEqual Success(true)
+      andRule.evaluate(0, Row(List(Cell("UK")), 1), schema) mustEqual Validated.Valid(true)
     }
 
     "succeed when both left and parentheses right match" in {
@@ -86,7 +86,7 @@ class AndRuleSpec extends Specification {
 
       val andRule = AndRule(leftInRule, rightInRule)
 
-      andRule.evaluate(0, Row(List(Cell("UK")), 1), schema) mustEqual Success(List(true,true))
+      andRule.evaluate(0, Row(List(Cell("UK")), 1), schema) mustEqual Validated.Valid(List(true,true))
     }
 
     "succeed when both left and parentheses right match" in {
@@ -102,7 +102,7 @@ class AndRuleSpec extends Specification {
       val andRule = AndRule(leftInRule, rightInRule)
 
       andRule.evaluate(0, Row(List(Cell("SomethingElse")), 1), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual IList("""is("UK") and (is("UK") is("UK1")) fails for line: 1, column: Country, value: "SomethingElse"""")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("""is("UK") and (is("UK") is("UK1")) fails for line: 1, column: Country, value: "SomethingElse"""")
       }
     }
   }
