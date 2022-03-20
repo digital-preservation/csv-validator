@@ -184,15 +184,17 @@
                 <artifactId>license-maven-plugin</artifactId>
                 <inherited>true</inherited>
                 <configuration>
-                    <header>${project.parent.relativePath}/MPL2-template.txt</header>
+		    <inlineHeader><![CDATA[
+Copyright (c) ${project.inceptionYear}, ${project.organization.name} <${contact.email}>
+${project.organization.url}
+
+This Source Code Form is subject to the terms of the Mozilla Public
+License, v. 2.0. If a copy of the MPL was not distributed with this
+file, You can obtain one at http://mozilla.org/MPL/2.0/.
+		    ]]></inlineHeader>
                     <failIfMissing>true</failIfMissing>
                     <aggregate>true</aggregate>
                     <strictCheck>true</strictCheck>
-                    <properties>
-                        <organisation>${project.organization.name}</organisation>
-                        <email>${contact.email}</email>
-                        <url>${project.organization.url}</url>
-                    </properties>
                     <excludes>
                         <exclude>**/pom.xml</exclude>
                         <exclude>**/*.sbt</exclude>
@@ -206,6 +208,8 @@
                         <exclude>**/*.csv</exclude>
                         <exclude>**/*.txt</exclude>
                         <exclude>**/*.jp2</exclude>
+			<exclude>**/src/*/resources/**</exclude>
+			<exclude>**/.*/**</exclude>
                     </excludes>
                     <encoding>${project.build.sourceEncoding}</encoding>
                 </configuration>
