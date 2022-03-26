@@ -6,7 +6,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-package uk.gov.nationalarchives.csv.validator.schema.v1_1
+package uk.gov.nationalarchives.csv.validator
+package schema.v1_1
 
 import java.io.FileNotFoundException
 import uk.gov.nationalarchives.csv.validator.Util.FileSystem
@@ -19,10 +20,6 @@ import scalaz.Scalaz._
 import scalaz.{Failure => FailureZ, Success => SuccessZ}
 
 import java.nio.file.Path
-
-
-
-
 
 case class AnyRule(anyValues: List[ArgProvider]) extends Rule("any", anyValues:_*) {
   override def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema, mayBeLast: Option[Boolean]  = None): Boolean = {
@@ -93,8 +90,12 @@ case class IntegrityCheckRule(pathSubstitutions: List[(String,String)], enforceC
     if (!filePath.isEmpty){
 
         val ruleValue = rootPath.referenceValue(columnIndex, row, schema)
+        val filePathS = if (FILE_SEPARATOR == WINDOWS_FILE_SEPARATOR)
+          filePath.replace(FILE_SEPARATOR.toString, UNIX_FILE_SEPARATOR.toString)
+        else
+          filePath
 
-        filesMap = new FileSystem(ruleValue, filePath, pathSubstitutions).integrityCheck(filesMap, enforceCaseSensitivePathChecks, topLevelFolder, includeFolder)
+        filesMap = new FileSystem(ruleValue, filePathS, pathSubstitutions).integrityCheck(filesMap, enforceCaseSensitivePathChecks, topLevelFolder, includeFolder)
         val isLastLine = mayBeLast.map(!_).getOrElse(false)
 
         if (isLastLine)
