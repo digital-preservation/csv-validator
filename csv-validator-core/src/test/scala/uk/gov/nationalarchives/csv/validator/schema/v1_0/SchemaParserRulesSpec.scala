@@ -465,9 +465,9 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                    |MyCountry: regex("[a-z*")
                    |Country: is($MyMissingCountry)""".stripMargin
 
-    parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual IList(FailMessage(SchemaDefinitionError,
+    parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list.map(_.removeCR) mustEqual IList(FailMessage(SchemaDefinitionError,
       """Column: Country has invalid cross reference is($MyMissingCountry) at line: 4, column: 10
-        |Column: MyCountry: Invalid regex("[a-z*"): at line: 3, column: 12""".stripMargin)) }
+        |Column: MyCountry: Invalid regex("[a-z*"): at line: 3, column: 12""".stripMargin.removeCR)) }
   }
 
   "succeed for 'not' text rule" in {

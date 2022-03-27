@@ -14,7 +14,7 @@ import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.{SchemaDefinitionError, FailMessage}
 import uk.gov.nationalarchives.csv.validator.schema._
-
+import uk.gov.nationalarchives.csv.validator.TestHelper._
 import scalaz.{Failure => FailureZ, IList}
 
 @RunWith(classOf[JUnitRunner])
@@ -45,11 +45,11 @@ class SchemaParserColumnDirectivesSpec extends SchemaSpecBase {
                      |@totalColumns 1
                      |column1: @ignoreCase @ignoreCase""".stripMargin
 
-      parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual IList(FailMessage(SchemaDefinitionError,
+      parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list.map(_.removeCR) mustEqual IList(FailMessage(SchemaDefinitionError,
         """[3.23] failure: Invalid column definition
         |
         |column1: @ignoreCase @ignoreCase
-        |                      ^""".stripMargin)) }
+        |                      ^""".stripMargin.removeCR)) }
     }
 
     "fail for multiple duplicate column directives" in {
@@ -57,11 +57,11 @@ class SchemaParserColumnDirectivesSpec extends SchemaSpecBase {
                      |@totalColumns 1
                      |column1: @ignoreCase @optional @ignoreCase @optional""".stripMargin
 
-      parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual IList(FailMessage(SchemaDefinitionError,
+      parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list.map(_.removeCR) mustEqual IList(FailMessage(SchemaDefinitionError,
        """[3.33] failure: Invalid column definition
        |
        |column1: @ignoreCase @optional @ignoreCase @optional
-       |                                ^""".stripMargin)) }
+       |                                ^""".stripMargin.removeCR)) }
     }
 
     "fail for duplicate column directives on different columns" in {
@@ -71,11 +71,11 @@ class SchemaParserColumnDirectivesSpec extends SchemaSpecBase {
                      |column2: @optional @ignoreCase
                      |column3: @ignoreCase @ignoreCase @optional @optional""".stripMargin
 
-      parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual IList(FailMessage(SchemaDefinitionError,
+      parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list.map(_.removeCR) mustEqual IList(FailMessage(SchemaDefinitionError,
         """[3.33] failure: Invalid column definition
           |
           |column1: @ignoreCase @optional @ignoreCase @optional
-          |                                ^""".stripMargin)) }
+          |                                ^""".stripMargin.removeCR)) }
     }
 
   }

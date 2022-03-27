@@ -450,11 +450,10 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
     "fail with duplicate column ids" in {
       parseSchema(TextFile(Paths.get(base).resolve("duplicateColumnIdsFailSchema.csvs"))) must beLike {
         case Failure(errors) =>
-          val errorMsg: String = errors.list.toList.head.message
-          val bytes: List[Byte] = errorMsg.toList.map(_.toByte)
-          val expected: List[Byte] = """|Column: Age has duplicates on lines 3, 8
-               |Column: Country has duplicates on lines 4, 5, 7""".stripMargin.toList.map(_.toByte)
-          bytes mustEqual expected
+          val errorMsg: String = errors.list.toList.head.message.removeCR
+          val expected: String = """|Column: Age has duplicates on lines 3, 8
+               |Column: Country has duplicates on lines 4, 5, 7""".stripMargin
+          errorMsg mustEqual expected
             
       }
     }
