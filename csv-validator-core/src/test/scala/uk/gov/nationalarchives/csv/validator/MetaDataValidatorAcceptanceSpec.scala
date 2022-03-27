@@ -452,7 +452,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
         case Failure(errors) =>
           val errorMsg: String = errors.list.toList.head.message.removeCR
           val expected: String = """|Column: Age has duplicates on lines 3, 8
-               |Column: Country has duplicates on lines 4, 5, 7""".stripMargin
+               |Column: Country has duplicates on lines 4, 5, 7""".stripMargin.removeCR
           errorMsg mustEqual expected
             
       }
