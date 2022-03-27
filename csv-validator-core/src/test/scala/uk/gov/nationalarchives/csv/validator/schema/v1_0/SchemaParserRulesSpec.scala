@@ -15,7 +15,7 @@ import org.specs2.mutable._
 import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.{SchemaDefinitionError, FailMessage, EOL}
 import uk.gov.nationalarchives.csv.validator.schema._
-
+import uk.gov.nationalarchives.csv.validator.TestHelper._
 import scalaz.{Failure => FailureZ, Success => SuccessZ, IList}
 
 @RunWith(classOf[JUnitRunner])
@@ -379,11 +379,11 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
            @totalColumns 1
            Country: xTime( 99:10:20 , 00:10:20 ) ukDate( 01/02/1966 , 31/02/1966 ) xDateTime( 2012-13-01T01:01:01 , 2012-12-01T01:01:01 ) xDate( 2012-12-40 , 2012-12-01 )"""
 
-    parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual IList(FailMessage(SchemaDefinitionError,
+    parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list.map(_.removeCR) mustEqual IList(FailMessage(SchemaDefinitionError,
       """Column: Country: Invalid xTime("99:10:20, 00:10:20"): at line: 3, column: 21
         |Column: Country: Invalid ukDate("01/02/1966, 31/02/1966"): at line: 3, column: 50
         |Column: Country: Invalid xDateTime("2012-13-01T01:01:01, 2012-12-01T01:01:01"): at line: 3, column: 84
-        |Column: Country: Invalid xDate("2012-12-40, 2012-12-01"): at line: 3, column: 139""".stripMargin)) }
+        |Column: Country: Invalid xDate("2012-12-40, 2012-12-01"): at line: 3, column: 139""".stripMargin.removeCR)) }
   }
 
   "succeed for cross reference in rule" in {

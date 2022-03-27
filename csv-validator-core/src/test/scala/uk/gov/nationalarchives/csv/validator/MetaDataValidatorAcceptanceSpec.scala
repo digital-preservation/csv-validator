@@ -20,6 +20,7 @@ import java.io
 import java.nio.file.{Files, Paths}
 
 import scala.jdk.CollectionConverters._
+import TestHelper._
 
 @RunWith(classOf[JUnitRunner])
 class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
@@ -448,8 +449,10 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
 
     "fail with duplicate column ids" in {
       parseSchema(TextFile(Paths.get(base).resolve("duplicateColumnIdsFailSchema.csvs"))) must beLike {
-        case Failure(errors) => errors.list mustEqual IList(FailMessage(SchemaDefinitionError, """Column: Age has duplicates on lines 3, 8
-                                                                           |Column: Country has duplicates on lines 4, 5, 7""".stripMargin))
+        case Failure(errors) => errors.list.map(_.removeCR) mustEqual
+          IList(FailMessage(SchemaDefinitionError,
+            """|Column: Age has duplicates on lines 3, 8
+               |Column: Country has duplicates on lines 4, 5, 7""".stripMargin.removeCR))
       }
     }
 
