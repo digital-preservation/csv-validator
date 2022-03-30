@@ -115,7 +115,7 @@
         <dependency>
             <groupId>co.fs2</groupId>
             <artifactId>fs2-core_${scala.version}</artifactId>
-            <version>3.2.5</version>
+            <version>3.2.6</version>
         </dependency>
         <dependency>
             <groupId>co.fs2</groupId>
