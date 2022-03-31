@@ -123,11 +123,6 @@
             <version>3.2.7</version>
         </dependency>
         <dependency>
-            <groupId>org.scalaz</groupId>
-            <artifactId>scalaz-concurrent_${scala.version}</artifactId>
-            <version>${scalaz.version}</version>
-        </dependency>
-        <dependency>
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
             <version>2.10.14</version>
