@@ -42,6 +42,10 @@
         <developer>
             <name>Valy Diarrassouba</name>
         </developer>
+	<developer>
+            <name>Luke Tebbs</name>
+	    <email>luke@luketebbs.com</email>
+	</developer>
     </developers>
     <contributors>
         <contributor>
