@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013, The National Archives <digitalpreservation@nationalarchives.gov.uk>
  * https://www.nationalarchives.gov.uk
  *
@@ -317,20 +317,19 @@ object Util {
 
     def integrityCheck(fileMap: Map[String, Set[Path]], enforceCaseSensitivePathChecks: Boolean, topLevelFolder: String, includeFolder: Boolean): Map[String, Set[Path]] = {
       val contentDirectory = contentDir(jointPath, topLevelFolder)
-      val files = fileMap.get(contentDirectory).getOrElse{
-        val theFiles = FileSystem.createFile(FileSystem.convertPath2Platform(contentDirectory)) match
-            {
-              case scala.util.Success(f) => scanDir(f, includeFolder)
-              case scala.util.Failure(_) => Set[Path]()
-            }
-            theFiles
+      val files = fileMap.get(contentDirectory).getOrElse {
+        val theFiles = FileSystem.createFile(FileSystem.convertPath2Platform(contentDirectory)) match {
+          case scala.util.Success(f) => scanDir(f, includeFolder)
+          case scala.util.Failure(_) => Set[Path]()
         }
+        theFiles
+      }
       val remainder = FileSystem.createFile(FileSystem.convertPath2Platform(substitutePath(jointPath))) match {
         case scala.util.Success(f) => files - f
         case _ => files
       }
 
-      fileMap.view.filterKeys(_ == contentDirectory).toMap + (contentDirectory -> remainder)
+      fileMap.view.filter{case (k,_) => k == contentDirectory}.toMap + (contentDirectory -> remainder)
     }
 
     def expandBasePath: String = {

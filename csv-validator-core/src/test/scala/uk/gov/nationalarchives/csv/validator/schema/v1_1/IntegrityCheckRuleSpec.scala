@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013, The National Archives <digitalpreservation@nationalarchives.gov.uk>
  * https://www.nationalarchives.gov.uk
  *
@@ -29,7 +29,7 @@ class IntegrityCheckRuleSpec extends Specification with TestResources {
   
   val relMustExistForHashRulePath = relResourcePath("mustExistFor#Rule.csvs")
   val hashSegments = relMustExistForHashRulePath.split(FILE_SEPARATOR)
-  val hashRelPath = (hashSegments.slice(0, hashSegments.length - 3).reduceLeft(_ + FILE_SEPARATOR + _), hashSegments.slice(hashSegments.length - 3, hashSegments.length).reduceLeft(_ + FILE_SEPARATOR + _))
+  val hashRelPath = (hashSegments.slice(0, hashSegments.length - 3).mkString(FILE_SEPARATOR.toString), hashSegments.slice(hashSegments.length - 3, hashSegments.length).mkString(FILE_SEPARATOR.toString))
 
 
   val relPath2 = relativePath(relIntegrityCheckForRulePath)
@@ -37,7 +37,7 @@ class IntegrityCheckRuleSpec extends Specification with TestResources {
 
   def relativePath(path: String):(String,String) = {
     val segments = path.split(FILE_SEPARATOR)
-    (segments.slice(0, segments.length - 3).reduceLeft(_ + FILE_SEPARATOR + _), segments.slice(segments.length - 3, segments.length).reduceLeft(_ + FILE_SEPARATOR + _))
+    (segments.slice(0, segments.length - 3).mkString(FILE_SEPARATOR.toString), segments.slice(segments.length - 3, segments.length).mkString(FILE_SEPARATOR.toString))
   }
   val emptyPathSubstitutions = List[SubstitutePath]()
 
@@ -55,7 +55,7 @@ class IntegrityCheckRuleSpec extends Specification with TestResources {
       val totalRows: Some[Boolean] = Some(false)
       
       integrityCheckRule.evaluate(0, Row(List(Cell(relIntegrityCheckForRulePath)), 1), schema, totalRows) must beLike {
-        case Failure(messages) => messages.head must be matching "integrityCheck fails for line: 1, column: column1, files: \"[a-z0-9._/-]*integrityCheck/folder1/content/file#2.txt\" are not listed in the metadata"
+        case Failure(messages) => messages.head must be matching "integrityCheck fails for line: 1, column: column1, files: \"[a-z0-9._\\\\/-]*integrityCheck[\\\\/]folder1[\\\\/]content[\\\\/]file#2.txt\" are not listed in the metadata"
       }
     }
 
@@ -66,7 +66,7 @@ class IntegrityCheckRuleSpec extends Specification with TestResources {
       integrityCheckRule.evaluate(1, Row(List(Cell("abc"), Cell(relIntegrityCheckForRulePath)), 1), schema, Some(true)) mustEqual  Success(true)
 
       integrityCheckRule.evaluate(1, Row(List(Cell("abc"), Cell("")), 2), schema, Some(false)) must beLike {
-        case Failure(messages) => messages.head must be matching "integrityCheck fails for line: 2, column: column2, files: \"[a-z0-9._/-]*integrityCheck/folder1/content/file#2.txt\" are not listed in the metadata"
+        case Failure(messages) => messages.head must be matching "integrityCheck fails for line: 2, column: column2, files: \"[a-z0-9._\\\\/-]*integrityCheck[\\\\/]folder1[\\\\/]content[\\\\/]file#2.txt\" are not listed in the metadata"
       }
     }
 
