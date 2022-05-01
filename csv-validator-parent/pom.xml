@@ -75,7 +75,45 @@
         <developerConnection>scm:git:https://github.com/digital-preservation/csv-validator.git</developerConnection>
         <url>scm:git:https://github.com/digital-preservation/csv-validator.git</url>
       <tag>HEAD</tag>
-  </scm>
+    </scm>
+
+    <profiles>
+
+        <!-- Default profile publishes to Maven Central -->
+        <!-- See: https://search.maven.org/search?q=a:csv-validator-core -->
+        <profile>
+            <id>default-release-repo</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <distributionManagement>
+                <snapshotRepository>
+                    <id>sonatype-nexus-snapshot-staging</id>
+                    <name>Nexus Snapshot Repository</name>
+                    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+                </snapshotRepository>
+                <repository>
+                    <id>sonatype-nexus-release-staging</id>
+                    <name>Nexus Release Repository</name>
+                    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+                </repository>
+            </distributionManagement>
+        </profile>
+
+        <!-- Profile for publishing artifacts to GitHub -->
+        <!-- See: https://github.com/digital-preservation/csv-validator/releases -->
+        <profile>
+            <id>github-release-repo</id>
+            <distributionManagement>
+                <repository>
+                    <id>github-release-staging</id>
+                    <name>GitHub Release Repository</name>
+                    <url>https://maven.pkg.github.com/digital-preservation/csv-validator</url>
+                </repository>
+            </distributionManagement>
+        </profile>
+
+    </profiles>
 
     <properties>
         <scala.version>2.13</scala.version>
@@ -395,18 +433,5 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             </dependency>
         </dependencies>
     </dependencyManagement>
-
-    <distributionManagement>
-        <snapshotRepository>
-            <id>sonatype-nexus-snapshot-staging</id>
-            <name>Nexus Snapshot Repository</name>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-        <repository>
-            <id>sonatype-nexus-release-staging</id>
-            <name>Nexus Release Repository</name>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-    </distributionManagement>
 
 </project>
