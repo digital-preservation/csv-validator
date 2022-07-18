@@ -104,7 +104,7 @@
                 <plugin>
                     <groupId>net.alchim31.maven</groupId>
                     <artifactId>scala-maven-plugin</artifactId>
-                    <version>4.6.1</version>
+                    <version>4.7.0</version>
                     <configuration>
                         <scalaVersion>${scala.lib.version}</scalaVersion>
                     </configuration>
