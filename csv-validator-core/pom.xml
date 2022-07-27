@@ -120,7 +120,7 @@
         <dependency>
             <groupId>co.fs2</groupId>
             <artifactId>fs2-io_${scala.version}</artifactId>
-            <version>3.2.7</version>
+            <version>3.2.11</version>
         </dependency>
         <dependency>
             <groupId>joda-time</groupId>
