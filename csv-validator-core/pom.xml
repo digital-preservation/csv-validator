@@ -110,7 +110,7 @@
         <dependency>
             <groupId>org.typelevel</groupId>
             <artifactId>cats-effect_${scala.version}</artifactId>
-            <version>3.3.9</version>
+            <version>3.5-639ac01</version>
         </dependency>
         <dependency>
             <groupId>co.fs2</groupId>
