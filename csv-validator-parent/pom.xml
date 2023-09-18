@@ -2,13 +2,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>org.sonatype.oss</groupId>
-        <artifactId>oss-parent</artifactId>
-        <version>7</version>
-        <relativePath />
-    </parent>
-
     <groupId>uk.gov.nationalarchives</groupId>
     <artifactId>csv-validator-parent</artifactId>
     <version>1.2-SNAPSHOT</version>
@@ -49,6 +42,10 @@
         <developer>
             <name>Valy Diarrassouba</name>
         </developer>
+	<developer>
+            <name>Luke Tebbs</name>
+	    <email>luke@luketebbs.com</email>
+	</developer>
     </developers>
     <contributors>
         <contributor>
@@ -84,13 +81,10 @@
         <scala.version>2.13</scala.version>
         <scala.lib.version>2.13.8</scala.lib.version>
         <scalaz.version>7.2.34</scalaz.version>
-        <specs2.version>4.14.1</specs2.version>
+        <specs2.version>4.15.0</specs2.version>
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <contact.email>digitalpreservation@nationalarchives.gov.uk</contact.email>
-
-        <!-- needed just for the license-maven-plugin in this module! -->
-        <project.parent.relativePath>.</project.parent.relativePath>
     </properties>
 
     <build>
@@ -110,7 +104,7 @@
                 <plugin>
                     <groupId>net.alchim31.maven</groupId>
                     <artifactId>scala-maven-plugin</artifactId>
-                    <version>4.5.6</version>
+                    <version>4.8.0</version>
                     <configuration>
                         <scalaVersion>${scala.lib.version}</scalaVersion>
                     </configuration>
@@ -153,7 +147,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>3.3.2</version>
+                    <version>3.4.1</version>
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
@@ -163,7 +157,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-assembly-plugin</artifactId>
-                    <version>3.3.0</version>
+                    <version>3.4.2</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -184,15 +178,17 @@
                 <artifactId>license-maven-plugin</artifactId>
                 <inherited>true</inherited>
                 <configuration>
-                    <header>${project.parent.relativePath}/MPL2-template.txt</header>
+                    <inlineHeader><![CDATA[
+Copyright (c) ${project.inceptionYear}, ${project.organization.name} <${contact.email}>
+${project.organization.url}
+
+This Source Code Form is subject to the terms of the Mozilla Public
+License, v. 2.0. If a copy of the MPL was not distributed with this
+file, You can obtain one at http://mozilla.org/MPL/2.0/.
+                    ]]></inlineHeader>
                     <failIfMissing>true</failIfMissing>
                     <aggregate>true</aggregate>
                     <strictCheck>true</strictCheck>
-                    <properties>
-                        <organisation>${project.organization.name}</organisation>
-                        <email>${contact.email}</email>
-                        <url>${project.organization.url}</url>
-                    </properties>
                     <excludes>
                         <exclude>**/pom.xml</exclude>
                         <exclude>**/*.sbt</exclude>
@@ -206,6 +202,8 @@
                         <exclude>**/*.csv</exclude>
                         <exclude>**/*.txt</exclude>
                         <exclude>**/*.jp2</exclude>
+                        <exclude>**/src/*/resources/**</exclude>
+                        <exclude>**/.*/**</exclude>
                     </excludes>
                     <encoding>${project.build.sourceEncoding}</encoding>
                 </configuration>
