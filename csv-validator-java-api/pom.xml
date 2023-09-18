@@ -28,7 +28,6 @@
                 <artifactId>scala-maven-plugin</artifactId>
                 <configuration>
                     <recompileMode>incremental</recompileMode>   <!-- NOTE: incremental compilation although faster requires passing to MAVEN_OPTS="-XX:MaxPermSize=128m" -->
-                    <useZincServer>true</useZincServer>          <!-- NOTE: if you have Zinc server installed and running, you can get faster compilation by enabling this -->
                     <args>
                         <arg>-feature</arg>
                         <arg>-deprecation</arg>
