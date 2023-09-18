@@ -57,10 +57,9 @@ case class SwitchRule(elseRules: Option[List[Rule]], cases:(Rule, List[Rule])*) 
     }.sequence[RuleValidation, Any]
   }
 
-
   override def toError = {
-    val paramErrs = cases.flatMap{ case (_,rules) => rules.map( _.toError).mkString(" ")}
-    s"""($paramErrs)""" + (if (argProviders.isEmpty) "" else "(" + argProviders.foldLeft("")((a, b) => (if (a.isEmpty) "" else a + ", ") + b.toError) + ")")
+    val paramErrs = cases.map{ case (x,rules) => "(" + x.toError + ", " + rules.map( _.toError).mkString(" ") + ")" }.mkString(", ")
+    s"""${super.toError}($paramErrs)"""
   }
 }
 
