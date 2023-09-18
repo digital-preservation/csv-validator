@@ -54,7 +54,7 @@ class NotEmptyBugTest extends Specification with TestResources {
     val schema =
       """version 1.1
          @totalColumns 2
-         file_name: notEmpty if($curated_file_name/notEmpty, is(noext($curated_file_name) ))
+         file_name: notEmpty if($curated_file_name/notEmpty, is(noExt($curated_file_name) ))
          curated_file_name: @optional
       """
 
@@ -70,7 +70,7 @@ class NotEmptyBugTest extends Specification with TestResources {
     val schema =
       """version 1.1
          @totalColumns 2
-         file_name: empty if($curated_file_name/empty, is(noext($curated_file_name)))
+         file_name: empty if($curated_file_name/empty, is(noExt($curated_file_name)))
          curated_file_name: @optional
       """
 
@@ -85,7 +85,7 @@ class NotEmptyBugTest extends Specification with TestResources {
     val schema =
       """version 1.1
          @totalColumns 2
-         file_name: uuid4 if($curated_file_name/uuid4, is(noext($curated_file_name)))
+         file_name: uuid4 if($curated_file_name/uuid4, is(noExt($curated_file_name)))
          curated_file_name: @optional
       """
 
@@ -100,7 +100,7 @@ class NotEmptyBugTest extends Specification with TestResources {
     val schema =
       """version 1.1
          @totalColumns 2
-         file_name: positiveInteger if($curated_file_name/positiveInteger, is(noext($curated_file_name)))
+         file_name: positiveInteger if($curated_file_name/positiveInteger, is(noExt($curated_file_name)))
          curated_file_name: @optional
       """
 
@@ -115,7 +115,7 @@ class NotEmptyBugTest extends Specification with TestResources {
     val schema =
       """version 1.1
          @totalColumns 2
-         file_name: uri if($curated_file_name/uri, is(noext($curated_file_name)))
+         file_name: uri if($curated_file_name/uri, is(noExt($curated_file_name)))
          curated_file_name: @optional
       """
 
@@ -130,7 +130,7 @@ class NotEmptyBugTest extends Specification with TestResources {
     val schema =
       """version 1.1
          @totalColumns 2
-         file_name: partUkDate if($curated_file_name/partUkDate, is(noext($curated_file_name)))
+         file_name: partUkDate if($curated_file_name/partUkDate, is(noExt($curated_file_name)))
          curated_file_name: @optional
       """
 
@@ -145,7 +145,7 @@ class NotEmptyBugTest extends Specification with TestResources {
     val schema =
       """version 1.1
          @totalColumns 2
-         file_name: lowerCase if($curated_file_name/lowerCase, is(noext($curated_file_name)))
+         file_name: lowerCase if($curated_file_name/lowerCase, is(noExt($curated_file_name)))
          curated_file_name: @optional
       """
 
@@ -160,7 +160,7 @@ class NotEmptyBugTest extends Specification with TestResources {
     val schema =
       """version 1.1
          @totalColumns 2
-         file_name: upperCase if($curated_file_name/upperCase, is(noext($curated_file_name)))
+         file_name: upperCase if($curated_file_name/upperCase, is(noExt($curated_file_name)))
          curated_file_name: @optional
       """
 

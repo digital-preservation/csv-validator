@@ -17,7 +17,7 @@ trait SchemaParser extends SchemaParser1_1 {
   /**
    * [59] StringProvider ::= ColumnRef | StringLiteral
    */
-  override lazy val stringProvider: PackratParser[ArgProvider] = "StringProvider" ::= noext | concat | urlDecode | columnRef | stringLiteral ^^ {
+  override lazy val stringProvider: PackratParser[ArgProvider] = "StringProvider" ::= noExt | concat | urlDecode | columnRef | stringLiteral ^^ {
     s => Literal(Some(s))
   }
 
