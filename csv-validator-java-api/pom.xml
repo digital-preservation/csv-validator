@@ -121,8 +121,8 @@
             <artifactId>scala-library</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.scalaz</groupId>
-            <artifactId>scalaz-core_${scala.version}</artifactId>
+            <groupId>org.typelevel</groupId>
+            <artifactId>cats-core_${scala.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>

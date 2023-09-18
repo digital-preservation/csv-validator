@@ -103,18 +103,20 @@
             <version>2.1.1</version>
         </dependency>
         <dependency>
-            <groupId>org.scalaz</groupId>
-            <artifactId>scalaz-core_${scala.version}</artifactId>
+            <groupId>org.typelevel</groupId>
+            <artifactId>cats-core_${scala.version}</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.typelevel</groupId>
+            <artifactId>cats-kernel_${scala.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.typelevel</groupId>
             <artifactId>cats-effect_${scala.version}</artifactId>
-            <version>3.5.1</version>
         </dependency>
         <dependency>
             <groupId>org.typelevel</groupId>
             <artifactId>cats-effect-kernel_${scala.version}</artifactId>
-            <version>3.5.1</version>
         </dependency>
         <dependency>
             <groupId>co.fs2</groupId>

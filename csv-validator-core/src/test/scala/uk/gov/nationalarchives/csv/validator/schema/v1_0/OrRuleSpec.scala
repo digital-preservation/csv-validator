@@ -14,7 +14,7 @@ import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.metadata.{Cell, Row}
 import uk.gov.nationalarchives.csv.validator.schema._
 
-import scalaz.{Success, Failure, IList}
+import cats.data.Validated
 
 @RunWith(classOf[JUnitRunner])
 class OrRuleSpec extends Specification {
@@ -29,7 +29,7 @@ class OrRuleSpec extends Specification {
 
       val orRule = OrRule(leftInRule, rightInRule)
 
-      orRule.evaluate(0, Row(List(Cell("Germany")), 1), schema) mustEqual Success(true)
+      orRule.evaluate(0, Row(List(Cell("Germany")), 1), schema) mustEqual Validated.Valid(true)
     }
 
     "succeed when right rule validates" in {
@@ -41,7 +41,7 @@ class OrRuleSpec extends Specification {
 
       val orRule = OrRule(leftInRule, rightInRule)
 
-      orRule.evaluate(0, Row(List(Cell("France")), 1), schema) mustEqual Success(true)
+      orRule.evaluate(0, Row(List(Cell("France")), 1), schema) mustEqual Validated.Valid(true)
     }
 
     "fail when left/right rules are invalid" in {
@@ -54,7 +54,7 @@ class OrRuleSpec extends Specification {
       val orRule = OrRule(leftInRule, rightInRule)
 
       orRule.evaluate(0, Row(List(Cell("SomethingElse")), 1), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual IList("""in("This") or in("That") fails for line: 1, column: ThisOrThat, value: "SomethingElse"""")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("""in("This") or in("That") fails for line: 1, column: ThisOrThat, value: "SomethingElse"""")
       }
     }
 
@@ -80,7 +80,7 @@ class OrRuleSpec extends Specification {
 
       val orRule =  OrRule( OrRule(leftInRule, middleInRule), rightInRule )
 
-      orRule.evaluate(0, Row(List(Cell("right")), 1), schema) mustEqual Success(true)
+      orRule.evaluate(0, Row(List(Cell("right")), 1), schema) mustEqual Validated.Valid(true)
     }
 
     "succeed when 3 'or' rules valid for left/middle rule" in {
@@ -93,7 +93,7 @@ class OrRuleSpec extends Specification {
 
       val orRule =  OrRule( OrRule(leftInRule, middleInRule), rightInRule )
 
-      orRule.evaluate(0, Row(List(Cell("middle")), 1), schema) mustEqual Success(true)
+      orRule.evaluate(0, Row(List(Cell("middle")), 1), schema) mustEqual Validated.Valid(true)
     }
 
     "fail when all 3 'or' rules are invalid " in {
@@ -107,7 +107,7 @@ class OrRuleSpec extends Specification {
       val orRule =  OrRule( OrRule(leftInRule, middleInRule), rightInRule )
 
       orRule.evaluate(0, Row(List(Cell("up")), 1), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual IList("""in("left") or in("middle") or in("right") fails for line: 1, column: Direction, value: "up"""")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("""in("left") or in("middle") or in("right") fails for line: 1, column: Direction, value: "up"""")
       }
     }
   }

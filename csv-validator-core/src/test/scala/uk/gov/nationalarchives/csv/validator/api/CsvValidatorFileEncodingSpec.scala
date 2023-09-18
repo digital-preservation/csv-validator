@@ -12,7 +12,7 @@ import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.TestResources
-import scalaz._
+import cats.data.Validated
 import uk.gov.nationalarchives.csv.validator.AllErrorsMetaDataValidator
 import uk.gov.nationalarchives.csv.validator.schema.Schema
 
@@ -31,14 +31,14 @@ class CsvValidatorFileEncodingSpec extends Specification with TestResources {
 
     "fail for non UTF-8 file" in {
       app.validate(TextFile(Paths.get(baseResourcePkgPath).resolve("windows-1252.csv")), parse(baseResourcePkgPath + "/schema.csvs"), None) must beLike {
-        case Failure(_) => ok
+        case Validated.Invalid(_) => ok
       }
     }
 
 
     "not fail for valid UTF-8 file" in {
       app.validate(TextFile(Paths.get(baseResourcePkgPath).resolve("metaData.csv")), parse(baseResourcePkgPath + "/schema.csvs"), None) must beLike {
-        case Success(_) => ok
+        case Validated.Valid(_) => ok
       }
     }
 

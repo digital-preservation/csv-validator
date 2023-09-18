@@ -16,10 +16,8 @@ import uk.gov.nationalarchives.csv.validator.schema._
 import uk.gov.nationalarchives.csv.validator.schema.v1_0.{DateRangeRule, IsoDateTimeParser}
 
 import scala.util.Try
-import scalaz.Scalaz._
-import scalaz.{Failure => FailureZ, Success => SuccessZ}
-
 import java.nio.file.Path
+import cats.implicits._
 
 case class AnyRule(anyValues: List[ArgProvider]) extends Rule("any", anyValues:_*) {
   override def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema, mayBeLast: Option[Boolean]  = None): Boolean = {
@@ -76,12 +74,12 @@ case class IntegrityCheckRule(pathSubstitutions: List[(String,String)], enforceC
 
   override def evaluate(columnIndex: Int, row: Row,  schema: Schema, mayBeLast: Option[Boolean] = None): RuleValidation[Any] = {
     try{
-      if (valid(cellValue(columnIndex, row, schema), schema.columnDefinitions(columnIndex), columnIndex, row, schema, mayBeLast)) true.successNel[String] else fail(columnIndex, row, schema)
+      if (valid(cellValue(columnIndex, row, schema), schema.columnDefinitions(columnIndex), columnIndex, row, schema, mayBeLast)) true.validNel[String] else fail(columnIndex, row, schema)
     }
     catch {
       case ex: FileNotFoundException =>
         val columnDefinition = schema.columnDefinitions(columnIndex)
-        s"$toError fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${ex.getMessage} with substitution paths ${pathSubstitutions.mkString(", ")}".failureNel[Any]
+        s"$toError fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${ex.getMessage} with substitution paths ${pathSubstitutions.mkString(", ")}".invalidNel[Any]
     }
   }
 

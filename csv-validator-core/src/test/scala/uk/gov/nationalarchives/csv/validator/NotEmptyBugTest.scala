@@ -16,7 +16,7 @@ import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.schema.{Schema, _}
 
 import scala.language.reflectiveCalls
-import scalaz.{Failure, IList, Success}
+import cats.data.Validated
 
 @RunWith(classOf[JUnitRunner])
 class NotEmptyBugTest extends Specification with TestResources {
@@ -62,7 +62,7 @@ class NotEmptyBugTest extends Specification with TestResources {
       """file_name,curated_file_name
          content,
       """
-    validate(metaData, schema, None) must beLike { case Success(_) => ok }
+    validate(metaData, schema, None) must beLike { case Validated.Valid(_) => ok }
 
   }
 
@@ -78,7 +78,7 @@ class NotEmptyBugTest extends Specification with TestResources {
       """file_name,curated_file_name
          ,content
       """
-    validate(metaData, schema, None) must beLike { case Success(_) => ok }
+    validate(metaData, schema, None) must beLike { case Validated.Valid(_) => ok }
   }
 
   "succeed for more than 1 uuid4 rule with different columns" in {
@@ -93,7 +93,7 @@ class NotEmptyBugTest extends Specification with TestResources {
       """file_name,curated_file_name
          8f60aab0-f66d-48d8-9382-f692b26b34dc,not-uuidv4-value
       """
-    validate(metaData, schema, None) must beLike { case Success(_) => ok }
+    validate(metaData, schema, None) must beLike { case Validated.Valid(_) => ok }
   }
 
   "succeed for more than 1 positiveInteger rule with different columns" in {
@@ -108,7 +108,7 @@ class NotEmptyBugTest extends Specification with TestResources {
       """file_name,curated_file_name
          111,-1224544
       """
-    validate(metaData, schema, None) must beLike { case Success(_) => ok }
+    validate(metaData, schema, None) must beLike { case Validated.Valid(_) => ok }
   }
 
   "succeed for more than 1 uri rule with different columns" in {
@@ -123,7 +123,7 @@ class NotEmptyBugTest extends Specification with TestResources {
       """file_name,curated_file_name
          http://www.root.cz/,not a URI
       """
-    validate(metaData, schema, None) must beLike { case Success(_) => ok }
+    validate(metaData, schema, None) must beLike { case Validated.Valid(_) => ok }
   }
 
   "succeed for more than 1 partUkDate rule with different columns" in {
@@ -138,7 +138,7 @@ class NotEmptyBugTest extends Specification with TestResources {
       """file_name,curated_file_name
          04/February/1981,not a date
       """
-    validate(metaData, schema, None) must beLike { case Success(_) => ok }
+    validate(metaData, schema, None) must beLike { case Validated.Valid(_) => ok }
   }
 
   "succeed for more than 1 lowerCase rule with different columns" in {
@@ -153,7 +153,7 @@ class NotEmptyBugTest extends Specification with TestResources {
       """file_name,curated_file_name
          lowercase text,CamelCaseText
       """
-    validate(metaData, schema, None) must beLike { case Success(_) => ok }
+    validate(metaData, schema, None) must beLike { case Validated.Valid(_) => ok }
   }
 
   "succeed for more than 1 upperCase rule with different columns" in {
@@ -168,7 +168,7 @@ class NotEmptyBugTest extends Specification with TestResources {
       """file_name,curated_file_name
          UPPERCASE,CamelCaseText
       """
-    validate(metaData, schema, None) must beLike { case Success(_) => ok }
+    validate(metaData, schema, None) must beLike { case Validated.Valid(_) => ok }
   }
 
   "succeed for more than 1 identical rule with different columns" in {
@@ -186,7 +186,7 @@ class NotEmptyBugTest extends Specification with TestResources {
       """
     val result = validate(metaData, schema, None)
 
-    result must beLike { case Success(_) => ok }
+    result must beLike { case Validated.Valid(_) => ok }
   }
 }
 }

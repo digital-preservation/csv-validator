@@ -14,7 +14,7 @@ import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.metadata.{Cell, Row}
 import uk.gov.nationalarchives.csv.validator.schema.{ColumnDefinition, NamedColumnIdentifier, Schema, TotalColumns}
 
-import scalaz.{Success, Failure, IList}
+import cats.data.Validated
 
 @RunWith(classOf[JUnitRunner])
 class CaseRuleSpec extends Specification {
@@ -25,7 +25,7 @@ class CaseRuleSpec extends Specification {
       val schema = Schema(globalDirectives, List(ColumnDefinition(NamedColumnIdentifier("Country"))))
       
       val upperCaseRule = UpperCaseRule()
-      upperCaseRule.evaluate(0, Row(List(Cell("GERMANY")), 1), schema) mustEqual Success(true)
+      upperCaseRule.evaluate(0, Row(List(Cell("GERMANY")), 1), schema) mustEqual Validated.Valid(true)
     }
 
     "succeed when row contain upper case Letters - non English Alphabet" in {
@@ -33,7 +33,7 @@ class CaseRuleSpec extends Specification {
       val schema = Schema(globalDirectives, List(ColumnDefinition(NamedColumnIdentifier("Country"))))
 
       val upperCaseRule = UpperCaseRule()
-      upperCaseRule.evaluate(0, Row(List(Cell("ΑΡΣΕΝΑΛ")), 1), schema) mustEqual Success(true)
+      upperCaseRule.evaluate(0, Row(List(Cell("ΑΡΣΕΝΑΛ")), 1), schema) mustEqual Validated.Valid(true)
     }
 
 
@@ -45,7 +45,7 @@ class CaseRuleSpec extends Specification {
 
       val upperCaseRule = UpperCaseRule()
 
-      upperCaseRule.evaluate(0, Row(List(Cell("UNITED KINGDOM")), 1), schema) mustEqual Success(true)
+      upperCaseRule.evaluate(0, Row(List(Cell("UNITED KINGDOM")), 1), schema) mustEqual Validated.Valid(true)
     }
 
     "succeed when row contain upper case letter white space " in {
@@ -55,7 +55,7 @@ class CaseRuleSpec extends Specification {
 
       val upperCaseRule = UpperCaseRule()
 
-      upperCaseRule.evaluate(0, Row(List(Cell("UNITED KINGDOM")), 1), schema) mustEqual Success(true)
+      upperCaseRule.evaluate(0, Row(List(Cell("UNITED KINGDOM")), 1), schema) mustEqual Validated.Valid(true)
     }
 
     "succeed when row contain upper case letter white space and numbers" in {
@@ -65,7 +65,7 @@ class CaseRuleSpec extends Specification {
 
       val upperCaseRule = UpperCaseRule()
 
-      upperCaseRule.evaluate(0, Row(List(Cell("UNITED KINGDOM 1234569")), 1), schema) mustEqual Success(true)
+      upperCaseRule.evaluate(0, Row(List(Cell("UNITED KINGDOM 1234569")), 1), schema) mustEqual Validated.Valid(true)
     }
 
     "succeed when row contain upper case letter, white space ,numbers and punctuations" in {
@@ -75,7 +75,7 @@ class CaseRuleSpec extends Specification {
 
       val upperCaseRule = UpperCaseRule()
 
-      upperCaseRule.evaluate(0, Row(List(Cell("UNITED KINGDOM 1234569 ???!!!%%")), 1), schema) mustEqual Success(true)
+      upperCaseRule.evaluate(0, Row(List(Cell("UNITED KINGDOM 1234569 ???!!!%%")), 1), schema) mustEqual Validated.Valid(true)
     }
 
     "fail when row contain lower case letters" in {
@@ -87,7 +87,7 @@ class CaseRuleSpec extends Specification {
 
 
       upperCaseRule.evaluate(0, Row(List(Cell("germany")), 1), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual IList("upperCase fails for line: 1, column: Country, value: \"germany\"")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("upperCase fails for line: 1, column: Country, value: \"germany\"")
       }
 
     }
@@ -102,13 +102,13 @@ class CaseRuleSpec extends Specification {
 
 
       upperCaseRule.evaluate(0, Row(List(Cell("GeRMANY")), 1), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual IList("upperCase fails for line: 1, column: Country, value: \"GeRMANY\"")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("upperCase fails for line: 1, column: Country, value: \"GeRMANY\"")
       }
       upperCaseRule.evaluate(0, Row(List(Cell("GeRmANy")), 2), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual IList("upperCase fails for line: 2, column: Country, value: \"GeRmANy\"")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("upperCase fails for line: 2, column: Country, value: \"GeRmANy\"")
       }
       upperCaseRule.evaluate(0, Row(List(Cell("gERMANY")), 3), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual IList("upperCase fails for line: 3, column: Country, value: \"gERMANY\"")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("upperCase fails for line: 3, column: Country, value: \"gERMANY\"")
       }
 
     }
@@ -122,13 +122,13 @@ class CaseRuleSpec extends Specification {
 
 
       upperCaseRule.evaluate(0, Row(List(Cell("ΑρΣΕΝΑΛ")), 1), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual IList("upperCase fails for line: 1, column: Country, value: \"ΑρΣΕΝΑΛ\"")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("upperCase fails for line: 1, column: Country, value: \"ΑρΣΕΝΑΛ\"")
       }
       upperCaseRule.evaluate(0, Row(List(Cell("ΑρΣεΝΑΛ")), 2), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual IList("upperCase fails for line: 2, column: Country, value: \"ΑρΣεΝΑΛ\"")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("upperCase fails for line: 2, column: Country, value: \"ΑρΣεΝΑΛ\"")
       }
       upperCaseRule.evaluate(0, Row(List(Cell("αΡΣΕΝΑΛ")), 3), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual IList("upperCase fails for line: 3, column: Country, value: \"αΡΣΕΝΑΛ\"")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("upperCase fails for line: 3, column: Country, value: \"αΡΣΕΝΑΛ\"")
       }
 
     }
@@ -142,10 +142,10 @@ class CaseRuleSpec extends Specification {
       val upperCaseRule = UpperCaseRule()
 
       upperCaseRule.evaluate(0, Row(List(Cell("United Kingdom")), 1), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual IList("upperCase fails for line: 1, column: Country, value: \"United Kingdom\"")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("upperCase fails for line: 1, column: Country, value: \"United Kingdom\"")
       }
       upperCaseRule.evaluate(0, Row(List(Cell("uNITED KINGDOM")), 2), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual IList("upperCase fails for line: 2, column: Country, value: \"uNITED KINGDOM\"")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("upperCase fails for line: 2, column: Country, value: \"uNITED KINGDOM\"")
       }
     }
 
@@ -157,10 +157,10 @@ class CaseRuleSpec extends Specification {
       val upperCaseRule = UpperCaseRule()
 
       upperCaseRule.evaluate(0, Row(List(Cell("United Kingdom 11111")), 1), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual IList("upperCase fails for line: 1, column: Country, value: \"United Kingdom 11111\"")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("upperCase fails for line: 1, column: Country, value: \"United Kingdom 11111\"")
       }
       upperCaseRule.evaluate(0, Row(List(Cell("uNITED KINGDOM 12345")), 2), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual IList("upperCase fails for line: 2, column: Country, value: \"uNITED KINGDOM 12345\"")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("upperCase fails for line: 2, column: Country, value: \"uNITED KINGDOM 12345\"")
       }
     }
 
@@ -172,10 +172,10 @@ class CaseRuleSpec extends Specification {
       val upperCaseRule = UpperCaseRule()
 
       upperCaseRule.evaluate(0, Row(List(Cell("United Kingdom 11111 ??")), 1), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual IList("upperCase fails for line: 1, column: Country, value: \"United Kingdom 11111 ??\"")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("upperCase fails for line: 1, column: Country, value: \"United Kingdom 11111 ??\"")
       }
       upperCaseRule.evaluate(0, Row(List(Cell("uNITED KINGDOM 12345 ?!\"£")), 2), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual IList("upperCase fails for line: 2, column: Country, value: \"uNITED KINGDOM 12345 ?!\"£\"")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("upperCase fails for line: 2, column: Country, value: \"uNITED KINGDOM 12345 ?!\"£\"")
       }
     }
     
@@ -188,7 +188,7 @@ class CaseRuleSpec extends Specification {
 
       val lowerCaseRule = LowerCaseRule()
 
-      lowerCaseRule.evaluate(0, Row(List(Cell("germany")), 1), schema) mustEqual Success(true)
+      lowerCaseRule.evaluate(0, Row(List(Cell("germany")), 1), schema) mustEqual Validated.Valid(true)
     }
 
     "succed when row contain lower case Letters -non english alphabet" in {
@@ -197,7 +197,7 @@ class CaseRuleSpec extends Specification {
 
       val lowerCaseRule = LowerCaseRule()
 
-      lowerCaseRule.evaluate(0, Row(List(Cell("ωελξ")), 1), schema) mustEqual Success(true)
+      lowerCaseRule.evaluate(0, Row(List(Cell("ωελξ")), 1), schema) mustEqual Validated.Valid(true)
     }
 
 
@@ -210,15 +210,15 @@ class CaseRuleSpec extends Specification {
       val lowerCaseRule = LowerCaseRule()
       
       lowerCaseRule.evaluate(0, Row(List(Cell("GERMANY")), 1), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual IList("lowerCase fails for line: 1, column: Country, value: \"GERMANY\"")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("lowerCase fails for line: 1, column: Country, value: \"GERMANY\"")
       }
 
       lowerCaseRule.evaluate(0, Row(List(Cell("GeRMaNy")), 2), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual IList("lowerCase fails for line: 2, column: Country, value: \"GeRMaNy\"")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("lowerCase fails for line: 2, column: Country, value: \"GeRMaNy\"")
       }
 
       lowerCaseRule.evaluate(0, Row(List(Cell("Germany")), 3), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual IList("lowerCase fails for line: 3, column: Country, value: \"Germany\"")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("lowerCase fails for line: 3, column: Country, value: \"Germany\"")
       }
     }
 
@@ -229,13 +229,13 @@ class CaseRuleSpec extends Specification {
       val lowerCaseRule = LowerCaseRule()
 
       lowerCaseRule.evaluate(0, Row(List(Cell("ΑρΣΕΝΑΛ")), 1), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual IList("lowerCase fails for line: 1, column: Country, value: \"ΑρΣΕΝΑΛ\"")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("lowerCase fails for line: 1, column: Country, value: \"ΑρΣΕΝΑΛ\"")
       }
       lowerCaseRule.evaluate(0, Row(List(Cell("ΑρΣεΝΑΛ")), 2), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual IList("lowerCase fails for line: 2, column: Country, value: \"ΑρΣεΝΑΛ\"")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("lowerCase fails for line: 2, column: Country, value: \"ΑρΣεΝΑΛ\"")
       }
       lowerCaseRule.evaluate(0, Row(List(Cell("αΡΣΕΝΑΛ")), 3), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual IList("lowerCase fails for line: 3, column: Country, value: \"αΡΣΕΝΑΛ\"")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("lowerCase fails for line: 3, column: Country, value: \"αΡΣΕΝΑΛ\"")
       }
     }
 
@@ -246,7 +246,7 @@ class CaseRuleSpec extends Specification {
       val schema = Schema(globalDirectives, List(ColumnDefinition(NamedColumnIdentifier("Country"))))
 
       val lowerCaseRule = LowerCaseRule()
-      lowerCaseRule.evaluate(0, Row(List(Cell("united kingdom")), 1), schema) mustEqual Success(true)
+      lowerCaseRule.evaluate(0, Row(List(Cell("united kingdom")), 1), schema) mustEqual Validated.Valid(true)
     }
 
     "fail when row contain lower case letter and white space" in {
@@ -255,7 +255,7 @@ class CaseRuleSpec extends Specification {
 
       val lowerCaseRule = LowerCaseRule()
       lowerCaseRule.evaluate(0, Row(List(Cell("United Kingdom")), 1), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual IList("lowerCase fails for line: 1, column: Country, value: \"United Kingdom\"")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("lowerCase fails for line: 1, column: Country, value: \"United Kingdom\"")
       }
     }
 
@@ -267,7 +267,7 @@ class CaseRuleSpec extends Specification {
 
 
       val lowerCaseRule = LowerCaseRule()
-      lowerCaseRule.evaluate(0, Row(List(Cell("united kingdom 1234569")), 1), schema) mustEqual Success(true)
+      lowerCaseRule.evaluate(0, Row(List(Cell("united kingdom 1234569")), 1), schema) mustEqual Validated.Valid(true)
     }
 
     "fail when row contain lower case and upper case letter white space and numbers" in {
@@ -277,7 +277,7 @@ class CaseRuleSpec extends Specification {
 
       val lowerCaseRule = LowerCaseRule()
       lowerCaseRule.evaluate(0, Row(List(Cell("united Kingdom 1234569")), 1), schema)must beLike {
-        case Failure(messages) => messages.list mustEqual IList("lowerCase fails for line: 1, column: Country, value: \"united Kingdom 1234569\"")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("lowerCase fails for line: 1, column: Country, value: \"united Kingdom 1234569\"")
       }
     }
 
@@ -288,7 +288,7 @@ class CaseRuleSpec extends Specification {
 
       val lowerCaseRule = LowerCaseRule()
 
-      lowerCaseRule.evaluate(0, Row(List(Cell("united kingdom 1234569 ???!!!%%")), 1), schema) mustEqual Success(true)
+      lowerCaseRule.evaluate(0, Row(List(Cell("united kingdom 1234569 ???!!!%%")), 1), schema) mustEqual Validated.Valid(true)
     }
 
     "fail when row contain lower case letters" in {
@@ -300,7 +300,7 @@ class CaseRuleSpec extends Specification {
 
 
       upperCaseRule.evaluate(0, Row(List(Cell("germany")), 1), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual IList("upperCase fails for line: 1, column: Country, value: \"germany\"")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("upperCase fails for line: 1, column: Country, value: \"germany\"")
       }
 
     }
@@ -315,13 +315,13 @@ class CaseRuleSpec extends Specification {
 
 
       upperCaseRule.evaluate(0, Row(List(Cell("GeRMANY")), 1), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual IList("upperCase fails for line: 1, column: Country, value: \"GeRMANY\"")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("upperCase fails for line: 1, column: Country, value: \"GeRMANY\"")
       }
       upperCaseRule.evaluate(0, Row(List(Cell("GeRmANy")), 2), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual IList("upperCase fails for line: 2, column: Country, value: \"GeRmANy\"")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("upperCase fails for line: 2, column: Country, value: \"GeRmANy\"")
       }
       upperCaseRule.evaluate(0, Row(List(Cell("gERMANY")), 3), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual IList("upperCase fails for line: 3, column: Country, value: \"gERMANY\"")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("upperCase fails for line: 3, column: Country, value: \"gERMANY\"")
       }
 
     }
@@ -334,10 +334,10 @@ class CaseRuleSpec extends Specification {
       val upperCaseRule = UpperCaseRule()
 
       upperCaseRule.evaluate(0, Row(List(Cell("United Kingdom")), 1), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual IList("upperCase fails for line: 1, column: Country, value: \"United Kingdom\"")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("upperCase fails for line: 1, column: Country, value: \"United Kingdom\"")
       }
       upperCaseRule.evaluate(0, Row(List(Cell("uNITED KINGDOM")), 2), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual IList("upperCase fails for line: 2, column: Country, value: \"uNITED KINGDOM\"")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("upperCase fails for line: 2, column: Country, value: \"uNITED KINGDOM\"")
       }
     }
 
@@ -349,10 +349,10 @@ class CaseRuleSpec extends Specification {
       val upperCaseRule = UpperCaseRule()
 
       upperCaseRule.evaluate(0, Row(List(Cell("United Kingdom 11111")), 1), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual IList("upperCase fails for line: 1, column: Country, value: \"United Kingdom 11111\"")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("upperCase fails for line: 1, column: Country, value: \"United Kingdom 11111\"")
       }
       upperCaseRule.evaluate(0, Row(List(Cell("uNITED KINGDOM 12345")), 2), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual IList("upperCase fails for line: 2, column: Country, value: \"uNITED KINGDOM 12345\"")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("upperCase fails for line: 2, column: Country, value: \"uNITED KINGDOM 12345\"")
       }
     }
 
@@ -364,10 +364,10 @@ class CaseRuleSpec extends Specification {
       val upperCaseRule = UpperCaseRule()
 
       upperCaseRule.evaluate(0, Row(List(Cell("United Kingdom 11111 ??")), 1), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual IList("upperCase fails for line: 1, column: Country, value: \"United Kingdom 11111 ??\"")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("upperCase fails for line: 1, column: Country, value: \"United Kingdom 11111 ??\"")
       }
       upperCaseRule.evaluate(0, Row(List(Cell("uNITED KINGDOM 12345 ?!\"£")), 2), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual IList("upperCase fails for line: 2, column: Country, value: \"uNITED KINGDOM 12345 ?!\"£\"")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("upperCase fails for line: 2, column: Country, value: \"uNITED KINGDOM 12345 ?!\"£\"")
       }
     }
 

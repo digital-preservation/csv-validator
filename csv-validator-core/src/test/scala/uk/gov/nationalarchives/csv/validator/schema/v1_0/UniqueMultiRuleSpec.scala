@@ -14,7 +14,7 @@ import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.metadata.{Cell, Row}
 import uk.gov.nationalarchives.csv.validator.schema._
 
-import scalaz.{Failure, Success, IList}
+import cats.data.Validated
 
 @RunWith(classOf[JUnitRunner])
 class UniqueMultiRuleSpec extends Specification {
@@ -26,7 +26,7 @@ class UniqueMultiRuleSpec extends Specification {
       val rule = UniqueMultiRule( ColumnReference(NamedColumnIdentifier("Legs")) :: Nil )
 
       rule.evaluate(0, Row(Cell("r2d2") :: Cell("3") :: Nil, 1), schema)
-      rule.evaluate(0, Row(Cell("c3po") :: Cell("2") :: Nil, 2), schema) must beLike { case Success(_) => ok }
+      rule.evaluate(0, Row(Cell("c3po") :: Cell("2") :: Nil, 2), schema) must beLike { case Validated.Valid(_) => ok }
     }
 
     "succeed if duplicate column but 2nd is distinct" in {
@@ -34,7 +34,7 @@ class UniqueMultiRuleSpec extends Specification {
       val rule = UniqueMultiRule( ColumnReference(NamedColumnIdentifier("Legs")) :: Nil )
 
       rule.evaluate(0, Row(Cell("r2d2") :: Cell("3") :: Nil, 1), schema)
-      rule.evaluate(0, Row(Cell("r2d2") :: Cell("2") :: Nil, 2), schema) must beLike { case Success(_) => ok }
+      rule.evaluate(0, Row(Cell("r2d2") :: Cell("2") :: Nil, 2), schema) must beLike { case Validated.Valid(_) => ok }
     }
 
     "fail if there are duplicate on all columns column values" in {
@@ -43,7 +43,7 @@ class UniqueMultiRuleSpec extends Specification {
 
       rule.evaluate(0, Row(Cell("r2d2") :: Cell("3") :: Cell("blue") :: Nil, 1), schema)
       rule.evaluate(0, Row(Cell("r2d2") :: Cell("3") :: Cell("blue") :: Nil, 2), schema) must beLike {
-        case Failure(msgs) => msgs.list mustEqual IList("unique( $Legs, $Color ) fails for line: 2, column: Name, value: \"r2d2\" (original at line: 1)")
+        case Validated.Invalid(msgs) => msgs.toList mustEqual List("unique( $Legs, $Color ) fails for line: 2, column: Name, value: \"r2d2\" (original at line: 1)")
       }
     }
 

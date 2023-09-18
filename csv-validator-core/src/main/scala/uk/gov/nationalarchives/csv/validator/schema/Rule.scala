@@ -14,14 +14,13 @@ import uk.gov.nationalarchives.csv.validator.metadata.Row
 import scala.collection.mutable.{ListBuffer => MutableListBuffer, Map => MutableMap}
 import scala.util.Try
 import scala.util.parsing.input.Positional
-import scalaz._
-import scalaz.Scalaz._
-
 import java.util.regex.Pattern
+import cats.data.ValidatedNel
+import cats.syntax.validated._
 
 abstract class Rule(name: String, val argProviders: ArgProvider*) extends Positional {
 
-  type RuleValidation[A] = ValidationNel[String, A]
+  type RuleValidation[A] = ValidatedNel[String, A]
 
   var explicitColumn: Option[ColumnReference] = None
 
@@ -51,19 +50,19 @@ abstract class Rule(name: String, val argProviders: ArgProvider*) extends Positi
 
   def evaluate(columnIndex: Int, row: Row,  schema: Schema, mayBeLast: Option[Boolean] = None): RuleValidation[Any] = {
     if (valid(cellValue(columnIndex, row, schema), schema.columnDefinitions(columnIndex), columnIndex, row, schema, mayBeLast))
-      true.successNel[String]
+      true.validNel[String]
     else fail(columnIndex, row, schema)
   }
 
 
   def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int,
             row: Row, schema: Schema, mayBeLast: Option[Boolean] = None): Boolean =
-    evaluate(columnIndex, row, schema).isSuccess
+    evaluate(columnIndex, row, schema).isValid
 
 
   def fail(columnIndex: Int, row: Row, schema: Schema): RuleValidation[Any] = {
     val columnDefinition = schema.columnDefinitions(columnIndex)
-    s"$toError fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}".failureNel[Any]
+    s"$toError fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}".invalidNel[Any]
   }
 
   def cellValue(columnIndex: Int, row: Row, schema: Schema): String = {

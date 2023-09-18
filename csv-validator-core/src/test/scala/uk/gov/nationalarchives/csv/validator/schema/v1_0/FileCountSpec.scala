@@ -15,8 +15,8 @@ import uk.gov.nationalarchives.csv.validator.{FILE_SEPARATOR, TestResources}
 import uk.gov.nationalarchives.csv.validator.Util.TypedPath
 import uk.gov.nationalarchives.csv.validator.metadata.{Cell, Row}
 import uk.gov.nationalarchives.csv.validator.schema._
-import scalaz.{Failure, IList, Success, ValidationNel}
-
+import cats.data.{Validated, ValidatedNel}
+import cats.syntax.validated._
 import java.nio.file.Paths
 import java.nio.file.Path
 
@@ -65,14 +65,14 @@ class FileCountSpec extends Specification with TestResources {
     "find a match on a directory" in {
       val fileCountRule = new FileCountRule( Literal(Some(s"$threeFilesPath/**/*.jp2")), List.empty )
       val expectedFileCount = "3"
-      fileCountRule.evaluate(0, Row(List(Cell(expectedFileCount)), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition(NamedColumnIdentifier("column1"))))) mustEqual Success(true)
+      fileCountRule.evaluate(0, Row(List(Cell(expectedFileCount)), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition(NamedColumnIdentifier("column1"))))) mustEqual Validated.Valid(true)
 
     }
 
     "find a match on a directory with basePath and file" in {
       val fileCountRule = new FileCountRule( Literal(Some(s"$threeFilesPath/")), Literal(Some("**/*.jp2")) )
       val expectedFileCount: String = "3"
-      fileCountRule.evaluate(0, Row(List(Cell(expectedFileCount)), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition(NamedColumnIdentifier("column1"))))) mustEqual Success(true)
+      fileCountRule.evaluate(0, Row(List(Cell(expectedFileCount)), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition(NamedColumnIdentifier("column1"))))) mustEqual Validated.Valid(true)
 
     }
   }
@@ -84,68 +84,68 @@ class FileCountSpec extends Specification with TestResources {
 
     val fileCountRule = new FileCountRule(Literal(Some("""bob/checksum.csvs""")), pathSubstitutions)
     val expectedFileCount = "1"
-    fileCountRule.evaluate(0, Row(List(Cell(expectedFileCount)), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition(NamedColumnIdentifier("column1"))))) mustEqual Success(true)
+    fileCountRule.evaluate(0, Row(List(Cell(expectedFileCount)), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition(NamedColumnIdentifier("column1"))))) mustEqual Validated.Valid(true)
   }
 
 
 
   "wildcard without substitutions " should {
-    import scalaz.Scalaz._
+    import cats.data.Validated
 
     val wildCard = new FileWildcardSearch[Int]{
       val pathSubstitutions: List[(String, String)] = List.empty
-      def matchWildcardPaths(matchList: Seq[Path], fullPath: String): ValidationNel[String, Int] = matchList.size.successNel[String]
-      def matchSimplePath(fullPath: String): ValidationNel[String, Int] = 1.successNel[String]
+      def matchWildcardPaths(matchList: Seq[Path], fullPath: String): ValidatedNel[String, Int] = matchList.size.validNel[String]
+      def matchSimplePath(fullPath: String): ValidatedNel[String, Int] = 1.validNel[String]
     }
 
     "find a single file from relative path" in {
-      wildCard.search( (relThreeFilesPath + FILE_SEPARATOR,"file1.jp2") )   mustEqual Success(1)
+      wildCard.search( (relThreeFilesPath + FILE_SEPARATOR,"file1.jp2") )   mustEqual Validated.Valid(1)
     }
 
     "find a single file from relative windows path" in {
       val windowsPath = relThreeFilesPath.replace('/', '\\')
-      wildCard.search( (windowsPath + '\\' ,"file1.jp2") )   mustEqual Success(1)
+      wildCard.search( (windowsPath + '\\' ,"file1.jp2") )   mustEqual Validated.Valid(1)
     }
 
     "fail if an invalid relavtive basePath is given" in {
       wildCard.search( ("WRONGPATH/dri/fileCountTestFiles/threeFiles/","file1.jp2") ) must beLike {
-        case Failure(m) => m.list mustEqual IList("""incorrect basepath WRONGPATH/dri/fileCountTestFiles/threeFiles/ (localfile: """ + TypedPath("WRONGPATH/dri/fileCountTestFiles/threeFiles/file1.jp2").toPlatform + """) found""")
+        case Validated.Invalid(m) => m.toList mustEqual List("""incorrect basepath WRONGPATH/dri/fileCountTestFiles/threeFiles/ (localfile: """ + TypedPath("WRONGPATH/dri/fileCountTestFiles/threeFiles/file1.jp2").toPlatform + """) found""")
       }
     }
 
     "fail if invalid filename is given" in {
       wildCard.search( (threeFilesPath + FILE_SEPARATOR,"WRONG.WRONG") ) must beLike {
-        case Failure(m) => m.list mustEqual IList("""file """" + threeFilesPath + FILE_SEPARATOR + """WRONG.WRONG" not found""")
+        case Validated.Invalid(m) => m.toList mustEqual List("""file """" + threeFilesPath + FILE_SEPARATOR + """WRONG.WRONG" not found""")
       }
     }
 
     "find multiple file in a single directory from relative path" in {
-      wildCard.search( (relThreeFilesPath + FILE_SEPARATOR,"*.jp2") )   mustEqual Success(3)
+      wildCard.search( (relThreeFilesPath + FILE_SEPARATOR,"*.jp2") )   mustEqual Validated.Valid(3)
     }
 
     "find multiple file in multi directories from relative path" in {
-      wildCard.search( (relThreeFilesInSubDirPath + FILE_SEPARATOR,"**/*.jp2") )   mustEqual Success(3)
+      wildCard.search( (relThreeFilesInSubDirPath + FILE_SEPARATOR,"**/*.jp2") )   mustEqual Validated.Valid(3)
     }
 
     "find multiple file in multi directories from relative windows path" in {
       val windowsPath = relThreeFilesInSubDirPath.replace('/', '\\')
-      wildCard.search( (windowsPath + '\\',"**\\*.jp2") )   mustEqual Success(3)
+      wildCard.search( (windowsPath + '\\',"**\\*.jp2") )   mustEqual Validated.Valid(3)
     }
   }
 
   "wildcard with substitutions " should {
-    import scalaz.Scalaz._
+    import cats.data.Validated
 
     val wildCard = new FileWildcardSearch[Int]{
       val pathSubstitutions: List[(String, String)] = List[(String,String)](
         ("bob", basePath + "/uk/gov/nationalarchives/csv/validator")
       )
-      def matchWildcardPaths(matchList: Seq[Path], fullPath: String): ValidationNel[String, Int] = matchList.size.successNel[String]
-      def matchSimplePath(fullPath: String): ValidationNel[String, Int] = 1.successNel[String]
+      def matchWildcardPaths(matchList: Seq[Path], fullPath: String): ValidatedNel[String, Int] = matchList.size.validNel[String]
+      def matchSimplePath(fullPath: String): ValidatedNel[String, Int] = 1.validNel[String]
     }
 
     "find a single file from relative path" in {
-      wildCard.search( ("bob/fileCountTestFiles/threeFiles/","file1.jp2") )   mustEqual Success(1)
+      wildCard.search( ("bob/fileCountTestFiles/threeFiles/","file1.jp2") )   mustEqual Validated.Valid(1)
     }
 
     "find a single file from relative path" in {
@@ -162,51 +162,51 @@ class FileCountSpec extends Specification with TestResources {
           ("file:///bob", substituted)
         )
 
-        def matchWildcardPaths(matchList: Seq[Path], fullPath: String): ValidationNel[String, Int] = matchList.size.successNel[String]
-        def matchSimplePath(fullPath: String): ValidationNel[String, Int] = 1.successNel[String]
+        def matchWildcardPaths(matchList: Seq[Path], fullPath: String): ValidatedNel[String, Int] = matchList.size.validNel[String]
+        def matchSimplePath(fullPath: String): ValidatedNel[String, Int] = 1.validNel[String]
       }
 
-      wildCard.search( ("file:///bob/fileCountTestFiles/threeFiles/","file1.jp2") )   mustEqual Success(1)
+      wildCard.search( ("file:///bob/fileCountTestFiles/threeFiles/","file1.jp2") )   mustEqual Validated.Valid(1)
     }
 
     "find a single file from relative windows path" in {
       val windowsPath = relThreeFilesPath.replace('/', '\\')
-      wildCard.search( (windowsPath + '\\',"file1.jp2") )   mustEqual Success(1)
+      wildCard.search( (windowsPath + '\\',"file1.jp2") )   mustEqual Validated.Valid(1)
     }
 
     "fail if an invalid relative basePath is given" in {
       wildCard.search( ("WRONGPATH/dri/fileCountTestFiles/threeFiles/","file1.jp2") ) must beLike {
-        case Failure(m) => m.list mustEqual IList("""incorrect basepath WRONGPATH/dri/fileCountTestFiles/threeFiles/ (localfile: """ + TypedPath("WRONGPATH/dri/fileCountTestFiles/threeFiles/file1.jp2").toPlatform + """) found""")
+        case Validated.Invalid(m) => m.toList mustEqual List("""incorrect basepath WRONGPATH/dri/fileCountTestFiles/threeFiles/ (localfile: """ + TypedPath("WRONGPATH/dri/fileCountTestFiles/threeFiles/file1.jp2").toPlatform + """) found""")
       }
     }
 
     "fail if an invalid relative basePath is given" in {
       wildCard.search( ("src/test/dri/fileCountTestFiles/threeFiles/","xfile.jp2") ) must beLike {
-        case Failure(m) => m.list mustEqual IList("""incorrect basepath src/test/dri/fileCountTestFiles/threeFiles/ (localfile: """ + TypedPath("src/test/dri/fileCountTestFiles/threeFiles/xfile.jp2").toPlatform + """) found""")
+        case Validated.Invalid(m) => m.toList mustEqual List("""incorrect basepath src/test/dri/fileCountTestFiles/threeFiles/ (localfile: """ + TypedPath("src/test/dri/fileCountTestFiles/threeFiles/xfile.jp2").toPlatform + """) found""")
       }
     }
 
     "fail if invalid filename is given" in {
       wildCard.search( ("bob/fileCountTestFiles/threeFiles/","WRONG.WRONG") ) must beLike {
-        case Failure(m) => m.list mustEqual IList("""file """" + Paths.get(threeFilesPath).toString + FILE_SEPARATOR + """WRONG.WRONG" not found""")
+        case Validated.Invalid(m) => m.toList mustEqual List("""file """" + Paths.get(threeFilesPath).toString + FILE_SEPARATOR + """WRONG.WRONG" not found""")
       }
     }
 
     "find multiple files in a single directory from relative path" in {
-      wildCard.search( ("bob/fileCountTestFiles/threeFiles/","*.jp2") )   mustEqual Success(3)
+      wildCard.search( ("bob/fileCountTestFiles/threeFiles/","*.jp2") )   mustEqual Validated.Valid(3)
     }
 
     "find multiple file in a single directory from relative path" in {
-      wildCard.search( ("bob/fileCountTestFiles/threeFiles/","*.jp2") )   mustEqual Success(3)
+      wildCard.search( ("bob/fileCountTestFiles/threeFiles/","*.jp2") )   mustEqual Validated.Valid(3)
     }
 
     "find multiple file in multi directories from relative path" in {
-      wildCard.search( ("bob/fileCountTestFiles/threeFilesinSubDir/","**/*.jp2") )   mustEqual Success(3)
+      wildCard.search( ("bob/fileCountTestFiles/threeFilesinSubDir/","**/*.jp2") )   mustEqual Validated.Valid(3)
     }
 
     "find multiple file in multi directories from relative windows path" in {
       val windowsPath = relThreeFilesInSubDirPath.replace('/', '\\')
-      wildCard.search( (windowsPath + '\\',"**\\*.jp2") )   mustEqual Success(3)
+      wildCard.search( (windowsPath + '\\',"**\\*.jp2") )   mustEqual Validated.Valid(3)
     }
   }
 
