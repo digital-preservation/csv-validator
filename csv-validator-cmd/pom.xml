@@ -18,8 +18,13 @@
         <connection>scm:git:https://github.com/digital-preservation/csv-validator.git</connection>
         <developerConnection>scm:git:https://github.com/digital-preservation/csv-validator.git</developerConnection>
         <url>scm:git:https://github.com/digital-preservation/csv-validator.git</url>
-      <tag>HEAD</tag>
-  </scm>
+        <tag>HEAD</tag>
+    </scm>
+
+    <properties>
+        <assemble.dir>${project.build.directory}/${project.artifactId}-${project.version}-application/${project.artifactId}-${project.version}</assemble.dir>
+        <docker.tag>latest</docker.tag>
+    </properties>
 
     <build>
         <plugins>
@@ -93,6 +98,7 @@
                 </configuration>
             </plugin>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <executions>
                     <execution>
@@ -156,5 +162,70 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <profiles>
+        <profile>
+            <id>docker</id>
+            <build>
+                <resources>
+                    <resource>
+                        <directory>src/main/resources-filtered</directory>
+                        <filtering>true</filtering>
+                    </resource>
+                </resources>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-resources-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <phase>process-resources</phase>
+                                <goals>
+                                    <goal>resources</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>io.fabric8</groupId>
+                        <artifactId>docker-maven-plugin</artifactId>
+                        <version>0.40.3</version>
+                        <configuration>
+                            <verbose>true</verbose>
+                            <images>
+                                <image>
+                                    <name>nationalarchives/csv-validator:%v</name>
+                                    <alias>csv-validator</alias>
+                                    <build>
+                                        <tags>
+                                            <tag>${docker.tag}</tag>
+                                        </tags>
+                                        <dockerFile>${project.build.outputDirectory}/Dockerfile</dockerFile>
+                                        <contextDir>${assemble.dir}</contextDir>
+                                    </build>
+                                </image>
+                            </images>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>build-image</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>build</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>push-image</id>
+                                <phase>deploy</phase>
+                                <goals>
+                                    <goal>push</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>
