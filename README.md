@@ -12,7 +12,7 @@ A [comprehensive user guide is available in GitHub pages](http://digital-preserv
 
 Technology
 ----------
-The Validation tool and APIs are written in Scala 2.11 and may be used as:
+The Validation tool and APIs are written in Scala 2.13 and may be used as:
 
 * A stand-alone command line tool.
 
@@ -20,10 +20,14 @@ The Validation tool and APIs are written in Scala 2.11 and may be used as:
 
 * A library in your Scala project.
 
-* A library in your Java project (We provide a Java 7 interface, to make things simple for Java programmers too).
+* A library in your Java project (We provide a Java 8 interface, to make things simple for Java programmers too).
 
-The Validation Tool and APIs can be used on any Java Virtual Machine which supports Java 7 or better (**NB Java 6 support was removed in version 1.1**). The source code is
-built using the [Apache Maven](https://maven.apache.org/) build tool, by executing `mvn clean install`.
+The Validation Tool and APIs can be used on any Java Virtual Machine which supports Java 8 or better (**NB Java 6 support was removed in version 1.1**). The source code is
+built using the [Apache Maven](https://maven.apache.org/) build tool:
+
+1. For use in other Java/Scala Applications, build by executing `mvn clean install`.
+2. For the Command Line Interface or Swing GUI, build by executing `mvn clean package`.
+3. For the Docker image (`nationalarchives/csv-validator:latest`), build by executing `mvn clean package -Pdocker`.
 
 
 Maven Artifacts
@@ -38,7 +42,7 @@ If you wish to use the CSV Validator from your own Java project, we provide a na
 <dependency>
 	<groupId>uk.gov.nationalarchives</groupId>
     <artifactId>csv-validator-java-api</artifactId>
-    <version>1.1</version>
+    <version>1.2-RC4</version>
 </dependency>
 ```
 
@@ -77,7 +81,7 @@ Likewise, if you wish to use the CSV Validator from your own Scala project, the 
 <dependency>
 	<groupId>uk.gov.nationalarchives</groupId>
     <artifactId>csv-validator-core</artifactId>
-    <version>1.1.5</version>
+    <version>1.2-RC4</version>
 </dependency>
 ```
 
@@ -87,6 +91,17 @@ An example of using the Scala API can be found in the class `uk.gov.nationalarch
 `csv-validator-java-api` module. The Scala API at present gives much more control over the individual Schema Parsing and Validation Processor
 than the Java API.
 
+Docker Container (of CSV Validator Command Line Tool)
+=====================================================
+To see the options run:
+```bash
+docker run nationalarchives/csv-validator
+```
+
+Then for example, to validate `/tmp/my-data.csv` with `/tmp/my-schema.csvs` you would run:
+```bash
+docker run nationalarchives/csv-validator /tmp/my-data.csv /tmp/my-schema.csvs
+```
 
 Schema Examples
 ===============
