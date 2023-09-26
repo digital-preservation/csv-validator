@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013, The National Archives <digitalpreservation@nationalarchives.gov.uk>
  * https://www.nationalarchives.gov.uk
  *
@@ -6,7 +6,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-package uk.gov.nationalarchives.csv.validator.schema.v1_1
+package uk.gov.nationalarchives.csv.validator
+package schema.v1_1
 
 import java.io.FileNotFoundException
 import uk.gov.nationalarchives.csv.validator.Util.FileSystem
@@ -15,14 +16,8 @@ import uk.gov.nationalarchives.csv.validator.schema._
 import uk.gov.nationalarchives.csv.validator.schema.v1_0.{DateRangeRule, IsoDateTimeParser}
 
 import scala.util.Try
-import scalaz.Scalaz._
-import scalaz.{Failure => FailureZ, Success => SuccessZ}
-
 import java.nio.file.Path
-
-
-
-
+import cats.implicits._
 
 case class AnyRule(anyValues: List[ArgProvider]) extends Rule("any", anyValues:_*) {
   override def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema, mayBeLast: Option[Boolean]  = None): Boolean = {
@@ -62,10 +57,9 @@ case class SwitchRule(elseRules: Option[List[Rule]], cases:(Rule, List[Rule])*) 
     }.sequence[RuleValidation, Any]
   }
 
-
   override def toError = {
-    val paramErrs = cases.flatMap{ case (_,rules) => rules.map( _.toError).mkString(" ")}
-    s"""($paramErrs)""" + (if (argProviders.isEmpty) "" else "(" + argProviders.foldLeft("")((a, b) => (if (a.isEmpty) "" else a + ", ") + b.toError) + ")")
+    val paramErrs = cases.map{ case (x,rules) => "(" + x.toError + ", " + rules.map( _.toError).mkString(" ") + ")" }.mkString(", ")
+    s"""${super.toError}($paramErrs)"""
   }
 }
 
@@ -79,12 +73,12 @@ case class IntegrityCheckRule(pathSubstitutions: List[(String,String)], enforceC
 
   override def evaluate(columnIndex: Int, row: Row,  schema: Schema, mayBeLast: Option[Boolean] = None): RuleValidation[Any] = {
     try{
-      if (valid(cellValue(columnIndex, row, schema), schema.columnDefinitions(columnIndex), columnIndex, row, schema, mayBeLast)) true.successNel[String] else fail(columnIndex, row, schema)
+      if (valid(cellValue(columnIndex, row, schema), schema.columnDefinitions(columnIndex), columnIndex, row, schema, mayBeLast)) true.validNel[String] else fail(columnIndex, row, schema)
     }
     catch {
       case ex: FileNotFoundException =>
         val columnDefinition = schema.columnDefinitions(columnIndex)
-        s"$toError fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${ex.getMessage} with substitution paths ${pathSubstitutions.mkString(", ")}".failureNel[Any]
+        s"$toError fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${ex.getMessage} with substitution paths ${pathSubstitutions.mkString(", ")}".invalidNel[Any]
     }
   }
 
@@ -93,8 +87,12 @@ case class IntegrityCheckRule(pathSubstitutions: List[(String,String)], enforceC
     if (!filePath.isEmpty){
 
         val ruleValue = rootPath.referenceValue(columnIndex, row, schema)
+        val filePathS = if (FILE_SEPARATOR == WINDOWS_FILE_SEPARATOR)
+          filePath.replace(FILE_SEPARATOR.toString, UNIX_FILE_SEPARATOR.toString)
+        else
+          filePath
 
-        filesMap = new FileSystem(ruleValue, filePath, pathSubstitutions).integrityCheck(filesMap, enforceCaseSensitivePathChecks, topLevelFolder, includeFolder)
+        filesMap = new FileSystem(ruleValue, filePathS, pathSubstitutions).integrityCheck(filesMap, enforceCaseSensitivePathChecks, topLevelFolder, includeFolder)
         val isLastLine = mayBeLast.map(!_).getOrElse(false)
 
         if (isLastLine)

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013, The National Archives <digitalpreservation@nationalarchives.gov.uk>
  * https://www.nationalarchives.gov.uk
  *
@@ -14,7 +14,7 @@ import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.metadata.{Cell, Row}
 import uk.gov.nationalarchives.csv.validator.schema.{ColumnDefinition, NamedColumnIdentifier, Schema, TotalColumns}
 
-import scalaz.{Failure, Success}
+import cats.data.Validated
 
 @RunWith(classOf[JUnitRunner])
 class EmptyRuleSpec extends Specification {
@@ -25,13 +25,13 @@ class EmptyRuleSpec extends Specification {
 
      "Succeed if cell is empty" in {
       val emptyRule = EmptyRule()
-      emptyRule.evaluate(0, Row(List(Cell("")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) mustEqual Success(true)
+      emptyRule.evaluate(0, Row(List(Cell("")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) mustEqual Validated.Valid(true)
      }
 
     "Fail if cell is NOT empty" in {
       val emptyRule = EmptyRule()
       emptyRule.evaluate(0, Row(List(Cell("something")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) must beLike {
-        case Failure(messages) => messages.head mustEqual """empty fails for line: 1, column: column1, value: "something""""
+        case Validated.Invalid(messages) => messages.head mustEqual """empty fails for line: 1, column: column1, value: "something""""
       }
     }
   }

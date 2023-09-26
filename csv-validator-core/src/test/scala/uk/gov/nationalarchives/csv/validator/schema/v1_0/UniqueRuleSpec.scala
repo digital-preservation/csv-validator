@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013, The National Archives <digitalpreservation@nationalarchives.gov.uk>
  * https://www.nationalarchives.gov.uk
  *
@@ -14,7 +14,7 @@ import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.metadata.{Cell, Row}
 import uk.gov.nationalarchives.csv.validator.schema._
 
-import scalaz.{Failure, Success, IList}
+import cats.data.Validated
 
 @RunWith(classOf[JUnitRunner])
 class UniqueRuleSpec extends Specification {
@@ -26,7 +26,7 @@ class UniqueRuleSpec extends Specification {
       val rule = UniqueRule()
 
       rule.evaluate(0, Row(Cell("Jim") :: Nil, 1), schema)
-      rule.evaluate(0, Row(Cell("Ben") :: Nil, 2), schema) must beLike { case Success(_) => ok }
+      rule.evaluate(0, Row(Cell("Ben") :: Nil, 2), schema) must beLike { case Validated.Valid(_) => ok }
     }
 
     "fail if there are duplicate column values" in {
@@ -37,7 +37,7 @@ class UniqueRuleSpec extends Specification {
       rule.evaluate(0, Row(Cell("Ben") :: Nil, 2), schema)
 
       rule.evaluate(0, Row(Cell("Jim") :: Nil, 3), schema) must beLike {
-        case Failure(msgs) => msgs.list mustEqual IList("unique fails for line: 3, column: Name, value: \"Jim\" (original at line: 1)")
+        case Validated.Invalid(msgs) => msgs.toList mustEqual List("unique fails for line: 3, column: Name, value: \"Jim\" (original at line: 1)")
       }
     }
 
@@ -48,7 +48,7 @@ class UniqueRuleSpec extends Specification {
       rule.evaluate(0, Row(Cell("Ben") :: Nil, 1), schema)
 
       rule.evaluate(0, Row(Cell("BEN") :: Nil, 2), schema) must beLike {
-        case Failure(msgs) => msgs.list mustEqual IList("unique fails for line: 2, column: Name, value: \"BEN\" (original at line: 1)")
+        case Validated.Invalid(msgs) => msgs.toList mustEqual List("unique fails for line: 2, column: Name, value: \"BEN\" (original at line: 1)")
       }
     }
   }

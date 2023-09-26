@@ -2,13 +2,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>org.sonatype.oss</groupId>
-        <artifactId>oss-parent</artifactId>
-        <version>7</version>
-        <relativePath />
-    </parent>
-
     <groupId>uk.gov.nationalarchives</groupId>
     <artifactId>csv-validator-parent</artifactId>
     <version>1.2-SNAPSHOT</version>
@@ -49,6 +42,10 @@
         <developer>
             <name>Valy Diarrassouba</name>
         </developer>
+	<developer>
+            <name>Luke Tebbs</name>
+	    <email>luke@luketebbs.com</email>
+	</developer>
     </developers>
     <contributors>
         <contributor>
@@ -68,7 +65,7 @@
     <licenses>
         <license>
             <name>The Mozilla Public License Version 2.0</name>
-            <url>http://opensource.org/licenses/MPL-2.0</url>
+            <url>https://opensource.org/licenses/MPL-2.0</url>
             <distribution>repo</distribution>
         </license>
     </licenses>
@@ -78,19 +75,55 @@
         <developerConnection>scm:git:https://github.com/digital-preservation/csv-validator.git</developerConnection>
         <url>scm:git:https://github.com/digital-preservation/csv-validator.git</url>
       <tag>HEAD</tag>
-  </scm>
+    </scm>
+
+    <profiles>
+
+        <!-- Default profile publishes to Maven Central -->
+        <!-- See: https://search.maven.org/search?q=a:csv-validator-core -->
+        <profile>
+            <id>default-release-repo</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <distributionManagement>
+                <snapshotRepository>
+                    <id>sonatype-nexus-snapshot-staging</id>
+                    <name>Nexus Snapshot Repository</name>
+                    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+                </snapshotRepository>
+                <repository>
+                    <id>sonatype-nexus-release-staging</id>
+                    <name>Nexus Release Repository</name>
+                    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+                </repository>
+            </distributionManagement>
+        </profile>
+
+        <!-- Profile for publishing artifacts to GitHub -->
+        <!-- See: https://github.com/digital-preservation/csv-validator/releases -->
+        <profile>
+            <id>github-release-repo</id>
+            <distributionManagement>
+                <repository>
+                    <id>github-release-staging</id>
+                    <name>GitHub Release Repository</name>
+                    <url>https://maven.pkg.github.com/digital-preservation/csv-validator</url>
+                </repository>
+            </distributionManagement>
+        </profile>
+
+    </profiles>
 
     <properties>
         <scala.version>2.13</scala.version>
-        <scala.lib.version>2.13.8</scala.lib.version>
-        <scalaz.version>7.2.34</scalaz.version>
-        <specs2.version>4.14.1</specs2.version>
+        <scala.lib.version>2.13.12</scala.lib.version>
+        <cats.core.version>2.10.0</cats.core.version>
+        <cats.effect.version>3.5.1</cats.effect.version>
+        <specs2.version>4.20.2</specs2.version>
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <contact.email>digitalpreservation@nationalarchives.gov.uk</contact.email>
-
-        <!-- needed just for the license-maven-plugin in this module! -->
-        <project.parent.relativePath>.</project.parent.relativePath>
     </properties>
 
     <build>
@@ -105,12 +138,12 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-resources-plugin</artifactId>
-                    <version>3.2.0</version>
+                    <version>3.3.1</version>
                 </plugin>
                 <plugin>
                     <groupId>net.alchim31.maven</groupId>
                     <artifactId>scala-maven-plugin</artifactId>
-                    <version>4.5.6</version>
+                    <version>4.8.1</version>
                     <configuration>
                         <scalaVersion>${scala.lib.version}</scalaVersion>
                     </configuration>
@@ -118,7 +151,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.10.1</version>
+                    <version>3.11.0</version>
                 </plugin>
                 <plugin>
                     <groupId>com.code54.mojo</groupId>
@@ -128,32 +161,32 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
-                    <version>3.3.0</version>
+                    <version>3.6.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
-                    <version>3.2.2</version>
+                    <version>3.3.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-source-plugin</artifactId>
-                    <version>3.2.1</version>
+                    <version>3.3.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>2.22.2</version>
+                    <version>3.1.2</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-report-plugin</artifactId>
-                    <version>2.22.2</version>
+                    <version>3.1.2</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>3.3.2</version>
+                    <version>3.6.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
@@ -163,17 +196,17 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-assembly-plugin</artifactId>
-                    <version>3.3.0</version>
+                    <version>3.6.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-release-plugin</artifactId>
-                    <version>2.5.3</version>
+                    <version>3.0.1</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-gpg-plugin</artifactId>
-                    <version>3.0.1</version>
+                    <version>3.1.0</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -184,15 +217,17 @@
                 <artifactId>license-maven-plugin</artifactId>
                 <inherited>true</inherited>
                 <configuration>
-                    <header>${project.parent.relativePath}/MPL2-template.txt</header>
+                    <inlineHeader><![CDATA[
+Copyright (c) ${project.inceptionYear}, ${project.organization.name} <${contact.email}>
+${project.organization.url}
+
+This Source Code Form is subject to the terms of the Mozilla Public
+License, v. 2.0. If a copy of the MPL was not distributed with this
+file, You can obtain one at http://mozilla.org/MPL/2.0/.
+                    ]]></inlineHeader>
                     <failIfMissing>true</failIfMissing>
                     <aggregate>true</aggregate>
                     <strictCheck>true</strictCheck>
-                    <properties>
-                        <organisation>${project.organization.name}</organisation>
-                        <email>${contact.email}</email>
-                        <url>${project.organization.url}</url>
-                    </properties>
                     <excludes>
                         <exclude>**/pom.xml</exclude>
                         <exclude>**/*.sbt</exclude>
@@ -206,6 +241,8 @@
                         <exclude>**/*.csv</exclude>
                         <exclude>**/*.txt</exclude>
                         <exclude>**/*.jp2</exclude>
+                        <exclude>**/src/*/resources/**</exclude>
+                        <exclude>**/.*/**</exclude>
                     </excludes>
                     <encoding>${project.build.sourceEncoding}</encoding>
                 </configuration>
@@ -318,7 +355,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
                 <configuration>
-                    <mavenExecutorId>forked-path</mavenExecutorId> <!-- avoid a bug with GPG plugin hanging http://jira.codehaus.org/browse/MGPG-9 -->
+                    <mavenExecutorId>forked-path</mavenExecutorId> <!-- avoid a bug with GPG plugin hanging https://jira.codehaus.org/browse/MGPG-9 -->
                     <autoVersionSubmodules>true</autoVersionSubmodules>
                     <tagNameFormat>@{project.version}</tagNameFormat>
                 </configuration>
@@ -329,11 +366,11 @@
     <pluginRepositories>
         <pluginRepository>
             <id>sonatype-releases</id>
-            <url>http://oss.sonatype.org/content/repositories/releases</url>
+            <url>https://oss.sonatype.org/content/repositories/releases</url>
         </pluginRepository>
         <pluginRepository>
             <id>clojars.org</id>
-            <url>http://clojars.org/repo</url>
+            <url>https://clojars.org/repo</url>
         </pluginRepository>
     </pluginRepositories>
 
@@ -345,9 +382,24 @@
                 <version>${scala.lib.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.scalaz</groupId>
-                <artifactId>scalaz-core_${scala.version}</artifactId>
-                <version>${scalaz.version}</version>
+                <groupId>org.typelevel</groupId>
+                <artifactId>cats-core_${scala.version}</artifactId>
+                <version>${cats.core.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.typelevel</groupId>
+                <artifactId>cats-kernel_${scala.version}</artifactId>
+                <version>${cats.core.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.typelevel</groupId>
+                <artifactId>cats-effect_${scala.version}</artifactId>
+                <version>${cats.effect.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.typelevel</groupId>
+                <artifactId>cats-effect-kernel_${scala.version}</artifactId>
+                <version>${cats.effect.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.specs2</groupId>

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013, The National Archives <digitalpreservation@nationalarchives.gov.uk>
  * https://www.nationalarchives.gov.uk
  *
@@ -15,7 +15,7 @@ import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.schema._
 import java.io.{Reader, StringReader}
 
-import scalaz.{Success => SuccessZ, Failure => FailureZ, ValidationNel, IList}
+import cats.data.Validated
 import uk.gov.nationalarchives.csv.validator.schema.Schema
 import uk.gov.nationalarchives.csv.validator.Util.TypedPath
 
@@ -56,7 +56,7 @@ class MetaDataValidatorChecksumSpec extends Specification with TestResources {
 
       val metaData = s"$checksumPath,232762380299115da6995e4c4ac22fa2"
 
-      validate(metaData, schema, None).isSuccess mustEqual true
+      validate(metaData, schema, None).isValid mustEqual true
     }
 
     "fail when calculated algorithm does match not given string value" in {
@@ -70,7 +70,7 @@ class MetaDataValidatorChecksumSpec extends Specification with TestResources {
       val metaData = s"$checksumPath,wrong"
 
       validate(metaData, schema, None) must beLike {
-        case FailureZ(messages) => messages.list mustEqual IList(FailMessage(ValidationError, """checksum(file("""" + checksumPath + """"), "MD5") file """" + checksumPath + """" checksum match fails for line: 1, column: MD5, value: "wrong". Computed checksum value:"232762380299115da6995e4c4ac22fa2"""",Some(1),Some(1)))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """checksum(file("""" + checksumPath + """"), "MD5") file """" + checksumPath + """" checksum match fails for line: 1, column: MD5, value: "wrong". Computed checksum value:"232762380299115da6995e4c4ac22fa2"""",Some(1),Some(1)))
       }
     }
   }
@@ -86,7 +86,7 @@ class MetaDataValidatorChecksumSpec extends Specification with TestResources {
 
       val metaData = """ABC,232762380299115da6995e4c4ac22fa2"""
 
-      validate(metaData, schema, None).isSuccess mustEqual true
+      validate(metaData, schema, None).isValid mustEqual true
     }
 
     "fail when calculated algorithm does match given cross referenced string value" in {
@@ -100,7 +100,7 @@ class MetaDataValidatorChecksumSpec extends Specification with TestResources {
       val metaData = """ABC,wrong"""
 
       validate(metaData, schema, None) must beLike {
-        case FailureZ(messages) => messages.list mustEqual IList(FailMessage(ValidationError, """checksum(file("""" + schemaPath1_0 + """", "checksum.csvs"), "MD5") file """" + checksumPath + """" checksum match fails for line: 1, column: MD5, value: "wrong". Computed checksum value:"232762380299115da6995e4c4ac22fa2"""",Some(1),Some(1)))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """checksum(file("""" + schemaPath1_0 + """", "checksum.csvs"), "MD5") file """" + checksumPath + """" checksum match fails for line: 1, column: MD5, value: "wrong". Computed checksum value:"232762380299115da6995e4c4ac22fa2"""",Some(1),Some(1)))
       }
     }
   }
@@ -117,7 +117,7 @@ class MetaDataValidatorChecksumSpec extends Specification with TestResources {
 
       val metaData = """checksum.csvs,232762380299115da6995e4c4ac22fa2"""
 
-      validate(metaData, schema, None).isSuccess mustEqual true
+      validate(metaData, schema, None).isValid mustEqual true
     }
 
     "fail when incorrect root given in schema for root" in {
@@ -131,7 +131,7 @@ class MetaDataValidatorChecksumSpec extends Specification with TestResources {
       val metaData = """checksum.csvs,232762380299115da6995e4c4ac22fa2"""
 
       validate(metaData, schema, None) must beLike {
-        case FailureZ(messages) => messages.list mustEqual IList(FailMessage(ValidationError, """checksum(file("invalid/path/to/root", $File), "MD5") incorrect basepath invalid/path/to/root/ (localfile: """ + TypedPath("invalid/path/to/root/checksum.csvs").toPlatform + """) found for line: 1, column: MD5, value: "232762380299115da6995e4c4ac22fa2"""",Some(1),Some(1)))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """checksum(file("invalid/path/to/root", $File), "MD5") incorrect basepath invalid/path/to/root/ (localfile: """ + TypedPath("invalid/path/to/root/checksum.csvs").toPlatform + """) found for line: 1, column: MD5, value: "232762380299115da6995e4c4ac22fa2"""",Some(1),Some(1)))
       }
     }
 
@@ -147,7 +147,7 @@ class MetaDataValidatorChecksumSpec extends Specification with TestResources {
 
         val metaData = s"$checksumPath,232762380299115da6995e4c4ac22fa2"
 
-        validate(metaData, schema, None).isSuccess mustEqual true
+        validate(metaData, schema, None).isValid mustEqual true
       }
 
       "fail when calculated algorithm does not match given cross referenced string value" in {
@@ -161,7 +161,7 @@ class MetaDataValidatorChecksumSpec extends Specification with TestResources {
         val metaData = s"$checksumPath,rubbish"
 
         validate(metaData, schema, None) must beLike {
-          case FailureZ(messages) => messages.list mustEqual IList(FailMessage(ValidationError, """checksum(file($File), "MD5") file """" + checksumPath + """" checksum match fails for line: 1, column: MD5, value: "rubbish". Computed checksum value:"232762380299115da6995e4c4ac22fa2"""",Some(1),Some(1)))
+          case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """checksum(file($File), "MD5") file """" + checksumPath + """" checksum match fails for line: 1, column: MD5, value: "rubbish". Computed checksum value:"232762380299115da6995e4c4ac22fa2"""",Some(1),Some(1)))
         }
       }
     }
@@ -177,7 +177,7 @@ class MetaDataValidatorChecksumSpec extends Specification with TestResources {
       val metaData = """checksum.csvs,rubbish"""
 
       validate(metaData, schema, None) must beLike {
-        case FailureZ(messages) => messages.list mustEqual IList(FailMessage(ValidationError, """checksum(file("""" + schemaPath1_0 + """", $File), "MD5") file """" + checksumPath + """" checksum match fails for line: 1, column: MD5, value: "rubbish". Computed checksum value:"232762380299115da6995e4c4ac22fa2"""",Some(1),Some(1)))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """checksum(file("""" + schemaPath1_0 + """", $File), "MD5") file """" + checksumPath + """" checksum match fails for line: 1, column: MD5, value: "rubbish". Computed checksum value:"232762380299115da6995e4c4ac22fa2"""",Some(1),Some(1)))
       }
     }
   }
@@ -195,7 +195,7 @@ class MetaDataValidatorChecksumSpec extends Specification with TestResources {
 
       val metaData = s"$schemaPath1_0,checksum.csvs,232762380299115da6995e4c4ac22fa2"
 
-      validate(metaData, schema, None).isSuccess mustEqual true
+      validate(metaData, schema, None).isValid mustEqual true
     }
 
     "fail when incorrect root given in metadata" in {
@@ -210,7 +210,7 @@ class MetaDataValidatorChecksumSpec extends Specification with TestResources {
       val metaData = """invalid/path/to/root,checksum.csvs,232762380299115da6995e4c4ac22fa2"""
 
       validate(metaData, schema, None) must beLike {
-        case FailureZ(messages) => messages.list mustEqual IList(FailMessage(ValidationError, """checksum(file($Root, $File), "MD5") incorrect basepath invalid/path/to/root/ (localfile: """ + TypedPath("invalid/path/to/root/checksum.csvs").toPlatform + """) found for line: 1, column: MD5, value: "232762380299115da6995e4c4ac22fa2"""", Some(1), Some(2)))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """checksum(file($Root, $File), "MD5") incorrect basepath invalid/path/to/root/ (localfile: """ + TypedPath("invalid/path/to/root/checksum.csvs").toPlatform + """) found for line: 1, column: MD5, value: "232762380299115da6995e4c4ac22fa2"""", Some(1), Some(2)))
       }
     }
   }
@@ -228,7 +228,7 @@ class MetaDataValidatorChecksumSpec extends Specification with TestResources {
 
       val metaData = schemaPath1_0 + "," + "**" + FILE_SEPARATOR + "checksum.csvs,232762380299115da6995e4c4ac22fa2"
 
-      validate(metaData, schema, None).isSuccess mustEqual true
+      validate(metaData, schema, None).isValid mustEqual true
     }
 
     "succeed when only 1 file is found using a '*' wildcard" in {
@@ -242,7 +242,7 @@ class MetaDataValidatorChecksumSpec extends Specification with TestResources {
 
       val metaData = s"$schemaPath1_0,checksum.*,232762380299115da6995e4c4ac22fa2"
 
-      validate(metaData, schema, None).isSuccess mustEqual true
+      validate(metaData, schema, None).isValid mustEqual true
     }
 
     "fail if the optional root contains wildcards" in {
@@ -259,9 +259,9 @@ class MetaDataValidatorChecksumSpec extends Specification with TestResources {
       val metaData = s"$searchPath,checksum.*,232762380299115da6995e4c4ac22fa2"
 
       validate(metaData, schema, None) must beLike {
-        case FailureZ(messages) =>
+        case Validated.Invalid(messages) =>
           val msg = """checksum(file($Root, $File), "MD5") root """ + searchPath + FILE_SEPARATOR + """ (localfile: """ + searchPath + FILE_SEPARATOR + """checksum.*) should not contain wildcards for line: 1, column: MD5, value: "232762380299115da6995e4c4ac22fa2""""
-          messages.list mustEqual IList(FailMessage(ValidationError, msg, Some(1), Some(2)))
+          messages.toList mustEqual List(FailMessage(ValidationError, msg, Some(1), Some(2)))
       }
     }
 
@@ -277,7 +277,7 @@ class MetaDataValidatorChecksumSpec extends Specification with TestResources {
       val metaData = """**/*.jp2,"232762380299115da6995e4c4ac22fa2""""
 
       validate(metaData, schema, None) must beLike {
-        case FailureZ(messages) => messages.list mustEqual IList(FailMessage(ValidationError, """checksum(file("""" + threeFilesPath + """", $File), "MD5") multiple files for """ + threeFilesPath + s"""${FILE_SEPARATOR}**${FILE_SEPARATOR}*.jp2 found for line: 1, column: MD5, value: "232762380299115da6995e4c4ac22fa2"""",Some(1),Some(1)))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """checksum(file("""" + threeFilesPath + """", $File), "MD5") multiple files for """ + threeFilesPath + s"""${FILE_SEPARATOR}**${FILE_SEPARATOR}*.jp2 found for line: 1, column: MD5, value: "232762380299115da6995e4c4ac22fa2"""",Some(1),Some(1)))
       }
     }
 
@@ -292,7 +292,7 @@ class MetaDataValidatorChecksumSpec extends Specification with TestResources {
       val metaData = """**/*.jp2,"232762380299115da6995e4c4ac22fa2""""
 
       validate(metaData, schema, None) must beLike {
-        case FailureZ(messages) => messages.list mustEqual IList(FailMessage(ValidationError, """checksum(file("src/test/resources/this/is/incorrect", $File), "MD5") incorrect basepath src/test/resources/this/is/incorrect/ (localfile: """ + TypedPath("src/test/resources/this/is/incorrect/**/*.jp2").toPlatform + """) found for line: 1, column: MD5, value: "232762380299115da6995e4c4ac22fa2"""",Some(1),Some(1)))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """checksum(file("src/test/resources/this/is/incorrect", $File), "MD5") incorrect basepath src/test/resources/this/is/incorrect/ (localfile: """ + TypedPath("src/test/resources/this/is/incorrect/**/*.jp2").toPlatform + """) found for line: 1, column: MD5, value: "232762380299115da6995e4c4ac22fa2"""",Some(1),Some(1)))
       }
     }
   }
@@ -310,7 +310,7 @@ class MetaDataValidatorChecksumSpec extends Specification with TestResources {
 
       val metaData = s"$checksumPath,232762380299115da6995e4c4ac22fa2"
 
-      validate(metaData, schema, None).isSuccess mustEqual true
+      validate(metaData, schema, None).isValid mustEqual true
     }
   }
 }

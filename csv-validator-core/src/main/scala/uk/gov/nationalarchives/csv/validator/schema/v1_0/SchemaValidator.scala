@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013, The National Archives <digitalpreservation@nationalarchives.gov.uk>
  * https://www.nationalarchives.gov.uk
  *
@@ -15,6 +15,7 @@ import uk.gov.nationalarchives.csv.validator.schema._
 
 import scala.collection.immutable.TreeMap
 import scala.util.Try
+import uk.gov.nationalarchives.csv.validator.schema.v1_1.Concat
 
 /**
  * Set of rules to validate the schema (compatible with the CSV Schema 1.0)
@@ -132,8 +133,9 @@ class SchemaValidator {
  protected def crossColumnsValid(columnDefinitions: List[ColumnDefinition]): Option[String] = {
    def filterRules(cds: ColumnDefinition ): List[Rule] = { // List of failing rules
      cds.rules.filter(rule => {
-       def undefinedCross(a: ArgProvider) = a match {
+       def undefinedCross(a: ArgProvider): Boolean = a match {
          case ColumnReference(name) => !columnDefinitions.exists(col => col.id == name)
+         case concat: Concat => concat.args.exists(undefinedCross)
          case _ => false
        }
 

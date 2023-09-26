@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013, The National Archives <digitalpreservation@nationalarchives.gov.uk>
  * https://www.nationalarchives.gov.uk
  *
@@ -16,7 +16,7 @@ import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.schema.{Schema, _}
 
 import scala.language.reflectiveCalls
-import scalaz.{Failure, IList, Success}
+import cats.data.Validated
 
 @RunWith(classOf[JUnitRunner])
 class NotEmptyBugTest extends Specification with TestResources {
@@ -54,7 +54,7 @@ class NotEmptyBugTest extends Specification with TestResources {
     val schema =
       """version 1.1
          @totalColumns 2
-         file_name: notEmpty if($curated_file_name/notEmpty, is(noext($curated_file_name) ))
+         file_name: notEmpty if($curated_file_name/notEmpty, is(noExt($curated_file_name) ))
          curated_file_name: @optional
       """
 
@@ -62,7 +62,7 @@ class NotEmptyBugTest extends Specification with TestResources {
       """file_name,curated_file_name
          content,
       """
-    validate(metaData, schema, None) must beLike { case Success(_) => ok }
+    validate(metaData, schema, None) must beLike { case Validated.Valid(_) => ok }
 
   }
 
@@ -70,7 +70,7 @@ class NotEmptyBugTest extends Specification with TestResources {
     val schema =
       """version 1.1
          @totalColumns 2
-         file_name: empty if($curated_file_name/empty, is(noext($curated_file_name)))
+         file_name: empty if($curated_file_name/empty, is(noExt($curated_file_name)))
          curated_file_name: @optional
       """
 
@@ -78,14 +78,14 @@ class NotEmptyBugTest extends Specification with TestResources {
       """file_name,curated_file_name
          ,content
       """
-    validate(metaData, schema, None) must beLike { case Success(_) => ok }
+    validate(metaData, schema, None) must beLike { case Validated.Valid(_) => ok }
   }
 
   "succeed for more than 1 uuid4 rule with different columns" in {
     val schema =
       """version 1.1
          @totalColumns 2
-         file_name: uuid4 if($curated_file_name/uuid4, is(noext($curated_file_name)))
+         file_name: uuid4 if($curated_file_name/uuid4, is(noExt($curated_file_name)))
          curated_file_name: @optional
       """
 
@@ -93,14 +93,14 @@ class NotEmptyBugTest extends Specification with TestResources {
       """file_name,curated_file_name
          8f60aab0-f66d-48d8-9382-f692b26b34dc,not-uuidv4-value
       """
-    validate(metaData, schema, None) must beLike { case Success(_) => ok }
+    validate(metaData, schema, None) must beLike { case Validated.Valid(_) => ok }
   }
 
   "succeed for more than 1 positiveInteger rule with different columns" in {
     val schema =
       """version 1.1
          @totalColumns 2
-         file_name: positiveInteger if($curated_file_name/positiveInteger, is(noext($curated_file_name)))
+         file_name: positiveInteger if($curated_file_name/positiveInteger, is(noExt($curated_file_name)))
          curated_file_name: @optional
       """
 
@@ -108,14 +108,14 @@ class NotEmptyBugTest extends Specification with TestResources {
       """file_name,curated_file_name
          111,-1224544
       """
-    validate(metaData, schema, None) must beLike { case Success(_) => ok }
+    validate(metaData, schema, None) must beLike { case Validated.Valid(_) => ok }
   }
 
   "succeed for more than 1 uri rule with different columns" in {
     val schema =
       """version 1.1
          @totalColumns 2
-         file_name: uri if($curated_file_name/uri, is(noext($curated_file_name)))
+         file_name: uri if($curated_file_name/uri, is(noExt($curated_file_name)))
          curated_file_name: @optional
       """
 
@@ -123,14 +123,14 @@ class NotEmptyBugTest extends Specification with TestResources {
       """file_name,curated_file_name
          http://www.root.cz/,not a URI
       """
-    validate(metaData, schema, None) must beLike { case Success(_) => ok }
+    validate(metaData, schema, None) must beLike { case Validated.Valid(_) => ok }
   }
 
   "succeed for more than 1 partUkDate rule with different columns" in {
     val schema =
       """version 1.1
          @totalColumns 2
-         file_name: partUkDate if($curated_file_name/partUkDate, is(noext($curated_file_name)))
+         file_name: partUkDate if($curated_file_name/partUkDate, is(noExt($curated_file_name)))
          curated_file_name: @optional
       """
 
@@ -138,14 +138,14 @@ class NotEmptyBugTest extends Specification with TestResources {
       """file_name,curated_file_name
          04/February/1981,not a date
       """
-    validate(metaData, schema, None) must beLike { case Success(_) => ok }
+    validate(metaData, schema, None) must beLike { case Validated.Valid(_) => ok }
   }
 
   "succeed for more than 1 lowerCase rule with different columns" in {
     val schema =
       """version 1.1
          @totalColumns 2
-         file_name: lowerCase if($curated_file_name/lowerCase, is(noext($curated_file_name)))
+         file_name: lowerCase if($curated_file_name/lowerCase, is(noExt($curated_file_name)))
          curated_file_name: @optional
       """
 
@@ -153,14 +153,14 @@ class NotEmptyBugTest extends Specification with TestResources {
       """file_name,curated_file_name
          lowercase text,CamelCaseText
       """
-    validate(metaData, schema, None) must beLike { case Success(_) => ok }
+    validate(metaData, schema, None) must beLike { case Validated.Valid(_) => ok }
   }
 
   "succeed for more than 1 upperCase rule with different columns" in {
     val schema =
       """version 1.1
          @totalColumns 2
-         file_name: upperCase if($curated_file_name/upperCase, is(noext($curated_file_name)))
+         file_name: upperCase if($curated_file_name/upperCase, is(noExt($curated_file_name)))
          curated_file_name: @optional
       """
 
@@ -168,7 +168,7 @@ class NotEmptyBugTest extends Specification with TestResources {
       """file_name,curated_file_name
          UPPERCASE,CamelCaseText
       """
-    validate(metaData, schema, None) must beLike { case Success(_) => ok }
+    validate(metaData, schema, None) must beLike { case Validated.Valid(_) => ok }
   }
 
   "succeed for more than 1 identical rule with different columns" in {
@@ -186,7 +186,7 @@ class NotEmptyBugTest extends Specification with TestResources {
       """
     val result = validate(metaData, schema, None)
 
-    result must beLike { case Success(_) => ok }
+    result must beLike { case Validated.Valid(_) => ok }
   }
 }
 }

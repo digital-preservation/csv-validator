@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013, The National Archives <digitalpreservation@nationalarchives.gov.uk>
  * https://www.nationalarchives.gov.uk
  *
@@ -16,7 +16,7 @@ import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.{SchemaDefinitionError, FailMessage}
 import uk.gov.nationalarchives.csv.validator.schema._
 
-import scalaz.{Failure => FailureZ, Success => SuccessZ, IList}
+import cats.data.Validated
 
 @RunWith(classOf[JUnitRunner])
 class SchemaParserColumnDefinitionsSpecs extends SchemaSpecBase {
@@ -87,7 +87,7 @@ class SchemaParserColumnDefinitionsSpecs extends SchemaSpecBase {
                       |@totalColumns 2
                       |LastName: regex ("[a]")""".stripMargin
 
-      parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual IList(FailMessage(SchemaDefinitionError, "@totalColumns = 2 but number of columns defined = 1 at line: 2, column: 1")) }
+      parseAndValidate(new StringReader(schema)) must beLike { case Validated.Invalid(msgs) => msgs.toList mustEqual List(FailMessage(SchemaDefinitionError, "@totalColumns = 2 but number of columns defined = 1 at line: 2, column: 1")) }
     }
 
     "fail for invalid column identifier" in {
@@ -139,7 +139,7 @@ class SchemaParserColumnDefinitionsSpecs extends SchemaSpecBase {
                     |Column2:""".stripMargin
 
       parseAndValidate(new StringReader(schema)) must beLike {
-        case FailureZ(msgs) => msgs.list mustEqual IList(FailMessage(SchemaDefinitionError, "Column: Column1 has invalid cross reference in($NotAColumn) at line: 3, column: 10"))
+        case Validated.Invalid(msgs) => msgs.toList mustEqual List(FailMessage(SchemaDefinitionError, "Column: Column1 has invalid cross reference in($NotAColumn) at line: 3, column: 10"))
       }
     }
 
@@ -150,7 +150,7 @@ class SchemaParserColumnDefinitionsSpecs extends SchemaSpecBase {
                     |Column2:""".stripMargin
 
       parseAndValidate(new StringReader(schema)) must beLike {
-        case FailureZ(msgs) => msgs.list mustEqual IList(FailMessage(SchemaDefinitionError, "Column: Column1 has invalid cross reference in($NotAColumn2) at line: 3, column: 23"))
+        case Validated.Invalid(msgs) => msgs.toList mustEqual List(FailMessage(SchemaDefinitionError, "Column: Column1 has invalid cross reference in($NotAColumn2) at line: 3, column: 23"))
       }
     }
 
@@ -161,7 +161,7 @@ class SchemaParserColumnDefinitionsSpecs extends SchemaSpecBase {
                     |Column2: in($NotAColumn3) in($Column2)""".stripMargin
 
       parseAndValidate(new StringReader(schema)) must beLike {
-        case FailureZ(msgs) => msgs.list mustEqual IList(FailMessage(SchemaDefinitionError,
+        case Validated.Invalid(msgs) => msgs.toList mustEqual List(FailMessage(SchemaDefinitionError,
           """Column: Column1 has invalid cross reference in($NotAColumn2) at line: 3, column: 23
             |Column: Column2 has invalid cross reference in($NotAColumn3) at line: 4, column: 10""".stripMargin))
       }
@@ -177,7 +177,7 @@ class SchemaParserColumnDefinitionsSpecs extends SchemaSpecBase {
                     |Column5: ends($Column5) ends($NotAColumn5)""".stripMargin
 
       parseAndValidate(new StringReader(schema)) must beLike {
-        case FailureZ(msgs) => msgs.list mustEqual IList(FailMessage(SchemaDefinitionError, """@totalColumns = 2 but number of columns defined = 5 at line: 2, column: 1
+        case Validated.Invalid(msgs) => msgs.toList mustEqual List(FailMessage(SchemaDefinitionError, """@totalColumns = 2 but number of columns defined = 5 at line: 2, column: 1
                                                         |Column: Column1 has invalid cross reference is($NotAColumn1) at line: 3, column: 23
                                                         |Column: Column2 has invalid cross reference not($NotAColumn2) at line: 4, column: 24
                                                         |Column: Column3 has invalid cross reference in($NotAColumn3) at line: 5, column: 23
@@ -195,7 +195,7 @@ class SchemaParserColumnDefinitionsSpecs extends SchemaSpecBase {
                       Column2:"""
 
       parseAndValidate(new StringReader(schema)) must beLike {
-        case FailureZ(msgs) => msgs.list mustEqual IList(FailMessage(SchemaDefinitionError, """Column: Column1 has duplicates on lines 3, 5
+        case Validated.Invalid(msgs) => msgs.toList mustEqual List(FailMessage(SchemaDefinitionError, """Column: Column1 has duplicates on lines 3, 5
                                                           |Column: Column2 has duplicates on lines 4, 6""".stripMargin))
       }
     }
@@ -207,7 +207,7 @@ class SchemaParserColumnDefinitionsSpecs extends SchemaSpecBase {
                       Column2:"""
 
       parseAndValidate(new StringReader(schema)) must beLike {
-        case SuccessZ(schemaResult) => schemaResult mustEqual buildSchema1_0(globalDirsTwo:_*)(ColumnDefinition(NamedColumnIdentifier("Column1"), List(InRule(ColumnReference(NamedColumnIdentifier("Column2"))))),
+        case Validated.Valid(schemaResult) => schemaResult mustEqual buildSchema1_0(globalDirsTwo:_*)(ColumnDefinition(NamedColumnIdentifier("Column1"), List(InRule(ColumnReference(NamedColumnIdentifier("Column2"))))),
                                                                                namedColumn("Column2"))
       }
     }

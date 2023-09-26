@@ -29,7 +29,6 @@
                 <artifactId>scala-maven-plugin</artifactId>
                 <configuration>
                     <recompileMode>incremental</recompileMode>   <!-- NOTE: incremental compilation although faster requires passing to MAVEN_OPTS="-XX:MaxPermSize=128m" -->
-                    <useZincServer>true</useZincServer>          <!-- NOTE: if you have Zinc server installed and running, you can get faster compilation by enabling this -->
                     <args>
                         <arg>-Yrangepos</arg> <!-- recommended for Specs2 -->
                         <arg>-feature</arg>
@@ -101,36 +100,38 @@
         <dependency>
             <groupId>org.scala-lang.modules</groupId>
             <artifactId>scala-parser-combinators_${scala.version}</artifactId>
-            <version>2.1.1</version>
+            <version>2.3.0</version>
         </dependency>
         <dependency>
-            <groupId>org.scalaz</groupId>
-            <artifactId>scalaz-core_${scala.version}</artifactId>
+            <groupId>org.typelevel</groupId>
+            <artifactId>cats-core_${scala.version}</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.typelevel</groupId>
+            <artifactId>cats-kernel_${scala.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.typelevel</groupId>
             <artifactId>cats-effect_${scala.version}</artifactId>
-            <version>3.3.7</version>
+        </dependency>
+        <dependency>
+            <groupId>org.typelevel</groupId>
+            <artifactId>cats-effect-kernel_${scala.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>co.fs2</groupId>
             <artifactId>fs2-core_${scala.version}</artifactId>
-            <version>3.2.5</version>
+            <version>3.9.2</version>
         </dependency>
         <dependency>
             <groupId>co.fs2</groupId>
             <artifactId>fs2-io_${scala.version}</artifactId>
-            <version>3.2.5</version>
-        </dependency>
-        <dependency>
-            <groupId>org.scalaz</groupId>
-            <artifactId>scalaz-concurrent_${scala.version}</artifactId>
-            <version>${scalaz.version}</version>
+            <version>3.9.2</version>
         </dependency>
         <dependency>
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
-            <version>2.10.13</version>
+            <version>2.12.5</version>
         </dependency>
         <dependency>
             <groupId>com.univocity</groupId>
@@ -150,7 +151,7 @@
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-            <version>2.11.0</version>
+            <version>2.13.0</version>
         </dependency>
         <dependency>
             <groupId>org.specs2</groupId>

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013, The National Archives <digitalpreservation@nationalarchives.gov.uk>
  * https://www.nationalarchives.gov.uk
  *
@@ -13,7 +13,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.metadata.{Cell, Row}
 import uk.gov.nationalarchives.csv.validator.schema._
-import scalaz.{Success, Failure, IList}
+import cats.data.Validated
 
 @RunWith(classOf[JUnitRunner])
 class RangeRuleSpec extends Specification {
@@ -26,21 +26,21 @@ class RangeRuleSpec extends Specification {
       val rangeRule = new RangeRule(1,2)
 
       rangeRule.evaluate(0, Row(List(Cell("Germany")), 1), schema) must beLike {
-        case Failure(messages) => messages.list mustEqual IList("""range(1,2) fails for line: 1, column: Country, value: "Germany"""")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("""range(1,2) fails for line: 1, column: Country, value: "Germany"""")
       }
     }
 
     "pass when we test integer boundaries" in {
       val rangeRule = new RangeRule(Int.MinValue,(Int.MaxValue))
 
-      rangeRule.evaluate(0, Row(List(Cell((Int.MaxValue).toString)), 1), schema)  mustEqual Success(true)
+      rangeRule.evaluate(0, Row(List(Cell((Int.MaxValue).toString)), 1), schema)  mustEqual Validated.Valid(true)
     }
 
     "fail when we test small decimal outside range" in {
       val rangeRule = new RangeRule(0.01,0.1)
 
       rangeRule.evaluate(0, Row(List(Cell(("0.00999999999999999999999999999999"))), 1), schema)  must beLike {
-        case Failure(messages) => messages.list mustEqual IList("""range(0.01,0.1) fails for line: 1, column: Country, value: "0.00999999999999999999999999999999"""")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("""range(0.01,0.1) fails for line: 1, column: Country, value: "0.00999999999999999999999999999999"""")
       }
     }
   }

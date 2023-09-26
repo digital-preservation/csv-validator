@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013, The National Archives <digitalpreservation@nationalarchives.gov.uk>
  * https://www.nationalarchives.gov.uk
  *
@@ -17,8 +17,8 @@ import scala.util.parsing.combinator._
 import scala.language.reflectiveCalls
 import java.io.Reader
 
-import scalaz._
-import Scalaz._
+import cats.data.ValidatedNel
+import cats.syntax.validated._
 
 import uk.gov.nationalarchives.csv.validator.{SchemaDefinitionError, FailMessage}
 
@@ -113,7 +113,7 @@ with TraceableParsers {
 
 
 
-  def parseAndValidate(reader: Reader): ValidationNel[FailMessage, Schema] = {
+  def parseAndValidate(reader: Reader): ValidatedNel[FailMessage, Schema] = {
     //TODO following function works around a deficiency in scala.util.parsing.combinator.Parsers{$Error, $Failure} that use hard-coded Unix EOL in Scala 2.10.0
     def formatNoSuccessMessageForPlatform(s: String) = {
       if(sys.props("os.name").toLowerCase.startsWith("win"))
@@ -125,9 +125,9 @@ with TraceableParsers {
     parse(reader) match {
       case s @ Success(schema: Schema, next) => {
         val errors = SchemaValidator.validate(schema)
-        if (errors.isEmpty) schema.successNel[FailMessage] else FailMessage(SchemaDefinitionError, errors).failureNel[Schema]
+        if (errors.isEmpty) schema.validNel[FailMessage] else FailMessage(SchemaDefinitionError, errors).invalidNel[Schema]
       }
-      case n: NoSuccess => FailMessage(SchemaDefinitionError, formatNoSuccessMessageForPlatform(n.toString)).failureNel[Schema]
+      case n: NoSuccess => FailMessage(SchemaDefinitionError, formatNoSuccessMessageForPlatform(n.toString)).invalidNel[Schema]
     }
   }
 

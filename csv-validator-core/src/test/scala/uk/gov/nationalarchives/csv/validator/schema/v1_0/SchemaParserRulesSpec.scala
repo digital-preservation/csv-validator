@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013, The National Archives <digitalpreservation@nationalarchives.gov.uk>
  * https://www.nationalarchives.gov.uk
  *
@@ -9,14 +9,13 @@
 package uk.gov.nationalarchives.csv.validator.schema.v1_0
 
 import java.io.StringReader
-
 import org.junit.runner.RunWith
 import org.specs2.mutable._
 import org.specs2.runner.JUnitRunner
-import uk.gov.nationalarchives.csv.validator.{SchemaDefinitionError, FailMessage, EOL}
+import uk.gov.nationalarchives.csv.validator.{EOL, FailMessage, SchemaDefinitionError}
 import uk.gov.nationalarchives.csv.validator.schema._
-
-import scalaz.{Failure => FailureZ, Success => SuccessZ, IList}
+import uk.gov.nationalarchives.csv.validator.TestHelper._
+import cats.data.{NonEmptyList, Validated}
 
 @RunWith(classOf[JUnitRunner])
 class SchemaParserRulesSpec extends SchemaSpecBase {
@@ -41,7 +40,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                       Something: regex("[0-9")"""
 
       parseAndValidate(new StringReader(schema)) must beLike {
-        case FailureZ(msgs) => msgs.list mustEqual IList(FailMessage(SchemaDefinitionError, "Column: Something: Invalid regex(\"[0-9\"): at line: 3, column: 34"))
+        case Validated.Invalid(msgs) => msgs.toList mustEqual List(FailMessage(SchemaDefinitionError, "Column: Something: Invalid regex(\"[0-9\"): at line: 3, column: 34"))
       }
     }
 
@@ -211,7 +210,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
         """
 
       parseAndValidate(new StringReader(schema)) must beLike {
-        case FailureZ(msgs) => msgs.list mustEqual IList(FailMessage(SchemaDefinitionError, """Column: MD5: Invalid Algorithm: 'INVALID' at line: 4, column: 17"""))
+        case Validated.Invalid(msgs) => msgs.toList mustEqual List(FailMessage(SchemaDefinitionError, """Column: MD5: Invalid Algorithm: 'INVALID' at line: 4, column: 17"""))
       }
     }
 
@@ -225,7 +224,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
         """
 
       parseAndValidate(new StringReader(schema)) must beLike {
-        case FailureZ(msgs) => msgs.list mustEqual IList(FailMessage(SchemaDefinitionError, "Column: MD5: Invalid Algorithm: 'INVALID' at line: 4, column: 17" + EOL + "Column: chksum: Invalid Algorithm: 'WRONG' at line: 5, column: 20"))
+        case Validated.Invalid(msgs) => msgs.toList mustEqual List(FailMessage(SchemaDefinitionError, "Column: MD5: Invalid Algorithm: 'INVALID' at line: 4, column: 17" + EOL + "Column: chksum: Invalid Algorithm: 'WRONG' at line: 5, column: 20"))
       }
     }
 
@@ -239,7 +238,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
         """
 
       parseAndValidate(new StringReader(schema)) must beLike {
-        case FailureZ(msgs) => msgs.list mustEqual IList(FailMessage(SchemaDefinitionError, """Column: MD5: Invalid Algorithm: 'INVALID' at line: 4, column: 17"""))
+        case Validated.Invalid(msgs) => msgs.toList mustEqual List(FailMessage(SchemaDefinitionError, """Column: MD5: Invalid Algorithm: 'INVALID' at line: 4, column: 17"""))
       }
     }
 
@@ -252,7 +251,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
            Country: xDateTime( 2012-12-01T01:01:01 , 2012-12-01T01:01:01 )"""
 
     parseAndValidate(new StringReader(schema)) must beLike {
-        case SuccessZ(Schema(_, _, _))  => ok
+        case Validated.Valid(Schema(_, _, _))  => ok
     }
   }
 
@@ -262,7 +261,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
            @totalColumns 1
            Country: xDateTime( 2012-99-01T01:01:01 , 2012-12-01T01:01:01 )"""
 
-    parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual IList(FailMessage(SchemaDefinitionError, "Column: Country: Invalid xDateTime(\"2012-99-01T01:01:01, 2012-12-01T01:01:01\"): at line: 3, column: 21")) }
+    parseAndValidate(new StringReader(schema)) must beLike { case Validated.Invalid(msgs) => msgs.toList mustEqual List(FailMessage(SchemaDefinitionError, "Column: Country: Invalid xDateTime(\"2012-99-01T01:01:01, 2012-12-01T01:01:01\"): at line: 3, column: 21")) }
   }
 
   "fail for xDateTime range with from > to" in {
@@ -271,7 +270,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
            @totalColumns 1
            Country: xDateTime( 2012-01-02T01:01:02 , 2012-01-01T01:01:02 )"""
 
-    parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual IList(FailMessage(SchemaDefinitionError, "Column: Country: Invalid xDateTime(\"2012-01-02T01:01:02, 2012-01-01T01:01:02\"): at line: 3, column: 21")) }
+    parseAndValidate(new StringReader(schema)) must beLike { case Validated.Invalid(msgs) => msgs.toList mustEqual List(FailMessage(SchemaDefinitionError, "Column: Country: Invalid xDateTime(\"2012-01-02T01:01:02, 2012-01-01T01:01:02\"): at line: 3, column: 21")) }
   }
 
 
@@ -282,7 +281,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
            Country: xDate( 2012-12-01 , 2012-12-01 )"""
 
     parseAndValidate(new StringReader(schema)) must beLike {
-      case SuccessZ(Schema(_, _, _))  => ok
+      case Validated.Valid(Schema(_, _, _))  => ok
     }
   }
 
@@ -292,7 +291,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
            @totalColumns 1
            Country: xDate( 2012-99-01 , 2012-12-01 )"""
 
-    parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual IList(FailMessage(SchemaDefinitionError, "Column: Country: Invalid xDate(\"2012-99-01, 2012-12-01\"): at line: 3, column: 21")) }
+    parseAndValidate(new StringReader(schema)) must beLike { case Validated.Invalid(msgs) => msgs.toList mustEqual List(FailMessage(SchemaDefinitionError, "Column: Country: Invalid xDate(\"2012-99-01, 2012-12-01\"): at line: 3, column: 21")) }
   }
 
   "fail for xDate range with from > to" in {
@@ -301,7 +300,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
            @totalColumns 1
            Country: xDate( 2012-01-02 , 2012-01-01 )"""
 
-    parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual IList(FailMessage(SchemaDefinitionError, "Column: Country: Invalid xDate(\"2012-01-02, 2012-01-01\"): at line: 3, column: 21")) }
+    parseAndValidate(new StringReader(schema)) must beLike { case Validated.Invalid(msgs) => msgs.toList mustEqual List(FailMessage(SchemaDefinitionError, "Column: Country: Invalid xDate(\"2012-01-02, 2012-01-01\"): at line: 3, column: 21")) }
   }
 
   "succeed for ukDate range with valid date" in {
@@ -311,7 +310,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
            Country: ukDate( 01/02/1966 , 01/02/1966 )"""
 
     parseAndValidate(new StringReader(schema)) must beLike {
-      case SuccessZ(Schema(_, _, _))  => ok
+      case Validated.Valid(Schema(_, _, _))  => ok
     }
   }
 
@@ -321,7 +320,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
            @totalColumns 1
            Country: ukDate( 30/02/1900 , 30/02/1902 )"""
 
-    parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual IList(FailMessage(SchemaDefinitionError, "Column: Country: Invalid ukDate(\"30/02/1900, 30/02/1902\"): at line: 3, column: 21")) }
+    parseAndValidate(new StringReader(schema)) must beLike { case Validated.Invalid(msgs) => msgs.toList mustEqual List(FailMessage(SchemaDefinitionError, "Column: Country: Invalid ukDate(\"30/02/1900, 30/02/1902\"): at line: 3, column: 21")) }
   }
 
   "fail for ukDate range with from > to" in {
@@ -330,7 +329,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
            @totalColumns 1
            Country: ukDate( 02/02/1966 , 01/02/1966 )"""
 
-    parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual IList(FailMessage(SchemaDefinitionError, "Column: Country: Invalid ukDate(\"02/02/1966, 01/02/1966\"): at line: 3, column: 21")) }
+    parseAndValidate(new StringReader(schema)) must beLike { case Validated.Invalid(msgs) => msgs.toList mustEqual List(FailMessage(SchemaDefinitionError, "Column: Country: Invalid ukDate(\"02/02/1966, 01/02/1966\"): at line: 3, column: 21")) }
   }
 
   "succeed for xTime range with valid time" in {
@@ -340,7 +339,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
            Country: xTime( 00:10:20 , 00:10:20 )"""
 
     parseAndValidate(new StringReader(schema)) must beLike {
-      case SuccessZ(Schema(_, _, _))  => ok
+      case Validated.Valid(Schema(_, _, _))  => ok
     }
   }
 
@@ -350,7 +349,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
            @totalColumns 1
            Country: xTime( 90:10:20 , 10:12:22 )"""
 
-    parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual IList(FailMessage(SchemaDefinitionError, "Column: Country: Invalid xTime(\"90:10:20, 10:12:22\"): at line: 3, column: 21")) }
+    parseAndValidate(new StringReader(schema)) must beLike { case Validated.Invalid(msgs) => msgs.toList mustEqual List(FailMessage(SchemaDefinitionError, "Column: Country: Invalid xTime(\"90:10:20, 10:12:22\"): at line: 3, column: 21")) }
   }
 
   "fail for xTime range with from > to" in {
@@ -359,7 +358,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
            @totalColumns 1
            Country: xTime( 00:10:21 , 00:10:20 )"""
 
-    parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual IList(FailMessage(SchemaDefinitionError, "Column: Country: Invalid xTime(\"00:10:21, 00:10:20\"): at line: 3, column: 21")) }
+    parseAndValidate(new StringReader(schema)) must beLike { case Validated.Invalid(msgs) => msgs.toList mustEqual List(FailMessage(SchemaDefinitionError, "Column: Country: Invalid xTime(\"00:10:21, 00:10:20\"): at line: 3, column: 21")) }
   }
 
   "succeed for multiple date ranges with valid dates" in {
@@ -369,7 +368,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
            Country: xTime( 00:10:20 , 00:10:20 ) ukDate( 01/02/1966 , 01/02/1966 ) xDateTime( 2012-12-01T01:01:01 , 2012-12-01T01:01:01 ) xDate( 2012-12-01 , 2012-12-01 )"""
 
     parseAndValidate(new StringReader(schema)) must beLike {
-      case SuccessZ(Schema(_, _, _))  => ok
+      case Validated.Valid(Schema(_, _, _))  => ok
     }
   }
 
@@ -379,11 +378,11 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
            @totalColumns 1
            Country: xTime( 99:10:20 , 00:10:20 ) ukDate( 01/02/1966 , 31/02/1966 ) xDateTime( 2012-13-01T01:01:01 , 2012-12-01T01:01:01 ) xDate( 2012-12-40 , 2012-12-01 )"""
 
-    parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual IList(FailMessage(SchemaDefinitionError,
+    parseAndValidate(new StringReader(schema)) must beLike { case Validated.Invalid(msgs) => msgs.map(_.removeCR) mustEqual NonEmptyList.one(FailMessage(SchemaDefinitionError,
       """Column: Country: Invalid xTime("99:10:20, 00:10:20"): at line: 3, column: 21
         |Column: Country: Invalid ukDate("01/02/1966, 31/02/1966"): at line: 3, column: 50
         |Column: Country: Invalid xDateTime("2012-13-01T01:01:01, 2012-12-01T01:01:01"): at line: 3, column: 84
-        |Column: Country: Invalid xDate("2012-12-40, 2012-12-01"): at line: 3, column: 139""".stripMargin)) }
+        |Column: Country: Invalid xDate("2012-12-40, 2012-12-01"): at line: 3, column: 139""".stripMargin.removeCR)) }
   }
 
   "succeed for cross reference in rule" in {
@@ -393,7 +392,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                       FullName:"""
 
     parseAndValidate(new StringReader(schema)) must beLike {
-      case SuccessZ(Schema(_, List(ColumnDefinition(NamedColumnIdentifier("Name"), List(InRule(ColumnReference(NamedColumnIdentifier("FullName")))), _), _), _))  => ok
+      case Validated.Valid(Schema(_, List(ColumnDefinition(NamedColumnIdentifier("Name"), List(InRule(ColumnReference(NamedColumnIdentifier("FullName")))), _), _), _))  => ok
     }
   }
 
@@ -416,7 +415,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                       Name: in($Name) regex("[1-9][a-z]*")"""
 
     parseAndValidate(new StringReader(schema)) must beLike {
-      case SuccessZ(Schema(_, List(ColumnDefinition(NamedColumnIdentifier("Name"), List(InRule(ColumnReference(NamedColumnIdentifier(ir))), RegExpRule(r)), _)), version)) => {
+      case Validated.Valid(Schema(_, List(ColumnDefinition(NamedColumnIdentifier("Name"), List(InRule(ColumnReference(NamedColumnIdentifier(ir))), RegExpRule(r)), _)), version)) => {
         r mustEqual "[1-9][a-z]*"
         ir mustEqual "Name"
       }
@@ -440,7 +439,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                       MyCountry:"""
 
     parseAndValidate(new StringReader(schema)) must beLike {
-      case SuccessZ(Schema(_,
+      case Validated.Valid(Schema(_,
         List(
           ColumnDefinition(NamedColumnIdentifier("Country"), List(IsRule(ColumnReference(NamedColumnIdentifier("MyCountry")))), _),
           ColumnDefinition(NamedColumnIdentifier("MyCountry"), _, _)
@@ -456,7 +455,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                    |Country: is($MyMissingCountry)
                    |MyCountry:""".stripMargin
 
-    parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual IList(FailMessage(SchemaDefinitionError, "Column: Country has invalid cross reference is($MyMissingCountry) at line: 3, column: 10")) }
+    parseAndValidate(new StringReader(schema)) must beLike { case Validated.Invalid(msgs) => msgs.toList mustEqual List(FailMessage(SchemaDefinitionError, "Column: Country has invalid cross reference is($MyMissingCountry) at line: 3, column: 10")) }
   }
 
   "fail for invalid regex rule and'is' cross reference rule" in {
@@ -465,9 +464,9 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                    |MyCountry: regex("[a-z*")
                    |Country: is($MyMissingCountry)""".stripMargin
 
-    parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual IList(FailMessage(SchemaDefinitionError,
+    parseAndValidate(new StringReader(schema)) must beLike { case Validated.Invalid(msgs) => msgs.map(_.removeCR) mustEqual NonEmptyList.one(FailMessage(SchemaDefinitionError,
       """Column: Country has invalid cross reference is($MyMissingCountry) at line: 4, column: 10
-        |Column: MyCountry: Invalid regex("[a-z*"): at line: 3, column: 12""".stripMargin)) }
+        |Column: MyCountry: Invalid regex("[a-z*"): at line: 3, column: 12""".stripMargin.removeCR)) }
   }
 
   "succeed for 'not' text rule" in {
@@ -487,7 +486,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                       MyCountry:"""
 
     parseAndValidate(new StringReader(schema)) must beLike {
-      case SuccessZ(Schema(_,
+      case Validated.Valid(Schema(_,
       List(
         ColumnDefinition(NamedColumnIdentifier("Country"),
         List(NotRule(ColumnReference(NamedColumnIdentifier("MyCountry")))), _),
@@ -504,7 +503,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                    |Country: not($MyMissingCountry)
                    |MyCountry:""".stripMargin
 
-    parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual IList(FailMessage(SchemaDefinitionError, "Column: Country has invalid cross reference not($MyMissingCountry) at line: 3, column: 10")) }
+    parseAndValidate(new StringReader(schema)) must beLike { case Validated.Invalid(msgs) => msgs.toList mustEqual List(FailMessage(SchemaDefinitionError, "Column: Country has invalid cross reference not($MyMissingCountry) at line: 3, column: 10")) }
   }
 
   "succeed for 'starts' text rule" in {
@@ -524,7 +523,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                       MyCountry:"""
 
     parseAndValidate(new StringReader(schema)) must beLike {
-      case SuccessZ(Schema(_,
+      case Validated.Valid(Schema(_,
       List(ColumnDefinition(NamedColumnIdentifier("Country"), List(StartsRule(ColumnReference(NamedColumnIdentifier("MyCountry")))), _),
       ColumnDefinition(NamedColumnIdentifier("MyCountry"), _, _)), _)) => ok
     }
@@ -536,7 +535,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                    |Country: starts($MyMissingCountry)
                    |MyCountry:""".stripMargin
 
-    parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual IList(FailMessage(SchemaDefinitionError, "Column: Country has invalid cross reference starts($MyMissingCountry) at line: 3, column: 10")) }
+    parseAndValidate(new StringReader(schema)) must beLike { case Validated.Invalid(msgs) => msgs.toList mustEqual List(FailMessage(SchemaDefinitionError, "Column: Country has invalid cross reference starts($MyMissingCountry) at line: 3, column: 10")) }
   }
 
   "succeed for 'ends' text rule" in {
@@ -556,7 +555,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                       MyCountry:"""
 
     parseAndValidate(new StringReader(schema)) must beLike {
-      case SuccessZ(Schema(_,  List(ColumnDefinition(NamedColumnIdentifier("Country"), List(EndsRule(ColumnReference(NamedColumnIdentifier("MyCountry")))), _), ColumnDefinition(NamedColumnIdentifier("MyCountry"), _, _)), _)) => ok
+      case Validated.Valid(Schema(_,  List(ColumnDefinition(NamedColumnIdentifier("Country"), List(EndsRule(ColumnReference(NamedColumnIdentifier("MyCountry")))), _), ColumnDefinition(NamedColumnIdentifier("MyCountry"), _, _)), _)) => ok
     }
   }
 
@@ -566,8 +565,8 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                    |Country: ends($MyMissingCountry)
                    |MyCountry:""".stripMargin
 
-    parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) =>
-      msgs.list mustEqual IList(FailMessage(SchemaDefinitionError, "Column: Country has invalid cross reference ends($MyMissingCountry) at line: 3, column: 10")) }
+    parseAndValidate(new StringReader(schema)) must beLike { case Validated.Invalid(msgs) =>
+      msgs.toList mustEqual List(FailMessage(SchemaDefinitionError, "Column: Country has invalid cross reference ends($MyMissingCountry) at line: 3, column: 10")) }
   }
 
   "succeed for multiple nested parens" in {
@@ -576,7 +575,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                       Country: ends($MyCountry)  in("g") starts("st") or ends("en")
                       MyCountry:"""
     parseAndValidate(new StringReader(schema)) must beLike {
-      case SuccessZ(_) => ok
+      case Validated.Valid(_) => ok
     }
   }
 
@@ -586,7 +585,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                       Country: ends($MyCountry)  ((in("g") starts("st") or ends("en"))
                       MyCountry:"""
     parseAndValidate(new StringReader(schema)) must beLike {
-      case FailureZ(msgs) => ok
+      case Validated.Invalid(msgs) => ok
     }
   }
 
@@ -601,7 +600,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
            MD5: checksum(file($Root, $WRONG), "MD5")
         """
 
-      parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual IList(FailMessage(SchemaDefinitionError, """Column: MD5 has invalid cross reference checksum(file($Root, $WRONG), "MD5") at line: 5, column: 17""")) }
+      parseAndValidate(new StringReader(schema)) must beLike { case Validated.Invalid(msgs) => msgs.toList mustEqual List(FailMessage(SchemaDefinitionError, """Column: MD5 has invalid cross reference checksum(file($Root, $WRONG), "MD5") at line: 5, column: 17""")) }
     }
 
     "fail if column for basePath is missing" in {
@@ -613,7 +612,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
            MD5: checksum(file($Hello, $File), "MD5")
         """
 
-      parseAndValidate(new StringReader(schema)) must beLike { case FailureZ(msgs) => msgs.list mustEqual IList(FailMessage(SchemaDefinitionError, """Column: MD5 has invalid cross reference checksum(file($Hello, $File), "MD5") at line: 5, column: 17""")) }
+      parseAndValidate(new StringReader(schema)) must beLike { case Validated.Invalid(msgs) => msgs.toList mustEqual List(FailMessage(SchemaDefinitionError, """Column: MD5 has invalid cross reference checksum(file($Hello, $File), "MD5") at line: 5, column: 17""")) }
     }
   }
 
@@ -625,7 +624,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                       Age: range(0,100)
                       MyCountry:"""
       parseAndValidate(new StringReader(schema)) must beLike {
-        case SuccessZ(_) => ok
+        case Validated.Valid(_) => ok
       }
     }
 
@@ -635,7 +634,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                       Age: range(0.1,1.00)
                       MyCountry:"""
       parseAndValidate(new StringReader(schema)) must beLike {
-        case SuccessZ(_) => ok
+        case Validated.Valid(_) => ok
       }
     }
 
@@ -646,7 +645,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                       MyCountry:"""
 
       parseAndValidate(new StringReader(schema)) must beLike {
-        case FailureZ(msgs) => msgs.list mustEqual IList(FailMessage(SchemaDefinitionError, """Column: Age: Invalid range, minimum greater than maximum in: 'range(100,1)' at line: 3, column: 28"""))
+        case Validated.Invalid(msgs) => msgs.toList mustEqual List(FailMessage(SchemaDefinitionError, """Column: Age: Invalid range, minimum greater than maximum in: 'range(100,1)' at line: 3, column: 28"""))
       }
     }
   }
@@ -658,7 +657,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                       @totalColumns 1
                       Age: length(*)"""
       parseAndValidate(new StringReader(schema)) must beLike {
-        case SuccessZ(_) => ok
+        case Validated.Valid(_) => ok
       }
     }
 
@@ -667,7 +666,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                       @totalColumns 1
                       Age: length(*,*)"""
       parseAndValidate(new StringReader(schema)) must beLike {
-        case SuccessZ(_) => ok
+        case Validated.Valid(_) => ok
       }
     }
 
@@ -676,7 +675,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                       @totalColumns 1
                       Age: length(12)"""
       parseAndValidate(new StringReader(schema)) must beLike {
-        case SuccessZ(_) => ok
+        case Validated.Valid(_) => ok
       }
     }
 
@@ -685,7 +684,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                       @totalColumns 1
                       Age: length(1,33)"""
       parseAndValidate(new StringReader(schema)) must beLike {
-        case SuccessZ(_) => ok
+        case Validated.Valid(_) => ok
       }
     }
 
@@ -694,7 +693,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                       @totalColumns 1
                       Age: length(*,55)"""
       parseAndValidate(new StringReader(schema)) must beLike {
-        case SuccessZ(_) => ok
+        case Validated.Valid(_) => ok
       }
     }
 
@@ -703,7 +702,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                       @totalColumns 1
                       Age: length(4,*)"""
       parseAndValidate(new StringReader(schema)) must beLike {
-        case SuccessZ(_) => ok
+        case Validated.Valid(_) => ok
       }
     }
 
@@ -712,7 +711,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                       @totalColumns 1
                       Age: length(1.1)"""
       parseAndValidate(new StringReader(schema)) must beLike {
-        case FailureZ(_) => ok
+        case Validated.Invalid(_) => ok
       }
     }
 
@@ -721,7 +720,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                       @totalColumns 1
                       Age: length(a,*)"""
       parseAndValidate(new StringReader(schema)) must beLike {
-        case FailureZ(_) => ok
+        case Validated.Invalid(_) => ok
       }
     }
 
@@ -730,7 +729,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                       @totalColumns 1
                       Age: length(*,a)"""
       parseAndValidate(new StringReader(schema))must beLike {
-        case FailureZ(_) => ok
+        case Validated.Invalid(_) => ok
       }
     }
 
@@ -740,7 +739,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                       Age: length(100,1)"""
 
       parseAndValidate(new StringReader(schema)) must beLike {
-        case FailureZ(messages) => messages.list mustEqual IList(FailMessage(SchemaDefinitionError, """Column: Age: Invalid length, minimum greater than maximum in: 'length(100,1)' at line: 3, column: 28"""))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(SchemaDefinitionError, """Column: Age: Invalid length, minimum greater than maximum in: 'length(100,1)' at line: 3, column: 28"""))
       }
 
     }
@@ -751,7 +750,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                       Age: length(hello,1)"""
 
       parseAndValidate(new StringReader(schema)) must beLike {
-        case FailureZ(_) => ok
+        case Validated.Invalid(_) => ok
       }
 
     }
@@ -761,7 +760,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                       @totalColumns 1 @noHeader
                       col1: if( length(1, 100) , starts("start") ) """
       parseAndValidate(new StringReader(schema)) must beLike {
-        case SuccessZ(_) => ok
+        case Validated.Valid(_) => ok
       }
     }
 
@@ -770,7 +769,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                       @totalColumns 1 @noHeader
                       col1: if( length(1, 100) , starts("start"), ends("ends") ) """
       parseAndValidate(new StringReader(schema)) must beLike {
-        case SuccessZ(_) => ok
+        case Validated.Valid(_) => ok
       }
     }
 
@@ -779,7 +778,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                       @totalColumns 1 @noHeader
                       col1: if( length(1, 100) , if( starts("start"), ends("ends"), ends("start")) ) """
       parseAndValidate(new StringReader(schema)) must beLike {
-        case SuccessZ(_) => ok
+        case Validated.Valid(_) => ok
       }
     }
 
@@ -788,7 +787,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                       @totalColumns 1 @noHeader
                       col1: if( length(1, 100) , if( starts("start"), ends("ends"), ends("start")) ,  if( starts("start"), ends("ends"), ends("start")) ) """
       parseAndValidate(new StringReader(schema)) must beLike {
-        case SuccessZ(_) => ok
+        case Validated.Valid(_) => ok
       }
     }
 
@@ -797,7 +796,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                       @totalColumns 1 @noHeader
                       col1: if( if( starts("start"), ends("ends")) ,  ends("start") )"""
       parseAndValidate(new StringReader(schema)) must beLike {
-        case FailureZ(_) => ok
+        case Validated.Invalid(_) => ok
       }
     }
 
@@ -806,7 +805,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                       @totalColumns 1 @noHeader
                       col1: if( starts("start") )"""
       parseAndValidate(new StringReader(schema)) must beLike {
-        case FailureZ(_) => ok
+        case Validated.Invalid(_) => ok
       }
     }
 
@@ -815,7 +814,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                       @totalColumns 1 @noHeader
                       col1: if( starts("start"), ends("end") , ends("end"), ends("end"))"""
       parseAndValidate(new StringReader(schema)) must beLike {
-        case FailureZ(_) => ok
+        case Validated.Invalid(_) => ok
       }
     }
 
@@ -831,7 +830,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                       PostCode:
                    """
       parseAndValidate(new StringReader(schema)) must beLike {
-        case SuccessZ(_) => ok
+        case Validated.Valid(_) => ok
       }
     }
 
@@ -843,7 +842,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                       PostCode:
                    """
       parseAndValidate(new StringReader(schema)) must beLike {
-        case FailureZ(messages) => messages.list mustEqual IList(FailMessage(SchemaDefinitionError, """Column: Name: Invalid cross reference $MADEUP: at line: 3, column: 29"""))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(SchemaDefinitionError, """Column: Name: Invalid cross reference $MADEUP: at line: 3, column: 29"""))
       }
     }
   }
@@ -857,7 +856,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                    """
 
       parseAndValidate(new StringReader(schema)) must beLike {
-        case SuccessZ(_) => ok
+        case Validated.Valid(_) => ok
       }
     }
 
@@ -869,7 +868,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                       LastName: $WRONGCOLUMN/is("Yoda")
                    """
       parseAndValidate(new StringReader(schema)) must beLike {
-        case FailureZ(messages) => messages.list mustEqual IList(FailMessage(SchemaDefinitionError, """Column: LastName: Invalid explicit column WRONGCOLUMN: at line: 4, column: 33"""))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(SchemaDefinitionError, """Column: LastName: Invalid explicit column WRONGCOLUMN: at line: 4, column: 33"""))
       }
     }
 
@@ -880,7 +879,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                       LastName: if( $WRONGCOLUMN/is("Yoda"), is(""))
                    """
       parseAndValidate(new StringReader(schema)) must beLike {
-        case FailureZ(messages) => messages.list mustEqual IList(FailMessage(SchemaDefinitionError, """Column: LastName: Invalid explicit column WRONGCOLUMN: at line: 4, column: 33"""))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(SchemaDefinitionError, """Column: LastName: Invalid explicit column WRONGCOLUMN: at line: 4, column: 33"""))
       }
     }
 
@@ -891,7 +890,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                       LastName: if( is("Yoda"), $WRONGCOLUMN/is(""))
                    """
       parseAndValidate(new StringReader(schema)) must beLike {
-        case FailureZ(messages) => messages.list mustEqual IList(FailMessage(SchemaDefinitionError, """Column: LastName: Invalid explicit column WRONGCOLUMN: at line: 4, column: 33"""))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(SchemaDefinitionError, """Column: LastName: Invalid explicit column WRONGCOLUMN: at line: 4, column: 33"""))
       }
     }
 
@@ -902,7 +901,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                       LastName: if( is("Yoda"), is(""), $WRONGCOLUMN/is(""))
                    """
       parseAndValidate(new StringReader(schema)) must beLike {
-        case FailureZ(messages) => messages.list mustEqual IList(FailMessage(SchemaDefinitionError, """Column: LastName: Invalid explicit column WRONGCOLUMN: at line: 4, column: 33"""))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(SchemaDefinitionError, """Column: LastName: Invalid explicit column WRONGCOLUMN: at line: 4, column: 33"""))
       }
     }
   }

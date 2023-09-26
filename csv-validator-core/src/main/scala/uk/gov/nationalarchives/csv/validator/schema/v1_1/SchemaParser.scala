@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013, The National Archives <digitalpreservation@nationalarchives.gov.uk>
  * https://www.nationalarchives.gov.uk
  *
@@ -110,12 +110,12 @@ trait SchemaParser extends SchemaParser1_0 {
   /**
     * [59] StringProvider ::= ColumnRef | StringLiteral
     */
-  override lazy val stringProvider: PackratParser[ArgProvider] = "StringProvider" ::= noext | concat | columnRef | stringLiteral ^^ {
+  override lazy val stringProvider: PackratParser[ArgProvider] = "StringProvider" ::= noExt | concat | columnRef | stringLiteral ^^ {
     s => Literal(Some(s))
   }
 
 
-  lazy val noext: PackratParser[ArgProvider] = "NoExt" ::= "noext(" ~> stringProvider <~ ")" ^^ {
+  lazy val noExt: PackratParser[ArgProvider] = "NoExt" ::= "noExt(" ~> stringProvider <~ ")" ^^ {
      NoExt(_)
   }
 

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013, The National Archives <digitalpreservation@nationalarchives.gov.uk>
  * https://www.nationalarchives.gov.uk
  *
@@ -30,7 +30,7 @@ class SchemaParserSpec extends SchemaSpecBase {
                      |@totalColumns 3
                      |@noHeader
                      |column1:
-                     |column2: is(noext($column1))
+                     |column2: is(noExt($column1))
                      |column3:""".stripMargin
 
       parse(new StringReader(schema)) must beLike { case Success(parsedSchema, _) => parsedSchema mustEqual buildSchema1_1(TotalColumns(3), NoHeader())(columnDefinitions:_*) }

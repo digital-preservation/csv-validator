@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013, The National Archives <digitalpreservation@nationalarchives.gov.uk>
  * https://www.nationalarchives.gov.uk
  *
@@ -11,7 +11,7 @@ package uk.gov.nationalarchives.csv.validator
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import scalaz._
+import cats.data.Validated
 import uk.gov.nationalarchives.csv.validator.schema.Schema
 import uk.gov.nationalarchives.csv.validator.api.{CsvValidator, TextFile}
 
@@ -31,13 +31,13 @@ class MetaDataValidatorBusinessAcceptanceSpec extends Specification with TestRes
 
     "succeed" in {
       validate(TextFile(Paths.get(base).resolve("regexRulePassMetaData.csv")), parse(base + "/regexRuleSchema.csvs"), None) must beLike {
-        case Success(_) => ok
+        case Validated.Valid(_) => ok
       }
     }
 
     "fail" in {
       validate(TextFile(Paths.get(base).resolve("regexRuleFailMetaData.csv")), parse(base + "/regexRuleSchema.csvs"), None) must beLike {
-        case Failure(_) => ok
+        case Validated.Invalid(_) => ok
       }
     }
   }
