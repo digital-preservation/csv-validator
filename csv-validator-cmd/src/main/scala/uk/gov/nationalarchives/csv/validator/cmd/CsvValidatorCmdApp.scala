@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013, The National Archives <digitalpreservation@nationalarchives.gov.uk>
  * https://www.nationalarchives.gov.uk
  *
@@ -10,7 +10,6 @@ package uk.gov.nationalarchives.csv.validator.cmd
 
 
 import java.text.DecimalFormat
-import scalaz.{Failure => FailureZ, Success => SuccessZ, _}
 import scopt.Read
 import uk.gov.nationalarchives.csv.validator._
 import uk.gov.nationalarchives.csv.validator.api.{CsvValidator, TextFile}
@@ -21,6 +20,7 @@ import java.nio.charset.Charset
 import java.nio.file.{Files, Path, Paths}
 import java.util.jar.{Attributes, Manifest}
 import scala.util.Using
+import cats.data.{NonEmptyList, Validated, ValidatedNel}
 
 object SystemExitCodes extends Enumeration {
   type ExitCode = Int
@@ -134,8 +134,8 @@ object CsvValidatorCmdApp extends App {
     }
   }
 
-  def rowCallback(row: ValidationNel[FailMessage, Any]): Unit = row match {
-    case FailureZ(failures) =>
+  def rowCallback(row: ValidatedNel[FailMessage, Any]): Unit = row match {
+    case Validated.Invalid(failures) =>
       println(prettyPrint(failures))
     case _ =>
   }
@@ -148,12 +148,12 @@ object CsvValidatorCmdApp extends App {
     enforceCaseSensitivePathChecks: Boolean,
     trace: Boolean,
     progress: Option[ProgressCallback],
-    onRow: ValidationNel[FailMessage, Any] => Unit = rowCallback
+    onRow: ValidatedNel[FailMessage, Any] => Unit = rowCallback
   ): ExitStatus = {
     val validator = createValidator(failFast, pathSubstitutionsList, enforceCaseSensitivePathChecks, trace)
     validator.parseSchema(schemaFile) match {
-      case FailureZ(errors) => (prettyPrint(errors), SystemExitCodes.InvalidSchema)
-      case SuccessZ(schema) =>
+      case Validated.Invalid(errors) => (prettyPrint(errors), SystemExitCodes.InvalidSchema)
+      case Validated.Valid(schema) =>
         val pass = validator.validateCsvFile(
           csvFile,
           schema,
@@ -165,13 +165,13 @@ object CsvValidatorCmdApp extends App {
   }
 
   private def containsError(l: NonEmptyList[FailMessage]) : Boolean = {
-    l.list.find(_ match {
+    l.find(_ match {
       case FailMessage(ValidationError, _, _, _) => true
       case _ => false
     }).nonEmpty
   }
 
-  def prettyPrint(l: NonEmptyList[FailMessage]): String = l.list.map { i =>
+  def prettyPrint(l: NonEmptyList[FailMessage]): String = l.map { i =>
     i match {
       case FailMessage(ValidationWarning, err,_,_) => "Warning: " + err
       case FailMessage(ValidationError, err,_,_) =>   "Error:   " + err

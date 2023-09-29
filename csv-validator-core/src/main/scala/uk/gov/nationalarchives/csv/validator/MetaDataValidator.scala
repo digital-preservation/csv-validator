@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013, The National Archives <digitalpreservation@nationalarchives.gov.uk>
  * https://www.nationalarchives.gov.uk
  *
@@ -9,12 +9,13 @@
 package uk.gov.nationalarchives.csv.validator
 
 
+import cats.data.Validated
 import uk.gov.nationalarchives.utf8.validator.{Utf8Validator, ValidationHandler}
 
 import scala.language.{postfixOps, reflectiveCalls}
 import scala.util.{Try, Using}
-import scalaz._
-import Scalaz._
+//import scalaz._
+//import Scalaz._
 
 import java.io.{BufferedInputStream, IOException, FileInputStream => JFileInputStream, InputStreamReader => JInputStreamReader, LineNumberReader => JLineNumberReader, Reader => JReader}
 import java.nio.charset.{Charset, StandardCharsets}
@@ -29,7 +30,8 @@ import scala.annotation.tailrec
 import uk.gov.nationalarchives.csv.validator.api.TextFile
 
 import java.nio.file.{Files, Path}
-import cats.data.Chain
+import cats.data.{Chain, ValidatedNel}
+import cats.syntax.all._
 
 //error reporting classes
 sealed trait ErrorType
@@ -57,10 +59,11 @@ case class ProgressFor(rowsToValidate: Int, progress: ProgressCallback)
 
 trait MetaDataValidator {
   // Helper functions for checking if a result contains a warning or error.
-  def containsErrors(e: MetaDataValidation[Any]): Boolean = e.fold(_.list.collectFirst(FailMessage.isError).nonEmpty, _ => false)
-  def containsWarnings(e: MetaDataValidation[Any]): Boolean = e.fold(_.list.collectFirst(FailMessage.isWarning).nonEmpty, _ => false)
+  def containsErrors(e: MetaDataValidation[Any]): Boolean = e.fold(_.collectFirst(FailMessage.isError).nonEmpty, _ => false)
 
-  type MetaDataValidation[S] = ValidationNel[FailMessage, S]
+  def containsWarnings(e: MetaDataValidation[Any]): Boolean = e.fold(_.collectFirst(FailMessage.isWarning).nonEmpty, _ => false)
+
+  type MetaDataValidation[S] = ValidatedNel[FailMessage, S]
 
   @deprecated("use validateReader or validateCsvFile")
   def validate(
@@ -68,20 +71,19 @@ trait MetaDataValidator {
     schema: Schema,
     progress: Option[ProgressCallback]
   ): MetaDataValidation[Any] = {
-    import scalaz.{Failure => FailureZ}
     var results: Chain[List[FailMessage]] = Chain.empty
     validateReader(
       csv,
       schema,
       progress,
       {
-        case FailureZ(x) => results = results :+ x.toList
-        case _ => 
+        case Validated.Invalid(x) => results = results :+ x.toList
+        case _ =>
       }
     )
     results.toList.flatten.toNel match {
-      case None => ().success
-      case Some(errors) => scalaz.Validation.failure(errors)
+      case None => ().valid
+      case Some(errors) => Validated.invalid(errors)
     }
   }
 
@@ -158,19 +160,19 @@ trait MetaDataValidator {
         val maybeNoData =
           if (schema.globalDirectives.contains(NoHeader())) {
             if (!rowIt.hasNext && !schema.globalDirectives.contains(PermitEmpty())) {
-              Some(FailMessage(ValidationError, "metadata file is empty but this has not been permitted").failureNel[Any])
+              Some(FailMessage(ValidationError, "metadata file is empty but this has not been permitted").invalidNel[Any])
             } else {
               None
             }
           } else {
             if(!rowIt.hasNext) {
-              Some(FailMessage(ValidationError, "metadata file is empty but should contain at least a header").failureNel[Any])
+              Some(FailMessage(ValidationError, "metadata file is empty but should contain at least a header").invalidNel[Any])
             } else {
               val header = rowIt.skipHeader()
               val headerValidation = validateHeader(header, schema)
               headerValidation.orElse {
                 if(!rowIt.hasNext && !schema.globalDirectives.contains(PermitEmpty())) {
-                  Some(FailMessage(ValidationError, "metadata file has a header but no data and this has not been permitted").failureNel[Any])
+                  Some(FailMessage(ValidationError, "metadata file has a header but no data and this has not been permitted").invalidNel[Any])
                 } else {
                   None
                 }
@@ -193,7 +195,7 @@ trait MetaDataValidator {
         metadataValidation
       case util.Failure(ts) =>
         //TODO(AR) emit all errors not just first!
-        rowCallback(FailMessage(ValidationError, ts.toString).failureNel[Any])
+        rowCallback(FailMessage(ValidationError, ts.toString).invalidNel[Any])
         false
 //      ts.toList.map(t => FailMessage(ValidationError, t.toString).failureNel[Any]).sequence[MetaDataValidation, Any]
     }
@@ -231,13 +233,13 @@ trait MetaDataValidator {
     if (headerList.sameElements(schemaHeader))
       None
     else
-      Some(FailMessage(ValidationError, s"Metadata header, cannot find the column headers - ${Util.diff(schemaHeader.toSet, headerList.toSet).mkString(", ")} - .${if (icnc.isEmpty) "  (Case sensitive)" else ""}").failureNel[Any])
+      Some(FailMessage(ValidationError, s"Metadata header, cannot find the column headers - ${Util.diff(schemaHeader.toSet, headerList.toSet).mkString(", ")} - .${if (icnc.isEmpty) "  (Case sensitive)" else ""}").invalidNel[Any])
   }
 
   def validateRow(row: Row,  schema: Schema, mayBeLast: Option[Boolean] = None): MetaDataValidation[Any] = {
     val totalColumnsV = totalColumns(row, schema)
     val rulesV = rules(row,  schema, mayBeLast)
-    (totalColumnsV |@| rulesV) { _ :: _ }
+    (totalColumnsV, rulesV).mapN { _ :: _ }
   }
 
   def validateUtf8Encoding(file: Path): MetaDataValidation[Any] = {
@@ -253,12 +255,12 @@ trait MetaDataValidator {
     new Utf8Validator(validationHandler).validate(file.toFile)
 
     validationHandler.errors.toNel match {
-      case None => true.successNel
+      case None => true.validNel
       case Some(nel) => {
         val ret = nel.reverse.map {
           case (offset, message) => FailMessage(ValidationError, s"[UTF-8 Error][@$offset] ${message}")
         }
-        ret.failure
+        ret.invalid
       }
     }
   }
@@ -268,8 +270,8 @@ trait MetaDataValidator {
       case t@TotalColumns(_) => t
     }
 
-    if (tc.isEmpty || tc.get.numberOfColumns == row.cells.length) true.successNel[FailMessage]
-    else FailMessage(ValidationError, s"Expected @totalColumns of ${tc.get.numberOfColumns} and found ${row.cells.length} on line ${row.lineNumber}", Some(row.lineNumber), Some(row.cells.length)).failureNel[Any]
+    if (tc.isEmpty || tc.get.numberOfColumns == row.cells.length) true.validNel[FailMessage]
+    else FailMessage(ValidationError, s"Expected @totalColumns of ${tc.get.numberOfColumns} and found ${row.cells.length} on line ${row.lineNumber}", Some(row.lineNumber), Some(row.cells.length)).invalidNel[Any]
   }
 
   protected def rules(row: Row, schema: Schema, mayBeLast: Option[Boolean] = None): MetaDataValidation[List[Any]]
@@ -277,7 +279,7 @@ trait MetaDataValidator {
   protected def validateCell(columnIndex: Int, cells: (Int) => Option[Cell], row: Row, schema: Schema, mayBeLast: Option[Boolean] = None): MetaDataValidation[Any] = {
     cells(columnIndex) match {
       case Some(c) => rulesForCell(columnIndex, row, schema, mayBeLast)
-      case _ => FailMessage(ValidationError, s"Missing value at line: ${row.lineNumber}, column: ${schema.columnDefinitions(columnIndex).id}", Some(row.lineNumber), Some(columnIndex)).failureNel[Any]
+      case _ => FailMessage(ValidationError, s"Missing value at line: ${row.lineNumber}, column: ${schema.columnDefinitions(columnIndex).id}", Some(row.lineNumber), Some(columnIndex)).invalidNel[Any]
     }
   }
 
@@ -301,7 +303,7 @@ trait MetaDataValidator {
       @tailrec
       def readAll(): Int = {
         val result = Option(lineReader.readLine())
-        if(result.empty) {
+        if(result.isEmpty) {
           lineReader.getLineNumber() + 1 //start from 1 not 0
         } else {
           readAll()

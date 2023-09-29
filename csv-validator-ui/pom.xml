@@ -132,6 +132,12 @@
             <artifactId>swingx-core</artifactId>
             <version>1.6.5-1</version>
         </dependency>
+        <dependency>
+            <groupId>org.typelevel</groupId>
+            <artifactId>cats-core_${scala.version}</artifactId>
+            <version>${cats.core.version}</version>
+        </dependency>
+
 
         <!-- TODO needed by CsvValidatorUi.scala but ideally should depend on just csv-validator-core and NOT csv-validator-cmd -->
         <dependency>

@@ -21,10 +21,12 @@ import uk.gov.nationalarchives.csv.validator.ui.DesignGridImplicits._
 
 import scala.swing.PopupMenuImplicits._
 import ScalaSwingHelpers._
+import cats.data.Validated.Invalid
+import cats.data.ValidatedNel
 
 import java.awt.Cursor
 import java.util.Properties
-import uk.gov.nationalarchives.csv.validator.{ProgressCallback, FailMessage}
+import uk.gov.nationalarchives.csv.validator.{FailMessage, ProgressCallback}
 
 import java.nio.charset.Charset
 import uk.gov.nationalarchives.csv.validator.api.TextFile
@@ -34,7 +36,6 @@ import java.net.URL
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.{Files, Path, Paths, StandardOpenOption}
 import scala.util.Using
-import scalaz.{Failure => FailureZ, _}
 import scala.language.reflectiveCalls
 
 /**
@@ -139,9 +140,9 @@ object CsvValidatorUi extends SimpleSwingApplication {
     var badLines = 0
     var truncated = false
 
-    def rowCallback(row: ValidationNel[FailMessage, Any]): Unit = row match {
+    def rowCallback(row: ValidatedNel[FailMessage, Any]): Unit = row match {
 
-      case FailureZ(failures) =>
+      case Invalid(failures) =>
         if (badLines > 2000) {
           if (!truncated) {
             toConsole("Too many errors/warnings, truncating")
