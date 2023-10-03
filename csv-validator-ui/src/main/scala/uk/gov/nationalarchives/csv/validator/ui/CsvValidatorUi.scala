@@ -33,8 +33,8 @@ import java.util.jar.{Attributes, Manifest}
 import java.net.URL
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.{Files, Path, Paths, StandardOpenOption}
+import javax.swing.filechooser.FileNameExtensionFilter
 import scala.util.Using
-
 import scala.language.reflectiveCalls
 
 /**
@@ -208,6 +208,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
       case None =>
         userDir.toFile
     })
+    csvFileChooser.fileFilter = new FileNameExtensionFilter("CSV file (*.csv)", "csv")
     private val btnChooseCsvFile = new Button("...")
 
     btnChooseCsvFile.reactions += onClick {
@@ -231,6 +232,9 @@ object CsvValidatorUi extends SimpleSwingApplication {
       case None =>
         userDir.toFile
     })
+    csvSchemaFileChooser.fileFilter = new FileNameExtensionFilter("CSV Schema file (*.csvs)", "csvs" +
+      "")
+
     private val btnChooseCsvSchemaFile = new Button("...")
     btnChooseCsvSchemaFile.reactions += onClick {
       chooseFile(csvSchemaFileChooser, txtCsvSchemaFile, btnChooseCsvSchemaFile)
