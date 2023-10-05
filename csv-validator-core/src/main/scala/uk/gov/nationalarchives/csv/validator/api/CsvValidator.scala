@@ -8,14 +8,14 @@
  */
 package uk.gov.nationalarchives.csv.validator.api
 
-import uk.gov.nationalarchives.csv.validator.schema.{Schema, SchemaParser}
+import cats.data.{Chain, Validated, ValidatedNel}
+import cats.implicits._
 import uk.gov.nationalarchives.csv.validator._
+import uk.gov.nationalarchives.csv.validator.schema.{Schema, SchemaParser}
 
 import java.io.{Reader => JReader}
 import java.nio.charset.{Charset => JCharset}
 import java.nio.file.Path
-import cats.data.{Chain, NonEmptyChain, Validated, ValidatedNel}
-import cats.implicits._
 
 object CsvValidator {
 

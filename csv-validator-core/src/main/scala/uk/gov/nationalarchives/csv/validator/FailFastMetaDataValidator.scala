@@ -8,16 +8,12 @@
  */
 package uk.gov.nationalarchives.csv.validator
 
-import annotation.tailrec
-import uk.gov.nationalarchives.csv.validator.schema.ColumnDefinition
-import uk.gov.nationalarchives.csv.validator.schema.Optional
-import uk.gov.nationalarchives.csv.validator.schema.Rule
-import uk.gov.nationalarchives.csv.validator.schema.Schema
-import uk.gov.nationalarchives.csv.validator.schema.Warning
-import uk.gov.nationalarchives.csv.validator.metadata.Cell
-import uk.gov.nationalarchives.csv.validator.metadata.Row
 import cats.data.Validated.{Invalid => Failure}
 import cats.syntax.all._
+import uk.gov.nationalarchives.csv.validator.metadata.{Cell, Row}
+import uk.gov.nationalarchives.csv.validator.schema._
+
+import scala.annotation.tailrec
 
 trait FailFastMetaDataValidator extends MetaDataValidator {
 
@@ -26,7 +22,7 @@ trait FailFastMetaDataValidator extends MetaDataValidator {
   override def validateRows(
     rows: Iterator[Row],
     schema: Schema,
-    rowCallback: MetaDataValidation[Any] => Unit = {_ => ()}    
+    rowCallback: MetaDataValidation[Any] => Unit
   ): Boolean = {
 
     @tailrec

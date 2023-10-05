@@ -9,29 +9,21 @@
 package uk.gov.nationalarchives.csv.validator
 
 
-import cats.data.Validated
+import cats.data.{Chain, Validated, ValidatedNel}
+import cats.syntax.all._
+import com.univocity.parsers.csv.{CsvParser, CsvParserSettings}
+import org.apache.commons.io.input.BOMInputStream
+import uk.gov.nationalarchives.csv.validator.api.TextFile
+import uk.gov.nationalarchives.csv.validator.metadata.{Cell, Row}
+import uk.gov.nationalarchives.csv.validator.schema._
 import uk.gov.nationalarchives.utf8.validator.{Utf8Validator, ValidationHandler}
 
+import java.io.{BufferedInputStream, IOException, InputStreamReader => JInputStreamReader, LineNumberReader => JLineNumberReader, Reader => JReader}
+import java.nio.charset.{Charset, StandardCharsets}
+import java.nio.file.{Files, Path}
+import scala.annotation.tailrec
 import scala.language.{postfixOps, reflectiveCalls}
 import scala.util.{Try, Using}
-//import scalaz._
-//import Scalaz._
-
-import java.io.{BufferedInputStream, IOException, FileInputStream => JFileInputStream, InputStreamReader => JInputStreamReader, LineNumberReader => JLineNumberReader, Reader => JReader}
-import java.nio.charset.{Charset, StandardCharsets}
-import uk.gov.nationalarchives.csv.validator.schema._
-import uk.gov.nationalarchives.csv.validator.metadata.Cell
-import org.apache.commons.io.input.BOMInputStream
-import com.univocity.parsers.common.TextParsingException
-import com.univocity.parsers.csv.{CsvParser, CsvParserSettings}
-import uk.gov.nationalarchives.csv.validator.metadata.Row
-
-import scala.annotation.tailrec
-import uk.gov.nationalarchives.csv.validator.api.TextFile
-
-import java.nio.file.{Files, Path}
-import cats.data.{Chain, ValidatedNel}
-import cats.syntax.all._
 
 //error reporting classes
 sealed trait ErrorType
@@ -91,7 +83,7 @@ trait MetaDataValidator {
     csv: JReader,
     schema: Schema,
     progress: Option[ProgressCallback],
-    rowCallback: MetaDataValidation[Any] => Unit = {_ => ()}
+    rowCallback: MetaDataValidation[Any] => Unit
   ): Boolean = {
     //try to find the number of rows for the
     //purposes pf reporting progress

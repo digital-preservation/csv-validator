@@ -8,35 +8,30 @@
  */
 package uk.gov.nationalarchives.csv.validator.ui
 
-import scala.swing._
-import javax.swing._
-import net.java.dev.designgridlayout._
-
-import java.io.{File, FileInputStream, FileOutputStream, IOException}
-import table.DefaultTableModel
-import uk.gov.nationalarchives.csv.validator.cmd.{CsvValidatorCmdApp, SystemExitCodes}
-
-import swing.GridBagPanel.Anchor
-import uk.gov.nationalarchives.csv.validator.ui.DesignGridImplicits._
-
-import scala.swing.PopupMenuImplicits._
-import ScalaSwingHelpers._
 import cats.data.Validated.Invalid
 import cats.data.ValidatedNel
+import net.java.dev.designgridlayout._
+import uk.gov.nationalarchives.csv.validator.api.TextFile
+import uk.gov.nationalarchives.csv.validator.cmd.{CsvValidatorCmdApp, SystemExitCodes}
+import uk.gov.nationalarchives.csv.validator.ui.DesignGridImplicits._
+import uk.gov.nationalarchives.csv.validator.ui.ScalaSwingHelpers._
+import uk.gov.nationalarchives.csv.validator.{EOL, FailMessage, ProgressCallback}
 
 import java.awt.Cursor
-import java.util.Properties
-import uk.gov.nationalarchives.csv.validator.{FailMessage, ProgressCallback}
-
-import java.nio.charset.Charset
-import uk.gov.nationalarchives.csv.validator.api.TextFile
-
-import java.util.jar.{Attributes, Manifest}
+import java.io.IOException
 import java.net.URL
+import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.{Files, Path, Paths, StandardOpenOption}
-import scala.util.Using
+import java.util.Properties
+import java.util.jar.{Attributes, Manifest}
+import javax.swing._
+import javax.swing.table.DefaultTableModel
 import scala.language.reflectiveCalls
+import scala.swing.GridBagPanel.Anchor
+import scala.swing.PopupMenuImplicits._
+import scala.swing._
+import scala.util.Using
 
 /**
  * Simple GUI for the CSV Validator
@@ -111,9 +106,9 @@ object CsvValidatorUi extends SimpleSwingApplication {
   }
 
   private def displayWait(suspendUi: => Unit, action: (String => Unit) => Unit, output: String => Unit, resumeUi: => Unit) : Unit = {
-    import scala.concurrent.Future
     import scala.concurrent.ExecutionContext.Implicits.global
-    import scala.util.{Success, Failure}
+    import scala.concurrent.Future
+    import scala.util.{Failure, Success}
 
     suspendUi
     val fAction: Future[Unit] = Future {
@@ -308,7 +303,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
 
     def outputToReport(data: String) : Unit = 
       Swing.onEDT {
-        txtArReport.append(data+"\n")
+        txtArReport.append(data + EOL)
       }
 
 

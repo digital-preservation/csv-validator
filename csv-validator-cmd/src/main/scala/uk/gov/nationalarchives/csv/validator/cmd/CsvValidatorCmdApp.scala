@@ -9,18 +9,18 @@
 package uk.gov.nationalarchives.csv.validator.cmd
 
 
-import java.text.DecimalFormat
+import cats.data.{NonEmptyList, Validated, ValidatedNel}
 import scopt.Read
 import uk.gov.nationalarchives.csv.validator._
-import uk.gov.nationalarchives.csv.validator.api.{CsvValidator, TextFile}
 import uk.gov.nationalarchives.csv.validator.api.CsvValidator.{SubstitutePath, createValidator}
+import uk.gov.nationalarchives.csv.validator.api.{CsvValidator, TextFile}
 
 import java.net.URL
 import java.nio.charset.Charset
 import java.nio.file.{Files, Path, Paths}
+import java.text.DecimalFormat
 import java.util.jar.{Attributes, Manifest}
 import scala.util.Using
-import cats.data.{NonEmptyList, Validated, ValidatedNel}
 
 object SystemExitCodes extends Enumeration {
   type ExitCode = Int
