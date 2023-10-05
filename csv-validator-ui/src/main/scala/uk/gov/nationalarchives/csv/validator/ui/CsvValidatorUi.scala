@@ -23,10 +23,10 @@ import java.net.URL
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.{Files, Path, Paths, StandardOpenOption}
-import javax.swing.filechooser.FileNameExtensionFilter
 import java.util.Properties
 import java.util.jar.{Attributes, Manifest}
 import javax.swing._
+import javax.swing.filechooser.FileNameExtensionFilter
 import javax.swing.table.DefaultTableModel
 import scala.language.reflectiveCalls
 import scala.swing.GridBagPanel.Anchor
@@ -160,8 +160,14 @@ object CsvValidatorUi extends SimpleSwingApplication {
       pathSubstitutions,
       enforceCaseSensitivePathChecks,
       false,
-      progress
-    )._1)
+      progress,
+      rowCallback
+    )._2 match {
+      case SystemExitCodes.ValidCsv => toConsole("PASS")
+      case _ => toConsole("FAIL")
+    }
+
+
   }
 
   /**
