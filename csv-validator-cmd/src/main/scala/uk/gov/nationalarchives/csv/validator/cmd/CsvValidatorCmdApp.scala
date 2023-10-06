@@ -9,18 +9,18 @@
 package uk.gov.nationalarchives.csv.validator.cmd
 
 
-import java.text.DecimalFormat
+import cats.data.{NonEmptyList, Validated, ValidatedNel}
 import scopt.Read
 import uk.gov.nationalarchives.csv.validator._
-import uk.gov.nationalarchives.csv.validator.api.{CsvValidator, TextFile}
 import uk.gov.nationalarchives.csv.validator.api.CsvValidator.{SubstitutePath, createValidator}
+import uk.gov.nationalarchives.csv.validator.api.{CsvValidator, TextFile}
 
 import java.net.URL
 import java.nio.charset.Charset
 import java.nio.file.{Files, Path, Paths}
+import java.text.DecimalFormat
 import java.util.jar.{Attributes, Manifest}
 import scala.util.Using
-import cats.data.{Validated, NonEmptyList}
 
 object SystemExitCodes extends Enumeration {
   type ExitCode = Int
@@ -134,23 +134,33 @@ object CsvValidatorCmdApp extends App {
     }
   }
 
-  def validate(csvFile: TextFile, schemaFile: TextFile, failFast: Boolean, pathSubstitutionsList: List[SubstitutePath], enforceCaseSensitivePathChecks: Boolean, trace: Boolean, progress: Option[ProgressCallback]): ExitStatus = {
+  def rowCallback(row: ValidatedNel[FailMessage, Any]): Unit = row match {
+    case Validated.Invalid(failures) =>
+      println(prettyPrint(failures))
+    case _ =>
+  }
+
+  def validate(
+    csvFile: TextFile,
+    schemaFile: TextFile,
+    failFast: Boolean,
+    pathSubstitutionsList: List[SubstitutePath],
+    enforceCaseSensitivePathChecks: Boolean,
+    trace: Boolean,
+    progress: Option[ProgressCallback],
+    onRow: ValidatedNel[FailMessage, Any] => Unit = rowCallback
+  ): ExitStatus = {
     val validator = createValidator(failFast, pathSubstitutionsList, enforceCaseSensitivePathChecks, trace)
     validator.parseSchema(schemaFile) match {
       case Validated.Invalid(errors) => (prettyPrint(errors), SystemExitCodes.InvalidSchema)
       case Validated.Valid(schema) =>
-        validator.validate(csvFile, schema, progress) match {
-          case Validated.Invalid(failures) =>
-            val failuresMsg = prettyPrint(failures)
-            if(containsError(failures))  //checks for just warnings to determine exit code
-              (failuresMsg + EOL + "FAIL",
-                SystemExitCodes.InvalidCsv)
-            else
-              (failuresMsg + EOL + "PASS", //just warnings!
-                SystemExitCodes.ValidCsv)
-
-          case Validated.Valid(_) => ("PASS", SystemExitCodes.ValidCsv)
-        }
+        val pass = validator.validateCsvFile(
+          csvFile,
+          schema,
+          progress,
+          onRow
+        )
+        if (pass) ("PASS", SystemExitCodes.ValidCsv) else ("FAIL", SystemExitCodes.InvalidCsv)
     }
   }
 
@@ -161,7 +171,7 @@ object CsvValidatorCmdApp extends App {
     }).nonEmpty
   }
 
-  private def prettyPrint(l: NonEmptyList[FailMessage]): String = l.map { i =>
+  def prettyPrint(l: NonEmptyList[FailMessage]): String = l.map { i =>
     i match {
       case FailMessage(ValidationWarning, err,_,_) => "Warning: " + err
       case FailMessage(ValidationError, err,_,_) =>   "Error:   " + err

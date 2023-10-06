@@ -8,40 +8,33 @@
  */
 package uk.gov.nationalarchives.csv.validator
 
-import uk.gov.nationalarchives.csv.validator.schema.Optional
-import uk.gov.nationalarchives.csv.validator.schema.Rule
-import uk.gov.nationalarchives.csv.validator.schema.Schema
-import uk.gov.nationalarchives.csv.validator.schema.Warning
-import uk.gov.nationalarchives.csv.validator.metadata.Cell
-import uk.gov.nationalarchives.csv.validator.metadata.Row
-import scala.annotation.tailrec
 import cats.syntax.all._
+import uk.gov.nationalarchives.csv.validator.metadata.{Cell, Row}
+import uk.gov.nationalarchives.csv.validator.schema.{Optional, Rule, Schema, Warning}
+
+import scala.annotation.tailrec
 
 trait AllErrorsMetaDataValidator extends MetaDataValidator {
 
-  override def validateRows(rows: Iterator[Row], schema: Schema): MetaDataValidation[Any] = {
+  override def validateRows(
+    rows: Iterator[Row],
+    schema: Schema,
+    rowCallback: MetaDataValidation[Any] => Unit
+  ): Boolean = {
 
     @tailrec
-    def validateRows(results: List[MetaDataValidation[Any]] = List.empty[MetaDataValidation[Any]]) : List[MetaDataValidation[Any]] = {
+    def inner(passing: Boolean) : Boolean = {
       if(!rows.hasNext) {
-        results.reverse
+        passing
       } else {
         val row = rows.next()
         val result = validateRow(row, schema, Some(rows.hasNext))
-        /*
-        Only store the results if they contain a warning or a failure.  This means the validator is not limited by the
-        available memory when processing large files.
-         */
-        if (containsErrors(result) || containsWarnings(result)) {
-            validateRows(result :: results)
-         } else {
-            validateRows(results)
-        }
+        rowCallback(result)
+        inner(passing && !containsErrors(result))
       }
     }
 
-    val v = validateRows()
-    v.sequence[MetaDataValidation, Any]
+    inner(true)
   }
 
 

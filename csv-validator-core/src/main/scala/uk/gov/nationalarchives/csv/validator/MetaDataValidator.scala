@@ -9,26 +9,21 @@
 package uk.gov.nationalarchives.csv.validator
 
 
+import cats.data.{Chain, Validated, ValidatedNel}
+import cats.syntax.all._
+import com.univocity.parsers.csv.{CsvParser, CsvParserSettings}
+import org.apache.commons.io.input.BOMInputStream
+import uk.gov.nationalarchives.csv.validator.api.TextFile
+import uk.gov.nationalarchives.csv.validator.metadata.{Cell, Row}
+import uk.gov.nationalarchives.csv.validator.schema._
 import uk.gov.nationalarchives.utf8.validator.{Utf8Validator, ValidationHandler}
 
+import java.io.{BufferedInputStream, IOException, InputStreamReader => JInputStreamReader, LineNumberReader => JLineNumberReader, Reader => JReader}
+import java.nio.charset.{Charset, StandardCharsets}
+import java.nio.file.{Files, Path}
+import scala.annotation.tailrec
 import scala.language.{postfixOps, reflectiveCalls}
 import scala.util.{Try, Using}
-
-import java.io.{BufferedInputStream, IOException, FileInputStream => JFileInputStream, InputStreamReader => JInputStreamReader, LineNumberReader => JLineNumberReader, Reader => JReader}
-import java.nio.charset.{Charset, StandardCharsets}
-import uk.gov.nationalarchives.csv.validator.schema._
-import uk.gov.nationalarchives.csv.validator.metadata.Cell
-import org.apache.commons.io.input.BOMInputStream
-import com.univocity.parsers.common.TextParsingException
-import com.univocity.parsers.csv.{CsvParser, CsvParserSettings}
-import uk.gov.nationalarchives.csv.validator.metadata.Row
-
-import scala.annotation.tailrec
-import uk.gov.nationalarchives.csv.validator.api.TextFile
-
-import java.nio.file.{Files, Path}
-import cats.data.ValidatedNel
-import cats.syntax.all._
 
 //error reporting classes
 sealed trait ErrorType
@@ -57,11 +52,39 @@ case class ProgressFor(rowsToValidate: Int, progress: ProgressCallback)
 trait MetaDataValidator {
   // Helper functions for checking if a result contains a warning or error.
   def containsErrors(e: MetaDataValidation[Any]): Boolean = e.fold(_.collectFirst(FailMessage.isError).nonEmpty, _ => false)
+
   def containsWarnings(e: MetaDataValidation[Any]): Boolean = e.fold(_.collectFirst(FailMessage.isWarning).nonEmpty, _ => false)
 
   type MetaDataValidation[S] = ValidatedNel[FailMessage, S]
 
-  def validate(csv: JReader, schema: Schema, progress: Option[ProgressCallback]): MetaDataValidation[Any] = {
+  @deprecated("use validateReader or validateCsvFile")
+  def validate(
+    csv: JReader,    
+    schema: Schema,
+    progress: Option[ProgressCallback]
+  ): MetaDataValidation[Any] = {
+    var results: Chain[List[FailMessage]] = Chain.empty
+    validateReader(
+      csv,
+      schema,
+      progress,
+      {
+        case Validated.Invalid(x) => results = results :+ x.toList
+        case _ =>
+      }
+    )
+    results.toList.flatten.toNel match {
+      case None => ().valid
+      case Some(errors) => Validated.invalid(errors)
+    }
+  }
+
+  def validateReader(
+    csv: JReader,
+    schema: Schema,
+    progress: Option[ProgressCallback],
+    rowCallback: MetaDataValidation[Any] => Unit
+  ): Boolean = {
     //try to find the number of rows for the
     //purposes pf reporting progress
     //can only do that if we can reset()
@@ -78,10 +101,15 @@ trait MetaDataValidator {
       None
     }
 
-    validateKnownRows(csv, schema, pf)
+    validateKnownRows(csv, schema, pf, rowCallback)
   }
 
-  def validateKnownRows(csv: JReader, schema: Schema, progress: Option[ProgressFor]): MetaDataValidation[Any] = {
+  def validateKnownRows(
+    csv: JReader,
+    schema: Schema,
+    progress: Option[ProgressFor],
+    rowCallback: MetaDataValidation[Any] => Unit
+  ): Boolean = {
 
     val separator: Char = schema.globalDirectives.collectFirst {
       case Separator(sep) =>
@@ -107,7 +135,7 @@ trait MetaDataValidator {
     //format.setLineSeparator(CSV_RFC1480_LINE_SEPARATOR)  // CRLF
 
     //we need a better CSV Reader!
-    val result : Try[MetaDataValidation[Any]] = Using {
+    val result : Try[Boolean] = Using {
       val parser = new CsvParser(settings)
       parser.beginParsing(csv)
       parser
@@ -146,9 +174,10 @@ trait MetaDataValidator {
 
         maybeNoData match {
           case Some(noData) =>
-            noData
+            rowCallback(noData)
+            false
           case None =>
-            validateRows(rowIt, schema)
+            validateRows(rowIt, schema, rowCallback)
         }
 
     } (_.stopParsing());
@@ -156,10 +185,10 @@ trait MetaDataValidator {
     result match {
       case util.Success(metadataValidation) =>
         metadataValidation
-
       case util.Failure(ts) =>
         //TODO(AR) emit all errors not just first!
-        FailMessage(ValidationError, ts.toString).invalidNel[Any]
+        rowCallback(FailMessage(ValidationError, ts.toString).invalidNel[Any])
+        false
 //      ts.toList.map(t => FailMessage(ValidationError, t.toString).failureNel[Any]).sequence[MetaDataValidation, Any]
     }
   }
@@ -177,9 +206,11 @@ trait MetaDataValidator {
 
   def filename(row: Row,titleIndex: Int): String = row.cells(titleIndex).value
 
-
-  def validateRows(rows: Iterator[Row], schema: Schema): MetaDataValidation[Any]
-
+  def validateRows(
+    rows: Iterator[Row],
+    schema: Schema,
+    rowCallback: MetaDataValidation[Any] => Unit
+  ): Boolean
 
   def validateHeader(header: Row, schema: Schema): Option[MetaDataValidation[Any]] = {
     val icnc: Option[IgnoreColumnNameCase] = schema.globalDirectives.collectFirst {case i @ IgnoreColumnNameCase() => i }
@@ -200,7 +231,7 @@ trait MetaDataValidator {
   def validateRow(row: Row,  schema: Schema, mayBeLast: Option[Boolean] = None): MetaDataValidation[Any] = {
     val totalColumnsV = totalColumns(row, schema)
     val rulesV = rules(row,  schema, mayBeLast)
-    (totalColumnsV,rulesV).mapN { _ :: _ }
+    (totalColumnsV, rulesV).mapN { _ :: _ }
   }
 
   def validateUtf8Encoding(file: Path): MetaDataValidation[Any] = {
