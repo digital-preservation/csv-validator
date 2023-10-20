@@ -1,0 +1,86 @@
+<!--
+ Copyright (c) 2013, The National Archives <digitalpreservation@nationalarchives.gov.uk>
+ https://www.nationalarchives.gov.uk
+
+ This Source Code Form is subject to the terms of the Mozilla Public
+ License, v. 2.0. If a copy of the MPL was not distributed with this
+ file, You can obtain one at http://mozilla.org/MPL/2.0/.
+-->
+<assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0 http://maven.apache.org/xsd/assembly-1.1.0.xsd">
+    <id>bin</id>
+    <formats>
+        <format>zip</format>
+    </formats>
+    <includeBaseDirectory>false</includeBaseDirectory>
+    <dependencySets>
+        <dependencySet>
+            <unpack>false</unpack>
+            <scope>runtime</scope>
+            <outputDirectory>lib</outputDirectory>
+            <excludes>
+                <exclude>uk.gov.nationalarchives:csv-validator-cmd</exclude>
+                <exclude>uk.gov.nationalarchives:csv-validator-core</exclude>
+                <exclude>uk.gov.nationalarchives:csv-validator-ui</exclude>
+            </excludes>
+            <fileMode>644</fileMode>
+        </dependencySet>
+        <dependencySet>
+            <unpack>false</unpack>
+            <scope>runtime</scope>
+            <outputDirectory>lib</outputDirectory>
+            <includes>
+                <include>uk.gov.nationalarchives:csv-validator-cmd</include>
+                <include>uk.gov.nationalarchives:csv-validator-core</include>
+            </includes>
+            <fileMode>644</fileMode>
+        </dependencySet>
+        <dependencySet>
+            <unpack>false</unpack>
+            <scope>runtime</scope>
+            <outputDirectory></outputDirectory>
+            <includes>
+                <include>uk.gov.nationalarchives:csv-validator-cmd</include>
+                <include>uk.gov.nationalarchives:csv-validator-ui</include>
+            </includes>
+            <fileMode>644</fileMode>
+        </dependencySet>
+    </dependencySets>
+
+    <fileSets>
+        <fileSet>
+            <directory>${project.build.outputDirectory}</directory>
+        </fileSet>
+        <fileSet>
+            <directory>bin</directory>
+            <outputDirectory>/</outputDirectory>
+            <excludes>
+                <exclude>csv-validator-gui</exclude>
+            </excludes>
+            <fileMode>644</fileMode>
+        </fileSet>
+        <fileSet>
+            <includes>
+                <include>LICENSE</include>
+            </includes>
+            <outputDirectory>/</outputDirectory>
+            <fileMode>644</fileMode>
+        </fileSet>
+    </fileSets>
+
+    <files>
+        <file>
+            <source>bin/csv-validator.bat</source>
+            <outputDirectory>/</outputDirectory>
+            <filtered>true</filtered>
+            <fileMode>644</fileMode>
+        </file>
+        <file>
+            <source>bin/csv-validator-gui</source>
+            <outputDirectory>/</outputDirectory>
+            <filtered>true</filtered>
+            <fileMode>755</fileMode>
+        </file>
+    </files>
+</assembly>
