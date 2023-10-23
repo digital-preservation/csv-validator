@@ -57,6 +57,7 @@
             <outputDirectory>/</outputDirectory>
             <excludes>
                 <exclude>csv-validator-gui</exclude>
+                <exclude>csv-validator-cmd</exclude>
             </excludes>
             <fileMode>644</fileMode>
         </fileSet>
@@ -78,6 +79,12 @@
         </file>
         <file>
             <source>bin/csv-validator-gui</source>
+            <outputDirectory>/</outputDirectory>
+            <filtered>true</filtered>
+            <fileMode>755</fileMode>
+        </file>
+        <file>
+            <source>bin/csv-validator-cmd</source>
             <outputDirectory>/</outputDirectory>
             <filtered>true</filtered>
             <fileMode>755</fileMode>

@@ -38,5 +38,5 @@ if [ "Darwin" = "$OS" ]; then
     OPTIONS=$OPTIONS" -Dcom.apple.mrj.application.live-resize=true"
 fi
 
-# Launch the UI application
-java $OPTIONS -jar "$APP_HOME/csv-validator-ui-${project.version}.jar"
+# Launch the CLI application
+java $OPTIONS -jar "$APP_HOME/csv-validator-cmd-${project.version}.jar" "$@"

@@ -70,45 +70,6 @@
                     </execution>
                 </executions>
             </plugin>
-<!--            <plugin>-->
-<!--                <groupId>org.codehaus.mojo</groupId>-->
-<!--                <artifactId>appassembler-maven-plugin</artifactId>-->
-<!--                <executions>-->
-<!--                    <execution>-->
-<!--                        <phase>package</phase>-->
-<!--                        <goals>-->
-<!--                            <goal>assemble</goal>-->
-<!--                        </goals>-->
-<!--                    </execution>-->
-<!--                </executions>-->
-<!--                <configuration>-->
-<!--                    <includeConfigurationDirectoryInClasspath>false</includeConfigurationDirectoryInClasspath>-->
-<!--                    <repositoryLayout>flat</repositoryLayout>-->
-<!--                    <repositoryName>lib</repositoryName>-->
-<!--                    <programs>-->
-<!--                        <program>-->
-<!--                            <id>validate-gui</id>-->
-<!--                            <mainClass>uk.gov.nationalarchives.csv.validator.ui.CsvValidatorUi</mainClass>-->
-<!--                        </program>-->
-<!--                    </programs>-->
-<!--                </configuration>-->
-<!--            </plugin>-->
-<!--            <plugin>-->
-<!--                <artifactId>maven-assembly-plugin</artifactId>-->
-<!--                <executions>-->
-<!--                    <execution>-->
-<!--                        <phase>package</phase>-->
-<!--                        <goals>-->
-<!--                            <goal>single</goal>-->
-<!--                        </goals>-->
-<!--                    </execution>-->
-<!--                </executions>-->
-<!--                <configuration>-->
-<!--                    <descriptors>-->
-<!--                        <descriptor>src/main/assembly/appassembler-output.xml</descriptor>-->
-<!--                    </descriptors>-->
-<!--                </configuration>-->
-<!--            </plugin>-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
@@ -122,13 +83,6 @@
                             <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                         </manifest>
                         <manifestEntries>
-<!--                            <Class-Path>conf/</Class-Path>-->
-<!--                            <Build-Tag>${build-tag}</Build-Tag>-->
-<!--                            <Git-Commit>${build-commit}</Git-Commit>-->
-<!--                            <Git-Commit-Abbrev>${build-commit-abbrev}</Git-Commit-Abbrev>-->
-<!--                            <Build-Version>${build-version}</Build-Version>-->
-<!--                            <Build-Timestamp>${build-tstamp}</Build-Timestamp>-->
-<!--                            <Source-Repository>${project.scm.connection}</Source-Repository>-->
                             <Description>${project.description}</Description>
                             <Implementation-URL>${project.url}</Implementation-URL>
                         </manifestEntries>
