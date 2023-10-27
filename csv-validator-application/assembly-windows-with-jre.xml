@@ -81,12 +81,6 @@
             <filtered>true</filtered>
             <fileMode>644</fileMode>
         </file>
-<!--        <file>-->
-<!--            <source>bin/csv-validator-gui</source>-->
-<!--            <outputDirectory>/</outputDirectory>-->
-<!--            <filtered>true</filtered>-->
-<!--            <fileMode>755</fileMode>-->
-<!--        </file>-->
         <file>
             <source>bin/csv-validator-cmd.bat</source>
             <outputDirectory>/</outputDirectory>

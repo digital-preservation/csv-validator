@@ -71,12 +71,6 @@
     </fileSets>
 
     <files>
-<!--        <file>-->
-<!--            <source>bin/csv-validator.bat</source>-->
-<!--            <outputDirectory>/</outputDirectory>-->
-<!--            <filtered>true</filtered>-->
-<!--            <fileMode>644</fileMode>-->
-<!--        </file>-->
         <file>
             <source>bin/csv-validator-gui</source>
             <outputDirectory>/</outputDirectory>

@@ -3,7 +3,7 @@ CSV Validator Application
 
 This module assembles the csv-validator deliverable in a zip format. 
 
-The zip has following structure 
+The zip, which includes bundled JRE, has following structure.  
 
 ```
   csv-validator-application-<version_number>
@@ -15,6 +15,8 @@ The zip has following structure
        +--- validate-cmd.bat
        |
        +--- validate-cmd
+       |
+       +--- LICENSE
        |
        +-- [lib]
        |     |
