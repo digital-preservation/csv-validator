@@ -242,6 +242,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                         <exclude>**/*.txt</exclude>
                         <exclude>**/*.jp2</exclude>
                         <exclude>**/src/*/resources/**</exclude>
+                        <exclude>**/bin/csv-validator-cmd</exclude>
+                        <exclude>**/bin/csv-validator-gui</exclude>
+                        <exclude>**/assembly.xml</exclude>
+                        <exclude>**/assembly-windows-with-jre.xml</exclude>
                         <exclude>**/.*/**</exclude>
                     </excludes>
                     <encoding>${project.build.sourceEncoding}</encoding>
