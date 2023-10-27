@@ -76,21 +76,21 @@
                         </descriptors>
                     </configuration>
                 </execution>
-<!--                <execution>-->
-<!--                    <id>make-assembly-windows</id>-->
-<!--                    <phase>package</phase>-->
-<!--                    <goals>-->
-<!--                        <goal>single</goal>-->
-<!--                    </goals>-->
-<!--                    <configuration>-->
-<!--                        <filters>-->
-<!--                            <filter>${basedir}/src/assembly/filter-windows-with-jre.properties</filter>-->
-<!--                        </filters>-->
-<!--                        <descriptors>-->
-<!--                            <descriptor>assembly-windows-with-jre.xml</descriptor>-->
-<!--                        </descriptors>-->
-<!--                    </configuration>-->
-<!--                </execution>-->
+                <execution>
+                    <id>make-assembly-windows</id>
+                    <phase>package</phase>
+                    <goals>
+                        <goal>single</goal>
+                    </goals>
+                    <configuration>
+                        <filters>
+                            <filter>${basedir}/src/assembly/filter-windows-with-jre.properties</filter>
+                        </filters>
+                        <descriptors>
+                            <descriptor>assembly-windows-with-jre.xml</descriptor>
+                        </descriptors>
+                    </configuration>
+                </execution>
             </executions>
         </plugin>
     </plugins>
