@@ -27,16 +27,26 @@ CWD=$( pwd )
 APP_HOME="$( cd "$(dirname "$SCRIPT" )" && pwd )"
 cd "$CWD"
 
-# Create param for runtime options:
-OPTIONS=""
+# Max memory to use for the JVM. Uncomment the following line and set the desired value for max memory. Alternatively,
+# you can set the max memory in terminal before launching the script by setting the environment variable for that shell
+# e.g. to set it to 1024m, use `export csvValidatorMemory=1024`
+# csvValidatorMemory=512
+
+# Create param for runtime options.
+RUNTIME_OPTIONS="-Xmx512m"
+
+if [ -n "$csvValidatorMemory" ]
+then
+  RUNTIME_OPTIONS="-Xmx"$csvValidatorMemory"m"
+fi
 
 # Detect if we are running on a Mac:
 OS=$( uname )
 if [ "Darwin" = "$OS" ]; then
-    OPTIONS=$OPTIONS" -Xdock:name=CSV-Validator"
-    OPTIONS=$OPTIONS" -Dcom.apple.mrj.application.growbox.intrudes=false"
-    OPTIONS=$OPTIONS" -Dcom.apple.mrj.application.live-resize=true"
+    RUNTIME_OPTIONS=$RUNTIME_OPTIONS" -Xdock:name=CSV-Validator"
+    RUNTIME_OPTIONS=$RUNTIME_OPTIONS" -Dcom.apple.mrj.application.growbox.intrudes=false"
+    RUNTIME_OPTIONS=$RUNTIME_OPTIONS" -Dcom.apple.mrj.application.live-resize=true"
 fi
 
 # Launch the UI application
-java $OPTIONS -jar "$APP_HOME/csv-validator-ui-${project.version}.jar"
+java $RUNTIME_OPTIONS -jar "$APP_HOME/csv-validator-ui-${project.version}.jar"
