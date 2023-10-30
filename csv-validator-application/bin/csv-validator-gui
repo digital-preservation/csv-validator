@@ -30,10 +30,10 @@ cd "$CWD"
 # Max memory to use for the JVM. Uncomment the following line and set the desired value for max memory. Alternatively,
 # you can set the max memory in terminal before launching the script by setting the environment variable for that shell
 # e.g. to set it to 1024m, use `export csvValidatorMemory=1024`
-# csvValidatorMemory=512
+# csvValidatorMemory=1024
 
 # Create param for runtime options.
-RUNTIME_OPTIONS="-Xmx512m"
+RUNTIME_OPTIONS="-Xmx1024m"
 
 if [ -n "$csvValidatorMemory" ]
 then

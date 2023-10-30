@@ -17,13 +17,13 @@ REM If you do not want to make a permanent change but wish to set max memory eac
 REM launching the batch file, set the max memory variable (e.g. SET csvValidatorMemory=1024)
 
 REM Edit the following line, remove 'REM' from beginning and set a specific maximum memory to change it permanently.
-REM SET csvValidatorMemory=512
+REM SET csvValidatorMemory=1024
 
 REM Location of this script at runtime
 SET SCRIPT_HOME=%~dp0
 
 REM Create param for runtime option and set default max memory:
-SET RUNTIME_OPTIONS="-Xmx512m"
+SET RUNTIME_OPTIONS="-Xmx1024m"
 
 IF "%csvValidatorMemory%"=="" GOTO LaunchProgram
 SET RUNTIME_OPTIONS="-Xmx%csvValidatorMemory%m"
