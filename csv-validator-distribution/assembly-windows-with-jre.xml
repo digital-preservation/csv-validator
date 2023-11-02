@@ -11,7 +11,7 @@
 <assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0 http://maven.apache.org/xsd/assembly-1.1.0.xsd">
-    <id>bin</id>
+    <id>bin-win32-with-jre</id>
     <formats>
         <format>zip</format>
     </formats>
@@ -58,32 +58,42 @@
             <directory>bin</directory>
             <outputDirectory>/</outputDirectory>
             <excludes>
-                <exclude>csv-validator-gui.bat</exclude>
-                <exclude>csv-validator-cmd.bat</exclude>
+                <exclude>csv-validator-gui</exclude>
+                <exclude>csv-validator-cmd</exclude>
             </excludes>
             <fileMode>644</fileMode>
         </fileSet>
         <fileSet>
-            <includes>
-                <include>LICENSE</include>
-            </includes>
-            <outputDirectory>/</outputDirectory>
-            <fileMode>644</fileMode>
+            <directory>target/jre-windows</directory>
+            <outputDirectory>jre</outputDirectory>
         </fileSet>
     </fileSets>
 
     <files>
         <file>
-            <source>bin/csv-validator-gui</source>
+            <source>bin/csv-validator-gui.bat</source>
+            <outputDirectory>/</outputDirectory>
+            <filtered>true</filtered>
+            <fileMode>644</fileMode>
+        </file>
+        <file>
+            <source>bin/csv-validator-cmd.bat</source>
             <outputDirectory>/</outputDirectory>
             <filtered>true</filtered>
             <fileMode>755</fileMode>
         </file>
         <file>
-            <source>bin/csv-validator-cmd</source>
+            <source>bin/running-csv-validator.txt</source>
             <outputDirectory>/</outputDirectory>
             <filtered>true</filtered>
-            <fileMode>755</fileMode>
+            <fileMode>644</fileMode>
+        </file>
+        <file>
+            <source>../LICENSE</source>
+            <outputDirectory>/</outputDirectory>
+            <filtered>true</filtered>
+            <fileMode>644</fileMode>
         </file>
     </files>
+
 </assembly>

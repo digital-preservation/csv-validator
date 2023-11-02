@@ -6,7 +6,7 @@
         <artifactId>csv-validator-parent</artifactId>
         <version>1.2-SNAPSHOT</version>
     </parent>
-    <artifactId>csv-validator-application</artifactId>
+    <artifactId>csv-validator-distribution</artifactId>
     <packaging>pom</packaging>
     <name>csv-validator-application</name>
     <build>
@@ -69,10 +69,10 @@
                     </goals>
                     <configuration>
                         <filters>
-                            <filter>${basedir}/src/assembly/filter.properties</filter>
+                            <filter>src/assembly/filter-without-jre.properties</filter>
                         </filters>
                         <descriptors>
-                            <descriptor>assembly.xml</descriptor>
+                            <descriptor>assembly-without-jre.xml</descriptor>
                         </descriptors>
                     </configuration>
                 </execution>
