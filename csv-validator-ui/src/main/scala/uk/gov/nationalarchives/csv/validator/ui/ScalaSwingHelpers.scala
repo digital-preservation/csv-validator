@@ -26,7 +26,7 @@ object ScalaSwingHelpers {
   /**
    * Opens a FileChooser and sets the path of the chosen file as the text of a Text Component
    *
-   * @param fileChooser
+   * @param fileChooser FileChooser which is Used to open file dialogs
    * @param output A text component which displays the absolute path of the chosen file
    * @param locateOver A component over which the FileChooser dialog should be located
    */
@@ -37,7 +37,7 @@ object ScalaSwingHelpers {
   /**
    * Opens a FileChooser and sends the result to a function
    *
-   * @param fileChooser
+   * @param fileChooser FileChooser which is Used to open file dialogs
    * @param result A function which takes the chosen file
    * @param locateOver A component over which the FileChooser dialog should be located
    */
@@ -67,10 +67,10 @@ object ScalaSwingHelpers {
 
     val btnOk = new Button("Ok")
 
-    val optionLayout = new GridBagPanel {
+    val optionLayout: GridBagPanel = new GridBagPanel {
       val c = new Constraints
 
-      for(colIdx <- (0 to table.model.getColumnCount - 1)) {
+      for(colIdx <- 0 to table.model.getColumnCount - 1) {
         c.gridx = 0
         c.gridy = colIdx
         c.anchor = Anchor.LineStart
@@ -93,6 +93,7 @@ object ScalaSwingHelpers {
     dialog.modal = true
     dialog.title = title
     dialog.contents = optionLayout
+    dialog.setLocationRelativeTo(owner)
 
     btnOk.reactions += onClick(result({
       val textValues = for{
@@ -130,7 +131,7 @@ object ScalaSwingHelpers {
       action
   }
 
-  def PropertyChangeListener(f: PropertyChangeEvent => Unit) = new PropertyChangeListener {
+  def PropertyChangeListener(f: PropertyChangeEvent => Unit): PropertyChangeListener = new PropertyChangeListener {
     def propertyChange(e: PropertyChangeEvent) : Unit = {
       f(e)
     }

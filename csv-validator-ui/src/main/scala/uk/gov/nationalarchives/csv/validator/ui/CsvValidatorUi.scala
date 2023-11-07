@@ -40,7 +40,6 @@ import scala.util.Using
  * @author Adam Retter <adam.retter@googlemail.com>
  */
 object CsvValidatorUi extends SimpleSwingApplication {
-
   override def startup(args: Array[String]) : Unit = {
     try {
       UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName)
@@ -52,10 +51,11 @@ object CsvValidatorUi extends SimpleSwingApplication {
   }
 
   def top = new SJXFrame {
+
     title = "CSV Validator"
     peer.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
     contents = {
-      val settings = new SettingsPanel
+      val settings = new SettingsPanel(this)
 
       //handle resizing the main window, when resizing the settings panel
       settings.settingsGroup.reactions += SJXTaskPane.onViewStateChanged {
@@ -64,10 +64,9 @@ object CsvValidatorUi extends SimpleSwingApplication {
         } else {
           new Dimension(this.size.getWidth.toInt, (this.size.getHeight + settings.size.getHeight).toInt)
         }
-        this.size = newSize
+        this.preferredSize = newSize
         this.pack()
       }
-
       new ContentPanel(settings)
     }
   }
@@ -408,7 +407,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
    * us to break up the code easily, hopefully
    * making it more understandable.
    */
-  private class SettingsPanel extends SJXTaskPaneContainer {
+  private class SettingsPanel(parentFrame: SJXFrame) extends SJXTaskPaneContainer {
 
     private lazy val CHARACTER_ENCODINGS =
       if(Charset.defaultCharset.name == "UTF-8") {
@@ -455,7 +454,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
 
     private val spTblPathSubstitutions = new ScrollPane(tblPathSubstitutions)
     private val btnAddPathSubstitution = new Button("Add Path Substitution...")
-    btnAddPathSubstitution.reactions += onClick(addToTableDialog(top, "Add Path Substitution...", tblPathSubstitutions, tblPathSubstitutions.addRow))
+    btnAddPathSubstitution.reactions += onClick(addToTableDialog(parentFrame, "Add Path Substitution...", tblPathSubstitutions, tblPathSubstitutions.addRow))
 
     private val settingsGroupLayout = new GridBagPanel {
       private val c = new Constraints
