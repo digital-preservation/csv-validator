@@ -50,7 +50,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
     super.startup(args)
   }
 
-  def top = new SJXFrame {
+  def top: SJXFrame = new SJXFrame {
 
     title = "CSV Validator"
     peer.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
@@ -71,14 +71,14 @@ object CsvValidatorUi extends SimpleSwingApplication {
     }
   }
 
-  private def getShortVersion(): String = {
+  private def getShortVersion: String = {
     extractFromManifest {
       attributes =>
         attributes.getValue("Implementation-Version")
     }.getOrElse("UNKNOWN")
   }
 
-  private def getLongVersion(): Seq[(String, String)] = {
+  private def getLongVersion: Seq[(String, String)] = {
     extractFromManifest {
       attributes =>
         Seq(
@@ -128,7 +128,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
 
   private def validate(csvFilePath: String, csvEncoding: Charset, csvSchemaFilePath: String, csvSchemaEncoding: Charset, failOnFirstError: Boolean, pathSubstitutions: List[(String, String)], enforceCaseSensitivePathChecks: Boolean, progress: Option[ProgressCallback], validateEncoding: Boolean)(output: String => Unit) : Unit = {
 
-    def toConsole(msg: String) = Swing.onEDT {
+    def toConsole(msg: String): Unit = Swing.onEDT {
       output(msg)
     }
 
@@ -158,7 +158,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
       failOnFirstError,
       pathSubstitutions,
       enforceCaseSensitivePathChecks,
-      false,
+      trace = false,
       progress,
       rowCallback
     )._2 match {
@@ -172,8 +172,8 @@ object CsvValidatorUi extends SimpleSwingApplication {
   /**
    * Saves a String to a File
    *
-   * @param s
-   * @param f
+   * @param s String to save to the file
+   * @param f File to which the associated string is saved
    */
   private def saveToFile(s: String, f: Path) : Option[IOException] = {
     val data : Array[Byte] =  s.getBytes(UTF_8)
@@ -188,7 +188,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
   case class Settings(lastCsvPath: Path, lastCsvSchemaPath: Path, lastReportPath: Path)
 
   lazy val settingsFile : Path = Paths.get(System.getProperty("user.home")).resolve(".csv-validator").resolve("csv-validator.properties")
-  lazy val userDir = Paths.get(System.getProperty("user.dir"))
+  lazy val userDir: Path = Paths.get(System.getProperty("user.dir"))
 
   private def loadSettings: Option[Settings] = {
     if(Files.exists(settingsFile)) {
@@ -298,7 +298,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
 
       override def update(total: Int, processed: Int) : Unit = {
         Swing.onEDT {
-          progressBar.max = total.toInt
+          progressBar.max = total
           progressBar.value = processed
           progressBar.label = s"Line ${processed} of ${total}"
         }
@@ -366,11 +366,11 @@ object CsvValidatorUi extends SimpleSwingApplication {
       })
     }
 
-    private val lblVersion = new Label(s"Version: ${getShortVersion()}")
+    private val lblVersion = new Label(s"Version: ${getShortVersion}")
     lblVersion.listenTo(lblVersion.mouse.clicks)
     lblVersion.font = lblVersion.font.deriveFont(9)
     lblVersion.reactions += onClick {
-      Dialog.showMessage(this, getLongVersion().map(x => s"${x._1}: ${x._2}").mkString(System.getProperty("line.separator")), "Version Details")
+      Dialog.showMessage(this, getLongVersion.map(x => s"${x._1}: ${x._2}").mkString(System.getProperty("line.separator")), "Version Details")
     }
 
     layout.row.grid(lblCsvFile).add(txtCsvFile, 5).add(btnChooseCsvFile)
