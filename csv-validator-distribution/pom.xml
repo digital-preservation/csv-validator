@@ -5,6 +5,7 @@
         <groupId>uk.gov.nationalarchives</groupId>
         <artifactId>csv-validator-parent</artifactId>
         <version>1.2-SNAPSHOT</version>
+        <relativePath>../csv-validator-parent</relativePath>
     </parent>
     <artifactId>csv-validator-distribution</artifactId>
     <packaging>pom</packaging>
