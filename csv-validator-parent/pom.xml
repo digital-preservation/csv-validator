@@ -42,10 +42,13 @@
         <developer>
             <name>Valy Diarrassouba</name>
         </developer>
-	<developer>
+	    <developer>
             <name>Luke Tebbs</name>
-	    <email>luke@luketebbs.com</email>
-	</developer>
+	        <email>luke@luketebbs.com</email>
+	    </developer>
+        <developer>
+            <name>Saurabh Parkhi</name>
+        </developer>
     </developers>
     <contributors>
         <contributor>

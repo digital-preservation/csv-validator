@@ -1,0 +1,57 @@
+This document explains how CSV validator can be run using the launch scripts available in the distribution package.
+
+To launch the application as a GUI or CLI, follow the steps given below:
+
+On Windows,
+* To launch the GUI,
+  * open command prompt
+  * navigate to the folder where the zip is expanded
+  * type `csv-validator-gui.bat`
+
+* To launch the CLI,
+    * open command prompt
+    * navigate to the folder where the zip is expanded
+    * type `csv-validator-cmd.bat <path to csv file> <path to csv schema file>`
+    * you can type `csv-validator-cmd.bat --help` to see other CLI options
+
+On Linux / Mac,
+* To launch the GUI,
+    * open terminal window
+    * navigate to the folder where the zip is expanded
+    * type `./csv-validator-gui`
+
+* To launch the CLI,
+    * open terminal window
+    * navigate to the folder where the zip is expanded
+    * type `./csv-validator-cmd <path to csv file> <path to csv schema file>`
+    * you can type `./csv-validator-cmd --help` to see other CLI options
+
+========================================
+
+Sometimes, it is necessary to make more heap memory available to the CSV Validator, this is typically the case when the
+files being validated are large and the memory needed for processing falls short. In such case, before launching the
+CSV Validator, you can configure the maximum heap memory available to the Java process which runs the CSV Validator.
+
+Both, the Windows batch files and the shell scripts have the ability to configure maximum memory used by the JVM
+which runs CSV Validator. If you find that you are getting an error related to not having enough heap memory, you can
+increase the memory by following the steps given below:
+
+NOTE: The following examples set the available max heap memory to 2048MB (2GB). You can change the value to suit
+your own need. Also note, that the following way of increasing available memory only affects the scripts when launched
+within the same window, if you open another window, you will need to set the max memory in that window as well.
+
+On Windows,
+* Open a command prompt
+* type `set csvValidatorMemory=2048`
+* Without closing the command prompt, within the same window, launch the batch file
+
+On Linux,
+* Open a terminal window
+* type `export csvValidatorMemory=2048`
+* Without closing the terminal window, within the same window, call the shell script
+
+--------
+
+In case you want to permanently change the maximum memory used, you can do so by editing the batch or shell scripts
+and updating the relevant line in those scripts. The instructions for updating the lines are given within the scripts.
+

@@ -75,48 +75,26 @@
                 </configuration>
             </plugin>
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>appassembler-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>assemble</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <includeConfigurationDirectoryInClasspath>false</includeConfigurationDirectoryInClasspath>
-                    <repositoryLayout>flat</repositoryLayout>
-                    <repositoryName>lib</repositoryName>
-                    <programs>
-                        <program>
-                            <id>validate</id>
-                            <mainClass>uk.gov.nationalarchives.csv.validator.cmd.CsvValidatorCmdApp</mainClass>
-                        </program>
-                    </programs>
-                </configuration>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
+                <artifactId>maven-jar-plugin</artifactId>
                 <configuration>
-                    <descriptors>
-                        <descriptor>src/main/assembly/appassembler-output.xml</descriptor>
-                    </descriptors>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <classpathPrefix>lib/</classpathPrefix>
+                            <mainClass>uk.gov.nationalarchives.csv.validator.cmd.CsvValidatorCmdApp</mainClass>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                        </manifest>
+                        <manifestEntries>
+                            <Description>${project.description}</Description>
+                            <Implementation-URL>${project.url}</Implementation-URL>
+                        </manifestEntries>
+                    </archive>
                 </configuration>
             </plugin>
         </plugins>
     </build>
-
     <dependencies>
         <dependency>
             <groupId>org.scala-lang</groupId>
@@ -227,5 +205,4 @@
             </build>
         </profile>
     </profiles>
-
 </project>
