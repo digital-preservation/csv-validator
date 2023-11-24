@@ -81,28 +81,9 @@
     </scm>
 
     <profiles>
-
-        <!-- Default profile publishes to Maven Central -->
-        <!-- See: https://search.maven.org/search?q=a:csv-validator-core -->
-<!--        <profile>-->
-<!--            <id>default-release-repo</id>-->
-<!--            <activation>-->
-<!--                <activeByDefault>true</activeByDefault>-->
-<!--            </activation>-->
-<!--            <distributionManagement>-->
-<!--                <snapshotRepository>-->
-<!--                    <id>sonatype-nexus-snapshot-staging</id>-->
-<!--                    <name>Nexus Snapshot Repository</name>-->
-<!--                    <url>https://oss.sonatype.org/content/repositories/snapshots</url>-->
-<!--                </snapshotRepository>-->
-<!--                <repository>-->
-<!--                    <id>sonatype-nexus-release-staging</id>-->
-<!--                    <name>Nexus Release Repository</name>-->
-<!--                    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>-->
-<!--                </repository>-->
-<!--            </distributionManagement>-->
-<!--        </profile>-->
-
+        <!-- this profile signs the jars before publishing, if the jars are not signed, the deployment to maven central fails   -->
+        <!-- when doing a release, just run mvn release:perform -Prelease-sign-artifacts for this to work. It will ask for the  -->
+        <!-- gpg passphrase when run. It assumes that you have a gpg key setup properly        -->
         <profile>
             <id>release-sign-artifacts</id>
             <activation>
