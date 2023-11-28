@@ -152,7 +152,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
       case _ =>
     }
 
-    CsvValidatorCmdApp.validate(
+    val cliResult = CsvValidatorCmdApp.validate(
       TextFile(Paths.get(csvFilePath), csvEncoding, validateEncoding),
       TextFile(Paths.get(csvSchemaFilePath), csvSchemaEncoding),
       failOnFirstError,
@@ -161,12 +161,12 @@ object CsvValidatorUi extends SimpleSwingApplication {
       trace = false,
       progress,
       rowCallback
-    )._2 match {
+    )
+
+    cliResult._2 match {
       case SystemExitCodes.ValidCsv => toConsole("PASS")
-      case _ => toConsole("FAIL")
+      case _ => toConsole(cliResult._1)
     }
-
-
   }
 
   /**
