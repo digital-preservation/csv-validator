@@ -58,7 +58,8 @@ List<FailMessage> messages = CsvValidator.validate(
 "/data/csv/data-schema.csvs",
 failFast,
 pathSubstitutions,
-true);
+true,
+false);
 
  if(messages.isEmpty()) {
 	System.out.println("Completed validation OK");
