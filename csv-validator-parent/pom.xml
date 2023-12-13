@@ -143,7 +143,7 @@
         <scala.lib.version>2.13.12</scala.lib.version>
         <cats.core.version>2.10.0</cats.core.version>
         <cats.effect.version>3.5.1</cats.effect.version>
-        <specs2.version>4.20.2</specs2.version>
+        <specs2.version>4.20.3</specs2.version>
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <contact.email>digitalpreservation@nationalarchives.gov.uk</contact.email>
