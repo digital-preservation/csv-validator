@@ -27,7 +27,6 @@ built using the [Apache Maven](https://maven.apache.org/) build tool:
 
 1. For use in other Java/Scala Applications, build by executing `mvn clean install`.
 2. For the Command Line Interface or Swing GUI, build by executing `mvn clean package`.
-3. For the Docker image (`nationalarchives/csv-validator:latest`), build by executing `mvn clean package -Pdocker`.
 
 
 Maven Artifacts
@@ -42,7 +41,7 @@ If you wish to use the CSV Validator from your own Java project, we provide a na
 <dependency>
 	<groupId>uk.gov.nationalarchives</groupId>
     <artifactId>csv-validator-java-api</artifactId>
-    <version>1.2-RC4</version>
+    <version>1.3.0</version>
 </dependency>
 ```
 
@@ -81,7 +80,7 @@ Likewise, if you wish to use the CSV Validator from your own Scala project, the 
 <dependency>
 	<groupId>uk.gov.nationalarchives</groupId>
     <artifactId>csv-validator-core</artifactId>
-    <version>1.2-RC4</version>
+    <version>1.3.0</version>
 </dependency>
 ```
 
@@ -91,18 +90,6 @@ An example of using the Scala API can be found in the class `uk.gov.nationalarch
 `csv-validator-java-api` module. The Scala API at present gives much more control over the individual Schema Parsing and Validation Processor
 than the Java API.
 
-Docker Container (of CSV Validator Command Line Tool)
-=====================================================
-To see the options run:
-```bash
-docker run nationalarchives/csv-validator
-```
-
-Then for example, to validate `/tmp/my-data.csv` with `/tmp/my-schema.csvs` you would run:
-```bash
-docker run nationalarchives/csv-validator /tmp/my-data.csv /tmp/my-schema.csvs
-```
-
 Schema Examples
 ===============
 Examples of CSV Schema can be found in the test cases of the `csv-validator-core` module. See the `*.csvs` files in [acceptance/](https://github.com/digital-preservation/csv-validator/tree/master/csv-validator-core/src/test/resources/uk/gov/nationalarchives/csv/validator/acceptance). Schemas used by the Digital Preservation department at The National Archives are also available in the `example-schemas` folder of the [csv-schema](https://github.com/digital-preservation/csv-schema) repository.
@@ -110,7 +97,7 @@ Examples of CSV Schema can be found in the test cases of the `csv-validator-core
 
 Current Limitations of the CSV Validator Tool
 =============================================
-The CSV Validator implements almost all of `CSV Schema 1.1` language, current limitations and missing functionality are:
+The CSV Validator implements almost all of `CSV Schema 1.2 (Draft)` language, current limitations and missing functionality are:
 
 * `DateExpr` is not yet fully implemented (may raise Schema check error).
 
