@@ -140,15 +140,16 @@
 					You can either type, or copy-and-paste, the filepath into the appropriate box, these are labelled "CSV file" and "CSV Schema file" respectively.
 					Alternatively, click the buttons labelled "..." (highlighted in the image below): 
 					</p>
-					<img src="images/1.1/gui-file-selects-highlighted.png" alt="Part of GUI, showing in detail the boxes to enter file names for data and schema, file open dialogue buttons highlighted in yellow" id="GUI-detail1">
+					<img src="images/1.3.0/gui-file-selects-highlighted.png" alt="Part of GUI, showing in detail the boxes to enter file names for data and schema, file open dialogue buttons highlighted in yellow" id="GUI-detail1">
 					<p>
-					This will open up a standard "File open" dialogue, allowing you to navigate to the file in the file system, and select it:
+					This will open up a standard File picker dialogue.  the dialog only shows the files of the type being chosen. You can navigate to the file you want to choose
+					in the file system and select it:
 					</p>
-					<img src="images/1.1/file-open.png" alt="Standard file open dialogue, with CSV file selected" id="GUI-detail2">
+					<img src="images/1.3.0/file-open.png" alt="Standard file open dialogue, with CSV file selected" id="GUI-detail2">
 					<p>
-					Clicking "Open" will populate the related text box:
+					Clicking "Save" will populate the related text box:
 					</p>
-					<img src="images/1.1/filepath-text-box-populated.png" alt="Part of GUI, showing completed CSV file text box" id="GUI-detai3l">
+					<img src="images/1.3.0/filepath-text-box-populated.png" alt="Part of GUI, showing completed CSV file text box" id="GUI-detai3l">
 				</div>
 				<div>
 					<h3>Using Settings</h3>
@@ -159,7 +160,7 @@
 					(note that there is one additional option at the command line that is not available within Settings, to produce a detailed report on the parse of the schema itself). 
 					To open up Settings, click on the downward facing double arrow below the file dialogue buttons (highlighted below):
 					</p>
-					<img src="images/1.1/highlight-settings-arrow.png" alt="Part of GUI, highlighting Settings box" id="GUI-detail4">
+					<img src="images/1.3.0/highlight-settings-arrow.png" alt="Part of GUI, highlighting Settings box" id="GUI-detail4">
 					<p>
 					Having opened up Settings, you will see that there are six sets of options:
 						<ol>
@@ -179,7 +180,7 @@
 							<li><code>Path Substitutions</code></li>
 						</ol>
 					</p>
-					<img src="images/1.1/settings-opened.png" alt="Part of GUI, showing opened Settings section" id="GUI-detail5">
+					<img src="images/1.3.0/settings-opened.png" alt="Part of GUI, showing opened Settings section" id="GUI-detail5">
 					<div>
 						<h4>Fail on first error</h4>
 						<p>
@@ -230,11 +231,11 @@
 							<p>
 							To create a Path Substitution in the GUI, click the "Add Path Substitution..." button (highlighted):
 							</p>
-							<img src="images/1.1/settings-opened-create-substitution-highlighted.png" alt="Part of GUI, showing 'Add Path Substitution...' button highlighted" id="GUI-detail6">
+							<img src="images/1.3.0/settings-opened-create-substitution-highlighted.png" alt="Part of GUI, showing 'Add Path Substitution...' button highlighted" id="GUI-detail6">
 							<p>
 							This will open a popup:
 							</p>
-							<img src="images/1.1/add-path-substitution.png" alt="Popup window for entering substitution 'find-and-replace'" id="GUI-detail7">
+							<img src="images/1.3.0/add-path-substitution.png" alt="Popup window for entering substitution 'find-and-replace'" id="GUI-detail7">
 							<p>
 							in the first box enter the text string which will be found in the supplied CSV file, and in the second the text string which should be substituted.
 							So considering the examples already used in this document, the CSV file is found at Y:\UAT_2\ADM362B003\tech_acq_metadata_v1_ADM362B003.csv and we can see 
@@ -244,7 +245,7 @@
 							file:///y:/UAT_2/ADM362B003/ADM_362/ when we are checking for their existence and verifying the associated checksums.  So we enter those filepath fragments into 
 							the "From:" and "To:" boxes respectively, and click OK.  This gives:
 							</p>
-							<img src="images/1.1/settings-with-entered-substitution.png" alt="Popup window for entering substitution 'find-and-replace'" id="GUI-detail8">
+							<img src="images/1.3.0/settings-with-entered-substitution.png" alt="Popup window for entering substitution 'find-and-replace'" id="GUI-detail8">
 							<p>
 							Creating a Path Substitution in this way is equivalent to running via the Command Line with the -p or --path flags and supplying a key:value pair.
 							</p>
@@ -254,7 +255,7 @@
 							<p>
 							To edit a substitution, simply double-click on the field you wish to edit:
 							</p>
-							<img src="images/1.1/edit-file-substitution.png" alt="Editing substitution" id="GUI-detail9">
+							<img src="images/1.3.0/edit-file-substitution.png" alt="Editing substitution" id="GUI-detail9">
 							<p>
 							Hit &lt;Enter&gt; or &lt;Tab&gt;, or click on the other side of the substitution, to complete the edit.
 							</p>
@@ -281,10 +282,10 @@
 						If you are developing schemas, it is possible to make syntax errors in the schema, for example a mismatch in the declared number of columns 
 						(using the <a href="http://digital-preservation.github.io/csv-schema/csv-schema-1.0.html#total-columns-directive">Total Columns Directive</a>) against the actual number of 
 						<a href="http://digital-preservation.github.io/csv-schema/csv-schema-1.0.html#column-definitions">Column Definitions</a> included in the schema (eg 
-						<code>@totalColumns = 41 but number of columns defined = 42 at line: 2, column: 1</code>).  
+						<code>@totalColumns = 9 but number of columns defined = 10 at line: 2, column: 1</code>).
 						The schema itself is always checked before validation of the data begins, and schema errors always terminate validation.
 						</p>
-						<img src="images/1.1/bad-totalColumns-dir.png" alt="@totalColumns = 41 but number of columns defined = 42 at line: 2, column: 1" id="totalColumnsErr">
+						<img src="images/1.3.0/bad-total-columns.png" alt="@totalColumns = 9 but number of columns defined = 10 at line: 2, column: 1" id="totalColumnsErr">
 						<p>
 						Or, if the Version Declaration has been omitted from the schema, or is incorrect,
 						you will see a schema error saying that the <a href="http://digital-preservation.github.io/csv-schema/csv-schema-1.0.html#version-declaration">Version Declaration</a> is not present
@@ -529,7 +530,7 @@ Usage: validate [options] &lt;csv-path&gt; &lt;csv-schema-path&gt;
 				you must escape them by replacing them with %20) you should then find that all tests pass.  On a Unix-based system you will not need to reverse the slashes, 
 				but spaces and other special characters will still need to be escaped.  There is an additional complication that the % character is treated as a 
 				special character in Windows scripts, and itself needs to be escaped, so you should actually use %%20 to obtain the desired behaviour (there can be a further complication 
-				if you are calling out from a controlling script to launch the validator ie <code>call validate.bat</code> where the outer script will do a first replacement of the escaped
+				if you are calling out from a controlling script to launch the validator ie <code>call csv-validator-cmd.bat</code> where the outer script will do a first replacement of the escaped
 				character, and so within the call statement you would actually need to use %%%%20 to obtain the desired behaviour (this is passed to the call statement itself as %%20).
 				</p>
             </div>
