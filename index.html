@@ -215,7 +215,7 @@
 					<div>
 						<h4><a id="path-substitutions"></a>Path Substitutions</h4>
 						<p>
-						Path Substitutions are a more slippery concept to grasp.  As described in the <a href="#toc1">Background</a> section above, the original use case at 
+						Path Substitutions is a slightly tricky concept to grasp initially. As described in the <a href="#toc1">Background</a> section above, the original use case at
 						The National Archives was for a tool to validate metadata files.  These files generally describe a set of digital files being transferred to The National Archives 
 						and so contain information, including a filepath and checksum, about each file in a particular transfer. In addition to checking that the metadata files are 
 						correctly structured, we wish to check that the file actually exists at the filepath specified, and that when recalculated, the checksum for the files matches 
@@ -223,11 +223,24 @@
 						<a href="http://digital-preservation.github.io/csv-schema/csv-schema-1.0.html#external-single-expressions">External Single Expressions</a>, which allow 
 						reference to other file system resources outside the CSV file being validated. However, it is likely that after transfer the drive letter or mount point (at least) 
 						will have changed from the original.  Path Substitutions allow us to overcome this at validation time by effectively performing a simple find-and-replace within the 
-						file during validation which maps the supplied filepath to the equivalent on the system where validation is actually taking place. 
-						It is also important to note that the CSV Validator expects filepaths to be supplied as file URIs (so on Windows systems, you may need to reverse the slashes).
+						file during validation which maps the supplied filepath to the equivalent on the system where validation is actually taking place.
 						</p>
 						<p>
-						Many path substitutions can be supplied to allow for the case where the content files are in many different locations.
+						e.g. Lets assume that we have received the data alongwith a metadata file describing the data from someone else. On their machine, the data was stored on
+						the root folder under a folder <code>/TEST_1</code> This means the paths to the data as referenced in the metadata file are defined from that folder as shown below:
+						<img src="images/1.3.0/original-paths.png" alt="Metadata file showing original paths" id="original-paths">	.
+						</p>
+						<p>
+						However, the same data is made available on the machine where csv-validator runs at a different location (<code>C:\test-data\example-schemas\example-data\TEST_1</code>) as shown below:
+						<img src="images/1.3.0/data-location.png" alt="File browser showing data location" id="data-location">	.
+						</p>
+						<p>
+						In this case you can setup a path substitution From <code>file:///TEST_1/</code> To <code>C:\test-data\example-schemas\example-data\TEST_1\</code> so that, when
+						looking for the corresponding file, csv-validator will substitute the path before finding and reading the data file. Please note: If you supply the "To" path as a URI rather
+						than a file system path, you may need to reverse the slashes on Windows systems.
+						</p>
+						<p>
+						Multiple path substitutions can be supplied to allow for the cases where the content files are in many different locations.
 						</p>
 						<div>
 							<h5>Creating Path Substitutions</h5>
@@ -241,14 +254,15 @@
 							<img src="images/1.3.0/add-path-substitution.png" alt="Popup window for entering substitution 'find-and-replace'" id="GUI-detail7">
 							<p>
 							in the first box enter the text string which will be found in the supplied CSV file, and in the second the text string which should be substituted.
-							So considering the examples already used in this document, the CSV file is found at Y:\UAT_2\ADM362B003\tech_acq_metadata_v1_ADM362B003.csv and we can see 
-							that there is a folder named ADM_362 alongside the CSV file, that folder contains the images which the CSV file describes. 
-							When created, the metadata CSV file and images were on the C: drive, instead of the Y: drive, and they are also now in a project-related folder structure. 
-							So the filepaths in the metadata CSV file all begin file:///c:/ADM_362/ - when we run the validator, we actually need to look for the content files at 
-							file:///y:/UAT_2/ADM362B003/ADM_362/ when we are checking for their existence and verifying the associated checksums.  So we enter those filepath fragments into 
+							So considering the examples already used in this document, the CSV file is found at C:\test-data\MUPT_2\metadata_v9_MUPT2Y17HS001.csv and we can see
+							that there is a folder named "content" alongside the CSV file, that folder contains the files which the CSV file describes.
+							When created, the metadata CSV file and images were on E: drive instead of the C: drive, and they are also now in a project-related folder structure.
+							So the filepaths in the metadata CSV file all begin file:/E:/MUPT_2/content/ - when we run the validator, we actually need to look for the content files at
+							C:\test-data\MUPT_2\content\ when we are checking for their existence and verifying the associated checksums.  So we enter those filepath fragments into
 							the "From:" and "To:" boxes respectively, and click OK.  This gives:
 							</p>
 							<img src="images/1.3.0/settings-with-entered-substitution.png" alt="Popup window for entering substitution 'find-and-replace'" id="GUI-detail8">
+							</p>
 							<p>
 							Creating a Path Substitution in this way is equivalent to running via the Command Line with the -p or --path flags and supplying a key:value pair.
 							</p>
@@ -453,10 +467,10 @@ Usage: validate [options] &lt;csv-path&gt; &lt;csv-schema-path&gt;
 						the command line parameter would be entered as:
 						</p>
 						<p>
-						<code>-p file:///c:/ADM_362/=file:///y:/UAT_2/ADM362B003/ADM_362/</code>
+						<code>-p file:/E:/MUPT_2/content/=C:\test-data\MUPT_2\content\</code>
 						</p>
 						<p>
-						Note that the paths are expressed as a URL, so characters (such as spaces) that are not permitted in URLs will need to be escaped 
+						Note that, if the paths are expressed as a URL, characters (such as spaces) that are not permitted in URLs will need to be escaped
 						(see <a href="#example">Example CSV Schemas</a> below).
 						</p>
 					</div>
