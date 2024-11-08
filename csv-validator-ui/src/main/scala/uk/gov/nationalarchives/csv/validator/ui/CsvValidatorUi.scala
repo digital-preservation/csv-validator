@@ -240,6 +240,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
       false
     }
 
+    txtCsvFile.setTransferHandler(fileHandler)
     final class FileDropHandler extends TransferHandler {
       override def canImport(support: TransferHandler.TransferSupport): Boolean = support.getDataFlavors.exists(_.isFlavorJavaFileListType)
 
@@ -277,7 +278,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
           }
         }
     }
-    txtCsvFile.setTransferHandler(fileHandler)
+
     private val csvFileChooser = new FileChooser(loadSettings match {
       case Some(s) =>
         s.lastCsvPath.toFile
