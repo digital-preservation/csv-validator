@@ -70,7 +70,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
         this.preferredSize = newSize
         this.pack()
       }
-      new ContentPanel(settings)
+      new ContentPanel(settings, this)
     }
   }
 
@@ -227,18 +227,24 @@ object CsvValidatorUi extends SimpleSwingApplication {
    *
    * @param settingsPanel The settings panel for the UI
    */
-  private class ContentPanel(settingsPanel: SettingsPanel) extends Panel {
-
+  private class ContentPanel(settingsPanel: SettingsPanel, parentFrame: SJXFrame) extends Panel {
+    private val lblCsvFile = new Label("CSV file:")
+    val fileHandler = new FileDropHandler
+    peer.setTransferHandler(fileHandler)
     private val layout = new DesignGridLayout(peer)
 
-    private val lblCsvFile = new Label("CSV file:")
     private val txtCsvFile = new JTextField(30)
 
-    final class FileDropHandler(fileExt: String, label: Label) extends TransferHandler {
+    private def showErrorDialog(message: String) = {
+      JOptionPane.showMessageDialog(parentFrame.peer, message, "Error", JOptionPane.ERROR_MESSAGE)
+      false
+    }
+
+    final class FileDropHandler extends TransferHandler {
       override def canImport(support: TransferHandler.TransferSupport): Boolean = support.getDataFlavors.exists(_.isFlavorJavaFileListType)
 
       @SuppressWarnings(Array("unchecked"))
-      override def importData(support: TransferHandler.TransferSupport): Boolean = {
+      override def importData(support: TransferHandler.TransferSupport): Boolean =
         if (!this.canImport(support)) false
         else {
           val potentialFiles = Try {
@@ -247,24 +253,31 @@ object CsvValidatorUi extends SimpleSwingApplication {
           potentialFiles match {
             case Failure(ex) => false
             case Success(files) =>
-              lazy val pathOfFirstFile = files.head.getAbsolutePath
-              if(files.length != 1) {
-                outputToReport(s"Error: Please drag only 1 file into the '${label.text}' text box.")
-                false
+              val numOfFilesDropped = files.length
+              lazy val filePaths = files.map(_.getAbsolutePath)
+              lazy val (file1Ext, file2Ext) = {
+                val fileExtensions = filePaths.map(_.split('.').last)
+                (fileExtensions.head, fileExtensions.last)
               }
-              else if(!pathOfFirstFile.endsWith(fileExt)) {
-                outputToReport(s"Error: Please drag only '$fileExt' files into the '${label.text}' text box.")
-                false
-              }
-              else {
-                (if(fileExt == ".csv") txtCsvFile else txtCsvSchemaFile).setText(pathOfFirstFile)
-                true
-              }
+
+              if(numOfFilesDropped > 2) showErrorDialog("Please only drop a maximum of 2 files")
+              else if (numOfFilesDropped == 2 && Set(file1Ext, file2Ext) != Set("csv", "csvs"))
+                showErrorDialog(s"You've dropped 1 '.$file1Ext' and 1 '.$file2Ext' file. \nPlease drop 1 '.csv' and 1 '.csvs' file.")
+              else filePaths.map { filePath =>
+                if(filePath.endsWith(".csv")) {
+                  txtCsvFile.setText(filePath)
+                  true
+                }
+                else if(filePath.endsWith(".csvs")) {
+                  txtCsvSchemaFile.setText(filePath)
+                  true
+                }
+                else showErrorDialog("Please drop only '.csv' and '.csvs' files")
+              }.head
           }
         }
-      }
     }
-    txtCsvFile.setTransferHandler(new FileDropHandler(".csv", lblCsvFile))
+    txtCsvFile.setTransferHandler(fileHandler)
     private val csvFileChooser = new FileChooser(loadSettings match {
       case Some(s) =>
         s.lastCsvPath.toFile
@@ -289,7 +302,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
 
     private val lblCsvSchemaFile = new Label("CSV Schema file:")
     private val txtCsvSchemaFile = new JTextField(30)
-    txtCsvSchemaFile.setTransferHandler(new FileDropHandler(".csvs", lblCsvSchemaFile))
+    txtCsvSchemaFile.setTransferHandler(fileHandler)
     private val csvSchemaFileChooser = new FileChooser(loadSettings match {
       case Some(s) =>
         s.lastCsvSchemaPath.toFile
@@ -316,6 +329,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
     private val separator1 = new Separator
 
     private val scrollPane = new ScrollPane
+    txtArReport.peer.setTransferHandler(fileHandler)
     scrollPane.viewportView = txtArReport
 
     private val btnValidate = new Button("Validate")
