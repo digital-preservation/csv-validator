@@ -16,6 +16,7 @@ import java.beans.{PropertyChangeEvent, PropertyChangeListener}
 import java.nio.file.Path
 import scala.swing.Dialog.Message
 import java.io.IOException
+import javax.swing.JTextField
 
 /**
  * Some simple helpers to ease
@@ -30,8 +31,8 @@ object ScalaSwingHelpers {
    * @param output A text component which displays the absolute path of the chosen file
    * @param locateOver A component over which the FileChooser dialog should be located
    */
-  def chooseFile(fileChooser: FileChooser, output: TextComponent, locateOver: Component) : Unit = {
-    chooseFile(fileChooser, {f => output.text = f.toAbsolutePath.toString; None}, locateOver)
+  def chooseFile(fileChooser: FileChooser, output: JTextField, locateOver: Component) : Unit = {
+    chooseFile(fileChooser, {f => output.setText(f.toAbsolutePath.toString); None}, locateOver)
   }
 
   /**
