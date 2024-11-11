@@ -261,9 +261,9 @@ object CsvValidatorUi extends SimpleSwingApplication {
                 (fileExtensions.head, fileExtensions.last)
               }
 
-              if(numOfFilesDropped > 2) showErrorDialog("Please only drop a maximum of 2 files")
+              if(numOfFilesDropped > 2) showErrorDialog("Drop a maximum of 2 files.")
               else if (numOfFilesDropped == 2 && Set(file1Ext, file2Ext) != Set("csv", "csvs"))
-                showErrorDialog(s"You've dropped 1 '.$file1Ext' and 1 '.$file2Ext' file. \nPlease drop 1 '.csv' and 1 '.csvs' file.")
+                showErrorDialog("Drop a single '.csv' file and its corresponding '.csvs' file.")
               else filePaths.map { filePath =>
                 if(filePath.endsWith(".csv")) {
                   txtCsvFile.setText(filePath)
@@ -273,7 +273,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
                   txtCsvSchemaFile.setText(filePath)
                   true
                 }
-                else showErrorDialog("Please drop only '.csv' and '.csvs' files")
+                else showErrorDialog("Drop only '.csv' and '.csvs' files.")
               }.head
           }
         }
