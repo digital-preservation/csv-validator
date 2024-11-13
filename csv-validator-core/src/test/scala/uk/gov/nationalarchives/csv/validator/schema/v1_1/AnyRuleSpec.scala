@@ -8,15 +8,12 @@
  */
 package uk.gov.nationalarchives.csv.validator.schema.v1_1
 
-import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
-import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.metadata.{Cell, Row}
 import uk.gov.nationalarchives.csv.validator.schema._
 
 import cats.data.Validated
 
-@RunWith(classOf[JUnitRunner])
 class AnyRuleSpec extends Specification {
 
   "AnyRule with a string literal behaviour" should  {

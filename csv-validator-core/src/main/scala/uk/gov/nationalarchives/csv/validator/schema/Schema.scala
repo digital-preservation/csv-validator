@@ -8,7 +8,6 @@
  */
 package uk.gov.nationalarchives.csv.validator.schema
 
-import org.apache.commons.io.FilenameUtils
 import uk.gov.nationalarchives.csv.validator.metadata.Row
 import util.parsing.input.Positional
 

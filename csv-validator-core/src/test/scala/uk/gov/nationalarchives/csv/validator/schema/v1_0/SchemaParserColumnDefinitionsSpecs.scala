@@ -11,14 +11,11 @@ package uk.gov.nationalarchives.csv.validator.schema.v1_0
 import java.io.StringReader
 
 
-import org.junit.runner.RunWith
-import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.{SchemaDefinitionError, FailMessage}
 import uk.gov.nationalarchives.csv.validator.schema._
 
 import cats.data.Validated
 
-@RunWith(classOf[JUnitRunner])
 class SchemaParserColumnDefinitionsSpecs extends SchemaSpecBase {
 
   import TestSchemaParser._

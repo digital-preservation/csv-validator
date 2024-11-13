@@ -8,9 +8,7 @@
  */
 package uk.gov.nationalarchives.csv.validator.schema
 
-import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
-import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.metadata.{Cell, Row}
 import uk.gov.nationalarchives.csv.validator.schema.v1_0._
 import uk.gov.nationalarchives.csv.validator.schema.v1_1.{XsdDateTimeWithTimeZoneRangeRule, XsdDateTimeWithTimeZoneRule}
@@ -22,7 +20,6 @@ import cats.data.Validated
  * User: Jim Collins
  * Date: 3/15/13
  */
-@RunWith(classOf[JUnitRunner])
 class DateRulesSpec extends Specification {
 
   val globalDirsOne = List(TotalColumns(1))

@@ -9,11 +9,8 @@
 package uk.gov.nationalarchives.csv.validator.schema.v1_0
 
 import java.io.StringReader
-import org.junit.runner.RunWith
-import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.schema._
 
-@RunWith(classOf[JUnitRunner])
 class SchemaParserSpecs extends SchemaSpecBase {
 
   import TestSchemaParser._
@@ -39,7 +36,7 @@ class SchemaParserSpecs extends SchemaSpecBase {
                       LastName: @IgnoreCase regex ("[a]")"""
 
       parse(new StringReader(schema)) must beLike {
-        case Failure(messages, _) => messages mustEqual s"Schema version declaration 'version 1.0' missing or incorrect"
+        case Failure(messages, _) => messages mustEqual "Error parsing schema version 1"
       }
     }
 
@@ -59,7 +56,7 @@ class SchemaParserSpecs extends SchemaSpecBase {
                       LastName: @IgnoreCase regex ("[a]")"""
 
       parse(new StringReader(schema)) must beLike {
-        case Failure(messages, _) => messages mustEqual "Invalid column directive"
+        case Failure(messages, _) => messages mustEqual "Invalid column definition"
       }
     }
 

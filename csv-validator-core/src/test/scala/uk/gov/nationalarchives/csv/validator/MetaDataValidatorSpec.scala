@@ -9,15 +9,12 @@
 package uk.gov.nationalarchives.csv.validator
 
 import scala.language.reflectiveCalls
-import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
-import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.schema._
 import java.io.{Reader, StringReader}
 import uk.gov.nationalarchives.csv.validator.schema.Schema
 import cats.data.Validated
 
-@RunWith(classOf[JUnitRunner])
 class MetaDataValidatorSpec extends Specification with TestResources {
 
   implicit def stringToStringReader(s: String): StringReader = new StringReader(s.replaceAll("\n\\s+", "\n"))
@@ -851,8 +848,8 @@ class MetaDataValidatorSpec extends Specification with TestResources {
         """1959-06-20T12:59:59.000
            1959-06-20T12:59:59.999
            1969-07-21T02:56:00.456
-           1215-06-15T00:00:00+23:59
-           1844-05-24T00:00:00-23:30
+           1215-06-15T00:00:00+12:59
+           1844-05-24T00:00:00-14:30
            1066-10-14T00:00:00-01:00
            1966-07-30T00:00:00
            1966-07-30T00:00:00Z

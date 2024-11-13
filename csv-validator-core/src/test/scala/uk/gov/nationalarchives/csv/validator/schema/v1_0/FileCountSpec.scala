@@ -8,9 +8,7 @@
  */
 package uk.gov.nationalarchives.csv.validator.schema.v1_0
 
-import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
-import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.{FILE_SEPARATOR, TestResources}
 import uk.gov.nationalarchives.csv.validator.Util.TypedPath
 import uk.gov.nationalarchives.csv.validator.metadata.{Cell, Row}
@@ -20,7 +18,6 @@ import cats.syntax.validated._
 import java.nio.file.Paths
 import java.nio.file.Path
 
-@RunWith(classOf[JUnitRunner])
 class FileCountSpec extends Specification with TestResources {
 
   override val threeFilesPath = Paths.get(baseResourcePkgPath).getParent.getParent.resolve("fileCountTestFiles/threeFiles").toAbsolutePath.toString

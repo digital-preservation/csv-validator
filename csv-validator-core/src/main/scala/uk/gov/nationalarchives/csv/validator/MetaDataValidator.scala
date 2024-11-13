@@ -12,15 +12,16 @@ package uk.gov.nationalarchives.csv.validator
 import cats.data.{Chain, Validated, ValidatedNel}
 import cats.syntax.all._
 import com.univocity.parsers.csv.{CsvParser, CsvParserSettings}
-import org.apache.commons.io.input.BOMInputStream
+import uk.gov.nationalarchives.csv.validator.Utf8Validator.Utf8ValidationError
 import uk.gov.nationalarchives.csv.validator.api.TextFile
 import uk.gov.nationalarchives.csv.validator.metadata.{Cell, Row}
 import uk.gov.nationalarchives.csv.validator.schema._
-import uk.gov.nationalarchives.utf8.validator.{Utf8Validator, ValidationHandler}
+import uk.gov.nationalarchives.csv.validator.Utf8Validator
 
-import java.io.{BufferedInputStream, IOException, InputStreamReader => JInputStreamReader, LineNumberReader => JLineNumberReader, Reader => JReader}
+import java.io.{BufferedInputStream, FileInputStream, IOException, InputStreamReader => JInputStreamReader, LineNumberReader => JLineNumberReader, Reader => JReader}
 import java.nio.charset.{Charset, StandardCharsets}
-import java.nio.file.{Files, Path}
+import java.nio.file.Path
+
 import scala.annotation.tailrec
 import scala.language.{postfixOps, reflectiveCalls}
 import scala.util.{Try, Using}
@@ -111,32 +112,8 @@ trait MetaDataValidator {
     rowCallback: MetaDataValidation[Any] => Unit
   ): Boolean = {
 
-    val separator: Char = schema.globalDirectives.collectFirst {
-      case Separator(sep) =>
-        sep
-    }.getOrElse(CSV_RFC1480_SEPARATOR)
-
-    val quote: Option[Char] = schema.globalDirectives.collectFirst {
-      case q: Quoted =>
-        CSV_RFC1480_QUOTE_CHARACTER
-    }
-
-    val settings = new CsvParserSettings()
-    val format = settings.getFormat
-    format.setDelimiter(separator)
-    quote.map(format.setQuote)
-
-    /* Set RFC 1480 settings */
-    settings.setIgnoreLeadingWhitespaces(false)
-    settings.setIgnoreTrailingWhitespaces(false)
-    settings.setLineSeparatorDetectionEnabled(true)
-    // TODO(AR) should we be friendly and auto-detect line separator, or enforce RFC 1480?
-    format.setQuoteEscape(CSV_RFC1480_QUOTE_ESCAPE_CHARACTER)
-    //format.setLineSeparator(CSV_RFC1480_LINE_SEPARATOR)  // CRLF
-
-    //we need a better CSV Reader!
+    val parser: CsvParser = createCsvParser(schema)
     val result : Try[Boolean] = Using {
-      val parser = new CsvParser(settings)
       parser.beginParsing(csv)
       parser
     } {
@@ -193,8 +170,37 @@ trait MetaDataValidator {
     }
   }
 
+  def createCsvParser(schema: Schema): CsvParser = {
+    val separator: Char = schema.globalDirectives.collectFirst {
+      case Separator(sep) =>
+        sep
+    }.getOrElse(CSV_RFC1480_SEPARATOR)
+
+    val quote: Option[Char] = schema.globalDirectives.collectFirst {
+      case q: Quoted =>
+        CSV_RFC1480_QUOTE_CHARACTER
+    }
+
+    val settings = new CsvParserSettings()
+    val format = settings.getFormat
+    format.setDelimiter(separator)
+    quote.map(format.setQuote)
+
+    /* Set RFC 1480 settings */
+    settings.setIgnoreLeadingWhitespaces(false)
+    settings.setIgnoreTrailingWhitespaces(false)
+    settings.setLineSeparatorDetectionEnabled(true)
+    // TODO(AR) should we be friendly and auto-detect line separator, or enforce RFC 1480?
+    format.setQuoteEscape(CSV_RFC1480_QUOTE_ESCAPE_CHARACTER)
+    //format.setLineSeparator(CSV_RFC1480_LINE_SEPARATOR)  // CRLF
+
+    //we need a better CSV Reader!
+    new CsvParser(settings)
+  }
+
   /**
     * Return the column at the index columnIndex
+ *
     * @param rows the row iterator
     * @param columnIndex the index of the column
     * @return List of string of all element at the columnIndex
@@ -236,24 +242,16 @@ trait MetaDataValidator {
 
   def validateUtf8Encoding(file: Path): MetaDataValidation[Any] = {
 
-    val validationHandler = new ValidationHandler {
-      var errors: List[(Long, String)] = List()
 
-      override def error(message: String, byteOffset: Long): Unit = {
-        errors ::= (byteOffset, message)
-      }
-    }
+    val errors = Utf8Validator().validate(file)
 
-    new Utf8Validator(validationHandler).validate(file.toFile)
-
-    validationHandler.errors.toNel match {
+    errors.toNel match {
       case None => true.validNel
-      case Some(nel) => {
+      case Some(nel) =>
         val ret = nel.reverse.map {
-          case (offset, message) => FailMessage(ValidationError, s"[UTF-8 Error][@$offset] ${message}")
+          case Utf8ValidationError(offset, message) => FailMessage(ValidationError, s"[UTF-8 Error][@$offset] $message")
         }
         ret.invalid
-      }
     }
   }
 
@@ -307,13 +305,8 @@ trait MetaDataValidator {
 
   protected def withReader[B](textFile: TextFile)(fn: JReader => B): B = {
     def inputStreamReader(encoding: Charset) : JInputStreamReader = {
-      val bis = new BufferedInputStream(Files.newInputStream(textFile.file))
-      val is = if(encoding == StandardCharsets.UTF_8) {
-        new BOMInputStream(bis)
-      } else {
-        bis
-      }
-      new JInputStreamReader(is, encoding)
+      val bis = new BufferedInputStream(new FileInputStream(textFile.file.toString))
+      new JInputStreamReader(bis, encoding)
     }
 
     Using(inputStreamReader(textFile.encoding))(fn) match {

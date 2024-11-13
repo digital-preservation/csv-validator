@@ -8,7 +8,8 @@
  */
 package uk.gov.nationalarchives.csv.validator.schema
 
-import org.gfccollective.semver.SemVer
+import just.decver.DecVer
+import just.semver.SemVer
 import uk.gov.nationalarchives.csv.validator.schema.v1_0.{SchemaValidator => SchemaValidator1_0}
 import uk.gov.nationalarchives.csv.validator.schema.v1_1.{SchemaValidator => SchemaValidator1_1}
 
@@ -32,10 +33,16 @@ object SchemaValidator {
   }
 
    def versionValid(version: String): Option[String] =  {
-    if (SemVer(version) > SemVer(Schema.version))
-      Some(s"Invalid schema version. This version of the csv validator supports only ${Schema.version} and below.")
-    else
-      None
+     val thisVersionGreater = for {
+       thisVersion <- DecVer.parse(version)
+       schemaVersion <- DecVer.parse(Schema.version)
+     } yield thisVersion > schemaVersion
+
+     thisVersionGreater match {
+       case Left(_) => Some(s"Error parsing schema version $version")
+       case Right(true) => Some(s"Invalid schema version. This version of the csv validator supports only ${Schema.version} and below.")
+       case Right(false) => None
+     }
   }
 }
 

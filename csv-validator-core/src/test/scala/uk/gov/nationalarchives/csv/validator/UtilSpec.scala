@@ -8,13 +8,10 @@
  */
 package uk.gov.nationalarchives.csv.validator
 
-import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
-import org.specs2.runner.JUnitRunner
 
 import java.nio.file.Paths
 
-@RunWith(classOf[JUnitRunner])
 class UtilSpec extends Specification with TestResources  {
 
   "Util" should {

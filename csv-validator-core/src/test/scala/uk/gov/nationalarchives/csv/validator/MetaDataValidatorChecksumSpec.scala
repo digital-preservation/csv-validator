@@ -9,9 +9,7 @@
 package uk.gov.nationalarchives.csv.validator
 
 
-import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
-import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.schema._
 import java.io.{Reader, StringReader}
 
@@ -19,7 +17,6 @@ import cats.data.Validated
 import uk.gov.nationalarchives.csv.validator.schema.Schema
 import uk.gov.nationalarchives.csv.validator.Util.TypedPath
 
-@RunWith(classOf[JUnitRunner])
 class MetaDataValidatorChecksumSpec extends Specification with TestResources {
 
   implicit def stringToStringReader(s: String): StringReader = new StringReader(s.replaceAll("\n\\s+", "\n"))

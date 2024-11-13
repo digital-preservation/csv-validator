@@ -10,15 +10,12 @@ package uk.gov.nationalarchives.csv.validator
 
 import java.io.{Reader, StringReader}
 
-import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
-import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.schema.{Schema, _}
 
 import scala.language.reflectiveCalls
 import cats.data.Validated
 
-@RunWith(classOf[JUnitRunner])
 class NotEmptyBugTest extends Specification with TestResources {
 
   implicit def stringToStringReader(s: String): StringReader = new StringReader(s.replaceAll("\n\\s+", "\n"))

@@ -10,8 +10,6 @@ package uk.gov.nationalarchives.csv.validator.schema.v1_0
 
 import java.net.{URI, URISyntaxException}
 import java.security.MessageDigest
-import org.joda.time.format.{DateTimeFormat, DateTimeFormatterBuilder, ISODateTimeFormat}
-import org.joda.time.{DateTime, Interval}
 import uk.gov.nationalarchives.csv.validator.Util.{FileSystem, TypedPath, children, descendants}
 import uk.gov.nationalarchives.csv.validator.api.CsvValidator._
 import uk.gov.nationalarchives.csv.validator.metadata.Row
@@ -20,12 +18,24 @@ import uk.gov.nationalarchives.csv.validator.schema._
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.language.higherKinds
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 import cats.effect.{IO, Sync}
 import fs2.{Chunk, Pipe, Stream, hash, io}
-import cats.data.{ValidatedNel, Validated}
+import cats.data.{Validated, ValidatedNel}
 import cats.syntax.all._
+import fs2.io.file.Flag
+import sun.jvm.hotspot.utilities.Interval
+
 import java.nio.file.{Files, Path}
+import java.nio.file.Files
+import java.text.ParsePosition
+import java.time.{Duration, Instant, LocalDate, LocalDateTime, LocalTime, ZoneId, ZoneOffset, ZonedDateTime}
+import java.time.format.DateTimeFormatter._
+import java.time.format.{DateTimeFormatterBuilder, ResolverStyle}
+import java.time.temporal.{ChronoField, ChronoUnit, TemporalAccessor}
+import java.util.Locale
+import scala.concurrent.Await
+import scala.concurrent.duration.DurationInt
 
 case class OrRule(left: Rule, right: Rule) extends Rule("or") {
   override def evaluate(columnIndex: Int, row: Row,  schema: Schema, mayBeLast: Option[Boolean] = None): RuleValidation[Any] = {
@@ -192,46 +202,73 @@ case class UriRule() extends Rule("uri") {
 }
 
 
-
 object IsoDateTimeParser extends DateParser {
-  val isoDateTimeFormatter = ISODateTimeFormat.dateTimeParser().withOffsetParsed()
-  def parse(dateStr: String): Try[DateTime] = Try(isoDateTimeFormatter.parseDateTime(dateStr))
+  def parse(dateStr: String): Try[TemporalAccessor] = DateParseUtils.parseDateTime(dateStr)
+}
+
+object DateParseUtils {
+  def parseDateTime(dateStr: String): Try[TemporalAccessor] = {
+    val fmt = new DateTimeFormatterBuilder()
+      .append(ISO_LOCAL_DATE)
+      .optionalStart()
+      .appendLiteral('T')
+      .append(ISO_LOCAL_TIME)
+      .optionalEnd()
+      .optionalStart()
+      .append(ofPattern("XXX"))
+      .optionalEnd()
+      .toFormatter();
+
+    Try(fmt.parse(dateStr))
+  }
 }
 
 object XsdDateParser extends DateParser {
-  val xsdDateFormatter = new DateTimeFormatterBuilder()
-    .append(ISODateTimeFormat.dateElementParser)
-    .appendOptional(
-      new DateTimeFormatterBuilder()
-        .appendTimeZoneOffset("Z", true, 2, 4).toParser
-    ).toFormatter
 
-  def parse(dateStr: String): Try[DateTime] = Try(xsdDateFormatter.parseDateTime(dateStr))
+  def parse(dateStr: String): Try[TemporalAccessor] = DateParseUtils.parseDateTime(dateStr)
 }
 
 object IsoTimeParser extends DateParser {
-  val isoTimeFormatter = ISODateTimeFormat.timeParser
-  def parse(dateStr: String): Try[DateTime] = Try(isoTimeFormatter.parseDateTime(dateStr))
+
+  def parse(dateStr: String): Try[TemporalAccessor] =
+    Try(LocalTime.parse(dateStr, ISO_TIME))
 }
 
 object UkDateParser extends DateParser {
-  val fmt = DateTimeFormat.forPattern(UkDateFormat)
-  def parse(dateStr: String): Try[DateTime] = Try(fmt.parseDateTime(dateStr))
+  val fmt = ofPattern(UkDateFormat)
+    .withResolverStyle(ResolverStyle.STRICT)
+    .withLocale(Locale.UK)
+  def parse(dateStr: String): Try[TemporalAccessor] = {
+    Try(fmt.parse(dateStr))
+  }
 }
 
 abstract class DateRangeRule(name: String, dateRegex: String, dateParser: DateParser) extends Rule(name) {
   import dateParser.parse
   val from: String
   val to: String
-  lazy val fromDate = parse(from)
-  lazy val toDate = parse(to)
+  val fromDate = parse(from).map(toZonedDateTime)
+  val toDate = parse(to).map(toZonedDateTime)
+
+  private def toZonedDateTime(dt: TemporalAccessor): ZonedDateTime = {
+    val year = Try(dt.get(ChronoField.YEAR)).getOrElse(Try(dt.get(ChronoField.YEAR_OF_ERA)).getOrElse(0))
+    val month = Try(dt.get(ChronoField.MONTH_OF_YEAR)).getOrElse(1)
+    val day = Try(dt.get(ChronoField.DAY_OF_MONTH)).getOrElse(1)
+    val hours = Try(dt.get(ChronoField.HOUR_OF_DAY)).getOrElse(0)
+    val minutes = Try(dt.get(ChronoField.MINUTE_OF_HOUR)).getOrElse(0)
+    val seconds = Try(dt.get(ChronoField.SECOND_OF_MINUTE)).getOrElse(0)
+    val nano = Try(dt.get(ChronoField.NANO_OF_SECOND)).getOrElse(0)
+    val offset = Try(dt.get(ChronoField.OFFSET_SECONDS)).getOrElse(0)
+    ZonedDateTime.of(year, month, day, hours, minutes, seconds, nano, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds(offset))).withZoneSameInstant(ZoneId.of("UTC"))
+  }
 
   override def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema, mayBeLast: Option[Boolean] = None): Boolean = {
     cellValue matches dateRegex match {
       case true => {
+
         val inRange = for ( frmDt <- fromDate; toDt <- toDate; cellDt <- parse(cellValue)) yield {
-          val interval = new Interval(frmDt,toDt.plusMillis(1))
-          interval.contains(cellDt)
+          val cellZoned = toZonedDateTime(cellDt)
+          (cellZoned.isAfter(frmDt) && cellZoned.isBefore(toDt)) || (cellZoned == frmDt || cellZoned == toDt)
         }
 
         inRange.getOrElse(false)
@@ -380,16 +417,14 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
         hashes(algorithm.toLowerCase().replace("-", ""))
       }
 
-      val bufSize = 16384 //16KB
-
       def checksummer[F[_]](implicit F: fs2.io.file.Files[F]): Stream[F, Byte] =
         fs2.io.file.Files[F]
-          .readAll(f, bufSize)
+          .readAll(fs2.io.file.Path(f))
         . through(getHash(algorithm))
 
       import cats.effect.unsafe.implicits.global
 
-      checksummer[IO].compile.toVector.attempt.unsafeRunSync()
+      Await.result(checksummer[IO].compile.toVector.attempt.unsafeToFuture(), 10.seconds)
         .map(_.map("%02x" format _))
         .map(_.mkString)
         .leftMap(_.getMessage)

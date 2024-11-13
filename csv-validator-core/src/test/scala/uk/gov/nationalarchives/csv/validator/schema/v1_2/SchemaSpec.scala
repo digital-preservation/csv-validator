@@ -8,8 +8,6 @@
  */
 package uk.gov.nationalarchives.csv.validator.schema.v1_2
 
-import org.junit.runner.RunWith
-import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.metadata.{Cell, Row}
 import uk.gov.nationalarchives.csv.validator.schema.{TotalColumns, Literal, SchemaSpecBase}
 import uk.gov.nationalarchives.csv.validator.schema.v1_1.NoExt
@@ -17,7 +15,6 @@ import uk.gov.nationalarchives.csv.validator.schema.v1_1.NoExt
 /**
  * Created by rhubner on 4/26/16.
  */
-@RunWith(classOf[JUnitRunner])
 class SchemaSpec extends SchemaSpecBase {
 
   "UriDecode Arg provider" should {

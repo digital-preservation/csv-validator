@@ -8,9 +8,7 @@
  */
 package uk.gov.nationalarchives.csv.validator.api
 
-import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
-import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.TestResources
 import cats.data.Validated
 import uk.gov.nationalarchives.csv.validator.AllErrorsMetaDataValidator
@@ -21,7 +19,6 @@ import java.nio.file.Paths
 /**
  * Created by rhubner on 11/12/15.
  */
-@RunWith(classOf[JUnitRunner])
 class CsvValidatorFileEncodingSpec extends Specification with TestResources {
 
   "Validation" should {

@@ -9,15 +9,12 @@
 package uk.gov.nationalarchives.csv.validator.schema.v1_0
 
 import java.io.StringReader
-import org.junit.runner.RunWith
 import org.specs2.mutable._
-import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.{EOL, FailMessage, SchemaDefinitionError}
 import uk.gov.nationalarchives.csv.validator.schema._
 import uk.gov.nationalarchives.csv.validator.TestHelper._
 import cats.data.{NonEmptyList, Validated}
 
-@RunWith(classOf[JUnitRunner])
 class SchemaParserRulesSpec extends SchemaSpecBase {
 
   val emptyPathSubstitutions = List[(String,String)]()

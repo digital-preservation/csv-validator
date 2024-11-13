@@ -32,14 +32,18 @@ object SystemExitCodes extends Enumeration {
   case object InvalidCsv extends SystemExitCode(3)
 }
 
-object CsvValidatorCmdApp extends App {
+object CsvValidatorCmdApp {
 
   type ExitMessage = String
   type ExitStatus = (ExitMessage, SystemExitCodes.SystemExitCode)
 
-  val (exitMessage, systemExitCode) = run(args)
-  println(exitMessage)
-  System.exit(systemExitCode.code)
+  def main(args: Array[String]): Unit = {
+    val (exitMessage, systemExitCode) = run(args)
+    println(exitMessage)
+    System.exit(systemExitCode.code)
+  }
+
+
 
   case class Config(traceParser: Boolean = false,
                     failFast: Boolean = false,
@@ -77,7 +81,7 @@ object CsvValidatorCmdApp extends App {
     //parse the command line arguments
     parser.parse(args, new Config()) map {
       config =>
-        validate(
+    validate(
           TextFile(config.csvPath, config.csvEncoding, !config.disableUtf8Validation),
           TextFile(config.csvSchemaPath, config.csvSchemaEncoding),
           config.failFast,
@@ -85,7 +89,7 @@ object CsvValidatorCmdApp extends App {
           config.caseSensitivePaths,
           config.traceParser,
           config.progressCallback
-        )
+    )
     } getOrElse {
       //arguments are bad, usage message will have been displayed
       ("", SystemExitCodes.IncorrectArguments)
@@ -138,6 +142,20 @@ object CsvValidatorCmdApp extends App {
     case Validated.Invalid(failures) =>
       println(prettyPrint(failures))
     case _ =>
+  }
+
+  def loadCsvFile(
+    csvFile: TextFile,
+    schemaFile: TextFile,
+    failFast: Boolean,
+    pathSubstitutionsList: List[SubstitutePath],
+    enforceCaseSensitivePathChecks: Boolean,
+    trace: Boolean
+  ): Validated[NonEmptyList[FailMessage], List[Array[String]]] = {
+    val validator = createValidator(failFast, pathSubstitutionsList, enforceCaseSensitivePathChecks, trace)
+    validator.parseSchema(schemaFile).map { schema =>
+      validator.loadCsvFile(csvFile, schema)
+    }
   }
 
   def validate(

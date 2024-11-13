@@ -83,7 +83,7 @@ object Util {
   }
 
   def descendants[P >: Path](path: Path, globPattern: String) : Seq[Path] = {
-    val pathMatcher = FileSystems.getDefault.getPathMatcher(s"glob:$globPattern")
+    val pathMatcher = FileSystems.getDefault. getPathMatcher(s"glob:$globPattern")
     descendants(path, pathMatcher.matches(_))
   }
 

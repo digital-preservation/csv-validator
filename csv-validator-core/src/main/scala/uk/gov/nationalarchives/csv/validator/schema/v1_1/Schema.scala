@@ -8,13 +8,15 @@
  */
 package uk.gov.nationalarchives.csv.validator.schema.v1_1
 
-import org.apache.commons.io.FilenameUtils
 import uk.gov.nationalarchives.csv.validator.metadata.Row
 import uk.gov.nationalarchives.csv.validator.schema._
 
 case class NoExt(value: ArgProvider) extends ArgProvider {
 
-  def referenceValue(columnIndex: Int, row: Row, schema: Schema): Option[String] = value.referenceValue(columnIndex, row, schema).map(FilenameUtils.removeExtension(_))
+  def removeExtension(fileName: String): String =
+    if (fileName.contains(".")) fileName.split("\\.").dropRight(1).mkString(".") else fileName
+
+  def referenceValue(columnIndex: Int, row: Row, schema: Schema): Option[String] = value.referenceValue(columnIndex, row, schema).map(removeExtension)
 
   def toError = "noExt(" + value.toError + ")"
 

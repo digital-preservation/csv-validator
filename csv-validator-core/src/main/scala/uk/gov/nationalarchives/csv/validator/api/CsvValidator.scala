@@ -14,8 +14,9 @@ import uk.gov.nationalarchives.csv.validator._
 import uk.gov.nationalarchives.csv.validator.schema.{Schema, SchemaParser}
 
 import java.io.{Reader => JReader}
-import java.nio.charset.{Charset => JCharset}
 import java.nio.file.Path
+import java.nio.charset.{Charset => JCharset}
+import scala.jdk.CollectionConverters._
 
 object CsvValidator {
 
@@ -70,6 +71,12 @@ trait CsvValidator extends SchemaParser {
       case None => ().valid
       case Some(errors) => Validated.invalid(errors)
     }
+  }
+
+  def loadCsvFile(csvFile: TextFile, csvSchema: Schema): List[Array[String]] = {
+    withReader(csvFile) { reader =>
+      createCsvParser(csvSchema).parseAll(reader)
+    }.asScala.toList
   }
 
   def validateCsvFile(

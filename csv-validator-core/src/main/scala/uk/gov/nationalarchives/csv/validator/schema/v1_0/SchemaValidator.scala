@@ -8,14 +8,13 @@
  */
 package uk.gov.nationalarchives.csv.validator.schema.v1_0
 
-import java.security.MessageDigest
-
 import uk.gov.nationalarchives.csv.validator._
 import uk.gov.nationalarchives.csv.validator.schema._
+import uk.gov.nationalarchives.csv.validator.schema.v1_1.Concat
 
+import java.security.MessageDigest
 import scala.collection.immutable.TreeMap
 import scala.util.Try
-import uk.gov.nationalarchives.csv.validator.schema.v1_1.Concat
 
 /**
  * Set of rules to validate the schema (compatible with the CSV Schema 1.0)
@@ -174,7 +173,11 @@ class SchemaValidator {
 
    def dateCheck(rule: Rule): Boolean = rule match {
      case dateRule: DateRangeRule =>  {
-       val diff = for (frmDt <- dateRule.fromDate; toDt <- dateRule.toDate) yield frmDt.isBefore(toDt) || frmDt.isEqual(toDt)
+
+       val diff = for (frmDt <- dateRule.fromDate; toDt <- dateRule.toDate) yield {
+
+         frmDt.isBefore(toDt) || frmDt == toDt
+       }
 
        diff match {
          case scala.util.Success(false) => false

@@ -10,11 +10,8 @@ package uk.gov.nationalarchives.csv.validator.schema.v1_0
 
 import java.io.StringReader
 
-import org.junit.runner.RunWith
-import org.specs2.runner.JUnitRunner
 import uk.gov.nationalarchives.csv.validator.schema._
 
-@RunWith(classOf[JUnitRunner])
 class SchemaParserTotalColumnsSpec extends SchemaSpecBase {
 
   import TestSchemaParser._

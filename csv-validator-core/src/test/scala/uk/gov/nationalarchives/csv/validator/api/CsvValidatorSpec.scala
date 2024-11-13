@@ -9,9 +9,7 @@
 package uk.gov.nationalarchives.csv.validator.api
 
 import java.io.StringReader
-import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
-import org.specs2.runner.JUnitRunner
 import cats.data.Validated
 import uk.gov.nationalarchives.csv.validator._
 import uk.gov.nationalarchives.csv.validator.schema.Schema
@@ -19,7 +17,6 @@ import uk.gov.nationalarchives.csv.validator.api.CsvValidator.SubstitutePath
 
 import java.nio.file.Paths
 
-@RunWith(classOf[JUnitRunner])
 class CsvValidatorSpec extends Specification with TestResources {
 
   "Parsing schema" should {

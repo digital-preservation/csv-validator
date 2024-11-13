@@ -9,7 +9,7 @@
 package uk.gov.nationalarchives.csv.validator.ui
 
 import cats.data.Validated.Invalid
-import cats.data.ValidatedNel
+import cats.data.{Validated, ValidatedNel}
 import net.java.dev.designgridlayout._
 import uk.gov.nationalarchives.csv.validator.api.TextFile
 import uk.gov.nationalarchives.csv.validator.cmd.{CsvValidatorCmdApp, SystemExitCodes}
@@ -29,20 +29,25 @@ import java.util.Properties
 import java.util.jar.{Attributes, Manifest}
 import javax.swing._
 import javax.swing.filechooser.FileNameExtensionFilter
-import javax.swing.table.DefaultTableModel
+import javax.swing.table.{DefaultTableModel, TableColumn}
 import scala.jdk.CollectionConverters.CollectionHasAsScala
 import scala.language.reflectiveCalls
 import scala.swing.GridBagPanel.Anchor
 import scala.swing.PopupMenuImplicits._
 import scala.swing._
 import scala.util.{Failure, Success, Try, Using}
-
+import scala.collection.mutable.{Map => MutableMap}
 /**
  * Simple GUI for the CSV Validator
  *
  * @author Adam Retter <adam.retter@googlemail.com>
  */
 object CsvValidatorUi extends SimpleSwingApplication {
+
+  val txtCsvSchemaFile = new JTextField(30)
+
+  val txtCsvFile = new JTextField(30)
+
   override def startup(args: Array[String]) : Unit = {
     try {
       UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName)
@@ -233,8 +238,6 @@ object CsvValidatorUi extends SimpleSwingApplication {
     peer.setTransferHandler(fileHandler)
     private val layout = new DesignGridLayout(peer)
 
-    private val txtCsvFile = new JTextField(30)
-
     private def showErrorDialog(message: String) = {
       JOptionPane.showMessageDialog(parentFrame.peer, message, "Error", JOptionPane.ERROR_MESSAGE)
       false
@@ -302,7 +305,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
     }
 
     private val lblCsvSchemaFile = new Label("CSV Schema file:")
-    private val txtCsvSchemaFile = new JTextField(30)
+
     txtCsvSchemaFile.setTransferHandler(fileHandler)
     private val csvSchemaFileChooser = new FileChooser(loadSettings match {
       case Some(s) =>
@@ -480,6 +483,62 @@ object CsvValidatorUi extends SimpleSwingApplication {
     private val cbEnforceCaseSensitivePathChecks = new CheckBox("Enforce case-sensitive file path checks?")
     cbEnforceCaseSensitivePathChecks.tooltip = "Performs additional checks to ensure that the case of file-paths in the CSV file match those of the filesystem"
 
+    def csvRows: List[Array[String]] = {
+      val csvFilePath = Path.of(txtCsvFile.getText)
+      val csvFile = TextFile(csvFilePath, csvEncoding, validateUtf8)
+      val schemaFile = TextFile(Path.of(txtCsvSchemaFile.getText), csvSchemaEncoding)
+      val csvRows = CsvValidatorCmdApp.loadCsvFile(csvFile, schemaFile, failOnFirstError, Nil, enforceCaseSensitivePathChecks, trace = false) match {
+        case Validated.Valid(a) =>
+          a
+        case Invalid(e) =>
+          throw new Exception(e.map(_.message).toList.mkString)
+      }
+
+
+    }
+
+
+    private def tableAddPath(csvRows: List[Array[String]]) = new Table(0, 3) {
+      preferredViewportSize = new Dimension(500, 70)
+      val identifierIdx = csvRows.headOption
+        .map(_.indexOf("identifier"))
+        .map { idx =>
+          if(csvRows.tail.head(idx).startsWith("file://")) {
+
+          }
+        }
+      val frame = new JFrame("Table with Text Fields and Drop Down");
+      frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+      frame.setSize(500, 300);
+
+      // Step 1: Define the table model
+      val addPathModel = new DefaultTableModel(Array[Object]("Text Field 1", "Text Field 2", "Dropdown"), 0);
+
+      // Step 2: Create the JTable and set the model
+      val table = new JTable(addPathModel);
+
+      // Step 3: Configure column editors for text fields and dropdown
+      val textFieldColumn1: TableColumn = table.getColumnModel.getColumn(0);
+      val textFieldColumn2: TableColumn = table.getColumnModel.getColumn(1);
+      val dropdownColumn: TableColumn = table.getColumnModel.getColumn(2);
+
+      // Default text editor for text field columns
+      textFieldColumn1.setCellEditor(new DefaultCellEditor(new JTextField()));
+      textFieldColumn2.setCellEditor(new DefaultCellEditor(new JTextField()));
+
+      // Drop-down editor for the dropdown column
+      val  options = Array("Option 1", "Option 2", "Option 3")
+      val comboBox = new JComboBox[String](options);
+      dropdownColumn.setCellEditor(new DefaultCellEditor(comboBox));
+
+      // Add the table to a scroll pane and add to the frame
+      frame.add(new JScrollPane(table));
+      frame.setVisible(true);
+      model = addPathModel
+
+
+    }
+
     private val tblPathSubstitutions = new Table(0, 2) {
       preferredViewportSize = new Dimension(500, 70)
       model = new DefaultTableModel(Array[Object]("From", "To"), 0)
@@ -505,7 +564,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
 
     private val spTblPathSubstitutions = new ScrollPane(tblPathSubstitutions)
     private val btnAddPathSubstitution = new Button("Add Path Substitution...")
-    btnAddPathSubstitution.reactions += onClick(addToTableDialog(parentFrame, "Add Path Substitution...", tblPathSubstitutions, tblPathSubstitutions.addRow))
+    btnAddPathSubstitution.reactions += onClick(addToTableDialog(parentFrame, "Add Path Substitution...", tableAddPath(csvRows), tblPathSubstitutions.addRow))
 
     private val settingsGroupLayout = new GridBagPanel {
       private val c = new Constraints

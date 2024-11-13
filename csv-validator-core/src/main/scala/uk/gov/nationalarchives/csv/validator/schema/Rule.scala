@@ -8,7 +8,6 @@
  */
 package uk.gov.nationalarchives.csv.validator.schema
 
-import org.joda.time.DateTime
 import uk.gov.nationalarchives.csv.validator.metadata.Row
 
 import scala.collection.mutable.{ListBuffer => MutableListBuffer, Map => MutableMap}
@@ -17,6 +16,8 @@ import scala.util.parsing.input.Positional
 import java.util.regex.Pattern
 import cats.data.ValidatedNel
 import cats.syntax.validated._
+
+import java.time.temporal.{Temporal, TemporalAccessor, TemporalAmount}
 
 abstract class Rule(name: String, val argProviders: ArgProvider*) extends Positional {
 
@@ -125,7 +126,7 @@ abstract class PatternRule(name: String, pattern: String) extends Rule(name) {
 }
 
 trait DateParser {
-  def parse(dateStr: String): Try[DateTime]
+  def parse(dateStr: String): Try[TemporalAccessor]
 }
 
 abstract class DateRule(name: String, dateRegex: String, dateParser: DateParser) extends PatternRule(name, dateRegex) {
