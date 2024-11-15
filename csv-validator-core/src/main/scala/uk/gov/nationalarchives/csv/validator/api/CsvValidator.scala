@@ -10,12 +10,15 @@ package uk.gov.nationalarchives.csv.validator.api
 
 import cats.data.{Chain, Validated, ValidatedNel}
 import cats.implicits._
+import com.univocity.parsers.csv.{CsvParser, CsvParserSettings}
 import uk.gov.nationalarchives.csv.validator._
-import uk.gov.nationalarchives.csv.validator.schema.{Schema, SchemaParser}
+import uk.gov.nationalarchives.csv.validator.schema.{Quoted, Schema, SchemaParser, Separator}
 
 import java.io.{Reader => JReader}
 import java.nio.charset.{Charset => JCharset}
 import java.nio.file.Path
+import scala.jdk.CollectionConverters._
+import scala.util.Try
 
 object CsvValidator {
 
@@ -71,7 +74,19 @@ trait CsvValidator extends SchemaParser {
       case Some(errors) => Validated.invalid(errors)
     }
   }
-
+  
+  
+  
+  def loadCsvFile(csvFile: TextFile, csvSchemaFile: TextFile): List[Array[String]] = {
+    parseSchema(csvSchemaFile) match {
+      case Validated.Valid(schema) =>
+        withReader(csvFile) { reader =>
+          createCsvParser(schema).parseAll(reader)
+        }.asScala.toList  
+      case Validated.Invalid(_) => Nil
+    }
+  }
+  
   def validateCsvFile(
     csvFile: TextFile,
     csvSchema: Schema,

@@ -104,13 +104,7 @@ trait MetaDataValidator {
     validateKnownRows(csv, schema, pf, rowCallback)
   }
 
-  def validateKnownRows(
-    csv: JReader,
-    schema: Schema,
-    progress: Option[ProgressFor],
-    rowCallback: MetaDataValidation[Any] => Unit
-  ): Boolean = {
-
+  def createCsvParser(schema: Schema): CsvParser = {
     val separator: Char = schema.globalDirectives.collectFirst {
       case Separator(sep) =>
         sep
@@ -135,8 +129,20 @@ trait MetaDataValidator {
     //format.setLineSeparator(CSV_RFC1480_LINE_SEPARATOR)  // CRLF
 
     //we need a better CSV Reader!
+    new CsvParser(settings)
+  }
+
+
+  def validateKnownRows(
+    csv: JReader,
+    schema: Schema,
+    progress: Option[ProgressFor],
+    rowCallback: MetaDataValidation[Any] => Unit
+  ): Boolean = {
+
+    val parser = createCsvParser(schema)
+
     val result : Try[Boolean] = Using {
-      val parser = new CsvParser(settings)
       parser.beginParsing(csv)
       parser
     } {

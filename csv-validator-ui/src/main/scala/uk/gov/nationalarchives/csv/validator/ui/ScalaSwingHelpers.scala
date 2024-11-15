@@ -42,8 +42,8 @@ object ScalaSwingHelpers {
    * @param result A function which takes the chosen file
    * @param locateOver A component over which the FileChooser dialog should be located
    */
-  def chooseFile(fileChooser: FileChooser, result: Path => Option[IOException], locateOver: Component) : Unit = {
-    fileChooser.showSaveDialog(locateOver) match {
+  def chooseFile(fileChooser: FileChooser, result: Path => Option[IOException], locateOver: Component, dialogText: String = "Save") : Unit = {
+    fileChooser.showDialog(locateOver, dialogText) match {
       case Result.Approve =>
         result(fileChooser.selectedFile.toPath) match {
           case Some(ioe) =>
@@ -64,28 +64,33 @@ object ScalaSwingHelpers {
    * @param table The table to create a dialog for
    * @param result A function which takes a row as the result of the dialog box
    */
-  def addToTableDialog(owner: Window, title: String, table: Table, result: Array[String] => Unit) : Unit = {
+  case class Row(label: String, components: List[Component])
+  val c = List()
+  def addToTableDialog(owner: Window, title: String, rows: List[Row], result: Array[String] => Unit) : Unit = {
 
     val btnOk = new Button("Ok")
 
     val optionLayout: GridBagPanel = new GridBagPanel {
       val c = new Constraints
+      rows.zipWithIndex.map {
+        case (row, colIdx) =>
+          c.gridx = 0
+          c.gridy = colIdx
+          c.anchor = Anchor.LineStart
+          layout(new Label(row.label + ":")) = c
 
-      for(colIdx <- 0 to table.model.getColumnCount - 1) {
-        c.gridx = 0
-        c.gridy = colIdx
-        c.anchor = Anchor.LineStart
-        layout(new Label(table.model.getColumnName(colIdx) + ":")) = c
-
-        c.gridx = 1
-        c.gridy = colIdx
-        c.anchor = Anchor.LineStart
-        layout(new TextField(30)) = c
+          row.components.zipWithIndex.map {
+            case (component, rowIdx) =>
+              c.gridx = rowIdx + 1
+              c.gridy = colIdx
+              c.anchor = Anchor.LineStart
+              layout(component) = c
+          }
       }
 
       c.gridx = 0
-      c.gridy = table.model.getColumnCount
-      c.gridwidth = 2
+      c.gridy = rows.size
+      c.gridwidth = rows.size + 1
       c.anchor = Anchor.LineEnd
       layout(btnOk) = c
     }

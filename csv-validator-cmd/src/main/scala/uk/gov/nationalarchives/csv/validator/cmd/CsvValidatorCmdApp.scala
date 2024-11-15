@@ -20,7 +20,7 @@ import java.nio.charset.Charset
 import java.nio.file.{Files, Path, Paths}
 import java.text.DecimalFormat
 import java.util.jar.{Attributes, Manifest}
-import scala.util.Using
+import scala.util.{Try, Using}
 
 object SystemExitCodes extends Enumeration {
   type ExitCode = Int
@@ -139,6 +139,15 @@ object CsvValidatorCmdApp extends App {
       println(prettyPrint(failures))
     case _ =>
   }
+
+  def getColumnFromCsv(csvFile: TextFile, csvSchemaFile: TextFile, columnName: String): List[String] = Try {
+    val validator = createValidator(true, Nil, false, false)
+    val csv = validator.loadCsvFile(csvFile, csvSchemaFile)
+    csv.headOption.map(_.indexOf("identifier")).map { identifierIdx =>
+      csv.tail.map(arr => arr(identifierIdx))
+    }.getOrElse(Nil)
+  }.getOrElse(Nil)
+
 
   def validate(
     csvFile: TextFile,

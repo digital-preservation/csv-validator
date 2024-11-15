@@ -27,14 +27,17 @@ import java.nio.file.{Files, Path, Paths, StandardOpenOption}
 import java.util
 import java.util.Properties
 import java.util.jar.{Attributes, Manifest}
+import javax.swing.SpringLayout.Constraints
 import javax.swing._
 import javax.swing.filechooser.FileNameExtensionFilter
 import javax.swing.table.DefaultTableModel
 import scala.jdk.CollectionConverters.CollectionHasAsScala
 import scala.language.reflectiveCalls
+import scala.swing.FileChooser.SelectionMode
 import scala.swing.GridBagPanel.Anchor
 import scala.swing.PopupMenuImplicits._
 import scala.swing._
+import scala.swing.event.ButtonClicked
 import scala.util.{Failure, Success, Try, Using}
 
 /**
@@ -52,6 +55,9 @@ object CsvValidatorUi extends SimpleSwingApplication {
     }
     super.startup(args)
   }
+
+  private lazy val txtCsvFile = new JTextField(30)
+  private lazy val txtCsvSchemaFile = new JTextField(30)
 
   def top: SJXFrame = new SJXFrame {
 
@@ -233,8 +239,6 @@ object CsvValidatorUi extends SimpleSwingApplication {
     peer.setTransferHandler(fileHandler)
     private val layout = new DesignGridLayout(peer)
 
-    private val txtCsvFile = new JTextField(30)
-
     private def showErrorDialog(message: String) = {
       JOptionPane.showMessageDialog(parentFrame.peer, message, "Error", JOptionPane.ERROR_MESSAGE)
       false
@@ -302,7 +306,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
     }
 
     private val lblCsvSchemaFile = new Label("CSV Schema file:")
-    private val txtCsvSchemaFile = new JTextField(30)
+
     txtCsvSchemaFile.setTransferHandler(fileHandler)
     private val csvSchemaFileChooser = new FileChooser(loadSettings match {
       case Some(s) =>
@@ -480,6 +484,42 @@ object CsvValidatorUi extends SimpleSwingApplication {
     private val cbEnforceCaseSensitivePathChecks = new CheckBox("Enforce case-sensitive file path checks?")
     cbEnforceCaseSensitivePathChecks.tooltip = "Performs additional checks to ensure that the case of file-paths in the CSV file match those of the filesystem"
 
+    private def tablePathDialog(): Unit = {
+      val csvFile = TextFile(Paths.get(txtCsvFile.getText), csvEncoding, validateUtf8)
+      val schemaFile = TextFile(Paths.get(txtCsvSchemaFile.getText), csvSchemaEncoding)
+      val identifierRows = CsvValidatorCmdApp.getColumnFromCsv(csvFile, schemaFile, "identifier").sorted
+      val fromPath = identifierRows.headOption.getOrElse("")
+
+      val fileTextField = new TextField(30)
+      val fromPathText = new TextField(fromPath, 30)
+
+      def pathToUri(path: Path) = {
+        val uri = path.toUri.toString
+        if (uri.endsWith("/")) uri else s"$uri/"
+      }
+
+      def updateFileText(path: Path): Option[IOException] = {
+        fileTextField.text = pathToUri(path)
+        None
+      }
+
+      val okButton = new Button("OK")
+      val fileButton = new Button("...")
+      fileButton.reactions += {
+        case ev: ButtonClicked =>
+          val startingDir = if(fileTextField.text.isEmpty) userDir.toFile else Path.of(fileTextField.text).toFile
+          val fileChooser = new FileChooser(startingDir)
+          fileChooser.fileSelectionMode = SelectionMode.FilesAndDirectories
+          chooseFile(fileChooser, f => updateFileText(f), fileButton, s"Select the ${fromPath.split("/").last} folder")
+      }
+
+      val rows = List(
+        Row("From", List(fromPathText)),
+        Row("To", List(fileTextField, fileButton))
+      )
+      addToTableDialog(parentFrame, "Add path substitution...", rows, tblPathSubstitutions.addRow)
+    }
+
     private val tblPathSubstitutions = new Table(0, 2) {
       preferredViewportSize = new Dimension(500, 70)
       model = new DefaultTableModel(Array[Object]("From", "To"), 0)
@@ -505,7 +545,8 @@ object CsvValidatorUi extends SimpleSwingApplication {
 
     private val spTblPathSubstitutions = new ScrollPane(tblPathSubstitutions)
     private val btnAddPathSubstitution = new Button("Add Path Substitution...")
-    btnAddPathSubstitution.reactions += onClick(addToTableDialog(parentFrame, "Add Path Substitution...", tblPathSubstitutions, tblPathSubstitutions.addRow))
+
+    btnAddPathSubstitution.reactions += onClick(tablePathDialog())
 
     private val settingsGroupLayout = new GridBagPanel {
       private val c = new Constraints
