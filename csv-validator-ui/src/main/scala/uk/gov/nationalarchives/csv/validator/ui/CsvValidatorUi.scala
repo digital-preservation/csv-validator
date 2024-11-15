@@ -56,8 +56,8 @@ object CsvValidatorUi extends SimpleSwingApplication {
     super.startup(args)
   }
 
-  private val txtCsvFile = new JTextField(30)
-  private val txtCsvSchemaFile = new JTextField(30)
+  private lazy val txtCsvFile = new JTextField(30)
+  private lazy val txtCsvSchemaFile = new JTextField(30)
 
   def top: SJXFrame = new SJXFrame {
 
