@@ -135,7 +135,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
     }
   }
 
-  private def validate(csvFilePath: String, csvEncoding: Charset, csvSchemaFilePath: String, csvSchemaEncoding: Charset, failOnFirstError: Boolean, pathSubstitutions: List[(String, String)], enforceCaseSensitivePathChecks: Boolean, progress: Option[ProgressCallback], validateEncoding: Boolean)(output: String => Unit) : Unit = {
+  private def validate(csvFilePath: String, csvEncoding: Charset, csvSchemaFilePath: String, csvSchemaEncoding: Charset, failOnFirstError: Boolean, pathSubstitutions: List[(String, String)], enforceCaseSensitivePathChecks: Boolean, progress: Option[ProgressCallback], validateEncoding: Boolean, skipFileChecks: Boolean, outputTextSuffix: String)(output: String => Unit) : Unit = {
 
     def toConsole(msg: String): Unit = Swing.onEDT {
       output(msg)
@@ -169,11 +169,12 @@ object CsvValidatorUi extends SimpleSwingApplication {
       enforceCaseSensitivePathChecks,
       trace = false,
       progress,
+      skipFileChecks,
       rowCallback
     )
 
     cliResult._2 match {
-      case SystemExitCodes.ValidCsv => toConsole("PASS")
+      case SystemExitCodes.ValidCsv => toConsole(s"PASS$outputTextSuffix")
       case _ => toConsole(cliResult._1)
     }
   }
@@ -338,6 +339,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
     scrollPane.viewportView = txtArReport
 
     private val btnValidate = new Button("Validate")
+    private val btnValidateMetadataOnly = new Button("Validate Metadata Only")
 
     private val progressBar = new ProgressBar()
     progressBar.visible = false
@@ -366,35 +368,43 @@ object CsvValidatorUi extends SimpleSwingApplication {
       }
 
 
-    btnValidate.reactions += onClick(displayWait(
-      suspendUi = {
-        btnValidate.enabled = false
-        this.peer.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR))
-        this.progressBar.value = 0
-        this.progressBar.visible = true
+    btnValidate.reactions += validateOnClick(btnValidate, false)
+    btnValidateMetadataOnly.reactions += validateOnClick(btnValidate, true)
 
-      },
-      action = {
-        txtArReport.text = ""
-        CsvValidatorUi.this.validate(
-          txtCsvFile.getText,
-          settingsPanel.csvEncoding,
-          txtCsvSchemaFile.getText,
-          settingsPanel.csvSchemaEncoding,
-          settingsPanel.failOnFirstError,
-          settingsPanel.pathSubstitutions,
-          settingsPanel.enforceCaseSensitivePathChecks,
-          Some(progress),
-          settingsPanel.validateUtf8
-        )
-      },
-      output = outputToReport,
-      resumeUi = {
-        btnValidate.enabled = true
-        this.peer.setCursor(Cursor.getDefaultCursor)
-        //this.progressBar.visible = false
-      }
-    ))
+    private def validateOnClick(button: Button, skipFileChecks: Boolean) = {
+      val suffix = if(skipFileChecks) " (Metadata Only)" else ""
+      onClick(displayWait(
+        suspendUi = {
+          button.enabled = false
+          this.peer.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR))
+          this.progressBar.value = 0
+          this.progressBar.visible = true
+
+        },
+        action = {
+          txtArReport.text = ""
+          CsvValidatorUi.this.validate(
+            txtCsvFile.getText,
+            settingsPanel.csvEncoding,
+            txtCsvSchemaFile.getText,
+            settingsPanel.csvSchemaEncoding,
+            settingsPanel.failOnFirstError,
+            settingsPanel.pathSubstitutions,
+            settingsPanel.enforceCaseSensitivePathChecks,
+            Some(progress),
+            settingsPanel.validateUtf8,
+            skipFileChecks,
+            suffix
+          )
+        },
+        output = outputToReport,
+        resumeUi = {
+          btnValidate.enabled = true
+          this.peer.setCursor(Cursor.getDefaultCursor)
+          //this.progressBar.visible = false
+        }
+      ))
+    }
 
     private val separator2 = new Separator
 
@@ -434,6 +444,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
     layout.row.center.fill.add(settingsPanel)
 
     layout.row.center.fill.add(btnValidate)
+    layout.row.center.fill.add(btnValidateMetadataOnly)
     layout.row.center.fill.add(progressBar)
 
     layout.row.center.fill.add(separator1)

@@ -106,17 +106,21 @@ case class RegExpRule(regex: String) extends Rule("regex") {
 }
 
 //TODO note the use of `Seq(rootPath): _*` when extending Rule, this is to workaround this bug https://issues.scala-lang.org/browse/SI-7436. This pattern is repeated below!
-case class FileExistsRule(pathSubstitutions: List[(String,String)], enforceCaseSensitivePathChecks: Boolean, rootPath: ArgProvider = Literal(None)) extends Rule("fileExists", Seq(rootPath): _*) {
+case class FileExistsRule(pathSubstitutions: List[(String,String)], enforceCaseSensitivePathChecks: Boolean, rootPath: ArgProvider = Literal(None), skipFileChecks: Boolean = false) extends Rule("fileExists", Seq(rootPath): _*) {
 
   override def valid(filePath: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema, mayBeLast: Option[Boolean] = None) = {
+    if(skipFileChecks) {
+      true
+    } else {
+      val ruleValue = rootPath.referenceValue(columnIndex, row, schema)
 
-    val ruleValue = rootPath.referenceValue(columnIndex, row, schema)
-
-    val fileExists = ruleValue match {
-      case Some(rp) =>  new FileSystem(rp, filePath, pathSubstitutions).exists(enforceCaseSensitivePathChecks)
-      case None =>   new FileSystem(filePath, pathSubstitutions).exists(enforceCaseSensitivePathChecks)
+      ruleValue match {
+        case Some(rp) => new FileSystem(rp, filePath, pathSubstitutions).exists(enforceCaseSensitivePathChecks)
+        case None => new FileSystem(filePath, pathSubstitutions).exists(enforceCaseSensitivePathChecks)
+      }
     }
-    fileExists
+
+
   }
 
   override def toError = s"""$ruleName""" + (if (rootPath == Literal(None)) "" else s"""(${rootPath.toError})""")
@@ -317,18 +321,21 @@ case class UniqueMultiRule(columns: List[ColumnReference]) extends Rule("unique(
   }
 }
 
-case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: String, pathSubstitutions: List[(String,String)], enforceCaseSensitivePathChecks: Boolean = false) extends Rule("checksum", Seq(rootPath, file): _*) with FileWildcardSearch[String] {
+case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: String, pathSubstitutions: List[(String,String)], enforceCaseSensitivePathChecks: Boolean = false, skipFileChecks: Boolean = false) extends Rule("checksum", Seq(rootPath, file): _*) with FileWildcardSearch[String] {
 
-  def this(file: ArgProvider, algorithm: String, pathSubstitutions: List[(String,String)], enforceCaseSensitivePathChecks: Boolean) = this(Literal(None), file, algorithm, pathSubstitutions, enforceCaseSensitivePathChecks)
-  def this(file: ArgProvider, algorithm: String, enforceCaseSensitivePathChecks: Boolean) = this(Literal(None), file, algorithm, List.empty[(String,String)], enforceCaseSensitivePathChecks)
+  def this(file: ArgProvider, algorithm: String, pathSubstitutions: List[(String,String)], enforceCaseSensitivePathChecks: Boolean) = this(Literal(None), file, algorithm, pathSubstitutions, enforceCaseSensitivePathChecks, false)
+  def this(file: ArgProvider, algorithm: String, enforceCaseSensitivePathChecks: Boolean, skipFileChecks: Boolean) = this(Literal(None), file, algorithm, List.empty[(String,String)], enforceCaseSensitivePathChecks, false)
 
   override def evaluate(columnIndex: Int, row: Row, schema: Schema, mayBeLast: Option[Boolean] = None): RuleValidation[Any] = {
     val columnDefinition = schema.columnDefinitions(columnIndex)
-
-    search(filename(columnIndex, row, schema)) match {
-      case Validated.Valid(hexValue: String) if hexValue == cellValue(columnIndex,row,schema) => true.validNel[String]
-      case Validated.Valid(hexValue: String) => s"""$toError file "${TypedPath(filename(columnIndex, row, schema)._1 + filename(columnIndex, row, schema)._2).toPlatform}" checksum match fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}. Computed checksum value:"${hexValue}"""".invalidNel[Any]
-      case Validated.Invalid(errMsg) => s"$toError ${errMsg.head} for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}".invalidNel[Any]
+    if(skipFileChecks) {
+      Validated.Valid("")
+    } else {
+      search(filename(columnIndex, row, schema)) match {
+        case Validated.Valid(hexValue: String) if hexValue == cellValue(columnIndex, row, schema) => true.validNel[String]
+        case Validated.Valid(hexValue: String) => s"""$toError file "${TypedPath(filename(columnIndex, row, schema)._1 + filename(columnIndex, row, schema)._2).toPlatform}" checksum match fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row, columnIndex)}. Computed checksum value:"${hexValue}"""".invalidNel[Any]
+        case Validated.Invalid(errMsg) => s"$toError ${errMsg.head} for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row, columnIndex)}".invalidNel[Any]
+      }
     }
   }
 

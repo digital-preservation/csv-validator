@@ -22,7 +22,7 @@ class MetaDataValidatorBusinessAcceptanceSpec extends Specification with TestRes
 
   val base = resourcePath("acceptance/dp")
 
-  val v: CsvValidator = new CsvValidator with AllErrorsMetaDataValidator { val pathSubstitutions = List[(String,String)](); val enforceCaseSensitivePathChecks = false; val trace = false }
+  val v: CsvValidator = new CsvValidator with AllErrorsMetaDataValidator { val pathSubstitutions = List[(String,String)](); val enforceCaseSensitivePathChecks = false; val trace = false; val skipFileChecks = false }
   import v.{validate, parseSchema}
 
   def parse(filePath: String): Schema = parseSchema(TextFile(Paths.get(filePath))) fold (f => throw new IllegalArgumentException(f.toString()), s => s)

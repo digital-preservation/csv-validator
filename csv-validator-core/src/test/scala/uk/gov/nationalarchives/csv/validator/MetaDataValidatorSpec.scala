@@ -27,6 +27,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val pathSubstitutions = List[(String,String)]()
       val enforceCaseSensitivePathChecks = false
       val trace = false
+      val skipFileChecks = false
       override def parse(reader: Reader): ParseResult[Schema] = {
         super.parse(reader) match {
           case s @ Success(schema: Schema, _) => s

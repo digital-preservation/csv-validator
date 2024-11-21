@@ -20,10 +20,11 @@ import java.nio.file.Paths
 @RunWith(classOf[JUnitRunner])
 class MetaDataValidatorIntegrityCheckSpec extends Specification with TestResources {
 
-  def buildValidator(substitutionPath: List[(String,String)]) : CsvValidator = new CsvValidator with AllErrorsMetaDataValidator {
+  def buildValidator(substitutionPath: List[(String,String)], skipFileChecksFlag: Boolean = false) : CsvValidator = new CsvValidator with AllErrorsMetaDataValidator {
     val pathSubstitutions = substitutionPath
     val enforceCaseSensitivePathChecks = false
     val trace = false
+    val skipFileChecks = skipFileChecksFlag
   }
 
   def parse(filePath: String, validator: CsvValidator): Schema = validator.parseSchema(TextFile(Paths.get(filePath))) fold (f => throw new IllegalArgumentException(f.toString()), s => s)
@@ -64,6 +65,15 @@ class MetaDataValidatorIntegrityCheckSpec extends Specification with TestResourc
       //TODO perform test on nonEmptyList instead of using to string
       message.toString  must contain("integrityCheck fails for")
       //      message.toString  must contain("file2 are not listed in ")
+    }
+
+    "succeed for metadatafile missing files if skipFileChecks is true" in {
+
+      val substitutionPaths = List(("file:///T:/WORK/RF_5/", headerPath))
+      val validator = buildValidator(substitutionPaths, true)
+      val result = validator.validate(TextFile(Paths.get(headerPath).resolve("integrityCheckMetaData-missing-files.csv")), parse(headerPath + "/integrityCheckSchema.csvs", validator), None)
+
+      result.isValid mustEqual true
     }
 
     "fail for metadatafile missing files - header" in {

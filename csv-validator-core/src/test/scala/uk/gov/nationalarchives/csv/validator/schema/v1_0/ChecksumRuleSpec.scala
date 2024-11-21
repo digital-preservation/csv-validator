@@ -28,7 +28,15 @@ class ChecksumRuleSpec extends Specification with TestResources {
   "Checksum" should  {
 
     "fail when calculated algorithm does not match given string value" in {
-      val checksumRule = new ChecksumRule(Literal(Some(checksumPath)), "MD5", false)
+      val checksumRule = new ChecksumRule(Literal(Some(checksumPath)), "MD5", false, false)
+
+      checksumRule.evaluate(0, Row(List(Cell("699d61aff25f16a5560372e610da91ab")), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition(NamedColumnIdentifier("column1"))))) must beLike {
+        case Validated.Invalid(m) => m.toList mustEqual List("""checksum(file("""" + checksumPath + """"), "MD5") file """" + checksumPath + """" checksum match fails for line: 1, column: column1, value: "699d61aff25f16a5560372e610da91ab". Computed checksum value:"232762380299115da6995e4c4ac22fa2"""")
+      }
+    }
+
+    "succeed when calculated algorithm does not match given string value and skipFileChecks is true" in {
+      val checksumRule = new ChecksumRule(Literal(Some(checksumPath)), "MD5", false, true)
 
       checksumRule.evaluate(0, Row(List(Cell("699d61aff25f16a5560372e610da91ab")), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition(NamedColumnIdentifier("column1"))))) must beLike {
         case Validated.Invalid(m) => m.toList mustEqual List("""checksum(file("""" + checksumPath + """"), "MD5") file """" + checksumPath + """" checksum match fails for line: 1, column: column1, value: "699d61aff25f16a5560372e610da91ab". Computed checksum value:"232762380299115da6995e4c4ac22fa2"""")
@@ -36,8 +44,8 @@ class ChecksumRuleSpec extends Specification with TestResources {
     }
 
     "succeed when calculated algorithm does match given string value" in {
-      val checksumRule = new ChecksumRule(Literal(Some(checksumPath)), "MD5", false)
-
+      val checksumRule = new ChecksumRule(Literal(Some(checksumPath)), "MD5", false, false)
+      
       checksumRule.evaluate(0, Row(List(Cell("232762380299115da6995e4c4ac22fa2")), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition(NamedColumnIdentifier("column1"))))) mustEqual Validated.Valid(true)
     }
 
@@ -68,7 +76,7 @@ class ChecksumRuleSpec extends Specification with TestResources {
       val pathSubstitutions =  List[(String,String)](
         ("bob", relBasePath + FILE_SEPARATOR)
       )
-
+      
       val checksumRule = new ChecksumRule(Literal(Some("""bob/uk/gov/nationalarchives/csv/validator/schema/v1_0/checksum.csvs""")), "MD5", pathSubstitutions, false)
       checksumRule.evaluate(0, Row(List(Cell("232762380299115da6995e4c4ac22fa2")), 1), Schema(List(TotalColumns(1), NoHeader()), List(ColumnDefinition(NamedColumnIdentifier("column1"))))) mustEqual Validated.Valid(true)
     }
