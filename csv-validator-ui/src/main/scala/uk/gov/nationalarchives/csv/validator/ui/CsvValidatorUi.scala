@@ -369,7 +369,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
 
 
     btnValidate.reactions += validateOnClick(btnValidate, false)
-    btnValidateMetadataOnly.reactions += validateOnClick(btnValidate, true)
+    btnValidateMetadataOnly.reactions += validateOnClick(btnValidateMetadataOnly, true)
 
     private def validateOnClick(button: Button, skipFileChecks: Boolean) = {
       val suffix = if(skipFileChecks) " (Metadata Only)" else ""
