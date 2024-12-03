@@ -368,14 +368,15 @@ object CsvValidatorUi extends SimpleSwingApplication {
       }
 
 
-    btnValidate.reactions += validateOnClick(btnValidate, false)
-    btnValidateMetadataOnly.reactions += validateOnClick(btnValidateMetadataOnly, true)
+    btnValidate.reactions += validateOnClick(false)
+    btnValidateMetadataOnly.reactions += validateOnClick(true)
 
-    private def validateOnClick(button: Button, skipFileChecks: Boolean) = {
+    private def validateOnClick(skipFileChecks: Boolean) = {
       val suffix = if(skipFileChecks) " (Metadata Only)" else ""
       onClick(displayWait(
         suspendUi = {
-          button.enabled = false
+          btnValidate.enabled = false
+          btnValidateMetadataOnly.enabled = false
           this.peer.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR))
           this.progressBar.value = 0
           this.progressBar.visible = true
@@ -400,7 +401,9 @@ object CsvValidatorUi extends SimpleSwingApplication {
         output = outputToReport,
         resumeUi = {
           btnValidate.enabled = true
-          this.peer.setCursor(Cursor.getDefaultCursor)
+          btnValidateMetadataOnly.enabled = true
+          btnValidate.peer.setCursor(Cursor.getDefaultCursor)
+          btnValidateMetadataOnly.peer.setCursor(Cursor.getDefaultCursor)
           //this.progressBar.visible = false
         }
       ))
