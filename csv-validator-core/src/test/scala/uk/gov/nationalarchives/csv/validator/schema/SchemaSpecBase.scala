@@ -14,7 +14,7 @@ import uk.gov.nationalarchives.csv.validator.schema.v1_0.NotEmptyRule
 
 trait SchemaSpecBase extends Specification {
 
-  object TestSchemaParser extends SchemaParser { val pathSubstitutions = List[(String,String)](); val enforceCaseSensitivePathChecks = false; val trace = false }
+  object TestSchemaParser extends SchemaParser { val pathSubstitutions = List[(String,String)](); val enforceCaseSensitivePathChecks = false; val trace = false; val skipFileChecks = false }
 
   def buildSchema1_0(globalDirective: GlobalDirective*)(columnDefinition: ColumnDefinition*) =
     Schema(globalDirective.toList, columnDefinition.toList, "1.0")

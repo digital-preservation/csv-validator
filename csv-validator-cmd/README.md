@@ -32,6 +32,8 @@ Usage: validate [options] <csv-path> <csv-schema-path>
         The path to the CSV Schema file to use for validation
   --disable-utf8-validation 
          Disable UTF-8 validation for CSV files
+  --skip-file-checks       
+        Skip integrity, checksum and file existence checks
   --show-progress
          Show progress
   --help

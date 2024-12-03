@@ -66,7 +66,7 @@ case class SwitchRule(elseRules: Option[List[Rule]], cases:(Rule, List[Rule])*) 
 
 
 
-case class IntegrityCheckRule(pathSubstitutions: List[(String,String)], enforceCaseSensitivePathChecks: Boolean, rootPath: ArgProvider = Literal(None), topLevelFolder: String = "content", includeFolder: Boolean = false) extends Rule("integrityCheck", Seq(rootPath): _*) {
+case class IntegrityCheckRule(pathSubstitutions: List[(String,String)], enforceCaseSensitivePathChecks: Boolean, rootPath: ArgProvider = Literal(None), topLevelFolder: String = "content", includeFolder: Boolean = false, skipFileChecks: Boolean = false) extends Rule("integrityCheck", Seq(rootPath): _*) {
 
   //TODO introduce state, not very functional
   var filesMap = Map[String, Set[Path]]()
@@ -83,8 +83,10 @@ case class IntegrityCheckRule(pathSubstitutions: List[(String,String)], enforceC
   }
 
   override def valid(filePath: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema, mayBeLast: Option[Boolean]): Boolean = {
-
-    if (!filePath.isEmpty){
+    if (skipFileChecks) {
+      true
+    }
+    else if (!filePath.isEmpty){
 
         val ruleValue = rootPath.referenceValue(columnIndex, row, schema)
         val filePathS = if (FILE_SEPARATOR == WINDOWS_FILE_SEPARATOR)

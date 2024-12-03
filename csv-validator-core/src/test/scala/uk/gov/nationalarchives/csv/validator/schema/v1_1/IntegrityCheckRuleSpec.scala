@@ -70,6 +70,15 @@ class IntegrityCheckRuleSpec extends Specification with TestResources {
       }
     }
 
+    "succeed for empty file path if skipFileChecks is true" in {
+      val integrityCheckRule = IntegrityCheckRule(emptyPathSubstitutions, false, skipFileChecks = true)
+      val schema: Schema = Schema(globalDirsTwo, List(ColumnDefinition(NamedColumnIdentifier("column1")), ColumnDefinition(NamedColumnIdentifier("column2"))))
+
+      integrityCheckRule.evaluate(1, Row(List(Cell("abc"), Cell(relIntegrityCheckForRulePath)), 1), schema, Some(true)) mustEqual Validated.Valid(true)
+
+      integrityCheckRule.evaluate(1, Row(List(Cell("abc"), Cell("")), 2), schema, Some(false)) mustEqual Validated.Valid(true)
+    }
+
     "succeed for file that exists with no root file path" in {
 
       val integrityCheckRule = IntegrityCheckRule(emptyPathSubstitutions,false)

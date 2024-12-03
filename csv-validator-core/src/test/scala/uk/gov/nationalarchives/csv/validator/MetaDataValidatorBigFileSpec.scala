@@ -25,14 +25,14 @@ class MetaDataValidatorBigFileSpec extends Specification with TestResources {
   "Big file" should {
 
     "succeed with no stack overflow for all errors" in {
-      val v = new CsvValidator with AllErrorsMetaDataValidator { val pathSubstitutions = List[SubstitutePath](); val enforceCaseSensitivePathChecks = false; val trace = false }
+      val v = new CsvValidator with AllErrorsMetaDataValidator { val pathSubstitutions = List[SubstitutePath](); val enforceCaseSensitivePathChecks = false; val trace = false; val skipFileChecks = false }
       def parse(filePath: String): Schema = v.parseSchema(TextFile(Paths.get(filePath))) fold (f => throw new IllegalArgumentException(f.toString()), s => s)
 
       v.validate(TextFile(Paths.get(base).resolve("bigMetaData.csv")), parse(base + "/bigSchema.csvs"), None) must beLike { case Validated.Valid(_) => ok }
     }
 
     "succeed with no stack overflow for fail fast" in {
-      val v = new CsvValidator with FailFastMetaDataValidator { val pathSubstitutions = List[SubstitutePath](); val enforceCaseSensitivePathChecks = false; val trace = false }
+      val v = new CsvValidator with FailFastMetaDataValidator { val pathSubstitutions = List[SubstitutePath](); val enforceCaseSensitivePathChecks = false; val trace = false; val skipFileChecks = false }
       def parse(filePath: String): Schema = v.parseSchema(TextFile(Paths.get(filePath))) fold (f => throw new IllegalArgumentException(f.toString()), s => s)
 
       v.validate(TextFile(Paths.get(base).resolve("bigMetaData.csv")), parse(base + "/bigSchema.csvs"), None) must beLike { case Validated.Valid(_) => ok }

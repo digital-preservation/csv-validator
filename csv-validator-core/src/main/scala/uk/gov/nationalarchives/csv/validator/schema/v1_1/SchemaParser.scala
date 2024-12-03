@@ -78,9 +78,9 @@ trait SchemaParser extends SchemaParser1_0 {
 
   lazy val integrityCheckExpr: PackratParser[IntegrityCheckRule] = "IntegrityCheckExpr" ::= ("integrityCheck" ~> "(" ~> opt(stringProvider <~ ",") ~ opt(stringLiteral <~ ",") ~ stringLiteral <~ ")"  ).withFailureMessage("Invalid integrityCheck rule") ^^ {
     case rp ~ topLevelFolder ~ includeFolder if (includeFolder == "includeFolder") =>
-      IntegrityCheckRule(pathSubstitutions, enforceCaseSensitivePathChecks, rp.getOrElse(Literal(None)), topLevelFolder.getOrElse("content"), true)
+      IntegrityCheckRule(pathSubstitutions, enforceCaseSensitivePathChecks, rp.getOrElse(Literal(None)), topLevelFolder.getOrElse("content"), true, skipFileChecks)
     case rp ~ topLevelFolder ~ includeFolder if (includeFolder == "excludeFolder") =>
-      IntegrityCheckRule(pathSubstitutions, enforceCaseSensitivePathChecks, rp.getOrElse(Literal(None)), topLevelFolder.getOrElse("content"), false)
+      IntegrityCheckRule(pathSubstitutions, enforceCaseSensitivePathChecks, rp.getOrElse(Literal(None)), topLevelFolder.getOrElse("content"), false, skipFileChecks)
   }
 
 
