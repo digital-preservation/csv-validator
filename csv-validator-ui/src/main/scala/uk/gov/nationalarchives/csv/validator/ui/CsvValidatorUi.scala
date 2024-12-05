@@ -262,7 +262,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
               val numOfFilesDropped = files.length
               lazy val filePaths = files.map(_.getAbsolutePath)
               lazy val (file1Ext, file2Ext) = {
-                val fileExtensions = filePaths.map(_.split('.').last)
+                val fileExtensions = filePaths.map(_.split('.').last.toLowerCase)
                 (fileExtensions.head, fileExtensions.last)
               }
 
@@ -270,11 +270,12 @@ object CsvValidatorUi extends SimpleSwingApplication {
               else if (numOfFilesDropped == 2 && Set(file1Ext, file2Ext) != Set("csv", "csvs"))
                 showErrorDialog("Drop a single '.csv' file and its corresponding '.csvs' file.")
               else filePaths.map { filePath =>
-                if(filePath.endsWith(".csv")) {
+                val lowercasedFilePath = filePath.toLowerCase
+                if(lowercasedFilePath.endsWith(".csv")) {
                   txtCsvFile.setText(filePath)
                   true
                 }
-                else if(filePath.endsWith(".csvs")) {
+                else if(lowercasedFilePath.endsWith(".csvs")) {
                   txtCsvSchemaFile.setText(filePath)
                   true
                 }
