@@ -543,8 +543,8 @@ object CsvValidatorUi extends SimpleSwingApplication {
         model.asInstanceOf[DefaultTableModel].addRow(rowData.asInstanceOf[Array[AnyRef]])
       }
 
-      def removeSelectedRow() : Unit = {
-        model.asInstanceOf[DefaultTableModel].removeRow(peer.getSelectedRow)
+      def removeSelectedRows() : Unit = peer.getSelectedRows.zipWithIndex.foreach { case (row, index) =>
+        model.asInstanceOf[DefaultTableModel]removeRow(row - index) // when you delete a row, the index of row to delete next shifts down by 1
       }
 
       def pathSubstitutions : List[(String, String)] = {
@@ -552,15 +552,11 @@ object CsvValidatorUi extends SimpleSwingApplication {
       }.toList
     }
 
-    private val popupMenu = new PopupMenu
-    private val miRemove = new MenuItem("Remove Path Substitution")
-    miRemove.reactions += onClick(tblPathSubstitutions.removeSelectedRow())
-    popupMenu.contents += miRemove
-    tblPathSubstitutions.popupMenu(popupMenu)
-
     private val spTblPathSubstitutions = new ScrollPane(tblPathSubstitutions)
+    private val btnRemovePathSubstitution = new Button("Remove Path Substitution...")
     private val btnAddPathSubstitution = new Button("Add Path Substitution...")
 
+    btnRemovePathSubstitution.reactions += onClick(tblPathSubstitutions.removeSelectedRows())
     btnAddPathSubstitution.reactions += onClick(tablePathDialog())
 
     private val settingsGroupLayout = new GridBagPanel {
@@ -604,6 +600,11 @@ object CsvValidatorUi extends SimpleSwingApplication {
       c.gridy = 6
       c.gridwidth = 2
       layout(spTblPathSubstitutions) = c
+
+      c.gridx = 0
+      c.gridy = 7
+      c.anchor = Anchor.LineStart
+      layout(btnRemovePathSubstitution) = c
 
       c.gridx = 1
       c.gridy = 7
