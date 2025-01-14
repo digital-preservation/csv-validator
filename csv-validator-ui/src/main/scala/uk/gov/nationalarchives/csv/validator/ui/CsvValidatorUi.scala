@@ -544,7 +544,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
       }
 
       def removeSelectedRows() : Unit = peer.getSelectedRows.zipWithIndex.foreach { case (row, index) =>
-        model.asInstanceOf[DefaultTableModel]removeRow(row - index) // when you delete a row, the index of row to delete next shifts down by 1
+        model.asInstanceOf[DefaultTableModel]removeRow(row - index) // when you delete a row, the index of next row to delete shifts down by 1
       }
 
       def pathSubstitutions : List[(String, String)] = {
