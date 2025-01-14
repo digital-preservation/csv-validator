@@ -532,7 +532,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
         Row("From", List(fromPathText)),
         Row("To", List(fileTextField, fileButton))
       )
-      addToTableDialog(parentFrame, "Add path substitution...", rows, tblPathSubstitutions.addRow)
+      addToTableDialog(parentFrame, "Add Path Substitution...", rows, tblPathSubstitutions.addRow)
     }
 
     private val tblPathSubstitutions = new Table(0, 2) {
