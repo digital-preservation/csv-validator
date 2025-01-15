@@ -292,6 +292,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
       case None =>
         userDir.toFile
     })
+    csvFileChooser.title = "Select a .csv file"
     csvFileChooser.fileFilter = new FileNameExtensionFilter("CSV file (*.csv)", "csv")
     private val btnChooseCsvFile = new Button("...")
 
@@ -317,6 +318,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
       case None =>
         userDir.toFile
     })
+    csvSchemaFileChooser.title = "Select a .csvs file"
     csvSchemaFileChooser.fileFilter = new FileNameExtensionFilter("CSV Schema file (*.csvs)", "csvs" +
       "")
 
@@ -426,6 +428,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
     reportFileChooser.selectedFile = new File(s"csv_validator_report_${dateFormat.format(new Date())}.txt")
 
     val saveLabel = "Save Results"
+    reportFileChooser.title = saveLabel
     private val btnSave = new Button(saveLabel)
     btnSave.reactions += onClick {
       saveFile(reportFileChooser, saveToFile(txtArReport.text, _), btnSave, btnSave.text)
@@ -528,9 +531,11 @@ object CsvValidatorUi extends SimpleSwingApplication {
       fileButton.reactions += {
         case ev: ButtonClicked =>
           val startingDir = if(fileTextField.text.isEmpty) userDir.toFile else Path.of(fileTextField.text).toFile
+          val helpText = s"Select the ${fromPath.split("/").last} folder"
           val fileChooser = new FileChooser(startingDir)
+          fileChooser.title = helpText
           fileChooser.fileSelectionMode = SelectionMode.FilesAndDirectories
-          chooseFile(fileChooser, f => updateFileText(f), fileButton, s"Select the ${fromPath.split("/").last} folder")
+          chooseFile(fileChooser, f => updateFileText(f), fileButton, helpText)
       }
 
       val rows = List(
