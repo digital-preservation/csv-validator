@@ -493,7 +493,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
     private val cmbCsvSchemaEncoding = new ComboBox(CHARACTER_ENCODINGS)
     private val cbFailOnFirstError = new CheckBox("Fail on first error")
     cbFailOnFirstError.tooltip = "Indicates whether to fail on the first error, or whether to collect all errors!"
-    private val cbValidateUtf8 = new CheckBox("Validate csv for valid UTF-8 characters")
+    private val cbValidateUtf8 = new CheckBox("Validate CSV for valid UTF-8 characters")
     cbValidateUtf8.selected = true
     private val lblPathSubstitutions = new Label("Path Substitutions")
     private val cbEnforceCaseSensitivePathChecks = new CheckBox("Enforce case-sensitive file path checks")
