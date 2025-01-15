@@ -83,7 +83,7 @@ object ScalaSwingHelpers {
   val c = List()
   def addToTableDialog(owner: Window, title: String, rows: List[Row], result: Array[String] => Unit) : Unit = {
 
-    val btnOk = new Button("Ok")
+    val btnOk = new Button("OK")
 
     val optionLayout: GridBagPanel = new GridBagPanel {
       val c = new Constraints
