@@ -24,8 +24,9 @@ import java.net.URL
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.{Files, Path, Paths, StandardOpenOption}
+import java.text.SimpleDateFormat
 import java.util
-import java.util.Properties
+import java.util.{Date, Properties}
 import java.util.jar.{Attributes, Manifest}
 import javax.swing.SpringLayout.Constraints
 import javax.swing._
@@ -421,6 +422,8 @@ object CsvValidatorUi extends SimpleSwingApplication {
       case None =>
         userDir.toFile
     })
+    val dateFormat = new SimpleDateFormat("dd-mm-yy_HH-mm-ss")
+    reportFileChooser.selectedFile = new File(s"csv_validator_report_${dateFormat.format(new Date())}.txt")
 
     val saveLabel = "Save Results"
     private val btnSave = new Button(saveLabel)
