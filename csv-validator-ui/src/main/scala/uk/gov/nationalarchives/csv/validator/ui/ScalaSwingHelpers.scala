@@ -23,6 +23,17 @@ import javax.swing.JTextField
  * the use of scala.swing
  */
 object ScalaSwingHelpers {
+  private def handleSelectedFile(dialogAction: Result.Value, fileChooser: FileChooser, result: Path => Option[IOException], dialogText: String): Unit =
+    dialogAction match {
+      case Result.Approve =>
+        result(fileChooser.selectedFile.toPath) match {
+          case Some(ioe) =>
+            ioe.printStackTrace()
+            Dialog.showMessage(fileChooser, s"${ioe.getClass.getName}: ${ioe.getMessage}", s"Unable to ${dialogText.toLowerCase()} file", Message.Error)
+          case None =>
+        }
+      case Result.Cancel =>
+    }
 
   /**
    * Opens a FileChooser and sets the path of the chosen file as the text of a Text Component
@@ -42,17 +53,21 @@ object ScalaSwingHelpers {
    * @param result A function which takes the chosen file
    * @param locateOver A component over which the FileChooser dialog should be located
    */
-  def chooseFile(fileChooser: FileChooser, result: Path => Option[IOException], locateOver: Component, dialogText: String = "Save") : Unit = {
-    fileChooser.showDialog(locateOver, dialogText) match {
-      case Result.Approve =>
-        result(fileChooser.selectedFile.toPath) match {
-          case Some(ioe) =>
-            ioe.printStackTrace()
-            Dialog.showMessage(fileChooser, s"${ioe.getClass.getName}: ${ioe.getMessage}", "Unable to Save file", Message.Error)
-          case None =>
-        }
-      case Result.Cancel =>
-    }
+  def chooseFile(fileChooser: FileChooser, result: Path => Option[IOException], locateOver: Component, dialogText: String = "OK") : Unit = {
+    val showDialogAction = fileChooser.showDialog(locateOver, dialogText)
+    handleSelectedFile(showDialogAction, fileChooser, result, dialogText)
+  }
+
+  /**
+   * Opens a FileChooser and sends the result to a function
+   *
+   * @param fileChooser FileChooser which is Used to open file dialogs
+   * @param result A function which writes the report out
+   * @param locateOver A component over which the FileChooser dialog should be located
+   */
+  def saveFile(fileChooser: FileChooser, result: Path => Option[IOException], locateOver: Component, dialogText: String) : Unit = {
+    val saveDialogAction = fileChooser.showSaveDialog(locateOver)
+    handleSelectedFile(saveDialogAction, fileChooser, result, dialogText)
   }
 
   /**

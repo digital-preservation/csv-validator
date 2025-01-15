@@ -421,9 +421,11 @@ object CsvValidatorUi extends SimpleSwingApplication {
       case None =>
         userDir.toFile
     })
-    private val btnSave = new Button("Save")
+
+    val saveLabel = "Save Results"
+    private val btnSave = new Button(saveLabel)
     btnSave.reactions += onClick {
-      chooseFile(reportFileChooser, saveToFile(txtArReport.text, _), btnSave)
+      saveFile(reportFileChooser, saveToFile(txtArReport.text, _), btnSave, btnSave.text)
       updateLastPath(reportFileChooser, {
         path =>
           loadSettings match {
