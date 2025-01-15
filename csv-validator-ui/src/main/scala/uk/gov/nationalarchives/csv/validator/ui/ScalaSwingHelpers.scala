@@ -17,20 +17,21 @@ import java.nio.file.Path
 import scala.swing.Dialog.Message
 import java.io.IOException
 import javax.swing.JTextField
+import scala.util.{Failure, Success, Try}
 
 /**
  * Some simple helpers to ease
  * the use of scala.swing
  */
 object ScalaSwingHelpers {
-  private def handleSelectedFile(dialogAction: Result.Value, fileChooser: FileChooser, result: Path => Option[IOException], dialogText: String): Unit =
+  private def handleSelectedFile(dialogAction: Result.Value, fileChooser: FileChooser, result: Path => Try[String], dialogText: String): Unit =
     dialogAction match {
       case Result.Approve =>
         result(fileChooser.selectedFile.toPath) match {
-          case Some(ioe) =>
-            ioe.printStackTrace()
-            Dialog.showMessage(fileChooser, s"${ioe.getClass.getName}: ${ioe.getMessage}", s"Unable to ${dialogText.toLowerCase()} file", Message.Error)
-          case None =>
+          case Failure(e) =>
+            e.printStackTrace()
+            Dialog.showMessage(fileChooser, s"${e.getClass.getName}: ${e.getMessage}", s"Unable to ${dialogText.toLowerCase()} file", Message.Error)
+          case Success(_) =>
         }
       case Result.Cancel =>
     }
@@ -42,9 +43,8 @@ object ScalaSwingHelpers {
    * @param output A text component which displays the absolute path of the chosen file
    * @param locateOver A component over which the FileChooser dialog should be located
    */
-  def chooseFile(fileChooser: FileChooser, output: JTextField, locateOver: Component) : Unit = {
-    chooseFile(fileChooser, {f => output.setText(f.toAbsolutePath.toString); None}, locateOver)
-  }
+  def chooseFile(fileChooser: FileChooser, output: JTextField, locateOver: Component) : Unit =
+    chooseFile(fileChooser, f => Try(output.setText(f.toAbsolutePath.toString)).map(_ => "Path updated"), locateOver)
 
   /**
    * Opens a FileChooser and sends the result to a function
@@ -53,7 +53,7 @@ object ScalaSwingHelpers {
    * @param result A function which takes the chosen file
    * @param locateOver A component over which the FileChooser dialog should be located
    */
-  def chooseFile(fileChooser: FileChooser, result: Path => Option[IOException], locateOver: Component, dialogText: String = "OK") : Unit = {
+  def chooseFile(fileChooser: FileChooser, result: Path => Try[String], locateOver: Component, dialogText: String = "OK") : Unit = {
     val showDialogAction = fileChooser.showDialog(locateOver, dialogText)
     handleSelectedFile(showDialogAction, fileChooser, result, dialogText)
   }
@@ -65,7 +65,7 @@ object ScalaSwingHelpers {
    * @param result A function which writes the report out
    * @param locateOver A component over which the FileChooser dialog should be located
    */
-  def saveFile(fileChooser: FileChooser, result: Path => Option[IOException], locateOver: Component, dialogText: String) : Unit = {
+  def saveFile(fileChooser: FileChooser, result: Path => Try[String], locateOver: Component, dialogText: String) : Unit = {
     val saveDialogAction = fileChooser.showSaveDialog(locateOver)
     handleSelectedFile(saveDialogAction, fileChooser, result, dialogText)
   }

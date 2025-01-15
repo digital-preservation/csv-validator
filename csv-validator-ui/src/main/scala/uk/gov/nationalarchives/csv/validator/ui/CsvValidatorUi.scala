@@ -186,14 +186,9 @@ object CsvValidatorUi extends SimpleSwingApplication {
    * @param s String to save to the file
    * @param f File to which the associated string is saved
    */
-  private def saveToFile(s: String, f: Path) : Option[IOException] = {
-    val data : Array[Byte] =  s.getBytes(UTF_8)
-    try {
-      Files.write(f, data, StandardOpenOption.WRITE, StandardOpenOption.CREATE_NEW)
-      None
-    } catch {
-      case ioe: IOException => Some(ioe)
-    }
+  private def saveToFile(s: String, f: Path) : Try[String] = {
+    val data : Array[Byte] = s.getBytes(UTF_8)
+    Try(Files.write(f, data, StandardOpenOption.WRITE, StandardOpenOption.CREATE_NEW)).map(_ => "s has been written to file")
   }
 
   case class Settings(lastCsvPath: Path, lastCsvSchemaPath: Path, lastReportPath: Path)
@@ -521,9 +516,9 @@ object CsvValidatorUi extends SimpleSwingApplication {
         if (uri.endsWith("/")) uri else s"$uri/"
       }
 
-      def updateFileText(path: Path): Option[IOException] = {
+      def updateFileText(path: Path): Try[String] = {
         fileTextField.text = pathToUri(path)
-        None
+        Success("Text updated")
       }
 
       val okButton = new Button("OK")
