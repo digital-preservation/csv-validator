@@ -553,7 +553,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
     }
 
     private val spTblPathSubstitutions = new ScrollPane(tblPathSubstitutions)
-    private val btnRemovePathSubstitution = new Button("Remove Path Substitution...")
+    private val btnRemovePathSubstitution = new Button("Remove Path Substitution")
     private val btnAddPathSubstitution = new Button("Add Path Substitution...")
 
     btnRemovePathSubstitution.reactions += onClick(tblPathSubstitutions.removeSelectedRows())
