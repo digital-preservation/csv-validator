@@ -52,9 +52,10 @@ object ScalaSwingHelpers {
    * @param fileChooser FileChooser which is Used to open file dialogs
    * @param result A function which takes the chosen file
    * @param locateOver A component over which the FileChooser dialog should be located
+   * @param approveBtnText The text to appear on the approval button of the dialog box
    */
-  def chooseFile(fileChooser: FileChooser, result: Path => Try[String], locateOver: Component, dialogText: String = "OK") : Unit = {
-    val showDialogAction = fileChooser.showDialog(locateOver, dialogText)
+  def chooseFile(fileChooser: FileChooser, result: Path => Try[String], locateOver: Component, approveBtnText: String = "OK") : Unit = {
+    val showDialogAction = fileChooser.showDialog(locateOver, approveBtnText)
     handleSelectedFile(showDialogAction, fileChooser, result, "get")
   }
 
@@ -64,10 +65,11 @@ object ScalaSwingHelpers {
    * @param fileChooser FileChooser which is Used to open file dialogs
    * @param result A function which writes the report out
    * @param locateOver A component over which the FileChooser dialog should be located
+   * @param approveBtnText The text to appear on the approval button of the dialog box
    */
-  def saveFile(fileChooser: FileChooser, result: Path => Try[String], locateOver: Component, dialogText: String) : Unit = {
+  def saveFile(fileChooser: FileChooser, result: Path => Try[String], locateOver: Component, approveBtnText: String) : Unit = {
     val saveDialogAction = fileChooser.showSaveDialog(locateOver)
-    handleSelectedFile(saveDialogAction, fileChooser, result, dialogText)
+    handleSelectedFile(saveDialogAction, fileChooser, result, approveBtnText)
   }
 
   /**
