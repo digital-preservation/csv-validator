@@ -17,12 +17,24 @@ import java.nio.file.Path
 import scala.swing.Dialog.Message
 import java.io.IOException
 import javax.swing.JTextField
+import scala.util.{Failure, Success, Try}
 
 /**
  * Some simple helpers to ease
  * the use of scala.swing
  */
 object ScalaSwingHelpers {
+  private def handleSelectedFile(dialogAction: Result.Value, fileChooser: FileChooser, result: Path => Try[String], fileAction: String): Unit =
+    dialogAction match {
+      case Result.Approve =>
+        result(fileChooser.selectedFile.toPath) match {
+          case Failure(e) =>
+            e.printStackTrace()
+            Dialog.showMessage(fileChooser, s"${e.getClass.getName}: ${e.getMessage}", s"Unable to ${fileAction.toLowerCase()} file", Message.Error)
+          case _ => ()
+        }
+      case _ => ()
+    }
 
   /**
    * Opens a FileChooser and sets the path of the chosen file as the text of a Text Component
@@ -31,9 +43,8 @@ object ScalaSwingHelpers {
    * @param output A text component which displays the absolute path of the chosen file
    * @param locateOver A component over which the FileChooser dialog should be located
    */
-  def chooseFile(fileChooser: FileChooser, output: JTextField, locateOver: Component) : Unit = {
-    chooseFile(fileChooser, {f => output.setText(f.toAbsolutePath.toString); None}, locateOver)
-  }
+  def chooseFile(fileChooser: FileChooser, output: JTextField, locateOver: Component) : Unit =
+    chooseFile(fileChooser, f => Try(output.setText(f.toAbsolutePath.toString)).map(_ => "Path updated"), locateOver)
 
   /**
    * Opens a FileChooser and sends the result to a function
@@ -41,18 +52,24 @@ object ScalaSwingHelpers {
    * @param fileChooser FileChooser which is Used to open file dialogs
    * @param result A function which takes the chosen file
    * @param locateOver A component over which the FileChooser dialog should be located
+   * @param approveBtnText The text to appear on the approval button of the dialog box
    */
-  def chooseFile(fileChooser: FileChooser, result: Path => Option[IOException], locateOver: Component, dialogText: String = "Save") : Unit = {
-    fileChooser.showDialog(locateOver, dialogText) match {
-      case Result.Approve =>
-        result(fileChooser.selectedFile.toPath) match {
-          case Some(ioe) =>
-            ioe.printStackTrace()
-            Dialog.showMessage(fileChooser, s"${ioe.getClass.getName}: ${ioe.getMessage}", "Unable to Save file", Message.Error)
-          case None =>
-        }
-      case Result.Cancel =>
-    }
+  def chooseFile(fileChooser: FileChooser, result: Path => Try[String], locateOver: Component, approveBtnText: String = "OK") : Unit = {
+    val showDialogAction = fileChooser.showDialog(locateOver, approveBtnText)
+    handleSelectedFile(showDialogAction, fileChooser, result, "get")
+  }
+
+  /**
+   * Opens a FileChooser and sends the result to a function
+   *
+   * @param fileChooser FileChooser which is Used to open file dialogs
+   * @param result A function which writes the report out
+   * @param locateOver A component over which the FileChooser dialog should be located
+   * @param approveBtnText The text to appear on the approval button of the dialog box
+   */
+  def saveFile(fileChooser: FileChooser, result: Path => Try[String], locateOver: Component, approveBtnText: String) : Unit = {
+    val saveDialogAction = fileChooser.showSaveDialog(locateOver)
+    handleSelectedFile(saveDialogAction, fileChooser, result, approveBtnText)
   }
 
   /**
@@ -68,7 +85,7 @@ object ScalaSwingHelpers {
   val c = List()
   def addToTableDialog(owner: Window, title: String, rows: List[Row], result: Array[String] => Unit) : Unit = {
 
-    val btnOk = new Button("Ok")
+    val btnOk = new Button("OK")
 
     val optionLayout: GridBagPanel = new GridBagPanel {
       val c = new Constraints
