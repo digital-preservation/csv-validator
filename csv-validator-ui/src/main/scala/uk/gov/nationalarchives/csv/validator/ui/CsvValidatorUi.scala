@@ -162,7 +162,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
     }
 
     if(csvFilePath.nonEmpty && csvSchemaFilePath.nonEmpty) {
-      val cliResult = CsvValidatorCmdApp.validate(
+      val (status, cliExitCode) = CsvValidatorCmdApp.validate(
         TextFile(Paths.get(csvFilePath), csvEncoding, validateEncoding),
         TextFile(Paths.get(csvSchemaFilePath), csvSchemaEncoding),
         failOnFirstError,
@@ -174,9 +174,9 @@ object CsvValidatorUi extends SimpleSwingApplication {
         rowCallback
       )
 
-      cliResult._2 match {
+      cliExitCode match {
         case SystemExitCodes.ValidCsv => toConsole(s"PASS$outputTextSuffix")
-        case _ => toConsole(cliResult._1)
+        case _ => toConsole(status)
       }
     }
   }
