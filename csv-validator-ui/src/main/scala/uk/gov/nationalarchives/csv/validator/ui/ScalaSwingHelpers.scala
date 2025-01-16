@@ -31,9 +31,9 @@ object ScalaSwingHelpers {
           case Failure(e) =>
             e.printStackTrace()
             Dialog.showMessage(fileChooser, s"${e.getClass.getName}: ${e.getMessage}", s"Unable to ${fileAction.toLowerCase()} file", Message.Error)
-          case Success(_) =>
+          case _ => ()
         }
-      case Result.Cancel =>
+      case _ => ()
     }
 
   /**
