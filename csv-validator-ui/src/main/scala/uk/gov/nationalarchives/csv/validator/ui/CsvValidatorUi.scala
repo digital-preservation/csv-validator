@@ -161,21 +161,23 @@ object CsvValidatorUi extends SimpleSwingApplication {
       case _ =>
     }
 
-    val cliResult = CsvValidatorCmdApp.validate(
-      TextFile(Paths.get(csvFilePath), csvEncoding, validateEncoding),
-      TextFile(Paths.get(csvSchemaFilePath), csvSchemaEncoding),
-      failOnFirstError,
-      pathSubstitutions,
-      enforceCaseSensitivePathChecks,
-      trace = false,
-      progress,
-      skipFileChecks,
-      rowCallback
-    )
+    if(csvFilePath.nonEmpty && csvSchemaFilePath.nonEmpty) {
+      val (status, cliExitCode) = CsvValidatorCmdApp.validate(
+        TextFile(Paths.get(csvFilePath), csvEncoding, validateEncoding),
+        TextFile(Paths.get(csvSchemaFilePath), csvSchemaEncoding),
+        failOnFirstError,
+        pathSubstitutions,
+        enforceCaseSensitivePathChecks,
+        trace = false,
+        progress,
+        skipFileChecks,
+        rowCallback
+      )
 
-    cliResult._2 match {
-      case SystemExitCodes.ValidCsv => toConsole(s"PASS$outputTextSuffix")
-      case _ => toConsole(cliResult._1)
+      cliExitCode match {
+        case SystemExitCodes.ValidCsv => toConsole(s"PASS$outputTextSuffix")
+        case _ => toConsole(status)
+      }
     }
   }
 
