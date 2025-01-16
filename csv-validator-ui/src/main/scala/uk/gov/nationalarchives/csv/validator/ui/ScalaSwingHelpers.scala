@@ -24,13 +24,13 @@ import scala.util.{Failure, Success, Try}
  * the use of scala.swing
  */
 object ScalaSwingHelpers {
-  private def handleSelectedFile(dialogAction: Result.Value, fileChooser: FileChooser, result: Path => Try[String], dialogText: String): Unit =
+  private def handleSelectedFile(dialogAction: Result.Value, fileChooser: FileChooser, result: Path => Try[String], fileAction: String): Unit =
     dialogAction match {
       case Result.Approve =>
         result(fileChooser.selectedFile.toPath) match {
           case Failure(e) =>
             e.printStackTrace()
-            Dialog.showMessage(fileChooser, s"${e.getClass.getName}: ${e.getMessage}", s"Unable to ${dialogText.toLowerCase()} file", Message.Error)
+            Dialog.showMessage(fileChooser, s"${e.getClass.getName}: ${e.getMessage}", s"Unable to ${fileAction.toLowerCase()} file", Message.Error)
           case Success(_) =>
         }
       case Result.Cancel =>
@@ -55,7 +55,7 @@ object ScalaSwingHelpers {
    */
   def chooseFile(fileChooser: FileChooser, result: Path => Try[String], locateOver: Component, dialogText: String = "OK") : Unit = {
     val showDialogAction = fileChooser.showDialog(locateOver, dialogText)
-    handleSelectedFile(showDialogAction, fileChooser, result, dialogText)
+    handleSelectedFile(showDialogAction, fileChooser, result, "get")
   }
 
   /**
