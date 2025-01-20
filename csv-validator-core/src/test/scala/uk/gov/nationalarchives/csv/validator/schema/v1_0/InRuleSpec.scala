@@ -40,6 +40,20 @@ class InRuleSpec extends Specification {
       }
     }
 
+    "succeed if inRule's column reference does exist" in {
+      val inRule = InRule(ColumnReference(NamedColumnIdentifier("column1")))
+
+      inRule.evaluate(0, Row(List(Cell("hello world")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) mustEqual Validated.Valid(true)
+    }
+
+    "fail if inRule's column reference doesn't exist" in {
+      val inRule = InRule(ColumnReference(NamedColumnIdentifier("nonExistentColumn")))
+
+      inRule.evaluate(0, Row(List(Cell("hello world today")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) must beLike {
+        case Validated.Invalid(messages) => messages.head mustEqual """in($nonExistentColumn) fails for line: 1, column: column1, value: "hello world today""""
+      }
+    }
+
     "succeed with @ignoreCase" in {
       val inRule = InRule(Literal(Some("hello world")))
       inRule.evaluate(0, Row(List(Cell("hello WORLD")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"), Nil, List(IgnoreCase()))))) mustEqual Validated.Valid(true)

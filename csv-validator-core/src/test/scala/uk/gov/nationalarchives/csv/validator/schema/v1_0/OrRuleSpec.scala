@@ -67,7 +67,9 @@ class OrRuleSpec extends Specification {
 
       val orRule = OrRule(leftInRule, rightInRule)
 
-      orRule.evaluate(0, Row(List(Cell("UK")), 1), schema) must throwA[NoSuchElementException]
+      orRule.evaluate(0, Row(List(Cell("UK")), 1), schema) must beLike {
+        case Validated.Invalid(messages) => messages.head mustEqual """in($ConfigurableCountry) or in("France") fails for line: 1, column: Country, value: "UK""""
+      }
     }
 
     "succeed when 3 'or' rules valid for right rule" in {

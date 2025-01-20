@@ -128,47 +128,36 @@ case class FileExistsRule(pathSubstitutions: List[(String,String)], enforceCaseS
 
 case class InRule(inValue: ArgProvider) extends Rule("in", Seq(inValue): _*) {
   override def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema, mayBeLast: Option[Boolean] = None): Boolean = {
-    val ruleValue = inValue.referenceValue(columnIndex, row, schema)
-
-    val (rv, cv) = if (columnDefinition.directives.contains(IgnoreCase())) (ruleValue.get.toLowerCase, cellValue.toLowerCase) else (ruleValue.get, cellValue)
-    rv contains cv
+    val (potentialRv, cv) = argProviderHelper(inValue, columnDefinition, columnIndex, row, schema, cellValue)
+    potentialRv.exists(_.contains(cv))
   }
 }
 
 case class IsRule(isValue: ArgProvider) extends Rule("is", Seq(isValue): _*) {
   override def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema, mayBeLast: Option[Boolean]  = None): Boolean = {
-    val ruleValue = isValue.referenceValue(columnIndex, row, schema)
-
-    val (rv, cv) = if (columnDefinition.directives.contains(IgnoreCase())) (ruleValue.get.toLowerCase, cellValue.toLowerCase) else (ruleValue.get, cellValue)
-    cv == rv
+    val (potentialRv, cv) = argProviderHelper(isValue, columnDefinition, columnIndex, row, schema, cellValue)
+    potentialRv.contains(cv)
   }
 }
 
-
 case class NotRule(notValue: ArgProvider) extends Rule("not", Seq(notValue): _*) {
   override def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema,mayBeLast: Option[Boolean] = None): Boolean = {
-    val ruleValue = notValue.referenceValue(columnIndex, row, schema)
-
-    val (rv, cv) = if (columnDefinition.directives.contains(IgnoreCase())) (ruleValue.get.toLowerCase, cellValue.toLowerCase) else (ruleValue.get, cellValue)
-    cv != rv
+    val (potentialRv, cv) = argProviderHelper(notValue, columnDefinition, columnIndex, row, schema, cellValue)
+    !potentialRv.contains(cv)
   }
 }
 
 case class StartsRule(startsValue: ArgProvider) extends Rule("starts", Seq(startsValue): _*) {
   override def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema, mayBeLast: Option[Boolean] = None): Boolean = {
-    val ruleValue = startsValue.referenceValue(columnIndex, row, schema)
-
-    val (rv, cv) = if (columnDefinition.directives.contains(IgnoreCase())) (ruleValue.get.toLowerCase, cellValue.toLowerCase) else (ruleValue.get, cellValue)
-    cv startsWith rv
+    val (potentialRv, cv) = argProviderHelper(startsValue, columnDefinition, columnIndex, row, schema, cellValue)
+    potentialRv.exists(rv => cv.startsWith(rv))
   }
 }
 
 case class EndsRule(endsValue: ArgProvider) extends Rule("ends", Seq(endsValue): _*) {
   override def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema, mayBeLast: Option[Boolean] = None): Boolean = {
-    val ruleValue = endsValue.referenceValue(columnIndex, row, schema)
-
-    val (rv, cv) = if (columnDefinition.directives.contains(IgnoreCase())) (ruleValue.get.toLowerCase, cellValue.toLowerCase) else (ruleValue.get, cellValue)
-    cv endsWith rv
+    val (potentialRv, cv) = argProviderHelper(endsValue, columnDefinition, columnIndex, row, schema, cellValue)
+    potentialRv.exists(rv => cv.endsWith(rv))
   }
 }
 
