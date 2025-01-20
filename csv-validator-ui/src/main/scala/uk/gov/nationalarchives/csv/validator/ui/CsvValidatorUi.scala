@@ -340,7 +340,9 @@ object CsvValidatorUi extends SimpleSwingApplication {
     scrollPane.viewportView = txtArReport
 
     private val btnValidate = new Button("Validate")
+      btnValidate.tooltip = "Full metadata and file validation"
     private val btnValidateMetadataOnly = new Button("Validate Metadata Only")
+      btnValidateMetadataOnly.tooltip = """Metadata validation, but "fileExists", "checksum" and "integrityCheck" checks not performed"""
 
     private val progressBar = new ProgressBar()
     progressBar.visible = false
