@@ -23,12 +23,7 @@ class InRuleSpec extends Specification {
     val globalDirsOne = List(TotalColumns(1))
 
     "succeed if inRule is embedded in value" in {
-      val inRule = InRule(Literal(Some("myhello world today")))
-      inRule.evaluate(0, Row(List(Cell("hello world")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) mustEqual Validated.Valid(true)
-    }
-
-    "succeed if inRule is the same as value" in {
-      val inRule = InRule(Literal(Some("hello world")))
+      val inRule = InRule(Literal(Some("hello world today")))
       inRule.evaluate(0, Row(List(Cell("hello world")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) mustEqual Validated.Valid(true)
     }
 
@@ -37,6 +32,25 @@ class InRuleSpec extends Specification {
 
       inRule.evaluate(0, Row(List(Cell("hello world today")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) must beLike {
         case Validated.Invalid(messages) => messages.head mustEqual """in("hello world") fails for line: 1, column: column1, value: "hello world today""""
+      }
+    }
+
+    "succeed if inRule is the same as value" in {
+      val inRule = InRule(Literal(Some("hello world")))
+      inRule.evaluate(0, Row(List(Cell("hello world")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) mustEqual Validated.Valid(true)
+    }
+
+    "succeed if inRule's column reference does exist" in {
+      val inRule = InRule(ColumnReference(NamedColumnIdentifier("column1")))
+
+      inRule.evaluate(0, Row(List(Cell("hello world")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) mustEqual Validated.Valid(true)
+    }
+
+    "fail if inRule's column reference doesn't exist" in {
+      val inRule = InRule(ColumnReference(NamedColumnIdentifier("nonExistentColumn")))
+
+      inRule.evaluate(0, Row(List(Cell("hello world today")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) must beLike {
+        case Validated.Invalid(messages) => messages.head mustEqual """in($nonExistentColumn) fails for line: 1, column: column1, value: "hello world today""""
       }
     }
 
