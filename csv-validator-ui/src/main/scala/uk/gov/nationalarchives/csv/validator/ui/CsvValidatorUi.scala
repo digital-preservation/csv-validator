@@ -136,7 +136,10 @@ object CsvValidatorUi extends SimpleSwingApplication {
     }
   }
 
-  private def validate(csvFilePath: String, csvEncoding: Charset, csvSchemaFilePath: String, csvSchemaEncoding: Charset, failOnFirstError: Boolean, pathSubstitutions: List[(String, String)], enforceCaseSensitivePathChecks: Boolean, progress: Option[ProgressCallback], validateEncoding: Boolean, potentialMaxNumOfLines: String, skipFileChecks: Boolean, outputTextSuffix: String)(output: String => Unit) : Unit = {
+  private def validate(csvFilePath: String, csvEncoding: Charset, csvSchemaFilePath: String, csvSchemaEncoding: Charset,
+                       failOnFirstError: Boolean, pathSubstitutions: List[(String, String)], enforceCaseSensitivePathChecks: Boolean,
+                       progress: Option[ProgressCallback], validateEncoding: Boolean, potentialMaxNumOfLines: String,
+                       skipFileChecks: Boolean, outputTextSuffix: String)(output: String => Unit) : Unit = {
 
     def toConsole(msg: String): Unit = Swing.onEDT {
       output(msg)
@@ -153,8 +156,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
     }
     val safeToRunValidation = csvFilePath.nonEmpty && csvSchemaFilePath.nonEmpty && maxNumOfLines > 0
 
-    def rowCallback(maxBadLines: Int)(row: ValidatedNel[FailMessage, Any]): Unit = row match {
-
+    def logRowCallback(maxBadLines: Int)(row: ValidatedNel[FailMessage, Any]): Unit = row match {
       case Invalid(failures) =>
         if (badLines >= maxBadLines) {
           if (!truncated) {
@@ -164,9 +166,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
             )
             truncated = true
           }
-        } else {
-          toConsole(CsvValidatorCmdApp.prettyPrint(failures))
-        }
+        } else toConsole(CsvValidatorCmdApp.prettyPrint(failures))
 
         badLines += failures.size
 
@@ -183,7 +183,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
         trace = false,
         progress,
         skipFileChecks,
-        rowCallback(maxNumOfLines)
+        logRowCallback(maxNumOfLines)
       )
 
       cliExitCode match {
