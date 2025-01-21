@@ -371,7 +371,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
         Swing.onEDT {
           progressBar.max = total
           progressBar.value = processed
-          progressBar.label = s"Line ${processed} of ${total}"
+          progressBar.label = s"Row $processed of $total"
         }
       }
     }
