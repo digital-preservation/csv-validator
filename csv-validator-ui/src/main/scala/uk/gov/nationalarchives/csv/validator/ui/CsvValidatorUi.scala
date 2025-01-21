@@ -136,7 +136,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
     }
   }
 
-  private def validate(csvFilePath: String, csvEncoding: Charset, csvSchemaFilePath: String, csvSchemaEncoding: Charset, failOnFirstError: Boolean, pathSubstitutions: List[(String, String)], enforceCaseSensitivePathChecks: Boolean, progress: Option[ProgressCallback], validateEncoding: Boolean, skipFileChecks: Boolean, outputTextSuffix: String)(output: String => Unit) : Unit = {
+  private def validate(csvFilePath: String, csvEncoding: Charset, csvSchemaFilePath: String, csvSchemaEncoding: Charset, failOnFirstError: Boolean, pathSubstitutions: List[(String, String)], enforceCaseSensitivePathChecks: Boolean, progress: Option[ProgressCallback], validateEncoding: Boolean, potentialMaxNumOfLines: String, skipFileChecks: Boolean, outputTextSuffix: String)(output: String => Unit) : Unit = {
 
     def toConsole(msg: String): Unit = Swing.onEDT {
       output(msg)
@@ -145,12 +145,23 @@ object CsvValidatorUi extends SimpleSwingApplication {
     var badLines = 0
     var truncated = false
 
-    def rowCallback(row: ValidatedNel[FailMessage, Any]): Unit = row match {
+    val maxNumOfLines = Try(potentialMaxNumOfLines.toInt) match {
+      case Success(number) if number > 0 => number
+      case _ =>
+        toConsole("Error: Maximum number of lines to display must be a positive whole number starting from 1")
+        0
+    }
+    val safeToRunValidation = csvFilePath.nonEmpty && csvSchemaFilePath.nonEmpty && maxNumOfLines > 0
+
+    def rowCallback(maxBadLines: Int)(row: ValidatedNel[FailMessage, Any]): Unit = row match {
 
       case Invalid(failures) =>
-        if (badLines > 2000) {
+        if (badLines >= maxBadLines) {
           if (!truncated) {
-            toConsole("Too many errors/warnings, truncating")
+            toConsole(
+              s"...\n\nNote: Number of lines to display has reached the set limit of $maxBadLines; " +
+                "increase this limit and re-run in order to display more lines."
+            )
             truncated = true
           }
         } else {
@@ -162,7 +173,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
       case _ =>
     }
 
-    if(csvFilePath.nonEmpty && csvSchemaFilePath.nonEmpty) {
+    if(safeToRunValidation) {
       val (status, cliExitCode) = CsvValidatorCmdApp.validate(
         TextFile(Paths.get(csvFilePath), csvEncoding, validateEncoding),
         TextFile(Paths.get(csvSchemaFilePath), csvSchemaEncoding),
@@ -172,7 +183,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
         trace = false,
         progress,
         skipFileChecks,
-        rowCallback
+        rowCallback(maxNumOfLines)
       )
 
       cliExitCode match {
@@ -397,6 +408,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
             settingsPanel.enforceCaseSensitivePathChecks,
             Some(progress),
             settingsPanel.validateUtf8,
+            settingsPanel.numOfLinesToDisplay,
             skipFileChecks,
             suffix
           )
@@ -502,6 +514,8 @@ object CsvValidatorUi extends SimpleSwingApplication {
     cbFailOnFirstError.tooltip = "Indicates whether to fail on the first error, or whether to collect all errors!"
     private val cbValidateUtf8 = new CheckBox("Validate CSV for valid UTF-8 characters")
     cbValidateUtf8.selected = true
+    private val tfDisplayLinesLabel = new Label("Maximum number of lines to display:")
+    private val tfDisplayLines = new TextField("2000", 5)
     private val lblPathSubstitutions = new Label("Path Substitutions")
     private val cbEnforceCaseSensitivePathChecks = new CheckBox("Enforce case-sensitive file path checks")
     cbEnforceCaseSensitivePathChecks.tooltip = "Performs additional checks to ensure that the case of file-paths in the CSV file match those of the filesystem"
@@ -602,21 +616,31 @@ object CsvValidatorUi extends SimpleSwingApplication {
 
       c.gridx = 0
       c.gridy = 5
+      c.insets = new Insets(0, 8, 0, 0)
+      layout(tfDisplayLinesLabel) = c
+
+      c.gridx = 1
+      c.gridy = 5
+      c.insets = new Insets(0, 0, 0, 0)
+      layout(tfDisplayLines) = c
+
+      c.gridx = 0
+      c.gridy = 6
       c.insets = new Insets(0,10,0,0)
       layout(lblPathSubstitutions) = c
 
       c.gridx = 0
-      c.gridy = 6
+      c.gridy = 7
       c.gridwidth = 2
       layout(spTblPathSubstitutions) = c
 
       c.gridx = 0
-      c.gridy = 7
+      c.gridy = 8
       c.anchor = Anchor.LineStart
       layout(btnRemovePathSubstitution) = c
 
       c.gridx = 1
-      c.gridy = 7
+      c.gridy = 8
       c.anchor = Anchor.LastLineEnd
       layout(btnAddPathSubstitution) = c
     }
@@ -630,5 +654,6 @@ object CsvValidatorUi extends SimpleSwingApplication {
     def pathSubstitutions: List[(String, String)] = tblPathSubstitutions.pathSubstitutions
     def enforceCaseSensitivePathChecks: Boolean = cbEnforceCaseSensitivePathChecks.selected
     def validateUtf8 : Boolean = cbValidateUtf8.selected
+    def numOfLinesToDisplay: String = tfDisplayLines.text.strip()
   }
 }
