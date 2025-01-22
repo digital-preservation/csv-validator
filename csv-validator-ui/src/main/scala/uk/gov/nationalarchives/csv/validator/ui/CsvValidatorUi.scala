@@ -604,25 +604,25 @@ object CsvValidatorUi extends SimpleSwingApplication {
 
       c.gridx = 0
       c.gridy = 2
-      layout(cbFailOnFirstError) = c
-
-      c.gridx = 0
-      c.gridy = 3
-      layout(cbEnforceCaseSensitivePathChecks) = c
-
-      c.gridx = 0
-      c.gridy = 4
-      layout(cbValidateUtf8) = c
-
-      c.gridx = 0
-      c.gridy = 5
-      c.insets = new Insets(0, 8, 0, 0)
+      c.insets = new Insets(0, 0, 0, 0)
       layout(tfDisplayLinesLabel) = c
 
       c.gridx = 1
-      c.gridy = 5
+      c.gridy = 2
       c.insets = new Insets(0, 0, 0, 0)
       layout(tfDisplayLines) = c
+
+      c.gridx = 0
+      c.gridy = 3
+      layout(cbFailOnFirstError) = c
+
+      c.gridx = 0
+      c.gridy = 4
+      layout(cbEnforceCaseSensitivePathChecks) = c
+
+      c.gridx = 0
+      c.gridy = 5
+      layout(cbValidateUtf8) = c
 
       c.gridx = 0
       c.gridy = 6
