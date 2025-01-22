@@ -151,7 +151,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
     val maxNumOfLines = Try(potentialMaxNumOfLines.toInt) match {
       case Success(number) if number > 0 => number
       case _ =>
-        toConsole("Error: Maximum number of lines to display must be a positive whole number starting from 1")
+        toConsole("Error: Maximum number of errors to display should be more than 0")
         0
     }
     val safeToRunValidation = csvFilePath.nonEmpty && csvSchemaFilePath.nonEmpty && maxNumOfLines > 0
@@ -161,8 +161,8 @@ object CsvValidatorUi extends SimpleSwingApplication {
         if (badLines >= maxBadLines) {
           if (!truncated) {
             toConsole(
-              s"...\n\nNote: Number of lines to display has reached the set limit of $maxBadLines; " +
-                "increase this limit and re-run in order to display more lines."
+              s"...\n\nNote: Number of errors to display has reached the set limit of $maxBadLines; " +
+                "increase this limit and re-run in order to display more errors."
             )
             truncated = true
           }
@@ -506,17 +506,17 @@ object CsvValidatorUi extends SimpleSwingApplication {
       }
 
     val settingsGroup = new SJXTaskPane("Settings", true)
-    private val lblCsvEncoding = new Label("CSV Encoding")
+    private val lblCsvEncoding = new Label("CSV Encoding:")
     private val cmbCsvEncoding = new ComboBox(CHARACTER_ENCODINGS)
-    private val lblCsvSchemaEncoding = new Label("CSV Schema Encoding")
+    private val lblCsvSchemaEncoding = new Label("CSV Schema Encoding:")
     private val cmbCsvSchemaEncoding = new ComboBox(CHARACTER_ENCODINGS)
     private val cbFailOnFirstError = new CheckBox("Fail on first error")
     cbFailOnFirstError.tooltip = "Indicates whether to fail on the first error, or whether to collect all errors!"
     private val cbValidateUtf8 = new CheckBox("Validate CSV for valid UTF-8 characters")
     cbValidateUtf8.selected = true
-    private val tfDisplayLinesLabel = new Label("Maximum number of lines to display:")
+    private val tfDisplayLinesLabel = new Label("Maximum number of errors to display:")
     private val tfDisplayLines = new TextField("2000", 5)
-    private val lblPathSubstitutions = new Label("Path Substitutions")
+    private val lblPathSubstitutions = new Label("Path Substitutions:")
     private val cbEnforceCaseSensitivePathChecks = new CheckBox("Enforce case-sensitive file path checks")
     cbEnforceCaseSensitivePathChecks.tooltip = "Performs additional checks to ensure that the case of file-paths in the CSV file match those of the filesystem"
 
