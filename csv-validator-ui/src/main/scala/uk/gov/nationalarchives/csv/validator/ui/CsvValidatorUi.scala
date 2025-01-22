@@ -519,7 +519,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
       addToTableDialog(parentFrame, "Add Path Substitution...", rows, tblPathSubstitutions.addRow)
     }
 
-    private val tblPathSubstitutions: Table = new Table(0, 2) {
+    private val tblPathSubstitutions = new Table(0, 2) {
       preferredViewportSize = new Dimension(500, 70)
       model = new DefaultTableModel(Array[Object]("From", "To"), 0)
 
