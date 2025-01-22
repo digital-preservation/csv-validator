@@ -283,54 +283,38 @@ object CsvValidatorUi extends SimpleSwingApplication {
         }
     }
 
-    private val csvFileChooser = new FileChooser(loadSettings match {
-      case Some(s) =>
-        s.lastCsvPath.toFile
-      case None =>
-        userDir.toFile
-    })
+    private def lastCsvPath: File =
+      loadSettings match {
+        case Some(settings) => settings.lastCsvPath.toFile
+        case None => userDir.toFile
+      }
+
+    private val csvFileChooser = new FileChooser(lastCsvPath)
     csvFileChooser.title = "Select a .csv file"
     csvFileChooser.fileFilter = new FileNameExtensionFilter("CSV file (*.csv)", "csv")
     private val btnChooseCsvFile = new Button("...")
 
+    private def setPathToLastCsvPath(fileChooser: FileChooser): Unit = fileChooser.selectedFile = lastCsvPath
+
     btnChooseCsvFile.reactions += onClick {
+      setPathToLastCsvPath(csvFileChooser)
       chooseFile(csvFileChooser, txtCsvFile, btnChooseCsvFile)
-      updateLastPath(csvFileChooser, {
-        path =>
-          loadSettings match {
-            case Some(s) =>
-              s.copy(lastCsvPath = path)
-            case None =>
-              Settings(path, path, path)
-          }
-      })
+      updateLastPath(csvFileChooser, path => Settings(path, path, path))
     }
 
     private val lblCsvSchemaFile = new Label("CSV Schema file:")
 
     txtCsvSchemaFile.setTransferHandler(fileHandler)
-    private val csvSchemaFileChooser = new FileChooser(loadSettings match {
-      case Some(s) =>
-        s.lastCsvSchemaPath.toFile
-      case None =>
-        userDir.toFile
-    })
+    private val csvSchemaFileChooser = new FileChooser(lastCsvPath)
     csvSchemaFileChooser.title = "Select a .csvs file"
     csvSchemaFileChooser.fileFilter = new FileNameExtensionFilter("CSV Schema file (*.csvs)", "csvs" +
       "")
 
     private val btnChooseCsvSchemaFile = new Button("...")
     btnChooseCsvSchemaFile.reactions += onClick {
+      setPathToLastCsvPath(csvSchemaFileChooser)
       chooseFile(csvSchemaFileChooser, txtCsvSchemaFile, btnChooseCsvSchemaFile)
-      updateLastPath(csvSchemaFileChooser, {
-        path =>
-          loadSettings match {
-            case Some(s) =>
-              s.copy(lastCsvSchemaPath = path)
-            case None =>
-              Settings(path, path, path)
-          }
-      })
+      updateLastPath(csvSchemaFileChooser, path => Settings(path, path, path))
     }
 
     private val separator1 = new Separator
@@ -417,12 +401,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
     private val btnClose = new Button("Close")
     btnClose.reactions += onClick(quit())
 
-    private val reportFileChooser = new FileChooser(loadSettings match {
-      case Some(s) =>
-        s.lastReportPath.toFile
-      case None =>
-        userDir.toFile
-    })
+    private val reportFileChooser = new FileChooser(lastCsvPath)
     val dateFormat = new SimpleDateFormat("dd-mm-yy_HH-mm-ss")
     reportFileChooser.selectedFile = new File(s"csv_validator_report_${dateFormat.format(new Date())}.txt")
 
@@ -430,16 +409,9 @@ object CsvValidatorUi extends SimpleSwingApplication {
     reportFileChooser.title = saveLabel
     private val btnSave = new Button(saveLabel)
     btnSave.reactions += onClick {
+      setPathToLastCsvPath(reportFileChooser)
       saveFile(reportFileChooser, saveToFile(txtArReport.text, _), btnSave, btnSave.text)
-      updateLastPath(reportFileChooser, {
-        path =>
-          loadSettings match {
-            case Some(s) =>
-              s.copy(lastReportPath = path)
-            case None =>
-              Settings(path, path, path)
-          }
-      })
+      updateLastPath(reportFileChooser, path => Settings(path, path, path))
     }
 
     private val lblVersion = new Label(s"Version: ${getShortVersion}")
@@ -469,8 +441,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
 
   def updateLastPath(fileChooser: FileChooser, sink: Path => Settings) : Unit = {
     Option(fileChooser.selectedFile) match {
-      case Some(selection) =>
-        saveSettings(sink(selection.toPath.getParent))
+      case Some(selection) => saveSettings(sink(selection.toPath))
       case None =>
     }
   }
