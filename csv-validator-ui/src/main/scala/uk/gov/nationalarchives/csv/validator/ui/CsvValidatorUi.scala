@@ -290,6 +290,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
       }
 
     private val csvFileChooser = new FileChooser(lastCsvPath)
+    csvFileChooser.multiSelectionEnabled = false
     csvFileChooser.title = "Select a .csv file"
     csvFileChooser.fileFilter = new FileNameExtensionFilter("CSV file (*.csv)", "csv")
     private val btnChooseCsvFile = new Button("...")
@@ -306,6 +307,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
 
     txtCsvSchemaFile.setTransferHandler(fileHandler)
     private val csvSchemaFileChooser = new FileChooser(lastCsvPath)
+    csvSchemaFileChooser.multiSelectionEnabled = false
     csvSchemaFileChooser.title = "Select a .csvs file"
     csvSchemaFileChooser.fileFilter = new FileNameExtensionFilter("CSV Schema file (*.csvs)", "csvs" +
       "")
@@ -402,6 +404,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
     btnClose.reactions += onClick(quit())
 
     private val reportFileChooser = new FileChooser(lastCsvPath)
+    reportFileChooser.multiSelectionEnabled = false
     val dateFormat = new SimpleDateFormat("dd-mm-yy_HH-mm-ss")
     reportFileChooser.selectedFile = new File(s"csv_validator_report_${dateFormat.format(new Date())}.txt")
 
@@ -503,6 +506,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
           val startingDir = if(fileTextField.text.isEmpty) userDir.toFile else Path.of(fileTextField.text).toFile
           val helpText = s"Select the ${fromPath.split("/").last} folder"
           val fileChooser = new FileChooser(startingDir)
+          fileChooser.multiSelectionEnabled = false
           fileChooser.title = helpText
           fileChooser.fileSelectionMode = SelectionMode.FilesAndDirectories
           chooseFile(fileChooser, f => updateFileText(f), fileButton, helpText)
