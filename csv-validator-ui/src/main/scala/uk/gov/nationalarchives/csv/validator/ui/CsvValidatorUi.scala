@@ -100,9 +100,9 @@ object CsvValidatorUi extends SimpleSwingApplication {
   }
 
   private def extractFromManifest[T](extractor: Attributes => T): Option[T] = {
-    val clazz = getClass()
+    val clazz = getClass
     val className = clazz.getSimpleName + ".class"
-    val classPath = clazz.getResource(className).toString()
+    val classPath = clazz.getResource(className).toString
     if (!classPath.startsWith("jar")) {
       None // Class not from JAR
     } else {
@@ -346,7 +346,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
         Swing.onEDT {
           progressBar.max = total
           progressBar.value = processed
-          progressBar.label = s"Line ${processed} of ${total}"
+          progressBar.label = s"Line $processed of $total"
         }
       }
     }
@@ -417,11 +417,11 @@ object CsvValidatorUi extends SimpleSwingApplication {
       updateLastPath(reportFileChooser, path => Settings(path, path, path))
     }
 
-    private val lblVersion = new Label(s"Version: ${getShortVersion}")
+    private val lblVersion = new Label(s"Version: $getShortVersion")
     lblVersion.listenTo(lblVersion.mouse.clicks)
     lblVersion.font = lblVersion.font.deriveFont(9)
     lblVersion.reactions += onClick {
-      Dialog.showMessage(this, getLongVersion.map(x => s"${x._1}: ${x._2}").mkString(System.getProperty("line.separator")), "Version Details")
+      Dialog.showMessage(this, getLongVersion.map(x => s"${x._1}: ${x._2}").mkString(java.lang.System.lineSeparator()), "Version Details")
     }
 
     layout.row.grid(lblCsvFile).add(txtCsvFile, 5).add(btnChooseCsvFile)
@@ -519,7 +519,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
       addToTableDialog(parentFrame, "Add Path Substitution...", rows, tblPathSubstitutions.addRow)
     }
 
-    private val tblPathSubstitutions = new Table(0, 2) {
+    private val tblPathSubstitutions: Table = new Table(0, 2) {
       preferredViewportSize = new Dimension(500, 70)
       model = new DefaultTableModel(Array[Object]("From", "To"), 0)
 
@@ -532,7 +532,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
       }
 
       def pathSubstitutions : List[(String, String)] = {
-        for(rowIdx <- (0 to model.getRowCount - 1)) yield (model.getValueAt(rowIdx, 0).asInstanceOf[String], model.getValueAt(rowIdx, 1).asInstanceOf[String])
+        for(rowIdx <- 0 to model.getRowCount - 1) yield (model.getValueAt(rowIdx, 0).asInstanceOf[String], model.getValueAt(rowIdx, 1).asInstanceOf[String])
       }.toList
     }
 
