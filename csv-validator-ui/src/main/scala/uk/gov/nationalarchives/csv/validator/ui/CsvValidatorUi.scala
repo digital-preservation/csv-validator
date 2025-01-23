@@ -429,11 +429,11 @@ object CsvValidatorUi extends SimpleSwingApplication {
       updateLastPath(reportFileChooser, path => Settings(path, path, path))
     }
 
-    private val lblVersion = new Label(s"Version: $getShortVersion")
+    private val lblVersion = new Label(s"Version: ${getShortVersion}")
     lblVersion.listenTo(lblVersion.mouse.clicks)
     lblVersion.font = lblVersion.font.deriveFont(9)
     lblVersion.reactions += onClick {
-      Dialog.showMessage(this, getLongVersion.map(x => s"${x._1}: ${x._2}").mkString(java.lang.System.lineSeparator()), "Version Details")
+      Dialog.showMessage(this, getLongVersion.map(x => s"${x._1}: ${x._2}").mkString(System.getProperty("line.separator")), "Version Details")
     }
 
     layout.row.grid(lblCsvFile).add(txtCsvFile, 5).add(btnChooseCsvFile)
