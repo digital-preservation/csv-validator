@@ -510,7 +510,6 @@ object CsvValidatorUi extends SimpleSwingApplication {
         Success("Text updated")
       }
 
-      val okButton = new Button("OK")
       val fileButton = new Button("...")
       fileButton.reactions += {
         case ev: ButtonClicked =>
