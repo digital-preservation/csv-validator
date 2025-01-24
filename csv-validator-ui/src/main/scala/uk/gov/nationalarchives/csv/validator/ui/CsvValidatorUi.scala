@@ -309,7 +309,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
 
     btnChooseCsvFile.reactions += onClick {
       setPathToLastCsvPath(csvFileChooser)
-      chooseFile(csvFileChooser, txtCsvFile, btnChooseCsvFile)
+      chooseFileOrDir(csvFileChooser, txtCsvFile, btnChooseCsvFile)
       updateLastPath(csvFileChooser, path => Settings(path, path, path))
     }
 
@@ -324,7 +324,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
     private val btnChooseCsvSchemaFile = new Button("...")
     btnChooseCsvSchemaFile.reactions += onClick {
       setPathToLastCsvPath(csvSchemaFileChooser)
-      chooseFile(csvSchemaFileChooser, txtCsvSchemaFile, btnChooseCsvSchemaFile)
+      chooseFileOrDir(csvSchemaFileChooser, txtCsvSchemaFile, btnChooseCsvSchemaFile)
       updateLastPath(csvSchemaFileChooser, path => Settings(path, path, path))
     }
 
@@ -518,8 +518,8 @@ object CsvValidatorUi extends SimpleSwingApplication {
           val helpText = s"Select the ${fromPathText.text.split("/").last} folder"
           val fileChooser = new FileChooser(startingDir)
           fileChooser.title = helpText
-          fileChooser.fileSelectionMode = SelectionMode.FilesAndDirectories
-          chooseFile(fileChooser, f => updateFileText(f), fileButton, helpText)
+          fileChooser.fileSelectionMode = SelectionMode.DirectoriesOnly
+          chooseFileOrDir(fileChooser, f => updateFileText(f), fileButton, helpText)
       }
 
       val rows = List(
