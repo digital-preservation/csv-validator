@@ -514,7 +514,8 @@ object CsvValidatorUi extends SimpleSwingApplication {
       fileButton.reactions += {
         case ev: ButtonClicked =>
           val startingDir = if(fileTextField.text.isEmpty) userDir.toFile else Path.of(fileTextField.text).toFile
-          val helpText = s"Select the ${fromPathText.text.split("/").last} folder"
+          val fromFolderName = Path.of(fromPathText.text).getFileName
+          val helpText = s"Select the ${fromFolderName} folder"
           val fileChooser = new FileChooser(startingDir)
           fileChooser.title = helpText
           fileChooser.fileSelectionMode = SelectionMode.DirectoriesOnly
