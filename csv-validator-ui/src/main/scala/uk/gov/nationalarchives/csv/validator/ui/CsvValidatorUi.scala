@@ -497,8 +497,8 @@ object CsvValidatorUi extends SimpleSwingApplication {
       val identifierRows = CsvValidatorCmdApp.getColumnFromCsv(csvFile, schemaFile, "identifier").sorted
       val fromPath = identifierRows.headOption.getOrElse("")
 
-      val fileTextField = new TextField(30)
-      val fromPathText = new TextField(fromPath, 30)
+      val toPathField = new TextField(30)
+      val fromPathField = new TextField(fromPath, 30)
 
       def pathToUri(path: Path) = {
         val uri = path.toUri.toString
@@ -506,15 +506,15 @@ object CsvValidatorUi extends SimpleSwingApplication {
       }
 
       def updateFileText(path: Path): Try[String] = {
-        fileTextField.text = pathToUri(path)
+        toPathField.text = pathToUri(path)
         Success("Text updated")
       }
 
       val fileButton = new Button("...")
       fileButton.reactions += {
         case ev: ButtonClicked =>
-          val startingDir = if(fileTextField.text.isEmpty) userDir.toFile else Path.of(fileTextField.text).toFile
-          val fromFolderName = Path.of(fromPathText.text).getFileName
+          val startingDir = if(toPathField.text.isEmpty) userDir.toFile else Path.of(toPathField.text).toFile
+          val fromFolderName = Path.of(fromPathField.text).getFileName
           val helpText = s"Select the ${fromFolderName} folder"
           val fileChooser = new FileChooser(startingDir)
           fileChooser.title = helpText
@@ -523,8 +523,8 @@ object CsvValidatorUi extends SimpleSwingApplication {
       }
 
       val rows = List(
-        Row("From", List(fromPathText)),
-        Row("To", List(fileTextField, fileButton))
+        Row("From", List(fromPathField)),
+        Row("To", List(toPathField, fileButton))
       )
       addToTableDialog(parentFrame, "Add Path Substitution...", rows, tblPathSubstitutions.addRow)
     }
