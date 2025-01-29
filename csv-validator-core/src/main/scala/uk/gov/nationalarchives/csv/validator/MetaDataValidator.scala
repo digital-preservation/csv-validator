@@ -11,6 +11,7 @@ package uk.gov.nationalarchives.csv.validator
 
 import cats.data.{Chain, Validated, ValidatedNel}
 import cats.syntax.all._
+import com.univocity.parsers.common.TextParsingException
 import com.univocity.parsers.csv.{CsvParser, CsvParserSettings}
 import org.apache.commons.io.input.BOMInputStream
 import uk.gov.nationalarchives.csv.validator.api.TextFile
@@ -23,7 +24,7 @@ import java.nio.charset.{Charset, StandardCharsets}
 import java.nio.file.{Files, Path}
 import scala.annotation.tailrec
 import scala.language.{postfixOps, reflectiveCalls}
-import scala.util.{Try, Using}
+import scala.util.{Failure, Success, Try, Using}
 
 //error reporting classes
 sealed trait ErrorType
@@ -61,12 +62,14 @@ trait MetaDataValidator {
   def validate(
     csv: JReader,    
     schema: Schema,
+    maxCharsPerCell: Int = 4096,
     progress: Option[ProgressCallback]
   ): MetaDataValidation[Any] = {
     var results: Chain[List[FailMessage]] = Chain.empty
     validateReader(
       csv,
       schema,
+      maxCharsPerCell,
       progress,
       {
         case Validated.Invalid(x) => results = results :+ x.toList
@@ -82,6 +85,7 @@ trait MetaDataValidator {
   def validateReader(
     csv: JReader,
     schema: Schema,
+    maxCharsPerCell: Int,
     progress: Option[ProgressCallback],
     rowCallback: MetaDataValidation[Any] => Unit
   ): Boolean = {
@@ -101,10 +105,10 @@ trait MetaDataValidator {
       None
     }
 
-    validateKnownRows(csv, schema, pf, rowCallback)
+    validateKnownRows(csv, schema, maxCharsPerCell, pf, rowCallback)
   }
 
-  def createCsvParser(schema: Schema): CsvParser = {
+  def createCsvParser(schema: Schema, maxCharsPerCell: Int): CsvParser = {
     val separator: Char = schema.globalDirectives.collectFirst {
       case Separator(sep) =>
         sep
@@ -124,6 +128,7 @@ trait MetaDataValidator {
     settings.setIgnoreLeadingWhitespaces(false)
     settings.setIgnoreTrailingWhitespaces(false)
     settings.setLineSeparatorDetectionEnabled(true)
+    settings.setMaxCharsPerColumn(maxCharsPerCell)
     // TODO(AR) should we be friendly and auto-detect line separator, or enforce RFC 1480?
     format.setQuoteEscape(CSV_RFC1480_QUOTE_ESCAPE_CHARACTER)
     //format.setLineSeparator(CSV_RFC1480_LINE_SEPARATOR)  // CRLF
@@ -136,11 +141,12 @@ trait MetaDataValidator {
   def validateKnownRows(
     csv: JReader,
     schema: Schema,
+    maxCharsPerCell: Int,
     progress: Option[ProgressFor],
     rowCallback: MetaDataValidation[Any] => Unit
   ): Boolean = {
 
-    val parser = createCsvParser(schema)
+    val parser = createCsvParser(schema, maxCharsPerCell)
 
     val result : Try[Boolean] = Using {
       parser.beginParsing(csv)
@@ -153,7 +159,7 @@ trait MetaDataValidator {
         // if 'no header' is not set and 'permit empty' is not set but the file contains only one line - this is an error
 
 
-        val rowIt = new RowIterator(reader, progress)
+        val rowIt = new RowIterator(reader, progress, maxCharsPerCell)
 
         val maybeNoData =
           if (schema.globalDirectives.contains(NoHeader())) {
@@ -345,24 +351,26 @@ trait ProgressCallback {
   def update(total: Int, processed: Int): Unit = update((processed.toFloat / total.toFloat) * 100)
 }
 
-class RowIterator(parser: CsvParser, progress: Option[ProgressFor]) extends Iterator[Row] {
+class RowIterator(parser: CsvParser, progress: Option[ProgressFor], maxCharsPerCell: Int) extends Iterator[Row] {
 
   private var index = 1
-  private var current = toRow(Option(parser.parseNext()))
+  private var current = toRow(Try(parser.parseNext()))
 
   @throws(classOf[IOException])
   override def next(): Row = {
     val row = current match {
-      case Some(row) =>
-        row
-      case None => {
-        throw new IOException("End of file")
-      }
+      case Success(row) => row
+      case Failure(ex: TextParsingException) if(ex.toString.contains("exceeds the maximum number of characters")) =>
+        val customMessage =
+          s"The number of characters in the cell located at line: ${ex.getLineIndex + 1}, column: ${ex.getColumnIndex + 1}, " +
+            s"is larger than the maximum number of characters allowed in a cell ($maxCharsPerCell); increase this limit and re-run."
+        throw new Exception(customMessage)
+      case Failure(ex) => throw ex
     }
 
     //move to the next
     this.index = index + 1
-    this.current = toRow(Option(parser.parseNext()))
+    this.current = toRow(Try(parser.parseNext()))
 
     progress map {
       p =>
@@ -380,7 +388,10 @@ class RowIterator(parser: CsvParser, progress: Option[ProgressFor]) extends Iter
     next()
   }
 
-  override def hasNext: Boolean = current.nonEmpty
+  override def hasNext: Boolean = current match {
+    case Failure(ex: NullPointerException) => false
+    case _ => true
+  }
 
-  private def toRow(rowData: Option[Array[String]]): Option[Row] = rowData.map(data => Row(data.toList.map(d => Cell(Option(d).getOrElse(""))), index))
+  private def toRow(rowData: Try[Array[String]]): Try[Row] = rowData.map(data => Row(data.toList.map(d => Cell(Option(d).getOrElse(""))), index))
 }
