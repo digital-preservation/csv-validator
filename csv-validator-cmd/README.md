@@ -9,7 +9,7 @@ Designed and tested on both Windows and Linux/Unix/Mac platforms.
 Basic Usage
 -----------
 
-The following command will show the useage for the application:
+The following command will show the usage for the application:
 
 ```bash
 $ validate
