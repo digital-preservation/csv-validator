@@ -156,10 +156,10 @@ object CsvValidatorUi extends SimpleSwingApplication {
     var badLines = 0
     var truncated = false
 
-    val maxCharsPerCell = convertTextboxValueToInt(potentialMaxCharsPerCell, "errors to display", toConsole)
-    val maxNumOfLines = convertTextboxValueToInt(potentialMaxNumOfLines, "characters per column", toConsole)
+    val maxCharsPerCell = convertTextboxValueToInt(potentialMaxCharsPerCell, "characters per column", toConsole)
+    val maxNumOfLines = convertTextboxValueToInt(potentialMaxNumOfLines, "errors to display", toConsole)
 
-    val safeToRunValidation = csvFilePath.nonEmpty && csvSchemaFilePath.nonEmpty && maxNumOfLines > 0
+    val safeToRunValidation = csvFilePath.nonEmpty && csvSchemaFilePath.nonEmpty && maxCharsPerCell > 0 && maxNumOfLines > 0
 
     def logRowCallback(maxBadLines: Int)(row: ValidatedNel[FailMessage, Any]): Unit = row match {
       case Invalid(failures) =>
