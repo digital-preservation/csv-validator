@@ -60,6 +60,24 @@ class CsvValidatorSpec extends Specification with TestResources {
         case Validated.Valid(_) => ok
       }
     }
+
+    val callback = new ProgressCallback {
+      var processed = -1
+      var total = -2
+      override def update(complete: Percentage): Unit = ???
+
+      override def update(_total: Int, _processed: Int): Unit = {
+        total = _total
+        processed = _processed
+      }
+    }
+
+    "have a total (of rows) equal to the actual number of rows in the metadata file even if there are multiple line breaks in a cell" in {
+      app.validate(TextFile(Paths.get(baseResourcePkgPath).resolve("metadataMultipleLineBreaksInCell.csv")), parse(baseResourcePkgPath + "/schema.csvs"), Some(callback)) must beLike {
+        case Validated.Valid(_) => ok
+      }
+      callback.total must beEqualTo(2)
+    }
   }
 }
 

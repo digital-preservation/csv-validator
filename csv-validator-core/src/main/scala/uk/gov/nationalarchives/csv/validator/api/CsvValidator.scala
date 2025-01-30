@@ -99,7 +99,7 @@ trait CsvValidator extends SchemaParser {
 
     val csvValidation = withReader(csvFile) {
       reader =>
-        val totalRows = countRows(csvFile, csvSchema)
+        val totalRows = countRows(csvFile)
         validateKnownRows(reader, csvSchema, progress.map(p => {ProgressFor(totalRows, p)} ), rowCallback)
     }
     encodingValidationNel.isValid && csvValidation

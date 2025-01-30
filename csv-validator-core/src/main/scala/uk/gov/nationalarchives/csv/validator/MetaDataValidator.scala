@@ -11,7 +11,7 @@ package uk.gov.nationalarchives.csv.validator
 
 import cats.data.{Chain, Validated, ValidatedNel}
 import cats.syntax.all._
-import com.univocity.parsers.csv.{CsvParser, CsvParserSettings}
+import com.univocity.parsers.csv.{CsvParser, CsvParserSettings, CsvRoutines}
 import org.apache.commons.io.input.BOMInputStream
 import uk.gov.nationalarchives.csv.validator.api.TextFile
 import uk.gov.nationalarchives.csv.validator.metadata.{Cell, Row}
@@ -286,10 +286,10 @@ trait MetaDataValidator {
 
   protected def rulesForCell(columnIndex: Int, row: Row, schema: Schema, mayBeLast: Option[Boolean] = None): MetaDataValidation[Any]
 
-  protected def countRows(textFile: TextFile, schema: Schema): Int = {
+  protected def countRows(textFile: TextFile): Int = {
     withReader(textFile) {
-      reader =>
-        countRows(reader, schema)
+      // getInputDimension is more efficient and ignores new lines in cells but it closes the Reader after use; only use it when it's OK to discard the reader.
+      reader => Try(new CsvRoutines().getInputDimension(reader).rowCount().toInt).getOrElse(-1)
     }
   }
 
