@@ -64,7 +64,7 @@ class CsvValidatorSpec extends Specification with TestResources {
     val callback = new ProgressCallback {
       var processed = -1
       var total = -2
-      override def update(complete: Percentage): Unit = ???
+      override def update(complete: Percentage): Unit = throw new NotImplementedError()
 
       override def update(_total: Int, _processed: Int): Unit = {
         total = _total
