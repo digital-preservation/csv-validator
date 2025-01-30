@@ -315,7 +315,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
 
     btnChooseCsvFile.reactions += onClick {
       setPathToLastCsvPath(csvFileChooser)
-      chooseFile(csvFileChooser, txtCsvFile, btnChooseCsvFile)
+      chooseFileOrDir(csvFileChooser, txtCsvFile, btnChooseCsvFile)
       updateLastPath(csvFileChooser, path => Settings(path, path, path))
     }
 
@@ -330,7 +330,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
     private val btnChooseCsvSchemaFile = new Button("...")
     btnChooseCsvSchemaFile.reactions += onClick {
       setPathToLastCsvPath(csvSchemaFileChooser)
-      chooseFile(csvSchemaFileChooser, txtCsvSchemaFile, btnChooseCsvSchemaFile)
+      chooseFileOrDir(csvSchemaFileChooser, txtCsvSchemaFile, btnChooseCsvSchemaFile)
       updateLastPath(csvSchemaFileChooser, path => Settings(path, path, path))
     }
 
@@ -508,8 +508,8 @@ object CsvValidatorUi extends SimpleSwingApplication {
 
       val fromPath = identifierRows.headOption.getOrElse("")
 
-      val fileTextField = new TextField(30)
-      val fromPathText = new TextField(fromPath, 30)
+      val toPathField = new TextField(30)
+      val fromPathField = new TextField(fromPath, 30)
 
       def pathToUri(path: Path) = {
         val uri = path.toUri.toString
@@ -517,25 +517,25 @@ object CsvValidatorUi extends SimpleSwingApplication {
       }
 
       def updateFileText(path: Path): Try[String] = {
-        fileTextField.text = pathToUri(path)
+        toPathField.text = pathToUri(path)
         Success("Text updated")
       }
 
-      val okButton = new Button("OK")
       val fileButton = new Button("...")
       fileButton.reactions += {
         case ev: ButtonClicked =>
-          val startingDir = if(fileTextField.text.isEmpty) userDir.toFile else Path.of(fileTextField.text).toFile
-          val helpText = s"Select the ${fromPath.split("/").last} folder"
+          val startingDir = if(toPathField.text.isEmpty) userDir.toFile else Path.of(toPathField.text).toFile
+          val fromFolderName = Path.of(fromPathField.text).getFileName
+          val helpText = s"Select the ${fromFolderName} folder"
           val fileChooser = new FileChooser(startingDir)
           fileChooser.title = helpText
-          fileChooser.fileSelectionMode = SelectionMode.FilesAndDirectories
-          chooseFile(fileChooser, f => updateFileText(f), fileButton, helpText)
+          fileChooser.fileSelectionMode = SelectionMode.DirectoriesOnly
+          chooseFileOrDir(fileChooser, f => updateFileText(f), fileButton, helpText)
       }
 
       val rows = List(
-        Row("From", List(fromPathText)),
-        Row("To", List(fileTextField, fileButton))
+        Row("From", List(fromPathField)),
+        Row("To", List(toPathField, fileButton))
       )
       addToTableDialog(parentFrame, "Add Path Substitution...", rows, tblPathSubstitutions.addRow)
     }
