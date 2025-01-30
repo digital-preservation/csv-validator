@@ -148,7 +148,7 @@ object CsvValidatorCmdApp extends App {
 
   def getColumnFromCsv(csvFile: TextFile, csvSchemaFile: TextFile, columnName: String, maxCharsPerCell: Int): List[String] = Try {
     val validator = createValidator(true, Nil, false, false, false, maxCharsPerCell)
-    val csv = validator.loadCsvFile(csvFile, csvSchemaFile, maxCharsPerCell)
+    val csv = validator.loadCsvFile(csvFile, csvSchemaFile)
     csv.headOption.map(_.indexOf(columnName)).map { identifierIdx =>
       csv.tail.map(row => row(identifierIdx))
     }.getOrElse(Nil)
@@ -174,7 +174,6 @@ object CsvValidatorCmdApp extends App {
         val pass = validator.validateCsvFile(
           csvFile,
           schema,
-          maxCharsPerCell,
           progress,
           onRow
         )

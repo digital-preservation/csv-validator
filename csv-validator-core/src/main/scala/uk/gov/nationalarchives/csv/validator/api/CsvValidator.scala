@@ -62,7 +62,6 @@ trait CsvValidator extends SchemaParser {
     validateCsvFile(
       csvFile,
       schema,
-      maxCharsPerCell,
       progress,
       {
         case Validated.Invalid(x) =>
@@ -78,11 +77,11 @@ trait CsvValidator extends SchemaParser {
   
   
   
-  def loadCsvFile(csvFile: TextFile, csvSchemaFile: TextFile, maxCharsPerCell: Int): List[Array[String]] = {
+  def loadCsvFile(csvFile: TextFile, csvSchemaFile: TextFile): List[Array[String]] = {
     parseSchema(csvSchemaFile) match {
       case Validated.Valid(schema) =>
         withReader(csvFile) { reader =>
-          createCsvParser(schema, maxCharsPerCell).parseAll(reader)
+          createCsvParser(schema, this.maxCharsPerCell).parseAll(reader)
         }.asScala.toList
       case Validated.Invalid(_) => Nil
     }
@@ -91,7 +90,6 @@ trait CsvValidator extends SchemaParser {
   def validateCsvFile(
     csvFile: TextFile,
     csvSchema: Schema,
-    maxCharsPerCell: Int,
     progress: Option[ProgressCallback],
     rowCallback: MetaDataValidation[Any] => Unit
   ): Boolean = {
@@ -102,7 +100,7 @@ trait CsvValidator extends SchemaParser {
     val csvValidation = withReader(csvFile) {
       reader =>
         val totalRows = countRows(csvFile, csvSchema)
-        validateKnownRows(reader, csvSchema, maxCharsPerCell, progress.map(p => {ProgressFor(totalRows, p)} ), rowCallback)
+        validateKnownRows(reader, csvSchema, this.maxCharsPerCell, progress.map(p => {ProgressFor(totalRows, p)} ), rowCallback)
     }
     encodingValidationNel.isValid && csvValidation
   }
