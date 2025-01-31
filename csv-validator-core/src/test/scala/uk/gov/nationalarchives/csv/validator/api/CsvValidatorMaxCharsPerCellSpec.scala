@@ -25,11 +25,19 @@ class CsvValidatorMaxCharsPerCellSpec extends Specification with TestResources {
     def app(maxChars: Int=4096) = new CsvValidator with AllErrorsMetaDataValidator { val pathSubstitutions: List[(String, String)] = List[(String,String)](); val enforceCaseSensitivePathChecks = false; val trace = false; val skipFileChecks = false; val maxCharsPerCell: Int = maxChars }
     def parse(filePath: String, maxChars: Int=4096): Schema = app(maxChars).parseSchema(TextFile(Paths.get(filePath))) fold (f => throw new IllegalArgumentException(f.toString()), s => s)
 
-    "fail if the number of characters in a cell is more than the maxCharsPerCell number" in {
+    "fail if the number of characters in a cell in the header is more than the maxCharsPerCell number and indicate the column number" in {
       val maxCharsAllowed = 2
       val validatedNel = app(maxCharsAllowed).validate(TextFile(Paths.get(baseResourcePkgPath).resolve("metaData.csv")), parse(baseResourcePkgPath + "/schema.csvs", maxCharsAllowed), None).swap
       validatedNel.toList.head.toList must beEqualTo(
-        List(FailMessage(ValidationError,"java.lang.Exception: The number of characters in the cell located at line: 1, column: 1, is larger than the maximum number of characters allowed in a cell (2); increase this limit and re-run.",None,None))
+        List(FailMessage(ValidationError,"java.lang.Exception: The number of characters in column 1 of the header row is larger than the maximum number of characters allowed in a cell (2); increase this limit and re-run.",None,None))
+      )
+    }
+
+    "fail if the number of characters in a cell in a non-header row is more than the maxCharsPerCell number and indicate the column name" in {
+      val maxCharsAllowed = 15
+      val validatedNel = app(maxCharsAllowed).validate(TextFile(Paths.get(baseResourcePkgPath).resolve("metaDataWithALongCellLength.csv")), parse(baseResourcePkgPath + "/schema.csvs"), None).swap
+      validatedNel.toList.head.toList must beEqualTo(
+        List(FailMessage(ValidationError,"java.lang.Exception: The number of characters in the cell located at line: 1, column: col2, is larger than the maximum number of characters allowed in a cell (15); increase this limit and re-run.",None,None))
       )
     }
 

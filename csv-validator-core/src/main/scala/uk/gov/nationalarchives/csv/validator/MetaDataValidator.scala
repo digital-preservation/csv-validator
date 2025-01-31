@@ -355,15 +355,23 @@ class RowIterator(parser: CsvParser, progress: Option[ProgressFor], maxCharsPerC
 
   private var index = 1
   private var current = toRow(Try(parser.parseNext()))
+  private var potentialHeaderRow: Option[Row] = None
 
   @throws(classOf[IOException])
   override def next(): Row = {
     val row = current match {
-      case Success(row) => row
+      case Success(row) =>
+        if(index == 1 && potentialHeaderRow.isEmpty) potentialHeaderRow = Some(row) // this is here in case the old API is used that doesn't call 'skipHeader'
+        row
       case Failure(ex: TextParsingException) if(ex.toString.contains("exceeds the maximum number of characters")) =>
+        val cellLocationMsg =
+          potentialHeaderRow match {
+            case Some(headerRow) => s"in the cell located at line: ${ex.getLineIndex}, column: ${headerRow.cells(ex.getColumnIndex).value},"
+            case None => s"in column ${ex.getColumnIndex + 1} of the header row"
+          }
+
         val customMessage =
-          s"The number of characters in the cell located at line: ${ex.getLineIndex + 1}, column: ${ex.getColumnIndex + 1}, " +
-            s"is larger than the maximum number of characters allowed in a cell ($maxCharsPerCell); increase this limit and re-run."
+          s"The number of characters $cellLocationMsg is larger than the maximum number of characters allowed in a cell ($maxCharsPerCell); increase this limit and re-run."
         throw new Exception(customMessage)
       case Failure(ex) => throw ex
     }
@@ -385,7 +393,9 @@ class RowIterator(parser: CsvParser, progress: Option[ProgressFor], maxCharsPerC
   @throws(classOf[IOException])
   def skipHeader(): Row = {
     this.index = index - 1
-    next()
+    val row = next()
+    this.potentialHeaderRow = Some(row)
+    row
   }
 
   override def hasNext: Boolean = current match {
