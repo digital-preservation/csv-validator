@@ -100,9 +100,9 @@ object CsvValidatorUi extends SimpleSwingApplication {
   }
 
   private def extractFromManifest[T](extractor: Attributes => T): Option[T] = {
-    val clazz = getClass()
+    val clazz = getClass
     val className = clazz.getSimpleName + ".class"
-    val classPath = clazz.getResource(className).toString()
+    val classPath = clazz.getResource(className).toString
     if (!classPath.startsWith("jar")) {
       None // Class not from JAR
     } else {
@@ -301,6 +301,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
       }
 
     private val csvFileChooser = new FileChooser(lastCsvPath)
+    csvFileChooser.multiSelectionEnabled = false
     csvFileChooser.title = "Select a .csv file"
     csvFileChooser.fileFilter = new FileNameExtensionFilter("CSV file (*.csv)", "csv")
     private val btnChooseCsvFile = new Button("...")
@@ -317,6 +318,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
 
     txtCsvSchemaFile.setTransferHandler(fileHandler)
     private val csvSchemaFileChooser = new FileChooser(lastCsvPath)
+    csvSchemaFileChooser.multiSelectionEnabled = false
     csvSchemaFileChooser.title = "Select a .csvs file"
     csvSchemaFileChooser.fileFilter = new FileNameExtensionFilter("CSV Schema file (*.csvs)", "csvs" +
       "")
@@ -414,6 +416,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
     btnClose.reactions += onClick(quit())
 
     private val reportFileChooser = new FileChooser(lastCsvPath)
+    reportFileChooser.multiSelectionEnabled = false
     val dateFormat = new SimpleDateFormat("dd-mm-yy_HH-mm-ss")
     reportFileChooser.selectedFile = new File(s"csv_validator_report_${dateFormat.format(new Date())}.txt")
 
@@ -517,6 +520,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
           val fromFolderName = Path.of(fromPathField.text).getFileName
           val helpText = s"Select the ${fromFolderName} folder"
           val fileChooser = new FileChooser(startingDir)
+          fileChooser.multiSelectionEnabled = false
           fileChooser.title = helpText
           fileChooser.fileSelectionMode = SelectionMode.DirectoriesOnly
           chooseFileOrDir(fileChooser, f => updateFileText(f), fileButton, helpText)
@@ -542,7 +546,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
       }
 
       def pathSubstitutions : List[(String, String)] = {
-        for(rowIdx <- (0 to model.getRowCount - 1)) yield (model.getValueAt(rowIdx, 0).asInstanceOf[String], model.getValueAt(rowIdx, 1).asInstanceOf[String])
+        for(rowIdx <- 0 to model.getRowCount - 1) yield (model.getValueAt(rowIdx, 0).asInstanceOf[String], model.getValueAt(rowIdx, 1).asInstanceOf[String])
       }.toList
     }
 
