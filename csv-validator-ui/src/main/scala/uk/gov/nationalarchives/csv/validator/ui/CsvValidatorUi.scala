@@ -70,7 +70,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
       //handle resizing the main window, when resizing the settings panel
       settings.settingsGroup.reactions += SJXTaskPane.onViewStateChanged {
         val newSize = if(settings.settingsGroup.collapsed) {
-          new Dimension(this.size.getWidth.toInt, (this.size.getHeight - settings.size.getHeight).toInt)
+          this.size
         } else {
           new Dimension(this.size.getWidth.toInt, (this.size.getHeight + settings.size.getHeight).toInt)
         }
