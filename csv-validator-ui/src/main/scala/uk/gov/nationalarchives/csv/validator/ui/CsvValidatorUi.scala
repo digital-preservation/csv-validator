@@ -301,10 +301,9 @@ object CsvValidatorUi extends SimpleSwingApplication {
     }
 
     private def lastCsvPath: File =
-      loadSettings match {
-        case Some(settings) => settings.lastCsvPath.toFile
-        case None => userDir.toFile
-      }
+      loadSettings.flatMap { settings =>
+        List(settings.lastCsvPath.toFile, settings.lastCsvSchemaPath.toFile, settings.lastReportPath.toFile).find(_ != userDir.toFile)
+      }.getOrElse(userDir.toFile)
 
     private val csvFileChooser = new FileChooser(lastCsvPath)
     csvFileChooser.multiSelectionEnabled = false
@@ -312,18 +311,23 @@ object CsvValidatorUi extends SimpleSwingApplication {
     csvFileChooser.fileFilter = new FileNameExtensionFilter("CSV file (*.csv)", "csv")
     private val btnChooseCsvFile = new Button("...")
 
-    private def setPathToLastCsvPath(fileChooser: FileChooser): Unit = fileChooser.selectedFile = lastCsvPath
-
     btnChooseCsvFile.reactions += onClick {
-      setPathToLastCsvPath(csvFileChooser)
+      csvFileChooser.selectedFile = lastCsvPath
       chooseFileOrDir(csvFileChooser, txtCsvFile, btnChooseCsvFile)
-      updateLastPath(csvFileChooser, path => Settings(path, path, path))
+      updateLastPath(csvFileChooser, path => loadSettings match {
+        case Some(s) => s.copy(lastCsvPath = path)
+        case None => Settings(path, path, path)
+      })
     }
 
     private val lblCsvSchemaFile = new Label("CSV Schema file:")
 
     txtCsvSchemaFile.setTransferHandler(fileHandler)
-    private val csvSchemaFileChooser = new FileChooser(lastCsvPath)
+    private def lastCsvSchemaPath: File =
+      loadSettings.flatMap { settings =>
+        List(settings.lastCsvSchemaPath.toFile, settings.lastCsvPath.toFile, settings.lastReportPath.toFile).find(_ != userDir.toFile)
+      }.getOrElse(userDir.toFile)
+    private val csvSchemaFileChooser = new FileChooser(lastCsvSchemaPath)
     csvSchemaFileChooser.multiSelectionEnabled = false
     csvSchemaFileChooser.title = "Select a .csvs file"
     csvSchemaFileChooser.fileFilter = new FileNameExtensionFilter("CSV Schema file (*.csvs)", "csvs" +
@@ -331,9 +335,12 @@ object CsvValidatorUi extends SimpleSwingApplication {
 
     private val btnChooseCsvSchemaFile = new Button("...")
     btnChooseCsvSchemaFile.reactions += onClick {
-      setPathToLastCsvPath(csvSchemaFileChooser)
+      csvSchemaFileChooser.selectedFile = lastCsvSchemaPath
       chooseFileOrDir(csvSchemaFileChooser, txtCsvSchemaFile, btnChooseCsvSchemaFile)
-      updateLastPath(csvSchemaFileChooser, path => Settings(path, path, path))
+      updateLastPath(csvSchemaFileChooser, path => loadSettings match {
+        case Some(s) => s.copy(lastCsvSchemaPath = path)
+        case None => Settings(path, path, path)
+      })
     }
 
     private val separator1 = new Separator
@@ -422,18 +429,26 @@ object CsvValidatorUi extends SimpleSwingApplication {
     private val btnClose = new Button("Close")
     btnClose.reactions += onClick(quit())
 
-    private val reportFileChooser = new FileChooser(lastCsvPath)
+    private def lastReportPath: File =
+      loadSettings.flatMap { settings =>
+        List(settings.lastReportPath.toFile, settings.lastCsvSchemaPath.toFile, settings.lastCsvPath.toFile).find(_ != userDir.toFile)
+      }.getOrElse(userDir.toFile)
+
+    private val reportFileChooser = new FileChooser(lastReportPath)
     reportFileChooser.multiSelectionEnabled = false
-    val dateFormat = new SimpleDateFormat("dd-mm-yy_HH-mm-ss")
-    reportFileChooser.selectedFile = new File(s"csv_validator_report_${dateFormat.format(new Date())}.txt")
 
     val saveLabel = "Save Results"
     reportFileChooser.title = saveLabel
     private val btnSave = new Button(saveLabel)
+
+    val dateFormat = new SimpleDateFormat("dd-mm-yy_HH-mm-ss")
     btnSave.reactions += onClick {
-      setPathToLastCsvPath(reportFileChooser)
+      reportFileChooser.selectedFile = Paths.get(lastReportPath.toString, s"csv_validator_report_${dateFormat.format(new Date())}.txt").toFile
       saveFile(reportFileChooser, saveToFile(txtArReport.text, _), btnSave, btnSave.text)
-      updateLastPath(reportFileChooser, path => Settings(path, path, path))
+      updateLastPath(reportFileChooser, path => loadSettings match {
+        case Some(s) => s.copy(lastReportPath = path)
+        case None => Settings(path, path, path)
+      })
     }
 
     private val lblVersion = new Label(s"Version: ${getShortVersion}")
