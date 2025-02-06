@@ -9,7 +9,7 @@ Designed and tested on both Windows and Linux/Unix/Mac platforms.
 Basic Usage
 -----------
 
-The following command will show the useage for the application:
+The following command will show the usage for the application:
 
 ```bash
 $ validate
@@ -32,6 +32,8 @@ Usage: validate [options] <csv-path> <csv-schema-path>
         The path to the CSV Schema file to use for validation
   --disable-utf8-validation 
          Disable UTF-8 validation for CSV files
+  --max-chars-per-cell
+        Maximum number of chars allowed in cell (is set to 4096 by default)
   --skip-file-checks       
         Skip integrity, checksum and file existence checks
   --show-progress

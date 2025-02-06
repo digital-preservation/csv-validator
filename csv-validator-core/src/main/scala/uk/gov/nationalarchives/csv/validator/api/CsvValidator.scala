@@ -30,11 +30,11 @@ object CsvValidator {
   type PathTo = String
   type SubstitutePath = (PathFrom, PathTo)
 
-  def createValidator(failFast: Boolean, pathSubstitutionsList: List[SubstitutePath], enforceCaseSensitivePathChecksSwitch: Boolean, traceSwitch: Boolean, skipFileChecksSwitch: Boolean) = {
+  def createValidator(failFast: Boolean, pathSubstitutionsList: List[SubstitutePath], enforceCaseSensitivePathChecksSwitch: Boolean, traceSwitch: Boolean, skipFileChecksSwitch: Boolean, maxCharsPerCellLimit: Int) = {
     if(failFast) {
-      new CsvValidator with FailFastMetaDataValidator { val pathSubstitutions = pathSubstitutionsList; val enforceCaseSensitivePathChecks = enforceCaseSensitivePathChecksSwitch; val trace = traceSwitch; val skipFileChecks = skipFileChecksSwitch}
+      new CsvValidator with FailFastMetaDataValidator { val pathSubstitutions = pathSubstitutionsList; val enforceCaseSensitivePathChecks = enforceCaseSensitivePathChecksSwitch; val trace = traceSwitch; val skipFileChecks = skipFileChecksSwitch; val maxCharsPerCell = maxCharsPerCellLimit}
     } else {
-      new CsvValidator with AllErrorsMetaDataValidator { val pathSubstitutions = pathSubstitutionsList; val enforceCaseSensitivePathChecks = enforceCaseSensitivePathChecksSwitch; val trace = traceSwitch; val skipFileChecks = skipFileChecksSwitch }
+      new CsvValidator with AllErrorsMetaDataValidator { val pathSubstitutions = pathSubstitutionsList; val enforceCaseSensitivePathChecks = enforceCaseSensitivePathChecksSwitch; val trace = traceSwitch; val skipFileChecks = skipFileChecksSwitch; val maxCharsPerCell = maxCharsPerCellLimit }
     }
   }
 }
@@ -81,8 +81,8 @@ trait CsvValidator extends SchemaParser {
     parseSchema(csvSchemaFile) match {
       case Validated.Valid(schema) =>
         withReader(csvFile) { reader =>
-          createCsvParser(schema).parseAll(reader)
-        }.asScala.toList  
+          createCsvParser(schema, this.maxCharsPerCell).parseAll(reader)
+        }.asScala.toList
       case Validated.Invalid(_) => Nil
     }
   }
@@ -100,7 +100,7 @@ trait CsvValidator extends SchemaParser {
     val csvValidation = withReader(csvFile) {
       reader =>
         val totalRows = countRows(csvFile)
-        validateKnownRows(reader, csvSchema, progress.map(p => {ProgressFor(totalRows, p)} ), rowCallback)
+        validateKnownRows(reader, csvSchema, this.maxCharsPerCell, progress.map(p => {ProgressFor(totalRows, p)} ), rowCallback)
     }
     encodingValidationNel.isValid && csvValidation
   }
