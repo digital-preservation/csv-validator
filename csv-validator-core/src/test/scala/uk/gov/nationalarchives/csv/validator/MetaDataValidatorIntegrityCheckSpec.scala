@@ -25,6 +25,7 @@ class MetaDataValidatorIntegrityCheckSpec extends Specification with TestResourc
     val enforceCaseSensitivePathChecks = false
     val trace = false
     val skipFileChecks = skipFileChecksFlag
+    val maxCharsPerCell = 4096
   }
 
   def parse(filePath: String, validator: CsvValidator): Schema = validator.parseSchema(TextFile(Paths.get(filePath))) fold (f => throw new IllegalArgumentException(f.toString()), s => s)

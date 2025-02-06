@@ -23,7 +23,7 @@ import java.nio.file.Paths
 class CsvValidatorSpec extends Specification with TestResources {
 
   "Parsing schema" should {
-    val app = new CsvValidator with AllErrorsMetaDataValidator { val pathSubstitutions = List[SubstitutePath](); val enforceCaseSensitivePathChecks = false; val trace = false; val skipFileChecks = false }
+    val app = new CsvValidator with AllErrorsMetaDataValidator { val pathSubstitutions = List[SubstitutePath](); val enforceCaseSensitivePathChecks = false; val trace = false; val skipFileChecks = false; val maxCharsPerCell = 4096 }
 
     "report position on parse fail" in {
 
@@ -45,7 +45,7 @@ class CsvValidatorSpec extends Specification with TestResources {
   }
 
   "Validation" should {
-    val app = new CsvValidator with AllErrorsMetaDataValidator { val pathSubstitutions = List[(String,String)](); val enforceCaseSensitivePathChecks = false; val trace = false; val skipFileChecks = false }
+    val app = new CsvValidator with AllErrorsMetaDataValidator { val pathSubstitutions = List[(String,String)](); val enforceCaseSensitivePathChecks = false; val trace = false; val skipFileChecks = false; val maxCharsPerCell = 4096 }
 
     def parse(filePath: String): Schema = app.parseSchema(TextFile(Paths.get(filePath))) fold (f => throw new IllegalArgumentException(f.toString()), s => s)
 

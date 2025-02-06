@@ -100,9 +100,9 @@ object CsvValidatorUi extends SimpleSwingApplication {
   }
 
   private def extractFromManifest[T](extractor: Attributes => T): Option[T] = {
-    val clazz = getClass()
+    val clazz = getClass
     val className = clazz.getSimpleName + ".class"
-    val classPath = clazz.getResource(className).toString()
+    val classPath = clazz.getResource(className).toString
     if (!classPath.startsWith("jar")) {
       None // Class not from JAR
     } else {
@@ -136,10 +136,18 @@ object CsvValidatorUi extends SimpleSwingApplication {
     }
   }
 
+  private def convertTextboxValueToInt(value: String, textBoxDescription: String, handleErrorMsg: String => Unit, valueIfError: Int = 0) =
+    Try(value.toInt) match {
+      case Success(number) if number > 0 => number
+      case _ =>
+        handleErrorMsg(s"Error: Maximum number of $textBoxDescription should be more than 0")
+        valueIfError
+    }
+
   private def validate(csvFilePath: String, csvEncoding: Charset, csvSchemaFilePath: String, csvSchemaEncoding: Charset,
-                       failOnFirstError: Boolean, pathSubstitutions: List[(String, String)], enforceCaseSensitivePathChecks: Boolean,
-                       progress: Option[ProgressCallback], validateEncoding: Boolean, potentialMaxNumOfLines: String,
-                       skipFileChecks: Boolean, outputTextSuffix: String)(output: String => Unit) : Unit = {
+                       potentialMaxCharsPerCell: String, failOnFirstError: Boolean, pathSubstitutions: List[(String, String)],
+                       enforceCaseSensitivePathChecks: Boolean, progress: Option[ProgressCallback], validateEncoding: Boolean,
+                       potentialMaxNumOfLines: String, skipFileChecks: Boolean, outputTextSuffix: String)(output: String => Unit) : Unit = {
 
     def toConsole(msg: String): Unit = Swing.onEDT {
       output(msg)
@@ -148,13 +156,10 @@ object CsvValidatorUi extends SimpleSwingApplication {
     var badLines = 0
     var truncated = false
 
-    val maxNumOfLines = Try(potentialMaxNumOfLines.toInt) match {
-      case Success(number) if number > 0 => number
-      case _ =>
-        toConsole("Error: Maximum number of errors to display should be more than 0")
-        0
-    }
-    val safeToRunValidation = csvFilePath.nonEmpty && csvSchemaFilePath.nonEmpty && maxNumOfLines > 0
+    val maxCharsPerCell = convertTextboxValueToInt(potentialMaxCharsPerCell, "characters per column", toConsole)
+    val maxNumOfLines = convertTextboxValueToInt(potentialMaxNumOfLines, "errors to display", toConsole)
+
+    val safeToRunValidation = csvFilePath.nonEmpty && csvSchemaFilePath.nonEmpty && maxCharsPerCell > 0 && maxNumOfLines > 0
 
     def logRowCallback(maxBadLines: Int)(row: ValidatedNel[FailMessage, Any]): Unit = row match {
       case Invalid(failures) =>
@@ -181,6 +186,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
         pathSubstitutions,
         enforceCaseSensitivePathChecks,
         trace = false,
+        maxCharsPerCell,
         progress,
         skipFileChecks,
         logRowCallback(maxNumOfLines)
@@ -300,13 +306,14 @@ object CsvValidatorUi extends SimpleSwingApplication {
       }.getOrElse(userDir.toFile)
 
     private val csvFileChooser = new FileChooser(lastCsvPath)
+    csvFileChooser.multiSelectionEnabled = false
     csvFileChooser.title = "Select a .csv file"
     csvFileChooser.fileFilter = new FileNameExtensionFilter("CSV file (*.csv)", "csv")
     private val btnChooseCsvFile = new Button("...")
 
     btnChooseCsvFile.reactions += onClick {
       csvFileChooser.selectedFile = lastCsvPath
-      chooseFile(csvFileChooser, txtCsvFile, btnChooseCsvFile)
+      chooseFileOrDir(csvFileChooser, txtCsvFile, btnChooseCsvFile)
       updateLastPath(csvFileChooser, path => loadSettings match {
         case Some(s) => s.copy(lastCsvPath = path)
         case None => Settings(path, path, path)
@@ -321,6 +328,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
         List(settings.lastCsvSchemaPath.toFile, settings.lastCsvPath.toFile, settings.lastReportPath.toFile).find(_ != userDir.toFile)
       }.getOrElse(userDir.toFile)
     private val csvSchemaFileChooser = new FileChooser(lastCsvSchemaPath)
+    csvSchemaFileChooser.multiSelectionEnabled = false
     csvSchemaFileChooser.title = "Select a .csvs file"
     csvSchemaFileChooser.fileFilter = new FileNameExtensionFilter("CSV Schema file (*.csvs)", "csvs" +
       "")
@@ -328,7 +336,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
     private val btnChooseCsvSchemaFile = new Button("...")
     btnChooseCsvSchemaFile.reactions += onClick {
       csvSchemaFileChooser.selectedFile = lastCsvSchemaPath
-      chooseFile(csvSchemaFileChooser, txtCsvSchemaFile, btnChooseCsvSchemaFile)
+      chooseFileOrDir(csvSchemaFileChooser, txtCsvSchemaFile, btnChooseCsvSchemaFile)
       updateLastPath(csvSchemaFileChooser, path => loadSettings match {
         case Some(s) => s.copy(lastCsvSchemaPath = path)
         case None => Settings(path, path, path)
@@ -394,6 +402,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
             settingsPanel.csvEncoding,
             txtCsvSchemaFile.getText,
             settingsPanel.csvSchemaEncoding,
+            settingsPanel.maxCharsPerCell,
             settingsPanel.failOnFirstError,
             settingsPanel.pathSubstitutions,
             settingsPanel.enforceCaseSensitivePathChecks,
@@ -426,6 +435,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
       }.getOrElse(userDir.toFile)
 
     private val reportFileChooser = new FileChooser(lastReportPath)
+    reportFileChooser.multiSelectionEnabled = false
 
     val saveLabel = "Save Results"
     reportFileChooser.title = saveLabel
@@ -501,7 +511,9 @@ object CsvValidatorUi extends SimpleSwingApplication {
     private val cbValidateUtf8 = new CheckBox("Validate CSV for valid UTF-8 characters")
     cbValidateUtf8.selected = true
     private val tfDisplayLinesLabel = new Label("Maximum number of errors to display:")
-    private val tfDisplayLines = new TextField("2000", 5)
+    private val tfDisplayLines = new TextField("2000", 7)
+    private val tfMaxColumnCharsLabel = new Label("Maximum number of characters in a cell:")
+    private val tfMaxColumnChars = new TextField("4096", 7)
     private val lblPathSubstitutions = new Label("Path Substitutions:")
     private val cbEnforceCaseSensitivePathChecks = new CheckBox("Enforce case-sensitive file path checks")
     cbEnforceCaseSensitivePathChecks.tooltip = "Performs additional checks to ensure that the case of file-paths in the CSV file match those of the filesystem"
@@ -509,11 +521,13 @@ object CsvValidatorUi extends SimpleSwingApplication {
     private def tablePathDialog(): Unit = {
       val csvFile = TextFile(Paths.get(txtCsvFile.getText), csvEncoding, validateUtf8)
       val schemaFile = TextFile(Paths.get(txtCsvSchemaFile.getText), csvSchemaEncoding)
-      val identifierRows = CsvValidatorCmdApp.getColumnFromCsv(csvFile, schemaFile, "identifier").sorted
+      val expectedMaxCharsPerCell = convertTextboxValueToInt(maxCharsPerCell, "", _ => (), 4096)
+      val identifierRows = CsvValidatorCmdApp.getColumnFromCsv(csvFile, schemaFile, "identifier", expectedMaxCharsPerCell).sorted
+
       val fromPath = identifierRows.headOption.getOrElse("")
 
-      val fileTextField = new TextField(30)
-      val fromPathText = new TextField(fromPath, 30)
+      val toPathField = new TextField(30)
+      val fromPathField = new TextField(fromPath, 30)
 
       def pathToUri(path: Path) = {
         val uri = path.toUri.toString
@@ -521,25 +535,26 @@ object CsvValidatorUi extends SimpleSwingApplication {
       }
 
       def updateFileText(path: Path): Try[String] = {
-        fileTextField.text = pathToUri(path)
+        toPathField.text = pathToUri(path)
         Success("Text updated")
       }
 
-      val okButton = new Button("OK")
       val fileButton = new Button("...")
       fileButton.reactions += {
         case ev: ButtonClicked =>
-          val startingDir = if(fileTextField.text.isEmpty) userDir.toFile else Path.of(fileTextField.text).toFile
-          val helpText = s"Select the ${fromPath.split("/").last} folder"
+          val startingDir = if(toPathField.text.isEmpty) userDir.toFile else Path.of(toPathField.text).toFile
+          val fromFolderName = Path.of(fromPathField.text).getFileName
+          val helpText = s"Select the ${fromFolderName} folder"
           val fileChooser = new FileChooser(startingDir)
+          fileChooser.multiSelectionEnabled = false
           fileChooser.title = helpText
-          fileChooser.fileSelectionMode = SelectionMode.FilesAndDirectories
-          chooseFile(fileChooser, f => updateFileText(f), fileButton, helpText)
+          fileChooser.fileSelectionMode = SelectionMode.DirectoriesOnly
+          chooseFileOrDir(fileChooser, f => updateFileText(f), fileButton, helpText)
       }
 
       val rows = List(
-        Row("From", List(fromPathText)),
-        Row("To", List(fileTextField, fileButton))
+        Row("From", List(fromPathField)),
+        Row("To", List(toPathField, fileButton))
       )
       addToTableDialog(parentFrame, "Add Path Substitution...", rows, tblPathSubstitutions.addRow)
     }
@@ -557,7 +572,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
       }
 
       def pathSubstitutions : List[(String, String)] = {
-        for(rowIdx <- (0 to model.getRowCount - 1)) yield (model.getValueAt(rowIdx, 0).asInstanceOf[String], model.getValueAt(rowIdx, 1).asInstanceOf[String])
+        for(rowIdx <- 0 to model.getRowCount - 1) yield (model.getValueAt(rowIdx, 0).asInstanceOf[String], model.getValueAt(rowIdx, 1).asInstanceOf[String])
       }.toList
     }
 
@@ -600,33 +615,41 @@ object CsvValidatorUi extends SimpleSwingApplication {
 
       c.gridx = 0
       c.gridy = 3
-      layout(cbFailOnFirstError) = c
+      layout(tfMaxColumnCharsLabel) = c
+
+      c.gridx = 1
+      c.gridy = 3
+      layout(tfMaxColumnChars) = c
 
       c.gridx = 0
       c.gridy = 4
-      layout(cbEnforceCaseSensitivePathChecks) = c
+      layout(cbFailOnFirstError) = c
 
       c.gridx = 0
       c.gridy = 5
-      layout(cbValidateUtf8) = c
+      layout(cbEnforceCaseSensitivePathChecks) = c
 
       c.gridx = 0
       c.gridy = 6
+      layout(cbValidateUtf8) = c
+
+      c.gridx = 0
+      c.gridy = 7
       c.insets = new Insets(0,10,0,0)
       layout(lblPathSubstitutions) = c
 
       c.gridx = 0
-      c.gridy = 7
+      c.gridy = 8
       c.gridwidth = 2
       layout(spTblPathSubstitutions) = c
 
       c.gridx = 0
-      c.gridy = 8
+      c.gridy = 9
       c.anchor = Anchor.LineStart
       layout(btnRemovePathSubstitution) = c
 
       c.gridx = 1
-      c.gridy = 8
+      c.gridy = 9
       c.anchor = Anchor.LastLineEnd
       layout(btnAddPathSubstitution) = c
     }
@@ -636,10 +659,11 @@ object CsvValidatorUi extends SimpleSwingApplication {
 
     def csvEncoding: Charset = cmbCsvEncoding.selection.item
     def csvSchemaEncoding: Charset = cmbCsvSchemaEncoding.selection.item
+    def numOfLinesToDisplay: String = tfDisplayLines.text.strip()
+    def maxCharsPerCell: String = tfMaxColumnChars.text.strip()
     def failOnFirstError: Boolean = cbFailOnFirstError.selected
     def pathSubstitutions: List[(String, String)] = tblPathSubstitutions.pathSubstitutions
     def enforceCaseSensitivePathChecks: Boolean = cbEnforceCaseSensitivePathChecks.selected
     def validateUtf8 : Boolean = cbValidateUtf8.selected
-    def numOfLinesToDisplay: String = tfDisplayLines.text.strip()
   }
 }

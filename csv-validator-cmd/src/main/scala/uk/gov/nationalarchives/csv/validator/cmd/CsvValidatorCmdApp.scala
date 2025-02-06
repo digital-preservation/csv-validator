@@ -51,6 +51,7 @@ object CsvValidatorCmdApp extends App {
                     csvSchemaPath: Path = Paths.get("."),
                     csvSchemaEncoding: Charset = CsvValidator.DEFAULT_ENCODING,
                     disableUtf8Validation:Boolean = false,
+                    maxCharsPerCell: Int = 4096,
                     progressCallback: Option[ProgressCallback] = None,
                     skipFileChecks: Boolean = false)
 
@@ -70,6 +71,7 @@ object CsvValidatorCmdApp extends App {
         opt[Charset]('x', "csv-encoding").optional().action { (x,c) => c.copy(csvEncoding = x) } text("Defines the charset encoding used in the CSV file")
         opt[Charset]('y', "csv-schema-encoding").optional().action { (x,c) => c.copy(csvSchemaEncoding = x) }.text("Defines the charset encoding used in the CSV Schema file")
         opt[Unit]("disable-utf8-validation").optional().action {(_, c) => c.copy(disableUtf8Validation = true)}.text("Disable UTF-8 validation for CSV files.")
+        opt[Int]("max-chars-per-cell").optional().action {(x, c) =>  c.copy(maxCharsPerCell = x)}.text("Maximum number of chars allowed in a cell (is set to 4096 by default)")
         opt[Unit]("skip-file-checks").optional().action {(_, c) => c.copy(progressCallback = Some(commandLineProgressCallback()))}.text("Skip integrity, checksum and file existence checks")
         opt[Unit]("show-progress").optional().action {(_, c) => c.copy(progressCallback = Some(commandLineProgressCallback()))}.text("Show progress")
         arg[Path]("<csv-path>").validate { x => if(Files.exists(x) && Files.isReadable(x)) success else failure(s"Cannot access CSV file: ${x.toString}") }.action { (x,c) => c.copy(csvPath = x) }.text("The path to the CSV file to validate")
@@ -86,6 +88,7 @@ object CsvValidatorCmdApp extends App {
           config.substitutePaths,
           config.caseSensitivePaths,
           config.traceParser,
+          config.maxCharsPerCell,
           config.progressCallback,
           config.skipFileChecks
         )
@@ -143,11 +146,11 @@ object CsvValidatorCmdApp extends App {
     case _ =>
   }
 
-  def getColumnFromCsv(csvFile: TextFile, csvSchemaFile: TextFile, columnName: String): List[String] = Try {
-    val validator = createValidator(true, Nil, false, false, false)
+  def getColumnFromCsv(csvFile: TextFile, csvSchemaFile: TextFile, columnName: String, maxCharsPerCell: Int): List[String] = Try {
+    val validator = createValidator(true, Nil, false, false, false, maxCharsPerCell)
     val csv = validator.loadCsvFile(csvFile, csvSchemaFile)
-    csv.headOption.map(_.indexOf("identifier")).map { identifierIdx =>
-      csv.tail.map(arr => arr(identifierIdx))
+    csv.headOption.map(_.indexOf(columnName)).map { identifierIdx =>
+      csv.tail.map(row => row(identifierIdx))
     }.getOrElse(Nil)
   }.getOrElse(Nil)
 
@@ -159,11 +162,12 @@ object CsvValidatorCmdApp extends App {
     pathSubstitutionsList: List[SubstitutePath],
     enforceCaseSensitivePathChecks: Boolean,
     trace: Boolean,
+    maxCharsPerCell: Int,
     progress: Option[ProgressCallback],
     skipFileChecks: Boolean,
     onRow: ValidatedNel[FailMessage, Any] => Unit = rowCallback
   ): ExitStatus = {
-    val validator = createValidator(failFast, pathSubstitutionsList, enforceCaseSensitivePathChecks, trace, skipFileChecks)
+    val validator = createValidator(failFast, pathSubstitutionsList, enforceCaseSensitivePathChecks, trace, skipFileChecks, maxCharsPerCell)
     validator.parseSchema(schemaFile) match {
       case Validated.Invalid(errors) => (prettyPrint(errors), SystemExitCodes.InvalidSchema)
       case Validated.Valid(schema) =>

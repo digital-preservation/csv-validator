@@ -51,6 +51,8 @@ with TraceableParsers {
 
   val skipFileChecks: Boolean
 
+  val maxCharsPerCell: Int
+
   lazy val versionHeader: PackratParser[String] = "VersionDecl" ::= ("version" ~> versionLiteral )
 
 
@@ -147,6 +149,7 @@ with TraceableParsers {
     val ps =  pathSubstitutions
     val t = trace
     val sfc = skipFileChecks
+    val mcpc = maxCharsPerCell
 
     SchemaValidator.versionValid(version).map(Failure(_, next)).getOrElse {
       version match {
@@ -155,6 +158,7 @@ with TraceableParsers {
             override val pathSubstitutions: List[(String, String)] = ps
             override val trace: Boolean = t
             override val skipFileChecks: Boolean = sfc
+            override val maxCharsPerCell: Int = mcpc
           }
 
           parser1_2.parseVersionAware(reader) match {
@@ -168,6 +172,7 @@ with TraceableParsers {
             override val pathSubstitutions: List[(String, String)] = ps
             override val trace: Boolean = t
             override val skipFileChecks: Boolean = sfc
+            override val maxCharsPerCell: Int = mcpc
           }
 
           parser1_1.parseVersionAware(reader) match {
@@ -181,6 +186,7 @@ with TraceableParsers {
             override val pathSubstitutions: List[(String, String)] = ps
             override val trace: Boolean = t
             override val skipFileChecks: Boolean = sfc
+            override val maxCharsPerCell: Int = mcpc
           }
 
           parser1_0.parseVersionAware(reader) match {
