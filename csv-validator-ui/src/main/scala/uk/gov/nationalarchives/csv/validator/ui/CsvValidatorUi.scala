@@ -70,8 +70,10 @@ object CsvValidatorUi extends SimpleSwingApplication {
       //handle resizing the main window, when resizing the settings panel
       settings.settingsGroup.reactions += SJXTaskPane.onViewStateChanged {
         val newSize = if(settings.settingsGroup.collapsed) {
+          txtArReport.rows = 35
           this.size
         } else {
+          txtArReport.rows = 9
           new Dimension(this.size.getWidth.toInt, (this.size.getHeight + settings.size.getHeight).toInt)
         }
         this.preferredSize = newSize
@@ -242,7 +244,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
     }.map(Some(_)).getOrElse(None)
   }
 
-  private val txtArReport = new TextArea(12,30)
+  private val txtArReport = new TextArea(35,30)
 
   /**
    * The main UI of the application
