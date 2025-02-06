@@ -32,8 +32,9 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
     val enforceCaseSensitivePathChecks = false
     val trace = false
     val skipFileChecks = false
+    val maxCharsPerCell = 4096
 
-    def validateR(csv: io.Reader, schema: Schema): this.type#MetaDataValidation[Any] = validate(csv, schema, None)
+    def validateR(csv: io.Reader, schema: Schema): this.type#MetaDataValidation[Any] = validate(csv, schema, maxCharsPerCell, None)
   }
 
   val ve = new CsvValidator with AllErrorsMetaDataValidator {
@@ -41,6 +42,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
     val enforceCaseSensitivePathChecks = true
     val trace = false
     val skipFileChecks = false
+    val maxCharsPerCell = 4096
   }
 
   import v.{validate, validateR, parseSchema}
@@ -408,7 +410,7 @@ class MetaDataValidatorAcceptanceSpec extends Specification with TestResources {
   }
 
   "Validate fail fast" should {
-    val app = new CsvValidator with FailFastMetaDataValidator  { val pathSubstitutions = List[(String,String)](); val enforceCaseSensitivePathChecks = false; val trace = false; val skipFileChecks = false }
+    val app = new CsvValidator with FailFastMetaDataValidator  { val pathSubstitutions = List[(String,String)](); val enforceCaseSensitivePathChecks = false; val trace = false; val skipFileChecks = false; val maxCharsPerCell: Int = 4096 }
 
     "only report first error for invalid @TotalColumns" in {
       app.validate(TextFile(Paths.get(base).resolve("totalColumnsFailMetaData.csv")), parse(base + "/totalColumnsSchema.csvs"), None) must beLike {

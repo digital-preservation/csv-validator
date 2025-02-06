@@ -41,7 +41,7 @@ If you wish to use the CSV Validator from your own Java project, we provide a na
 <dependency>
 	<groupId>uk.gov.nationalarchives</groupId>
     <artifactId>csv-validator-java-api</artifactId>
-    <version>1.3.0</version>
+    <version>1.4.0</version>
 </dependency>
 ```
 
@@ -49,27 +49,55 @@ The Javadoc, can be found in either Maven Central or you can build it locally by
 
 Example Java code of using the CSV Validator through the Java API:
 ```java
-Boolean failFast = false;
-List<Substitution> pathSubstitutions = new ArrayList<Substitution>();
+ Charset csvEncoding = JCharset.forName("UTF-8"); // default is UTF-8
+ boolean validateCsvEncoding = true;
+ Charset csvSchemaEncoding = JCharset.forName("UTF-8"); // default is UTF-8
+ boolean failFast = true; // default is false
+ List<Substitution> pathSubstitutions = new ArrayList<Substitution>(); // default is any empty ArrayList
+ boolean enforceCaseSensitivePathChecks = true; // default is false
+ boolean trace = false; // default is false
+ ProgressCallback progress; // default is null
+ boolean skipFileChecks = true; // default is false
+ int maxCharsPerCell = 8096; // default is 4096
 
-List<FailMessage> messages = CsvValidator.validate(
-"/data/csv/data.csv",
-"/data/csv/data-schema.csvs",
-failFast,
-pathSubstitutions,
-true,
-false);
+ // add a substitution path
+ pathSubstitutions.add(new Substitution("file://something", "/home/xxx"));
+
+ CsvValidator.ValidatorBuilder validateWithStringNames = new CsvValidator.ValidatorBuilder(
+     "/home/dev/IdeaProjects/csv/csv-validator/csv-validator-core/data.csv",
+     "/home/dev/IdeaProjects/csv/csv-validator/csv-validator-core/data-schema.csvs"
+ )
+
+ // alternatively, you can pass in Readers for each file
+ Reader csvReader = new Reader();
+ Reader csvSchemaReader = new Reader();
+ CsvValidator.ValidatorBuilder validateWithReaders = new CsvValidator.ValidatorBuilder(
+     csvReader, csvSchemaReader
+ )
+
+ List<FailMessage> messages = validateWithStringNames
+   .usingCsvEncoding(csvEncoding, validateCsvEncoding) // should only be `true` if using UTF-8 encoding, otherwise it will throw an exception
+   .usingCsvSchemaEncoding(csvSchemaEncoding)
+   .usingFailFast(failFast)
+   .usingPathSubstitutions(pathSubstitutions)
+   .usingEnforceCaseSensitivePathChecks(enforceCaseSensitivePathChecks)
+   .usingTrace(trace)
+   .usingProgress(progress)
+   .usingSkipFileChecks(skipFileChecks)
+   .usingMaxCharsPerCell(maxCharsPerCell)
+   .runValidation();
 
  if(messages.isEmpty()) {
-	System.out.println("Completed validation OK");
+   System.out.println("All worked OK");
  } else {
- 	for(FailMessage message : messages) {
- 		if(message instanceof WarningMessage) {
- 			System.out.println("[WARN] " + message.getMessage());
- 		} else {
- 			System.out.println("[ERROR] " + message.getMessage());
- 		}
- 	}
+   for(FailMessage message : messages) {
+     if(message instanceof WarningMessage) {
+       System.out.println("Warning: " + message.getMessage());
+     } else {
+       System.out.println("Error: " + message.getMessage());
+     }
+   }
+ }
 }
 ```
 
