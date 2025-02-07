@@ -30,7 +30,7 @@ class StartsRuleSpec extends Specification {
     "fail if cell does not start with startsRule value" in {
       val startsRule = StartsRule(Literal(Some("hello world today")))
       startsRule.evaluate(0, Row(List(Cell("hello world")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual """starts("hello world today") fails for line: 1, column: column1, value: "hello world""""
+        case Validated.Invalid(messages) => messages.head mustEqual """starts("hello world today") fails for row: 1, column: column1, value: "hello world""""
       }
     }
 
@@ -49,7 +49,7 @@ class StartsRuleSpec extends Specification {
       val startsRule = StartsRule(ColumnReference(NamedColumnIdentifier("nonExistentColumn")))
 
       startsRule.evaluate(0, Row(List(Cell("hello world today")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual """starts($nonExistentColumn) fails for line: 1, column: column1, value: "hello world today""""
+        case Validated.Invalid(messages) => messages.head mustEqual """starts($nonExistentColumn) fails for row: 1, column: column1, value: "hello world today""""
       }
     }
 

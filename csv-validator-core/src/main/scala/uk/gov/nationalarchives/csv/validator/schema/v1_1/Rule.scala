@@ -78,7 +78,7 @@ case class IntegrityCheckRule(pathSubstitutions: List[(String,String)], enforceC
     catch {
       case ex: FileNotFoundException =>
         val columnDefinition = schema.columnDefinitions(columnIndex)
-        s"$toError fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${ex.getMessage} with substitution paths ${pathSubstitutions.mkString(", ")}".invalidNel[Any]
+        s"$toError fails for row: ${row.lineNumber}, column: ${columnDefinition.id}, ${ex.getMessage} with substitution paths ${pathSubstitutions.mkString(", ")}".invalidNel[Any]
     }
   }
 

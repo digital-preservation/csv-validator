@@ -29,21 +29,21 @@ class IsRuleSpec extends Specification {
     "fail if isRule is not the same as value" in {
       val isRule = IsRule(Literal(Some("completely different value")))
       isRule.evaluate(0, Row(List(Cell("hello world")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual """is("completely different value") fails for line: 1, column: column1, value: "hello world""""
+        case Validated.Invalid(messages) => messages.head mustEqual """is("completely different value") fails for row: 1, column: column1, value: "hello world""""
       }
     }
 
     "fail if isRule is embedded in value" in {
       val isRule = IsRule(Literal(Some("hello world today")))
       isRule.evaluate(0, Row(List(Cell("hello world")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual """is("hello world today") fails for line: 1, column: column1, value: "hello world""""
+        case Validated.Invalid(messages) => messages.head mustEqual """is("hello world today") fails for row: 1, column: column1, value: "hello world""""
       }
     }
 
     "fail if isRule is not in value" in {
       val isRule = IsRule(Literal(Some("hello world")))
       isRule.evaluate(0, Row(List(Cell("hello world today")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual """is("hello world") fails for line: 1, column: column1, value: "hello world today""""
+        case Validated.Invalid(messages) => messages.head mustEqual """is("hello world") fails for row: 1, column: column1, value: "hello world today""""
       }
     }
 

@@ -55,7 +55,7 @@ class IntegrityCheckRuleSpec extends Specification with TestResources {
       val totalRows: Some[Boolean] = Some(false)
       
       integrityCheckRule.evaluate(0, Row(List(Cell(relIntegrityCheckForRulePath)), 1), schema, totalRows) must beLike {
-        case Validated.Invalid(messages) => messages.head must be matching "integrityCheck fails for line: 1, column: column1, files: \"[a-z0-9._\\\\/-]*integrityCheck[\\\\/]folder1[\\\\/]content[\\\\/]file#2.txt\" are not listed in the metadata"
+        case Validated.Invalid(messages) => messages.head must be matching "integrityCheck fails for row: 1, column: column1, files: \"[a-z0-9._\\\\/-]*integrityCheck[\\\\/]folder1[\\\\/]content[\\\\/]file#2.txt\" are not listed in the metadata"
       }
     }
 
@@ -66,7 +66,7 @@ class IntegrityCheckRuleSpec extends Specification with TestResources {
       integrityCheckRule.evaluate(1, Row(List(Cell("abc"), Cell(relIntegrityCheckForRulePath)), 1), schema, Some(true)) mustEqual Validated.Valid(true)
 
       integrityCheckRule.evaluate(1, Row(List(Cell("abc"), Cell("")), 2), schema, Some(false)) must beLike {
-        case Validated.Invalid(messages) => messages.head must be matching "integrityCheck fails for line: 2, column: column2, files: \"[a-z0-9._\\\\/-]*integrityCheck[\\\\/]folder1[\\\\/]content[\\\\/]file#2.txt\" are not listed in the metadata"
+        case Validated.Invalid(messages) => messages.head must be matching "integrityCheck fails for row: 2, column: column2, files: \"[a-z0-9._\\\\/-]*integrityCheck[\\\\/]folder1[\\\\/]content[\\\\/]file#2.txt\" are not listed in the metadata"
       }
     }
 

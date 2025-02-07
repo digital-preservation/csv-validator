@@ -40,14 +40,14 @@ class IfRuleSpec extends Specification {
     "condition is true and no else, 'if body' rule fails" in {
       val ifRule = IfRule(startsRule("hello world"),endsRules("hello"), None)
       ifRule.evaluate(0, row, schema) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual "ends(\"hello\") fails for line: 1, column: column1, value: \"hello world\""
+        case Validated.Invalid(messages) => messages.head mustEqual "ends(\"hello\") fails for row: 1, column: column1, value: \"hello world\""
       }
     }
 
     "condition is true and there is an 'else' that is true and 'if' body that is false" in {
       val ifRule = IfRule(startsRule("hello"),endsRules("hello"), Some(endsRules("world")))
       ifRule.evaluate(0, row, schema) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual "ends(\"hello\") fails for line: 1, column: column1, value: \"hello world\""
+        case Validated.Invalid(messages) => messages.head mustEqual "ends(\"hello\") fails for row: 1, column: column1, value: \"hello world\""
       }
     }
 
@@ -64,7 +64,7 @@ class IfRuleSpec extends Specification {
     "condition is false and there is an 'else' that is false and 'if' body that is true" in {
       val ifRule = IfRule(startsRule("sello"),endsRules("world"), Some(endsRules("hello")))
       ifRule.evaluate(0, row, schema) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual "ends(\"hello\") fails for line: 1, column: column1, value: \"hello world\""
+        case Validated.Invalid(messages) => messages.head mustEqual "ends(\"hello\") fails for row: 1, column: column1, value: \"hello world\""
       }
     }
 

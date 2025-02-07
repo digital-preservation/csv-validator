@@ -102,9 +102,9 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
       validate(metaData, schema, maxCharsPerCell, None) must beLike {
         case Validated.Invalid(messages) => messages.toList mustEqual List (
-          FailMessage(ValidationError, """regex("[a-c]*") fails for line: 1, column: second, value: "xxxy"""",Some(1),Some(1)),
-          FailMessage(ValidationError, """regex("[3-8]*") fails for line: 2, column: first, value: "abcd"""",Some(2),Some(0)),
-          FailMessage(ValidationError, """regex("[a-c]*") fails for line: 2, column: second, value: "uii"""",Some(2),Some(1)))
+          FailMessage(ValidationError, """regex("[a-c]*") fails for row: 1, column: second, value: "xxxy"""",Some(1),Some(1)),
+          FailMessage(ValidationError, """regex("[3-8]*") fails for row: 2, column: first, value: "abcd"""",Some(2),Some(0)),
+          FailMessage(ValidationError, """regex("[a-c]*") fails for row: 2, column: second, value: "uii"""",Some(2),Some(1)))
       }
     }
 
@@ -137,7 +137,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val maxCharsPerCell = 4096
 
       validate(metaData, schema, maxCharsPerCell, None) should beLike {
-        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """regex("C11") fails for line: 1, column: Col1, value: "c11"""",Some(1),Some(0)))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """regex("C11") fails for row: 1, column: Col1, value: "c11"""",Some(1),Some(0)))
       }
     }
 
@@ -181,7 +181,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val maxCharsPerCell = 4096
 
       validate(metaData, schema, maxCharsPerCell, None) must beLike {
-        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """regex("^T.+") fails for line: 1, column: c1, value: "Scooby"""",Some(1),Some(0)), FailMessage(ValidationError, """regex("^X.+") fails for line: 1, column: c1, value: "Scooby"""",Some(1),Some(0)))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """regex("^T.+") fails for row: 1, column: c1, value: "Scooby"""",Some(1),Some(0)), FailMessage(ValidationError, """regex("^X.+") fails for row: 1, column: c1, value: "Scooby"""",Some(1),Some(0)))
       }
     }
 
@@ -232,7 +232,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val maxCharsPerCell = 4096
 
       validate(metaData, schema, maxCharsPerCell, None) should beLike {
-        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """in($col1) fails for line: 1, column: col2WithRule, value: "mustBeIn"""",Some(1),Some(1)))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """in($col1) fails for row: 1, column: col2WithRule, value: "mustBeIn"""",Some(1),Some(1)))
       }
     }
 
@@ -280,7 +280,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val maxCharsPerCell = 4096
 
       validate(metaData, schema, maxCharsPerCell, None) should beLike {
-        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """regex("[0-9]") fails for line: 1, column: Col2, value: "a"""",Some(1),Some(1)))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """regex("[0-9]") fails for row: 1, column: Col2, value: "a"""",Some(1),Some(1)))
       }
     }
 
@@ -302,9 +302,9 @@ class MetaDataValidatorSpec extends Specification with TestResources {
 
       validate(metaData, schema, maxCharsPerCell, None) should beLike {
         case Validated.Invalid(messages) => messages.toList mustEqual List(
-          FailMessage(ValidationError, """regex("[0-9]") fails for line: 1, column: Col3, value: """"",Some(1),Some(2)),
-          FailMessage(ValidationError, """regex("[0-9]") fails for line: 2, column: Col2, value: "a"""",Some(2),Some(1)),
-          FailMessage(ValidationError, """regex("[0-9]") fails for line: 2, column: Col3, value: """"",Some(2),Some(2)))
+          FailMessage(ValidationError, """regex("[0-9]") fails for row: 1, column: Col3, value: """"",Some(1),Some(2)),
+          FailMessage(ValidationError, """regex("[0-9]") fails for row: 2, column: Col2, value: "a"""",Some(2),Some(1)),
+          FailMessage(ValidationError, """regex("[0-9]") fails for row: 2, column: Col3, value: """"",Some(2),Some(2)))
       }
     }
 
@@ -345,7 +345,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val maxCharsPerCell = 4096
 
       validate(metaData, schema, maxCharsPerCell, None) should beLike {
-        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """regex("[a-z]+") fails for line: 1, column: Col1, value: "SCOOBY"""",Some(1),Some(0)))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """regex("[a-z]+") fails for row: 1, column: Col1, value: "SCOOBY"""",Some(1),Some(0)))
       }
     }
 
@@ -390,7 +390,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val maxCharsPerCell = 4096
 
       validate(metaData, schema, maxCharsPerCell, None) must beLike {
-        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, "fileExists fails for line: 1, column: FirstColumn, value: \"some/non/existent/file\"",Some(1),Some(0)))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, "fileExists fails for row: 1, column: FirstColumn, value: \"some/non/existent/file\"",Some(1),Some(0)))
       }
     }
 
@@ -409,7 +409,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val maxCharsPerCell = 4096
 
       validate(metaData, schema, maxCharsPerCell, None) must beLike {
-        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """in("dog") fails for line: 1, column: col2WithRule, value: "thisisrubbish"""",Some(1),Some(1)))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """in("dog") fails for row: 1, column: col2WithRule, value: "thisisrubbish"""",Some(1),Some(1)))
       }
     }
 
@@ -516,7 +516,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val maxCharsPerCell = 4096
 
       validate(metaData, schema, maxCharsPerCell, None) must beLike {
-        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """in("This") or in("That") fails for line: 1, column: ThisOrThat, value: "SomethingElse"""",Some(1),Some(0)))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """in("This") or in("That") fails for row: 1, column: ThisOrThat, value: "SomethingElse"""",Some(1),Some(0)))
       }
     }
 
@@ -587,7 +587,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val maxCharsPerCell = 4096
 
       validate(metaData, schema, maxCharsPerCell, None) must beLike {
-        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """is("France") fails for line: 1, column: Country, value: "UK"""",Some(1),Some(0)))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """is("France") fails for row: 1, column: Country, value: "UK"""",Some(1),Some(0)))
       }
     }
 
@@ -603,7 +603,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val maxCharsPerCell = 4096
 
       validate(metaData, schema, maxCharsPerCell, None) must beLike {
-        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """is($MyCountry) fails for line: 1, column: Country, value: "United"""",Some(1),Some(0)))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """is($MyCountry) fails for row: 1, column: Country, value: "United"""",Some(1),Some(0)))
       }
     }
 
@@ -658,7 +658,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val maxCharsPerCell = 4096
 
       validate(metaData, schema, maxCharsPerCell, None) must beLike {
-        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """not("United Kingdom") fails for line: 1, column: Country, value: "United Kingdom"""",Some(1),Some(0)))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """not("United Kingdom") fails for row: 1, column: Country, value: "United Kingdom"""",Some(1),Some(0)))
       }
     }
 
@@ -674,7 +674,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val maxCharsPerCell = 4096
 
       validate(metaData, schema, maxCharsPerCell, None) must beLike {
-        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """not($MyCountry) fails for line: 1, column: Country, value: "United Kingdom"""",Some(1),Some(0)))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """not($MyCountry) fails for row: 1, column: Country, value: "United Kingdom"""",Some(1),Some(0)))
       }
     }
 
@@ -729,7 +729,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val maxCharsPerCell = 4096
 
       validate(metaData, schema, maxCharsPerCell, None) must beLike {
-        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """starts("united") fails for line: 1, column: Country, value: "United Kingdom"""",Some(1),Some(0)))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """starts("united") fails for row: 1, column: Country, value: "United Kingdom"""",Some(1),Some(0)))
       }
     }
 
@@ -745,7 +745,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val maxCharsPerCell = 4096
 
       validate(metaData, schema, maxCharsPerCell, None) must beLike {
-        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """starts($MyCountry) fails for line: 1, column: Country, value: "United"""",Some(1),Some(0)))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """starts($MyCountry) fails for row: 1, column: Country, value: "United"""",Some(1),Some(0)))
       }
     }
 
@@ -799,7 +799,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val maxCharsPerCell = 4096
 
       validate(metaData, schema, maxCharsPerCell, None) must beLike {
-        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """ends("kingdom") fails for line: 1, column: Country, value: "United Kingdom"""",Some(1),Some(0)))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """ends("kingdom") fails for row: 1, column: Country, value: "United Kingdom"""",Some(1),Some(0)))
       }
     }
 
@@ -815,7 +815,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val maxCharsPerCell = 4096
 
       validate(metaData, schema, maxCharsPerCell, None) must beLike {
-        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """ends($MyCountry) fails for line: 1, column: Country, value: "United Kingdom"""",Some(1),Some(0)))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """ends($MyCountry) fails for row: 1, column: Country, value: "United Kingdom"""",Some(1),Some(0)))
       }
     }
 
@@ -855,7 +855,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val maxCharsPerCell = 4096
 
       validate(metaData, schema, maxCharsPerCell, None) must beLike {
-        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, "unique fails for line: 4, column: Name, value: \"Jim\" (original at line: 2)",Some(4),Some(0)),FailMessage(ValidationError, "unique fails for line: 5, column: Name, value: \"Jim\" (original at line: 2)",Some(5),Some(0)))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, "unique fails for row: 4, column: Name, value: \"Jim\" (original at row: 2)",Some(4),Some(0)),FailMessage(ValidationError, "unique fails for row: 5, column: Name, value: \"Jim\" (original at row: 2)",Some(5),Some(0)))
       }
     }
 
@@ -1067,7 +1067,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val maxCharsPerCell = 4096
 
       validate(metaData, schema, maxCharsPerCell, None) must beLike {
-        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, "range(18,65) fails for line: 1, column: Age, value: \"10\"",Some(1),Some(1)),FailMessage(ValidationError, "range(18,65) fails for line: 3, column: Age, value: \"96\"",Some(3),Some(1)))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, "range(18,65) fails for row: 1, column: Age, value: \"10\"",Some(1),Some(1)),FailMessage(ValidationError, "range(18,65) fails for row: 3, column: Age, value: \"96\"",Some(3),Some(1)))
       }
     }
 
@@ -1086,7 +1086,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val maxCharsPerCell = 4096
 
       validate(metaData, schema, maxCharsPerCell, None) must beLike {
-        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, "length(*,3) fails for line: 3, column: Name, value: \"Benny\"",Some(3),Some(0)),FailMessage(ValidationError, "length(*,3) fails for line: 5, column: Name, value: \"Timmy\"",Some(5),Some(0)))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, "length(*,3) fails for row: 3, column: Name, value: \"Benny\"",Some(3),Some(0)),FailMessage(ValidationError, "length(*,3) fails for row: 5, column: Name, value: \"Timmy\"",Some(5),Some(0)))
       }
     }
 
@@ -1117,7 +1117,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val maxCharsPerCell = 4096
 
       validate(metaData, schema, maxCharsPerCell, None) must beLike {
-        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """(length(5) and length(*,*)) and is("Hello") fails for line: 2, column: Name, value: "World"""",Some(2),Some(0)))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """(length(5) and length(*,*)) and is("Hello") fails for row: 2, column: Name, value: "World"""",Some(2),Some(0)))
       }
     }
 
@@ -1207,7 +1207,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val maxCharsPerCell = 4096
 
       validate(metaData, schema, maxCharsPerCell, None) must beLike {
-        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """ends("Joe") fails for line: 1, column: col1, value: "Joe Bloggs"""",Some(1),Some(0)))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """ends("Joe") fails for row: 1, column: col1, value: "Joe Bloggs"""",Some(1),Some(0)))
       }
     }
 
@@ -1233,7 +1233,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val maxCharsPerCell = 4096
 
       validate(metaData, schema, maxCharsPerCell, None) must beLike {
-        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """ends("Joe") fails for line: 1, column: col1, value: "Joe Bloggs"""",Some(1),Some(0)))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """ends("Joe") fails for row: 1, column: col1, value: "Joe Bloggs"""",Some(1),Some(0)))
       }
     }
 
@@ -1271,7 +1271,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val maxCharsPerCell = 4096
 
       validate(metaData, schema, maxCharsPerCell, None) must beLike {
-        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """length(4) fails for line: 1, column: col1, value: "Joe Bloggs"""",Some(1),Some(0)))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """length(4) fails for row: 1, column: col1, value: "Joe Bloggs"""",Some(1),Some(0)))
       }
     }
 
@@ -1322,7 +1322,7 @@ class MetaDataValidatorSpec extends Specification with TestResources {
       val maxCharsPerCell = 4096
 
       validate(metaData, schema, maxCharsPerCell, None) must beLike {
-        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """(is("True") or is("True")) and is("False") fails for line: 1, column: col1, value: "True"""",Some(1),Some(0)))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """(is("True") or is("True")) and is("False") fails for row: 1, column: col1, value: "True"""",Some(1),Some(0)))
       }
     }
 

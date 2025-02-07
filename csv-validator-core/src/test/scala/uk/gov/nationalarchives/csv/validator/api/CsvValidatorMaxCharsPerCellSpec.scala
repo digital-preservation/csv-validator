@@ -37,7 +37,7 @@ class CsvValidatorMaxCharsPerCellSpec extends Specification with TestResources {
       val maxCharsAllowed = 15
       val validatedNel = app(maxCharsAllowed).validate(TextFile(Paths.get(baseResourcePkgPath).resolve("metaDataWithALongCellLength.csv")), parse(baseResourcePkgPath + "/schema.csvs"), None).swap
       validatedNel.toList.head.toList must beEqualTo(
-        List(FailMessage(ValidationError,"java.lang.Exception: The number of characters in the cell located at line: 1, column: col2, is larger than the maximum number of characters allowed in a cell (15); increase this limit and re-run.",None,None))
+        List(FailMessage(ValidationError,"java.lang.Exception: The number of characters in the cell located at row: 1, column: col2, is larger than the maximum number of characters allowed in a cell (15); increase this limit and re-run.",None,None))
       )
     }
 

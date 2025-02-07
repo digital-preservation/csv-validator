@@ -56,7 +56,7 @@ class NoArgRulesSpec extends Specification {
 
       val uriRule = UriRule()
       uriRule.evaluate(0, Row(List(Cell("""http:\\http:\\datagov.nationalarchives.gov.uk\66\WO\409\9999\0\aaaaaaaa-aaaa-4aaa-9eee-0123456789ab""")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual """uri fails for line: 1, column: column1, value: "http:\\http:\\datagov.nationalarchives.gov.uk\66\WO\409\9999\0\aaaaaaaa-aaaa-4aaa-9eee-0123456789ab""""
+        case Validated.Invalid(messages) => messages.head mustEqual """uri fails for row: 1, column: column1, value: "http:\\http:\\datagov.nationalarchives.gov.uk\66\WO\409\9999\0\aaaaaaaa-aaaa-4aaa-9eee-0123456789ab""""
       }
     }
   }
@@ -71,7 +71,7 @@ class NoArgRulesSpec extends Specification {
     "fail if cell has an invalid uuid4" in {
       val uuid4Rule = Uuid4Rule()
       uuid4Rule.evaluate(0, Row(List(Cell("aaaaaaaaa-aaaa-4aaa-9eee-0123456789ab")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual """uuid4 fails for line: 1, column: column1, value: "aaaaaaaaa-aaaa-4aaa-9eee-0123456789ab""""
+        case Validated.Invalid(messages) => messages.head mustEqual """uuid4 fails for row: 1, column: column1, value: "aaaaaaaaa-aaaa-4aaa-9eee-0123456789ab""""
       }
     }
   }
@@ -91,14 +91,14 @@ class NoArgRulesSpec extends Specification {
     "fail if cell has a negative integer" in {
       val posIntRule = PositiveIntegerRule()
       posIntRule.evaluate(0, Row(List(Cell("-123")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual """positiveInteger fails for line: 1, column: column1, value: "-123""""
+        case Validated.Invalid(messages) => messages.head mustEqual """positiveInteger fails for row: 1, column: column1, value: "-123""""
       }
     }
 
     "fail if cell has a non integer" in {
       val posIntRule = PositiveIntegerRule()
       posIntRule.evaluate(0, Row(List(Cell("123.45")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual """positiveInteger fails for line: 1, column: column1, value: "123.45""""
+        case Validated.Invalid(messages) => messages.head mustEqual """positiveInteger fails for row: 1, column: column1, value: "123.45""""
       }
     }
 
@@ -110,14 +110,14 @@ class NoArgRulesSpec extends Specification {
     "fail if cell has a minus sign midway through" in {
       val posIntRule = PositiveIntegerRule()
       posIntRule.evaluate(0, Row(List(Cell("123-4456")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual """positiveInteger fails for line: 1, column: column1, value: "123-4456""""
+        case Validated.Invalid(messages) => messages.head mustEqual """positiveInteger fails for row: 1, column: column1, value: "123-4456""""
       }
     }
 
     "fail if cell has a non numeric character" in {
       val posIntRule = PositiveIntegerRule()
       posIntRule.evaluate(0, Row(List(Cell("12abc45")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual """positiveInteger fails for line: 1, column: column1, value: "12abc45""""
+        case Validated.Invalid(messages) => messages.head mustEqual """positiveInteger fails for row: 1, column: column1, value: "12abc45""""
       }
     }
   }
