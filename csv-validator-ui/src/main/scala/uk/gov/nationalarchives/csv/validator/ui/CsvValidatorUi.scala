@@ -311,7 +311,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
     csvFileChooser.multiSelectionEnabled = false
     csvFileChooser.title = "Select a .csv file"
     csvFileChooser.fileFilter = new FileNameExtensionFilter("CSV file (*.csv)", "csv")
-    private val btnChooseCsvFile = new Button("...")
+    private val btnChooseCsvFile = new Button("Choose...")
 
     btnChooseCsvFile.reactions += onClick {
       csvFileChooser.selectedFile = lastCsvPath
@@ -335,7 +335,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
     csvSchemaFileChooser.fileFilter = new FileNameExtensionFilter("CSV Schema file (*.csvs)", "csvs" +
       "")
 
-    private val btnChooseCsvSchemaFile = new Button("...")
+    private val btnChooseCsvSchemaFile = new Button("Choose...")
     btnChooseCsvSchemaFile.reactions += onClick {
       csvSchemaFileChooser.selectedFile = lastCsvSchemaPath
       chooseFileOrDir(csvSchemaFileChooser, txtCsvSchemaFile, btnChooseCsvSchemaFile)
@@ -541,7 +541,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
         Success("Text updated")
       }
 
-      val fileButton = new Button("...")
+      val fileButton = new Button("Choose...")
       fileButton.reactions += {
         case ev: ButtonClicked =>
           val startingDir = if(toPathField.text.isEmpty) userDir.toFile else Path.of(toPathField.text).toFile
