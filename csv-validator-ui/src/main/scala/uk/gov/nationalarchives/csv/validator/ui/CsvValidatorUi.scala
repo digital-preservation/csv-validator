@@ -529,7 +529,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
       val expectedMaxCharsPerCell = convertTextboxValueToInt(maxCharsPerCell, "", _ => (), 4096)
       val identifierRows = CsvValidatorCmdApp.getColumnFromCsv(csvFile, schemaFile, "identifier", expectedMaxCharsPerCell).sorted
 
-      val fromPath = identifierRows.headOption.getOrElse("")
+      val fromPath = identifierRows.headOption.getOrElse("").strip()
 
       val toPathField = new TextField(30)
       val fromPathField = new TextField(fromPath, 30)
@@ -549,7 +549,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
         case ev: ButtonClicked =>
           val startingDir = if(toPathField.text.isEmpty) userDir.toFile else Path.of(toPathField.text).toFile
           val fromFolderName = Path.of(fromPathField.text).getFileName
-          val helpText = s"Select the ${fromFolderName} folder"
+          val helpText = s"Select the $fromFolderName folder"
           val fileChooser = new FileChooser(startingDir)
           fileChooser.multiSelectionEnabled = false
           fileChooser.title = helpText
