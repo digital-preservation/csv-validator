@@ -142,14 +142,14 @@ object CsvValidatorUi extends SimpleSwingApplication {
     Try(value.toInt) match {
       case Success(number) if number > 0 => number
       case _ =>
-        handleErrorMsg(s"Error: Maximum number of $textBoxDescription should be more than 0")
+        handleErrorMsg(s"Error:   Maximum number of $textBoxDescription should be more than 0")
         valueIfError
     }
 
   private def validate(csvFilePath: String, csvEncoding: Charset, csvSchemaFilePath: String, csvSchemaEncoding: Charset,
-                       potentialMaxCharsPerCell: String, failOnFirstError: Boolean, pathSubstitutions: List[(String, String)],
+                       maxCharsPerCell: Int, failOnFirstError: Boolean, pathSubstitutions: List[(String, String)],
                        enforceCaseSensitivePathChecks: Boolean, progress: Option[ProgressCallback], validateEncoding: Boolean,
-                       potentialMaxNumOfLines: String, skipFileChecks: Boolean, outputTextSuffix: String)(output: String => Unit) : Unit = {
+                       maxNumOfLines: Int, skipFileChecks: Boolean, outputTextSuffix: String)(output: String => Unit) : Unit = {
 
     def toConsole(msg: String): Unit = Swing.onEDT {
       output(msg)
@@ -157,11 +157,6 @@ object CsvValidatorUi extends SimpleSwingApplication {
 
     var badLines = 0
     var truncated = false
-
-    val maxCharsPerCell = convertTextboxValueToInt(potentialMaxCharsPerCell, "characters per column", toConsole)
-    val maxNumOfLines = convertTextboxValueToInt(potentialMaxNumOfLines, "errors to display", toConsole)
-
-    val safeToRunValidation = csvFilePath.nonEmpty && csvSchemaFilePath.nonEmpty && maxCharsPerCell > 0 && maxNumOfLines > 0
 
     def logRowCallback(maxBadLines: Int)(row: ValidatedNel[FailMessage, Any]): Unit = row match {
       case Invalid(failures) =>
@@ -180,7 +175,6 @@ object CsvValidatorUi extends SimpleSwingApplication {
       case _ =>
     }
 
-    if(safeToRunValidation) {
       val (status, cliExitCode) = CsvValidatorCmdApp.validate(
         TextFile(Paths.get(csvFilePath), csvEncoding, validateEncoding),
         TextFile(Paths.get(csvSchemaFilePath), csvSchemaEncoding),
@@ -198,7 +192,6 @@ object CsvValidatorUi extends SimpleSwingApplication {
         case SystemExitCodes.ValidCsv => toConsole(s"PASS$outputTextSuffix")
         case _ => toConsole(status)
       }
-    }
   }
 
   /**
@@ -377,53 +370,63 @@ object CsvValidatorUi extends SimpleSwingApplication {
       }
     }
 
-    def outputToReport(data: String) : Unit =
+    def outputToReport(clearOutput: Boolean=false)(data: String) : Unit =
       Swing.onEDT {
+        if(clearOutput) txtArReport.text = "" else ()
         txtArReport.append(data + EOL)
       }
 
 
-    btnValidate.reactions += validateOnClick(false)
-    btnValidateMetadataOnly.reactions += validateOnClick(true)
+    btnValidate.reactions += onClick(validateOnClick(false))
+    btnValidateMetadataOnly.reactions += onClick(validateOnClick(true))
 
     private def validateOnClick(skipFileChecks: Boolean) = {
-      val suffix = if(skipFileChecks) " (Metadata Only)" else ""
-      onClick(displayWait(
-        suspendUi = {
-          btnValidate.enabled = false
-          btnValidateMetadataOnly.enabled = false
-          this.peer.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR))
-          this.progressBar.value = 0
-          this.progressBar.visible = true
+      val csvFilePath = txtCsvFile.getText
+      val csvSchemaFilePath = txtCsvSchemaFile.getText
+      val fileBoxesAreFilled = csvFilePath.nonEmpty && csvSchemaFilePath.nonEmpty
 
-        },
-        action = {
-          txtArReport.text = ""
-          CsvValidatorUi.this.validate(
-            txtCsvFile.getText,
-            settingsPanel.csvEncoding,
-            txtCsvSchemaFile.getText,
-            settingsPanel.csvSchemaEncoding,
-            settingsPanel.maxCharsPerCell,
-            settingsPanel.failOnFirstError,
-            settingsPanel.pathSubstitutions,
-            settingsPanel.enforceCaseSensitivePathChecks,
-            Some(progress),
-            settingsPanel.validateUtf8,
-            settingsPanel.numOfLinesToDisplay,
-            skipFileChecks,
-            suffix
-          )
-        },
-        output = outputToReport,
-        resumeUi = {
-          btnValidate.enabled = true
-          btnValidateMetadataOnly.enabled = true
-          btnValidate.peer.setCursor(Cursor.getDefaultCursor)
-          btnValidateMetadataOnly.peer.setCursor(Cursor.getDefaultCursor)
-          //this.progressBar.visible = false
-        }
-      ))
+      lazy val maxCharsPerCell = convertTextboxValueToInt(settingsPanel.maxCharsPerCell, "characters per column", outputToReport(clearOutput = true))
+      lazy val maxNumOfLines = convertTextboxValueToInt(settingsPanel.numOfLinesToDisplay, "errors to display", outputToReport(clearOutput = true))
+
+      if(fileBoxesAreFilled && maxCharsPerCell > 0 && maxNumOfLines > 0){
+        val suffix = if(skipFileChecks) " (Metadata Only)" else ""
+        displayWait(
+          suspendUi = {
+            btnValidate.enabled = false
+            btnValidateMetadataOnly.enabled = false
+            this.peer.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR))
+            this.progressBar.value = 0
+            this.progressBar.visible = true
+
+          },
+          action = {
+            txtArReport.text = ""
+            CsvValidatorUi.this.validate(
+              csvFilePath,
+              settingsPanel.csvEncoding,
+              csvSchemaFilePath,
+              settingsPanel.csvSchemaEncoding,
+              maxCharsPerCell,
+              settingsPanel.failOnFirstError,
+              settingsPanel.pathSubstitutions,
+              settingsPanel.enforceCaseSensitivePathChecks,
+              Some(progress),
+              settingsPanel.validateUtf8,
+              maxNumOfLines,
+              skipFileChecks,
+              suffix
+            )
+          },
+          output = outputToReport(clearOutput = false),
+          resumeUi = {
+            btnValidate.enabled = true
+            btnValidateMetadataOnly.enabled = true
+            btnValidate.peer.setCursor(Cursor.getDefaultCursor)
+            btnValidateMetadataOnly.peer.setCursor(Cursor.getDefaultCursor)
+            //this.progressBar.visible = false
+          }
+        )
+      } else doNothingOnClick()
     }
 
     private val separator2 = new Separator
