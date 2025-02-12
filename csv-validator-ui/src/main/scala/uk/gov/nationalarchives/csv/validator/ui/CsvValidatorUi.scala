@@ -417,7 +417,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
               suffix
             )
           },
-          output = outputToReport(clearOutput = false),
+          output = outputToReport(),
           resumeUi = {
             btnValidate.enabled = true
             btnValidateMetadataOnly.enabled = true
