@@ -423,7 +423,6 @@ object CsvValidatorUi extends SimpleSwingApplication {
             btnValidateMetadataOnly.enabled = true
             btnValidate.peer.setCursor(Cursor.getDefaultCursor)
             btnValidateMetadataOnly.peer.setCursor(Cursor.getDefaultCursor)
-            //this.progressBar.visible = false
           }
         )
       } else doNothingOnClick()
