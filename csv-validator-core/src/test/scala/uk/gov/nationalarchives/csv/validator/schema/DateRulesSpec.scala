@@ -44,14 +44,14 @@ class DateRulesSpec extends Specification {
     "fail if cell has an invalid xsdDateTime format" in {
       val xsdDateRule = XsdDateTimeRule()
       xsdDateRule.evaluate(0, Row(List(Cell("2002-999-30T09:00:10")), 1), schema) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual """xDateTime fails for line: 1, column: column1, value: "2002-999-30T09:00:10""""
+        case Validated.Invalid(messages) => messages.head mustEqual """xDateTime fails for row: 1, column: column1, value: "2002-999-30T09:00:10""""
       }
     }
 
     "fail if cell has a valid xsdDateTime format but invalid date" in {
       val xsdDateRule = XsdDateTimeRule()
       xsdDateRule.evaluate(0, Row(List(Cell("2002-99-30T09:00:10")), 1), schema) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual """xDateTime fails for line: 1, column: column1, value: "2002-99-30T09:00:10""""
+        case Validated.Invalid(messages) => messages.head mustEqual """xDateTime fails for row: 1, column: column1, value: "2002-99-30T09:00:10""""
       }
     }
 
@@ -82,7 +82,7 @@ class DateRulesSpec extends Specification {
     "fail if cell is just below lower bound" in {
       val xsdDateRangeRule = XsdDateTimeRangeRule("2012-01-01T00:00:01", "2013-01-01T00:00:00")
       xsdDateRangeRule.evaluate(0, Row(List(Cell("2012-01-01T00:00:00")), 1), schema) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual """xDateTime("2012-01-01T00:00:01, 2013-01-01T00:00:00") fails for line: 1, column: column1, value: "2012-01-01T00:00:00""""
+        case Validated.Invalid(messages) => messages.head mustEqual """xDateTime("2012-01-01T00:00:01, 2013-01-01T00:00:00") fails for row: 1, column: column1, value: "2012-01-01T00:00:00""""
       }
     }
   }
@@ -100,14 +100,14 @@ class DateRulesSpec extends Specification {
     "fail if cell has an invalid xsdDateTimeWithTimeZone format" in {
       val xsdDateRule = XsdDateTimeWithTimeZoneRule()
       xsdDateRule.evaluate(0, Row(List(Cell("2002-999-30T09:00:10Z")), 1), schema) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual """xDateTimeWithTimeZone fails for line: 1, column: column1, value: "2002-999-30T09:00:10Z""""
+        case Validated.Invalid(messages) => messages.head mustEqual """xDateTimeWithTimeZone fails for row: 1, column: column1, value: "2002-999-30T09:00:10Z""""
       }
     }
 
     "fail if cell has an  xsdDateTimeWithTimeZone missing time zone" in {
       val xsdDateRule = XsdDateTimeWithTimeZoneRule()
       xsdDateRule.evaluate(0, Row(List(Cell("2002-01-30T09:00:10")), 1), schema) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual """xDateTimeWithTimeZone fails for line: 1, column: column1, value: "2002-01-30T09:00:10""""
+        case Validated.Invalid(messages) => messages.head mustEqual """xDateTimeWithTimeZone fails for row: 1, column: column1, value: "2002-01-30T09:00:10""""
       }
     }
 
@@ -145,7 +145,7 @@ class DateRulesSpec extends Specification {
     "fail if cell is just below lower bound" in {
       val xsdDateRangeRule = XsdDateTimeWithTimeZoneRangeRule("2012-01-01T00:00:01Z", "2013-01-01T00:00:00Z")
       xsdDateRangeRule.evaluate(0, Row(List(Cell("2012-01-01T00:00:00Z")), 1), schema) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual """xDateTimeWithTimeZone("2012-01-01T00:00:01Z, 2013-01-01T00:00:00Z") fails for line: 1, column: column1, value: "2012-01-01T00:00:00Z""""
+        case Validated.Invalid(messages) => messages.head mustEqual """xDateTimeWithTimeZone("2012-01-01T00:00:01Z, 2013-01-01T00:00:00Z") fails for row: 1, column: column1, value: "2012-01-01T00:00:00Z""""
       }
     }
   }
@@ -165,14 +165,14 @@ class DateRulesSpec extends Specification {
     "fail if cell has an invalid xsdDate format" in {
       val xsdDateRule = XsdDateRule()
       xsdDateRule.evaluate(0, Row(List(Cell("2002-999-30")), 1), schema) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual """xDate fails for line: 1, column: column1, value: "2002-999-30""""
+        case Validated.Invalid(messages) => messages.head mustEqual """xDate fails for row: 1, column: column1, value: "2002-999-30""""
       }
     }
 
     "fail if cell has a valid xsdDate format but invalid date" in {
       val xsdDateRule = XsdDateRule()
       xsdDateRule.evaluate(0, Row(List(Cell("2002-99-30")), 1), schema) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual """xDate fails for line: 1, column: column1, value: "2002-99-30""""
+        case Validated.Invalid(messages) => messages.head mustEqual """xDate fails for row: 1, column: column1, value: "2002-99-30""""
       }
     }
   }
@@ -202,7 +202,7 @@ class DateRulesSpec extends Specification {
     "fail if cell is just below lower bound" in {
       val xsdDateRangeRule = XsdDateRangeRule("2012-01-01", "2013-01-01")
       xsdDateRangeRule.evaluate(0, Row(List(Cell("2011-12-31")), 1), schema) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual """xDate("2012-01-01, 2013-01-01") fails for line: 1, column: column1, value: "2011-12-31""""
+        case Validated.Invalid(messages) => messages.head mustEqual """xDate("2012-01-01, 2013-01-01") fails for row: 1, column: column1, value: "2011-12-31""""
       }
     }
   }
@@ -256,35 +256,35 @@ class DateRulesSpec extends Specification {
     "fail if cell has a valid UK Date with wrong ? count for month" in {
       val partUkDateRule = PartUkDateRule()
       partUkDateRule.evaluate(0, Row(List(Cell("?2/???/201?")), 1), schema) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual """partUkDate fails for line: 1, column: column1, value: "?2/???/201?""""
+        case Validated.Invalid(messages) => messages.head mustEqual """partUkDate fails for row: 1, column: column1, value: "?2/???/201?""""
       }
     }
 
     "fail if cell has a valid UK Date with wrong number of year symbols" in {
       val partUkDateRule = PartUkDateRule()
       partUkDateRule.evaluate(0, Row(List(Cell("04/Feburary/81")), 1), schema) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual """partUkDate fails for line: 1, column: column1, value: "04/Feburary/81""""
+        case Validated.Invalid(messages) => messages.head mustEqual """partUkDate fails for row: 1, column: column1, value: "04/Feburary/81""""
       }
     }
 
     "fail if cell has a valid UK Date with typo in month" in {
       val partUkDateRule = PartUkDateRule()
       partUkDateRule.evaluate(0, Row(List(Cell("09/Augudt/2010")), 1), schema) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual """partUkDate fails for line: 1, column: column1, value: "09/Augudt/2010""""
+        case Validated.Invalid(messages) => messages.head mustEqual """partUkDate fails for row: 1, column: column1, value: "09/Augudt/2010""""
       }
     }
 
     "fail if cell has a valid UK Date with - instead of /" in {
       val partUkDateRule = PartUkDateRule()
       partUkDateRule.evaluate(0, Row(List(Cell("09-August-2010")), 1), schema) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual """partUkDate fails for line: 1, column: column1, value: "09-August-2010""""
+        case Validated.Invalid(messages) => messages.head mustEqual """partUkDate fails for row: 1, column: column1, value: "09-August-2010""""
       }
     }
 
     "fail if cell has a valid UK Date with where zero padding is missing" in {
       val partUkDateRule = PartUkDateRule()
       partUkDateRule.evaluate(0, Row(List(Cell("9/August/2010")), 1), schema) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual """partUkDate fails for line: 1, column: column1, value: "9/August/2010""""
+        case Validated.Invalid(messages) => messages.head mustEqual """partUkDate fails for row: 1, column: column1, value: "9/August/2010""""
       }
     }
   }
@@ -299,14 +299,14 @@ class DateRulesSpec extends Specification {
     "fail if cell has an invalid UK Date format" in {
       val ukDateRule = UkDateRule()
       ukDateRule.evaluate(0, Row(List(Cell("990/00/0009")), 1), schema) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual """ukDate fails for line: 1, column: column1, value: "990/00/0009""""
+        case Validated.Invalid(messages) => messages.head mustEqual """ukDate fails for row: 1, column: column1, value: "990/00/0009""""
       }
     }
 
     "fail if cell has a valid UK Date format but invalid date" in {
       val ukDateRule = UkDateRule()
       ukDateRule.evaluate(0, Row(List(Cell("99/12/2012")), 1), schema) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual """ukDate fails for line: 1, column: column1, value: "99/12/2012""""
+        case Validated.Invalid(messages) => messages.head mustEqual """ukDate fails for row: 1, column: column1, value: "99/12/2012""""
       }
     }
 
@@ -337,7 +337,7 @@ class DateRulesSpec extends Specification {
     "fail if cell is just below lower bound" in {
       val ukDateRangeRule = UkDateRangeRule("01/01/2012", "02/01/2013")
       ukDateRangeRule.evaluate(0, Row(List(Cell("12/31/2011")), 1), schema) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual """ukDate("01/01/2012, 02/01/2013") fails for line: 1, column: column1, value: "12/31/2011""""
+        case Validated.Invalid(messages) => messages.head mustEqual """ukDate("01/01/2012, 02/01/2013") fails for row: 1, column: column1, value: "12/31/2011""""
       }
     }
   }
@@ -357,7 +357,7 @@ class DateRulesSpec extends Specification {
     "fail if cell has an invalid xsdTime" in {
       val xsdTimeRule = XsdTimeRule()
       xsdTimeRule.evaluate(0, Row(List(Cell("99:000:88")), 1), schema) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual """xTime fails for line: 1, column: column1, value: "99:000:88""""
+        case Validated.Invalid(messages) => messages.head mustEqual """xTime fails for row: 1, column: column1, value: "99:000:88""""
       }
     }
   }
@@ -387,7 +387,7 @@ class DateRulesSpec extends Specification {
     "fail if cell is just below lower bound" in {
       val xsdTimeRangeRule = XsdTimeRangeRule("01:10:01", "01:10:10")
       xsdTimeRangeRule.evaluate(0, Row(List(Cell("01:10:00")), 1), schema) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual """xTime("01:10:01, 01:10:10") fails for line: 1, column: column1, value: "01:10:00""""
+        case Validated.Invalid(messages) => messages.head mustEqual """xTime("01:10:01, 01:10:10") fails for row: 1, column: column1, value: "01:10:00""""
       }
     }
   }

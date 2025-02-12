@@ -41,17 +41,17 @@ class IdenticalRuleSpec extends Specification {
       val schema = Schema(globalDirsTwo, List(ColumnDefinition(NamedColumnIdentifier("column1")), ColumnDefinition(NamedColumnIdentifier("column2"))))
       identicalRule1.evaluate(1, Row(List(Cell("row1"),Cell("abc")), 1), schema) mustEqual Validated.Valid(true)
       identicalRule1.evaluate(1, Row(List(Cell("row1"),Cell("efd")), 2), schema) must beLike {
-        case Validated.Invalid(msgs) => msgs.toList mustEqual List("identical fails for line: 2, column: column2, value: \"efd\"")
+        case Validated.Invalid(msgs) => msgs.toList mustEqual List("identical fails for row: 2, column: column2, value: \"efd\"")
       }
       identicalRule1.evaluate(1, Row(List(Cell("row1"),Cell("ghi")), 3), schema) must beLike {
-        case Validated.Invalid(msgs) => msgs.toList mustEqual List("identical fails for line: 3, column: column2, value: \"ghi\"")
+        case Validated.Invalid(msgs) => msgs.toList mustEqual List("identical fails for row: 3, column: column2, value: \"ghi\"")
       }
 
       val identicalRule2 = IdenticalRule()
       identicalRule2.evaluate(0, Row(List(Cell("row1"),Cell("abc")), 1), schema) mustEqual Validated.Valid(true)
       identicalRule2.evaluate(0, Row(List(Cell("row1"),Cell("efd")), 2), schema) mustEqual Validated.Valid(true)
       identicalRule2.evaluate(0, Row(List(Cell("row2"),Cell("ghi")), 3), schema) must beLike {
-        case Validated.Invalid(msgs) => msgs.toList mustEqual List("identical fails for line: 3, column: column1, value: \"row2\"")
+        case Validated.Invalid(msgs) => msgs.toList mustEqual List("identical fails for row: 3, column: column1, value: \"row2\"")
       }
     }
     
@@ -59,13 +59,13 @@ class IdenticalRuleSpec extends Specification {
       val identicalRule = IdenticalRule()
       val schema = Schema(globalDirsTwo, List(ColumnDefinition(NamedColumnIdentifier("column1")), ColumnDefinition(NamedColumnIdentifier("column2"))))
       identicalRule.evaluate(0, Row(List(Cell(""),Cell("abc")), 1), schema) must beLike {
-        case Validated.Invalid(msgs) => msgs.toList mustEqual List("identical fails for line: 1, column: column1, value: \"\"")
+        case Validated.Invalid(msgs) => msgs.toList mustEqual List("identical fails for row: 1, column: column1, value: \"\"")
       }
       identicalRule.evaluate(0, Row(List(Cell(""),Cell("efd")), 2), schema) must beLike {
-        case Validated.Invalid(msgs) => msgs.toList mustEqual List("identical fails for line: 2, column: column1, value: \"\"")
+        case Validated.Invalid(msgs) => msgs.toList mustEqual List("identical fails for row: 2, column: column1, value: \"\"")
       }
       identicalRule.evaluate(0, Row(List(Cell(""),Cell("ghi")), 3), schema) must beLike {
-        case Validated.Invalid(msgs) => msgs.toList mustEqual List("identical fails for line: 3, column: column1, value: \"\"")
+        case Validated.Invalid(msgs) => msgs.toList mustEqual List("identical fails for row: 3, column: column1, value: \"\"")
       }
     }
   }

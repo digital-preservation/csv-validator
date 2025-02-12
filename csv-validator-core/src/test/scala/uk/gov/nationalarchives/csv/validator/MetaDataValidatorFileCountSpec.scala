@@ -113,7 +113,7 @@ class MetaDataValidatorFileCountSpec extends Specification with TestResources {
       val metaData = s"$checksumPath,1"
 
       validate(metaData, schema, maxCharsPerCell, None) must beLike {
-        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """fileCount(file("""" + wrongPath + """")) file """" + wrongPath + """" not found for line: 1, column: Count, value: "1"""",Some(1),Some(1)))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """fileCount(file("""" + wrongPath + """")) file """" + wrongPath + """" not found for row: 1, column: Count, value: "1"""",Some(1),Some(1)))
       }
     }
 
@@ -129,7 +129,7 @@ class MetaDataValidatorFileCountSpec extends Specification with TestResources {
       val metaData = s"$checksumPath,2"
 
       validate(metaData, schema, maxCharsPerCell, None) must beLike {
-        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """fileCount(file("""" + checksumPath + """")) found 1 file(s) for line: 1, column: Count, value: "2"""",Some(1),Some(1)))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """fileCount(file("""" + checksumPath + """")) found 1 file(s) for row: 1, column: Count, value: "2"""",Some(1),Some(1)))
       }
     }
   }
@@ -162,7 +162,7 @@ class MetaDataValidatorFileCountSpec extends Specification with TestResources {
       val metaData = """ABC,99"""
 
       validate(metaData, schema, maxCharsPerCell, None) must beLike {
-        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """fileCount(file("""" + schemaPath1_0 + """", "checksum.csvs")) found 1 file(s) for line: 1, column: Count, value: "99"""",Some(1),Some(1)))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """fileCount(file("""" + schemaPath1_0 + """", "checksum.csvs")) found 1 file(s) for row: 1, column: Count, value: "99"""",Some(1),Some(1)))
       }
     }
   }
@@ -195,7 +195,7 @@ class MetaDataValidatorFileCountSpec extends Specification with TestResources {
       val metaData = """checksum.csvs,99"""
 
       validate(metaData, schema, maxCharsPerCell, None) must beLike {
-        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """fileCount(file("invalid/path/to/root", $File)) incorrect basepath invalid/path/to/root/ (localfile: """ + TypedPath("invalid/path/to/root/checksum.csvs").toPlatform + """) found for line: 1, column: Count, value: "99"""",Some(1),Some(1)))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """fileCount(file("invalid/path/to/root", $File)) incorrect basepath invalid/path/to/root/ (localfile: """ + TypedPath("invalid/path/to/root/checksum.csvs").toPlatform + """) found for row: 1, column: Count, value: "99"""",Some(1),Some(1)))
       }
     }
   }
@@ -229,7 +229,7 @@ class MetaDataValidatorFileCountSpec extends Specification with TestResources {
       val metaData = s"$checksumPath,rubbish"
 
       validate(metaData, schema, maxCharsPerCell, None) must beLike {
-        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """fileCount(file($File)) 'rubbish' is not a number for line: 1, column: Count, value: "rubbish"""",Some(1),Some(1)))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """fileCount(file($File)) 'rubbish' is not a number for row: 1, column: Count, value: "rubbish"""",Some(1),Some(1)))
       }
     }
   }
@@ -265,7 +265,7 @@ class MetaDataValidatorFileCountSpec extends Specification with TestResources {
       val metaData = """invalid/path/to/root,checksum.csvs,99"""
 
       validate(metaData, schema, maxCharsPerCell, None) must beLike {
-        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """fileCount(file($Root, $File)) incorrect basepath invalid/path/to/root/ (localfile: """ + TypedPath("invalid/path/to/root/checksum.csvs").toPlatform + """) found for line: 1, column: Count, value: "99"""",Some(1),Some(2)))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """fileCount(file($Root, $File)) incorrect basepath invalid/path/to/root/ (localfile: """ + TypedPath("invalid/path/to/root/checksum.csvs").toPlatform + """) found for row: 1, column: Count, value: "99"""",Some(1),Some(2)))
       }
     }
   }
@@ -334,7 +334,7 @@ class MetaDataValidatorFileCountSpec extends Specification with TestResources {
 
       validate(metaData, schema, maxCharsPerCell, None) must beLike {
         case Validated.Invalid(messages) =>
-          messages.toList mustEqual List(FailMessage(ValidationError, """fileCount(file($Root, $File)) root """ + searchPath + """/ (localfile: """ + searchPath + FILE_SEPARATOR + """checksum.*) should not contain wildcards for line: 1, column: Count, value: "1"""",Some(1),Some(2)))
+          messages.toList mustEqual List(FailMessage(ValidationError, """fileCount(file($Root, $File)) root """ + searchPath + """/ (localfile: """ + searchPath + FILE_SEPARATOR + """checksum.*) should not contain wildcards for row: 1, column: Count, value: "1"""",Some(1),Some(2)))
       }
     }
 
@@ -364,7 +364,7 @@ class MetaDataValidatorFileCountSpec extends Specification with TestResources {
       val metaData = """**/*.jp2,2"""
 
       validate(metaData, schema, maxCharsPerCell, None) must beLike {
-        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """fileCount(file("src/test/resources/this/is/incorrect", $File)) incorrect basepath src/test/resources/this/is/incorrect/ (localfile: """ + TypedPath("src/test/resources/this/is/incorrect/**/*.jp2").toPlatform + """) found for line: 1, column: Count, value: "2"""",Some(1),Some(1)))
+        case Validated.Invalid(messages) => messages.toList mustEqual List(FailMessage(ValidationError, """fileCount(file("src/test/resources/this/is/incorrect", $File)) incorrect basepath src/test/resources/this/is/incorrect/ (localfile: """ + TypedPath("src/test/resources/this/is/incorrect/**/*.jp2").toPlatform + """) found for row: 1, column: Count, value: "2"""",Some(1),Some(1)))
       }
     }
   }

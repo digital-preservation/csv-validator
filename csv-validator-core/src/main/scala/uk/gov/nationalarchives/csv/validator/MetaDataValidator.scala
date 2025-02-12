@@ -366,7 +366,7 @@ class RowIterator(parser: CsvParser, progress: Option[ProgressFor], maxCharsPerC
       case Failure(ex: TextParsingException) if(ex.toString.contains("exceeds the maximum number of characters")) =>
         val cellLocationMsg =
           potentialHeaderRow match {
-            case Some(headerRow) => s"in the cell located at line: ${ex.getLineIndex}, column: ${headerRow.cells(ex.getColumnIndex).value},"
+            case Some(headerRow) => s"in the cell located at row: ${ex.getLineIndex}, column: ${headerRow.cells(ex.getColumnIndex).value},"
             case None => s"in column ${ex.getColumnIndex + 1} of the header row"
           }
 

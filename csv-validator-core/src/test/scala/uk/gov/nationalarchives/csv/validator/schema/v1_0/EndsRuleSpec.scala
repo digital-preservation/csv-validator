@@ -30,7 +30,7 @@ class EndsRuleSpec extends Specification {
     "fail if cell does not end with endsRule value" in {
       val endsRule = EndsRule(Literal(Some("hello world")))
       endsRule.evaluate(0, Row(List(Cell("hello")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual """ends("hello world") fails for line: 1, column: column1, value: "hello""""
+        case Validated.Invalid(messages) => messages.head mustEqual """ends("hello world") fails for row: 1, column: column1, value: "hello""""
       }
     }
 
@@ -49,7 +49,7 @@ class EndsRuleSpec extends Specification {
       val endsRule = EndsRule(ColumnReference(NamedColumnIdentifier("nonExistentColumn")))
 
       endsRule.evaluate(0, Row(List(Cell("hello world today")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual """ends($nonExistentColumn) fails for line: 1, column: column1, value: "hello world today""""
+        case Validated.Invalid(messages) => messages.head mustEqual """ends($nonExistentColumn) fails for row: 1, column: column1, value: "hello world today""""
       }
     }
 

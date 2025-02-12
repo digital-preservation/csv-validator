@@ -277,7 +277,7 @@ case class UniqueRule() extends Rule("unique") {
     originalValue match {
       case None => distinctValues.put(cellValueCorrectCase, row.lineNumber); true.validNel
       case Some(o) => {
-        s"$toError fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)} (original at line: ${distinctValues(o)})".invalidNel[Any]
+        s"$toError fails for row: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)} (original at row: ${distinctValues(o)})".invalidNel[Any]
       }
     }
   }
@@ -304,7 +304,7 @@ case class UniqueMultiRule(columns: List[ColumnReference]) extends Rule("unique(
     originalValue match {
       case None => distinctValues.put(cellValueCorrectCase, row.lineNumber); true.validNel
       case Some(o) => {
-        s"$toError ${columns.map(_.toError).mkString(", ")} ) fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)} (original at line: ${distinctValues(o)})".invalidNel[Any]
+        s"$toError ${columns.map(_.toError).mkString(", ")} ) fails for row: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)} (original at row: ${distinctValues(o)})".invalidNel[Any]
       }
     }
   }
@@ -322,8 +322,8 @@ case class ChecksumRule(rootPath: ArgProvider, file: ArgProvider, algorithm: Str
     } else {
       search(filename(columnIndex, row, schema)) match {
         case Validated.Valid(hexValue: String) if hexValue == cellValue(columnIndex, row, schema) => true.validNel[String]
-        case Validated.Valid(hexValue: String) => s"""$toError file "${TypedPath(filename(columnIndex, row, schema)._1 + filename(columnIndex, row, schema)._2).toPlatform}" checksum match fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row, columnIndex)}. Computed checksum value:"${hexValue}"""".invalidNel[Any]
-        case Validated.Invalid(errMsg) => s"$toError ${errMsg.head} for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row, columnIndex)}".invalidNel[Any]
+        case Validated.Valid(hexValue: String) => s"""$toError file "${TypedPath(filename(columnIndex, row, schema)._1 + filename(columnIndex, row, schema)._2).toPlatform}" checksum match fails for row: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row, columnIndex)}. Computed checksum value:"${hexValue}"""".invalidNel[Any]
+        case Validated.Invalid(errMsg) => s"$toError ${errMsg.head} for row: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row, columnIndex)}".invalidNel[Any]
       }
     }
   }
@@ -458,11 +458,11 @@ case class FileCountRule(rootPath: ArgProvider, file: ArgProvider, pathSubstitut
       case scala.util.Success(cellCount) =>
         search(filename(columnIndex, row, schema)) match {
           case Validated.Valid(count: Int) if count == cellCount => true.validNel[String]
-          case Validated.Valid(count: Int) => s"$toError found $count file(s) for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}".invalidNel[Any]
-          case Validated.Invalid(errMsg) => s"$toError ${errMsg.head} for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}".invalidNel[Any]
+          case Validated.Valid(count: Int) => s"$toError found $count file(s) for row: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}".invalidNel[Any]
+          case Validated.Invalid(errMsg) => s"$toError ${errMsg.head} for row: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}".invalidNel[Any]
         }
 
-      case scala.util.Failure(_) =>  s"$toError '${cellValue(columnIndex,row,schema)}' is not a number for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}".invalidNel[Any]
+      case scala.util.Failure(_) =>  s"$toError '${cellValue(columnIndex,row,schema)}' is not a number for row: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}".invalidNel[Any]
     }
   }
 

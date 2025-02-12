@@ -143,6 +143,11 @@ object ScalaSwingHelpers {
       action
   }
 
+  def doNothingOnClick(): Reactions.Reaction = {
+    case evt: ButtonClicked => ()
+    case evt: MouseClicked => ()
+  }
+
   /**
    * Execute an Action when a specific Key is pressed
    *

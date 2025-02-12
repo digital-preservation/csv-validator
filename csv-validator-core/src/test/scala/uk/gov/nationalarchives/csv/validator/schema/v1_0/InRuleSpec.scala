@@ -31,7 +31,7 @@ class InRuleSpec extends Specification {
       val inRule = InRule(Literal(Some("hello world")))
 
       inRule.evaluate(0, Row(List(Cell("hello world today")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual """in("hello world") fails for line: 1, column: column1, value: "hello world today""""
+        case Validated.Invalid(messages) => messages.head mustEqual """in("hello world") fails for row: 1, column: column1, value: "hello world today""""
       }
     }
 
@@ -50,7 +50,7 @@ class InRuleSpec extends Specification {
       val inRule = InRule(ColumnReference(NamedColumnIdentifier("nonExistentColumn")))
 
       inRule.evaluate(0, Row(List(Cell("hello world today")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual """in($nonExistentColumn) fails for line: 1, column: column1, value: "hello world today""""
+        case Validated.Invalid(messages) => messages.head mustEqual """in($nonExistentColumn) fails for row: 1, column: column1, value: "hello world today""""
       }
     }
 

@@ -67,7 +67,7 @@ abstract class Rule(name: String, val argProviders: ArgProvider*) extends Positi
 
   def fail(columnIndex: Int, row: Row, schema: Schema): RuleValidation[Any] = {
     val columnDefinition = schema.columnDefinitions(columnIndex)
-    s"$toError fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}".invalidNel[Any]
+    s"$toError fails for row: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}".invalidNel[Any]
   }
 
   def cellValue(columnIndex: Int, row: Row, schema: Schema): String = {

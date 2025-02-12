@@ -31,7 +31,7 @@ class EmptyRuleSpec extends Specification {
     "Fail if cell is NOT empty" in {
       val emptyRule = EmptyRule()
       emptyRule.evaluate(0, Row(List(Cell("something")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual """empty fails for line: 1, column: column1, value: "something""""
+        case Validated.Invalid(messages) => messages.head mustEqual """empty fails for row: 1, column: column1, value: "something""""
       }
     }
   }

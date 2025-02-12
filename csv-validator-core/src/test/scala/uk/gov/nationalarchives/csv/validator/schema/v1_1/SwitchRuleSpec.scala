@@ -38,14 +38,14 @@ class SwitchRuleSpec extends Specification {
     "condition1  true and no else,  body1 rule fails" in {
       val switchRule = SwitchRule(None,(startsRule("hello world"),endsRules("hello")))
       switchRule.evaluate(0, row, schema) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual "ends(\"hello\") fails for line: 1, column: column1, value: \"hello world\""
+        case Validated.Invalid(messages) => messages.head mustEqual "ends(\"hello\") fails for row: 1, column: column1, value: \"hello world\""
       }
     }
 
     "condition1 is true and there is an 'else' that is true and body1 that is false" in {
       val switchRule = SwitchRule(Some(endsRules("world")),(startsRule("hello"),endsRules("hello")))
       switchRule.evaluate(0, row, schema) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual "ends(\"hello\") fails for line: 1, column: column1, value: \"hello world\""
+        case Validated.Invalid(messages) => messages.head mustEqual "ends(\"hello\") fails for row: 1, column: column1, value: \"hello world\""
       }
     }
 
@@ -63,7 +63,7 @@ class SwitchRuleSpec extends Specification {
     "condition1 is false and there is an 'else' that is false and body1 that is true" in {
       val switchRule = SwitchRule(Some(endsRules("hello")),(startsRule("sello"),endsRules("world")))
       switchRule.evaluate(0, row, schema) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual "ends(\"hello\") fails for line: 1, column: column1, value: \"hello world\""
+        case Validated.Invalid(messages) => messages.head mustEqual "ends(\"hello\") fails for row: 1, column: column1, value: \"hello world\""
       }
     }
 

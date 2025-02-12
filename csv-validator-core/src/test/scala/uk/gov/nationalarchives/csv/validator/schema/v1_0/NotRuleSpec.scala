@@ -34,14 +34,14 @@ class NotRuleSpec extends Specification {
     "fail if notRule is the same as value" in {
       val notRule = NotRule(Literal(Some("hello world")))
       notRule.evaluate(0, Row(List(Cell("hello world")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual """not("hello world") fails for line: 1, column: column1, value: "hello world""""
+        case Validated.Invalid(messages) => messages.head mustEqual """not("hello world") fails for row: 1, column: column1, value: "hello world""""
       }
     }
 
     "fail with @ignoreCase" in {
       val notRule = NotRule(Literal(Some("hello world")))
       notRule.evaluate(0, Row(List(Cell("hello WORLD")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"), Nil, List(IgnoreCase()))))) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual """not("hello world") fails for line: 1, column: column1, value: "hello WORLD""""
+        case Validated.Invalid(messages) => messages.head mustEqual """not("hello world") fails for row: 1, column: column1, value: "hello WORLD""""
       }
     }
   }
