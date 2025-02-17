@@ -441,7 +441,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
     private val reportFileChooser = new FileChooser(lastReportPath)
     reportFileChooser.multiSelectionEnabled = false
 
-    val saveLabel = "Save Results"
+    val saveLabel = "Save Results..."
     reportFileChooser.title = saveLabel
     private val btnSave = new Button(saveLabel)
 
