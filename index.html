@@ -242,11 +242,11 @@
 						<p>
 						e.g. Lets assume that we have received the data along with a metadata file describing the data from someone else. On their machine, the data was stored on
 						the root folder under a folder <code>/TEST_1</code> This means that the paths to the data, as referenced in the metadata file, are defined from that folder as shown below:
-						<img src="images/1.4.0/original-paths.png" alt="Metadata file showing original paths" id="original-paths">	.
+						<img src="images/1.3.0/original-paths.png" alt="Metadata file showing original paths" id="original-paths">	.
 						</p>
 						<p>
 						However, the same data is made available on the machine where CSV Validator runs at a different location (<code>C:\test-data\example-schemas\example-data\TEST_1</code>) as shown below:
-						<img src="images/1.4.0/data-location.png" alt="File browser showing data location" id="data-location">	.
+						<img src="images/1.3.0/data-location.png" alt="File browser showing data location" id="data-location">	.
 						</p>
 						<p>
 						In this case, you can set up a path substitution From <code>file:///TEST_1/</code> To <code>C:\test-data\example-schemas\example-data\TEST_1\</code> so that, when
@@ -288,7 +288,7 @@
 							<p>
 							To edit a substitution, simply double-click on the field you wish to edit:
 							</p>
-							<img src="images/1.4.0/edit-file-substitution.png" alt="Editing substitution" id="GUI-detail9">
+							<img src="images/1.3.0/edit-file-substitution.png" alt="Editing substitution" id="GUI-detail9">
 							<p>
 							Hit &lt;Enter&gt; or &lt;Tab&gt;, or click on the other side of the substitution, to complete the edit. The edited fields continue to be highlighted in the
 							"selection colour" of the system being used.
@@ -324,7 +324,7 @@
 							has been omitted from the schema, or is incorrect, you will see a schema error saying that the Version Declaration is not present
 						(eg <code>[1.1] failure: version 1.0 missing or incorrect</code>); you will also see this if you accidentally put the filepath for the CSV data file into the field for the schema and vice versa:
 						</p>
-						<img src="images/1.1/version-declaration-error.png" alt="[1.1] failure: version 1.0 missing or incorrect
+						<img src="images/1.4.0/version-declaration-error.png" alt="[1.1] failure: version 1.0 missing or incorrect
 <br />
 batch_code,department,series,piece,item,ordinal,file_uuid,file_path,file_checksum,resource_uri,scan_operator,scan_id,scan_location,scan_native_format,scan_timestamp,image_resolution,image_width,image_height,image_tonal_resolution,image_format,image_colour_space,process_location,jp2_creation_timestamp,uuid_timestamp,embed_timestamp,image_split,image_split_other_uuid,image_split_operator,image_split_timestamp,image_crop,image_crop_operator,image_crop_timestamp,image_deskew,image_deskew_operator,image_deskew_timestamp,QA-code,comments,transcribed_volume_number,transcribed_birth_date_day,transcribed_birth_date_month,transcribed_birth_date_year,transcribed_official_number
 <br />
@@ -339,7 +339,7 @@ batch_code,department,series,piece,item,ordinal,file_uuid,file_path,file_checksu
 						what the computed value of the data was. The line number refers to data lines only, so if the CSV file contains a header row, you may see an apparent discrepancy in the line numbers displayed when you view
 						the data in a text editor or spreadsheet program, compared to the line number indicated by the CSV Validator.
 						</p>
-						<img src="images/1.1/validation-error-checksum-mismatches.png" alt='Error:   checksum(file($file_path), "SHA-256") file "file:///TEST_1/1/1/1_1_001.xml" checksum match fails for line: 1, column: file_checksum, value: "fb58b56a17af0f52cf794c108e0c1574a3a2c02b25e22699668bb43801028432". Computed checksum value:"16f5e200047a0b71bea821ea6db7c3a79605079baae96940a1ec8bb0d6ab4d6d"" " id="checksumErr1">'>
+						<img src="images/1.4.0/validation-error-checksum-mismatches.png" alt='Error:   checksum(file($file_path), "SHA-256") file "file:///TEST_1/1/1/1_1_001.xml" checksum match fails for line: 1, column: file_checksum, value: "fb58b56a17af0f52cf794c108e0c1574a3a2c02b25e22699668bb43801028432". Computed checksum value:"16f5e200047a0b71bea821ea6db7c3a79605079baae96940a1ec8bb0d6ab4d6d"" " id="checksumErr1">'>
 						<pre id="checksumErr2">
 Error:   checksum(file($file_path), "SHA-256") file "file:///TEST_1/1/1/1_1_001.xml" checksum match fails for line: 1, column: file_checksum, value: "fb58b56a17af0f52cf794c108e0c1574a3a2c02b25e22699668bb43801028432". Computed checksum value:"16f5e200047a0b71bea821ea6db7c3a79605079baae96940a1ec8bb0d6ab4d6d"
 FAIL
@@ -347,7 +347,7 @@ FAIL
 						<p>
 						The next image shows a more varied selection of Validation Errors, and demonstrates that the basic format of the error messages is consistent:
 						</p>
-						<img src="images/1.1/validation-errors-various.png" alt="Various validation errors starting with 'Error:   ' are demonstrated" id="varValErrs">
+						<img src="images/1.4.0/validation-errors-various.png" alt="Various validation errors starting with 'Error:   ' are demonstrated" id="varValErrs">
 						<p>
 						The full text of each of these example error messages is shown below, the errors are:
 						<ol>
