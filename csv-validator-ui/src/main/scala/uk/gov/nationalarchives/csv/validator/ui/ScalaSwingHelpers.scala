@@ -9,7 +9,7 @@
 package uk.gov.nationalarchives.csv.validator.ui
 
 import swing._
-import scala.swing.event.{ButtonClicked, Key, KeyPressed, MouseClicked}
+import scala.swing.event.{ButtonClicked, Key, KeyPressed, MouseClicked, UIElementResized}
 import swing.FileChooser.Result
 import swing.GridBagPanel.Anchor
 import java.beans.{PropertyChangeEvent, PropertyChangeListener}
@@ -163,5 +163,9 @@ object ScalaSwingHelpers {
     def propertyChange(e: PropertyChangeEvent) : Unit = {
       f(e)
     }
+  }
+
+  def onResize(action: => Unit) : Reactions.Reaction = {
+    case evt: UIElementResized => action
   }
 }
