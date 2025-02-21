@@ -421,8 +421,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
           resumeUi = {
             btnValidate.enabled = true
             btnValidateMetadataOnly.enabled = true
-            btnValidate.peer.setCursor(Cursor.getDefaultCursor)
-            btnValidateMetadataOnly.peer.setCursor(Cursor.getDefaultCursor)
+            this.peer.setCursor(Cursor.getDefaultCursor)
           }
         )
       } else doNothingOnClick()
