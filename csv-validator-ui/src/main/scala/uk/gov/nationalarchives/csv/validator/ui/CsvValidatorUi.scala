@@ -64,14 +64,14 @@ object CsvValidatorUi extends SimpleSwingApplication {
 
   private def changeHeightOfOutputPane(heightDiff: Int): Unit = {
     // need to normalise the height change by converting it to "rows"
-    val heightChangeAsRows = Math.ceil(heightDiff / 50f).toInt // 30 is just an arbitrary number that seemed to work fine
-    val newHeight = if((txtArReport.rows + heightChangeAsRows) <= 1) txtArReport.rows + 1
-    else if((txtArReport.rows + heightChangeAsRows) > 40) 40
+    val heightChangeAsRows = Math.ceil(heightDiff / 30f).toInt // 30 is just an arbitrary number that seemed to work fine
+    val newHeight = if(txtArReport.rows + heightChangeAsRows <= 1) 1
+    else if(txtArReport.rows + heightChangeAsRows > 40) 40
     else txtArReport.rows + heightChangeAsRows
 
     // sometimes the size and preferredSize height stay the same even when the window gets larger so just make box size large in this case
     val finalHeight = if(heightDiff == 0 && !prefSizeHeightChanged) 40 else newHeight
-    txtArReport.rows = Math.abs(finalHeight)
+    txtArReport.rows = finalHeight
   }
 
   def top: SJXFrame = new SJXFrame {
