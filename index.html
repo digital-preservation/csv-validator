@@ -8,18 +8,18 @@
     <meta name="author" content="">
     <link rel="shortcut icon" href="images/favicon.png">
 
-    <title>CSV Validator 1.3.0</title>
+    <title>CSV Validator 1.4.0</title>
 
     <!-- Bootstrap core CSS -->
-    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 
     <!-- Custom styles for this template -->
     <link href="css/tna.css" rel="stylesheet">
 
-    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- HTML5 shiv and Respond.js IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
-      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-      <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.3/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
   </head>
 
@@ -38,13 +38,13 @@
               <span class="icon-bar"></span>
               <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="http://www.nationalarchives.gov.uk" title="Go to the The National Archives homepage"><img src="images/logo-white.png" alt="The National Archives" id="logo"> Digital Preservation</a>
+            <a class="navbar-brand" href="https://www.nationalarchives.gov.uk" title="Go to the The National Archives homepage"><img src="images/logo-white.png" alt="The National Archives" id="logo"> Digital Preservation</a>
           </div>
           <div class="collapse navbar-collapse">
             <ul class="nav navbar-nav navbar-right">
               <li class="active"><a href="#">CSV Validator</a></li>
-              <li><a href="http://digital-preservation.github.io/csv-schema">CSV Schema</a></li>
-              <li><a href="http://digital-preservation.github.io/csv-schema/csv-schema-1.1.html">CSV Schema Specification</a></li>
+              <li><a href="https://digital-preservation.github.io/csv-schema">CSV Schema</a></li>
+              <li><a href="https://digital-preservation.github.io/csv-schema/csv-schema-1.1.html">CSV Schema Specification</a></li>
             </ul>
           </div><!--/.nav-collapse -->
         </div>
@@ -54,24 +54,25 @@
       <div class="container">
 
         <div class="page-header">
-          <h1>CSV Validator 1.3.0</h1>
+          <h1>CSV Validator 1.4.0</h1>
         </div>
-      	<p class="lead"><code>CSV Validator</code> is a CSV validation and reporting tool which implements <a href="http://digital-preservation.github.io/csv-schema"><code>CSV Schema Language</code></a>. 
-		Released as Open Source under the <a href="http://www.mozilla.org/MPL/2.0/">Mozilla Public Licence version 2.0</a>.
-		This page is for CSV Validator 1.3.0 (and related minor releases), the equivalent page for the previous releases can now found at <a href="http://digital-preservation.github.io/csv-validator/csv-validator-1.0.html">csv-validator-1.0.html</a> and <a href="http://digital-preservation.github.io/csv-validator/csv-validator-1.1.html">csv-validator-1.1.html</a>.</p>
+        <p class="lead"><code>CSV Validator</code> is a CSV validation and reporting tool which implements <a href="https://digital-preservation.github.io/csv-schema"><code>CSV Schema Language</code></a>.
+		Released as Open Source under the <a href="https://www.mozilla.org/MPL/2.0/">Mozilla Public Licence version 2.0</a>.
+		This page is for CSV Validator 1.4.0 (and related minor releases), the equivalent page for the previous releases can now found at <a href="https://digital-preservation.github.io/csv-validator/csv-validator-1.0.html">csv-validator-1.0.html</a>, <a href="https://digital-preservation.github.io/csv-validator/csv-validator-1.1.html">csv-validator-1.1.html</a>
+			and <a href="https://digital-preservation.github.io/csv-validator/csv-validator-1.3.0.html">csv-validator-1.3.0.html</a>.</p>
         <div id="toc"></div>
         <div>
             <h2>Overview</h2>
-        	<p>The CSV Validator will take a <a href="http://digital-preservation.github.io/csv-schema">CSV Schema</a> file and a CSV file, verify that the CSV Schema itself is syntactically correct and then assert that each rule in the CSV Schema holds true for the CSV file. The Validator is predominantly written in Scala 2.13 and runs on any platform with a Java Virtual Machine (JVM). The Validator toolset provides:
+            <p>The CSV Validator will take a <a href="https://digital-preservation.github.io/csv-schema">CSV Schema</a> file and a CSV file, verify that the CSV Schema itself is syntactically correct and then assert that each rule in the CSV Schema holds true for the CSV file. The Validator is predominantly written in Scala 2.13 and runs on any platform with a Java Virtual Machine (JVM). The Validator toolset provides:
             <ol>
                 <li>A stand-alone command line tool.</li>
-                <li>A desktop application comprising a simple Swing GUI.</li>
+                <li>A desktop application comprising a simple Swing Graphical User Interface (GUI).</li>
                 <li>A library that can be embedded into your own Scala project.</li>
                 <li>A library that can be embedded into your own Java project.</li>
             </ol>
             <div>
                 <h3 id="Background">Background</h3>
-                <p>The National Archives receive Metadata along with Collections of Digitised or Born-Digital Collections. Whilst The National Archives typically process Metadata in XML and RDF, it was recognised that it was too difficult and/or expensive for many suppliers to produce the desired metadata in XML and/or RDF, as such it was decided that Metadata would be received in CSV format.</p>
+                <p>The National Archives receive metadata, along with collections of Digitised or Born-Digital Collections. Whilst The National Archives typically process metadata in XML and RDF, it was recognised that it was too difficult and/or expensive for many suppliers to produce the desired metadata in XML and/or RDF, as such it was decided that metadata would be received in CSV format.</p>
                 <p>Our experience shows that when suppliers are asked to produce metadata in XML or RDF there are several possible barriers:
                     <ul>
                         <li>Many content/document repository systems only export metadata in CSV, or generate XML or RDF in a non-desirable format which would then have to be transformed (at further cost).</li>
@@ -80,163 +81,176 @@
                         <li>Cost. Installing new software tools comes at a severe cost for those OGDs that have outsourced their IT support.</li>
                         <li>Best/Worst case, most suppliers already have Microsoft Excel (or an equivalent) installed which they know how to use to produce a CSV file.</li>
                     </ul>
-                <p>The National Archives set exacting requirements on the Metadata that they expect and the format of that Metadata. Such constraints enable them to automatically process it, as the semantics of the metadata are already defined. Whilst previous bespoke tools have been developed in the past for validating data in various CSV files, it was felt that a generic open tool which could be shared with suppliers would offer several benefits:
+                <p>The National Archives set exacting requirements on the metadata that they expect and the format of that Metadata. Such constraints enable them to automatically process it, as the semantics of the metadata are already defined. Whilst previous bespoke tools have been developed in the past for validating data in various CSV files, it was felt that a generic open tool, which could be shared with suppliers, would offer several benefits:
                     <ul>
-                    	<li>A common <a href="http://digital-preservation.github.io/csv-schema">CSV Schema language</a>, would enable The National Archives to absolutely define required Metadata formats.</li>
+                        <li>A common <a href="https://digital-preservation.github.io/csv-schema">CSV Schema language</a>, would enable The National Archives to absolutely define required metadata formats.</li>
                         <li>Developed CSV Schemas could be shared with suppliers and other archival sector organisations.</li>
-                        <li>Suppliers could validate Metadata before sending it to The National Archives. Hopefully reducing mistakes and therefore costs to both parties.</li>
-                        <li>The National Archives could use the same tool to ensure Metadata compliance automatically.</li>
+                        <li>Suppliers could validate metadata before sending it to The National Archives. Hopefully reducing mistakes, and therefore, costs to both parties.</li>
+                        <li>The National Archives could use the same tool to ensure metadata compliance automatically.</li>
                         <li>As a secondary concern, it was recognised that this tool would also have value for anyone working with CSV as a data/metadata transfer medium.</li>
                     </ul>
             </div>
 			<div>
-				<h3>New features in Version 1.3.0 (and later)</h3>
+				<h3>New features in Version 1.4.0</h3>
 				<p>
-				CSV Validator 1.3.0 supports the <a href="http://digital-preservation.github.io/csv-schema/csv-schema-1.2.html#new-in-1.2">new features in the draft CSV Schema Language 1.2</a>
-				This release introduces new distribution packages for the application where one of the packages has an embedded 64 bit JRE (Windows only) distributed alongside the application.
-				This will help the users who are unable to install Java on their machine. There are some other enhancements and bugfixes as well. A full list of changes associated with
-				csv validator 1.3.0 can be found in the <a href="https://github.com/digital-preservation/csv-validator/releases/tag/1.3.0">release notes</a>.
+				A full list of changes associated with CSV Validator 1.4.0 can be found in the <a href="https://github.com/digital-preservation/csv-validator/releases/tag/1.4.0">release notes</a>.
 				</p>
 			</div>
 			<div>
 				<h2>Installing the CSV Validator</h2>
 				<p>
-				The core of the CSV Validator is written in Scala 2.13, Scala runs in the Java Virtual Machine and requires Java 8 or newer to be available. For our Windows users,
-				we include a JRE (64 bit Java 11 Runtime) with the distribution package. For non-Windows users, you will need to have Java installed on your computer in order to run
-				the latest version of CSV Validator. The  release build is published from <a href="http://github.com/digital-preservation/csv-validator">the source code repository
-				on GitHub</a> to Maven Central. Current release (as of 14 December 2023), Version 1.3.0</a>.
+				The core of the CSV Validator is written in Scala 2.13, Scala runs in the JVM and requires Java 21 or newer to be available. For our Windows users,
+				we include a JRE (64-bit Java 21 Runtime) with the distribution package. For non-Windows users, you will need to have Java (21+) installed on your computer in order to run
+				the latest version of CSV Validator. The release build is published from <a href="https://github.com/digital-preservation/csv-validator">the source code repository
+				on GitHub</a> to Maven Central. Current release (as of 24 February 2025), Version 1.4.0.
 				</p>
 				<p>
-				CSV Validator 1.3.0 comes with 2 distribution packages.
+				CSV Validator 1.4.0 comes with 2 distribution packages.
 				<ul>
-					<li><b>csv-validator-distribution-1.3.0-bin-win64-with-jre.zip</b>: This package has a 64 bit JRE bundled with it. If you are a Windows OS user and do not manage your
+					<li><strong>csv-validator-distribution-1.4.0-bin-win64-with-jre.zip</strong>: This package has a 64-bit JRE bundled with it. If you are a Windows OS user and do not manage your
 						own java installation, this package is most suitable for you </li>
-					<li><b>csv-validator-distribution-1.3.0-bin.zip</b>: This package comprises only the binary files of csv-validator. If you are a Linux or Mac user, this package is
-						most suitable for you. If you are a Windows user who want to use own version of Java, you can use this package</li>
+					<li><strong>csv-validator-distribution-1.4.0-bin.zip</strong>: This package comprises only the binary files of CSV Validator. If you are a Linux or Mac user, this package is
+						most suitable for you. If you are a Windows user who wants to use your own version of Java, you can use this package</li>
 				</ul>
-				To install, download the appropriate distribution package from <a href="https://central.sonatype.com/search?q=uk.gov.nationalarchives.csv-validator-distribution%20%20v:1.3.0">maven central</a> or
-				github <a href="https://github.com/digital-preservation/csv-validator/releases/tag/1.3.0">release page</a>. Once downloaded, simply extract the entire contents of the zip to your
-				desired installation location.  The packages have .bat (for Windows OS) and shell scripts (for Linux, Mac) to launch the command line tool or the GUI application.
+				To install, download the appropriate distribution package from <a href="https://central.sonatype.com/search?q=uk.gov.nationalarchives.csv-validator-distribution%20%20v:1.4.0">maven central</a> or
+				GitHub <a href="https://github.com/digital-preservation/csv-validator/releases/tag/1.4.0">release page</a>. Once downloaded, simply extract the entire contents of the zip to your
+				desired installation location.  The packages have <code>.bat</code> (for Windows OS) and shell scripts (for Linux, Mac) to launch the command line tool or the GUI application.
 				The package also has a text file (running-csv-validator.txt) that has detailed instructions about running the CSV Validator.
 				</p>
 			</div>
             <div>
-                <h2>CSV Validator GUI Application</h2>
+                <h2>CSV Validator Graphical User Interface (GUI) Application</h2>
 				<div>
 					<h3>Starting the GUI</h3>
 					<p>
-					In order to run the CSV Validator via the GUI, navigate to the directory where you installed csv-validator, and run either:
+					In order to run the CSV Validator via the GUI, navigate to the directory where you installed CSV Validator, and run either:
 					<ol>
-						<li>csv-validator-gui.bat on Windows operating systems, or;</li>
-						<li>csv-validator-gui shell script on Unix/Linux.</li>
+						<li><strong>csv-validator-gui.bat</strong> on Windows operating systems, or;</li>
+						<li><strong>csv-validator-gui</strong> shell script on Unix/Linux.</li>
 					</ol>
 					You should then see the following:
 					</p>
-					<img src="images/1.3.0/main-screen.png" alt="The basic GUI, boxes to enter file names for data and schema, 'Validate' button, text box for ouput" id="GUI">
+					<img src="images/1.4.0/main-screen.png" alt="The basic GUI, boxes to enter file names for data and schema, 'Validate' button, text box for output" id="GUI">
 				</div>
 				<div>
 					<h3>Selecting metadata and schema for validation</h3>
 					<p>
-					To validate data you must supply a full filepath for the csv  file to be validated, and for the schema it is to be validated against. 
-					You can either type, or copy-and-paste, the filepath into the appropriate box, these are labelled "CSV file" and "CSV Schema file" respectively.
-					Alternatively, click the buttons labelled "..." (highlighted in the image below): 
+					To validate data, you must supply a full filepath of the csv file to be validated, and of the schema it is to be validated against.
+					There are multiple ways that you can supply the filepaths, you can either:
+					<ol>
+						<li>type, or copy-and-paste, the filepath into the appropriate box, these are labelled "CSV file" and "CSV Schema file" respectively.</li>
+						<li>select the files via a dialog window.</li>
+						<li>drag and drop the files onto the application.</li>
+					</ol>
+					<h4>Select the files via the dialog window</h4>
+					In order to select the files via a dialog window, click the buttons labelled "Choose..." (highlighted in the image below):
 					</p>
-					<img src="images/1.3.0/gui-file-selects-highlighted.png" alt="Part of GUI, showing in detail the boxes to enter file names for data and schema, file open dialogue buttons highlighted in yellow" id="GUI-detail1">
+					<img src="images/1.4.0/gui-file-selects-highlighted.png" alt="Part of GUI, showing in detail, the boxes to enter file names for data and schema, file open dialog buttons highlighted in yellow" id="GUI-detail1">
 					<p>
-					This will open up a standard File picker dialogue.  the dialog only shows the files of the type being chosen. You can navigate to the file you want to choose
+					This will open up a standard File picker dialog. The dialog only shows the files of the type being chosen. You can navigate to the file you want to choose
 					in the file system and select it:
 					</p>
-					<img src="images/1.3.0/file-open.png" alt="Standard file open dialogue, with CSV file selected" id="GUI-detail2">
-					<p>
-					Clicking "Save" will populate the related text box:
-					</p>
-					<img src="images/1.3.0/filepath-text-box-populated.png" alt="Part of GUI, showing completed CSV file text box" id="GUI-detai3l">
+					<img src="images/1.4.0/file-open.png" alt="Standard file open dialog, with CSV file selected" id="GUI-detail2">
+					<p>Clicking "OK" will populate the related text box:</p>
+					<img src="images/1.4.0/filepath-text-box-populated.png" alt="Part of GUI, showing completed CSV file text box" id="GUI-detai3l">
+					This location will be remembered for subsequent file selections.
+					<h4>Drag and drop the files onto the application</h4>
+					Go to your file explorer, select the file(s) (you can either drop the files one by one or both together) and drag and drop them onto the application.
+					You don't have to worry about dropping them into their respective boxes; the application will figure it out for you.
 				</div>
 				<div>
 					<h3>Using Settings</h3>
 					<p>
 					While in the most straightforward cases, you can validate a CSV file immediately after supplying the filepaths, 
-					in many instances you will need to supply Settings options. 
+					in many instances you might need to supply Settings options.
 					Using the Settings is equivalent to providing options when <a href="#command-line-tool">running via the Command Line</a> 
 					(note that there is one additional option at the command line that is not available within Settings, to produce a detailed report on the parse of the schema itself). 
-					To open up Settings, click on the downward facing double arrow below the file dialogue buttons (highlighted below):
+					To open up Settings, click on the downward-facing double arrow below the file dialog buttons (highlighted below):
 					</p>
-					<img src="images/1.3.0/highlight-settings-arrow.png" alt="Part of GUI, highlighting Settings box" id="GUI-detail4">
+					<img src="images/1.4.0/highlight-settings-arrow.png" alt="Part of GUI, highlighting Settings box" id="GUI-detail4">
 					<p>
-					Having opened up Settings, you will see that there are six sets of options:
+					Having opened up Settings, you will see that there are 8 sets of options:
 						<ol>
 							<li><code>CSV Encoding</code>, which has a dropdown menu giving the choice of:</li>
 							<ol>
 								<li><code>UTF-8</code> and;</li>
-								<li><code>windows-1252;</code></li>
+								<li><code>windows-1252;</code> (On Windows)</li>
 							</ol>
 							<li><code>CSV Schema Encoding</code>, which has a dropdown menu giving the choice of:</li>
 							<ol>
 								<li><code>UTF-8</code> and;</li>
-								<li><code>windows-1252;</code></li>
+								<li><code>windows-1252;</code> (On Windows)</li>
 							</ol>
-							<li><code>Fail on first error?</code>;</li>
-							<li><code>Enforce case-sensitive filepath checks?</code>;</li>
+							<li><code>Maximum number of errors to display</code>;</li>
+							<li><code>Maximum number of characters in a cell</code>;</li>
+							<li><code>Fail on first error</code>;</li>
+							<li><code>Enforce case-sensitive filepath checks</code>;</li>
 							<li><code>Validate CSV for valid UTF-8 characters</code>, and;</li>
 							<li><code>Path Substitutions</code></li>
 						</ol>
 					</p>
-					<img src="images/1.3.0/settings-opened.png" alt="Part of GUI, showing opened Settings section" id="GUI-detail5">
+					<img src="images/1.4.0/settings-opened.png" alt="Part of GUI, showing opened Settings section" id="GUI-detail5">
 					<div>
+						<h4>Maximum number of errors to display</h4>
+						<p>This setting will determine the number of lines of errors that are output in the output pane; it is set to 2000 by default.</p>
+						<h4>Maximum number of characters in a cell</h4>
+						<p>
+							This setting will set a limit on the number of characters allowed in a cell; the default number of characters is 4096
+						</p>
 						<h4>Fail on first error</h4>
 						<p>
 						With this setting selected, validation will terminate when the first 
-						<a href="http://digital-preservation.github.io/csv-schema/csv-schema-1.0.html#validation-errors">Validation Error</a> is encountered in the CSV file.  
-						If there are no validation errors the whole CSV file will be validated and return <code>PASS</code>.
+						<a href="https://digital-preservation.github.io/csv-schema/csv-schema-1.0.html#validation-errors">validation error</a> is encountered in the CSV file.
+						If there are no validation errors, the whole CSV file will be validated and return <code>PASS</code>.
 						You should be aware that the CSV Schema can declare that some validation tests will produce only validation warnings, rather than validation errors. 
 						A validation warning will not stop validation, even with "Fail on first error" set.
-						This setting is equivalent to using the -f true or --failfast true options when <a href="#command-line-tool">running via the Command Line</a>.
+						This setting is equivalent to using the <code>-f true</code> or <code>--failfast true</code> options when <a href="#command-line-tool">running via the Command Line</a>.
 						</p>
-						Note: If you are working with a particularly large file, it can be beneficial to work with this option enabled. If there are errors that are likely to
-						come up for multiple files (e.g. File not found because of path substitution error), it could be quicker to fail on first error, fix it, then run the whole file
+						<p>Note: If you are working with a particularly large file, it can be beneficial to work with this option enabled. If there are errors that are likely to
+						come up for multiple files (e.g. File not found because of path substitution error), it could be quicker to fail on first error, fix it, then run validation on the whole file.
 					</div>
 					<div>
 						<h4>Enforce case-sensitive filepath checks</h4>
 						<p>
-						With this setting selected, validation treats filepaths as being case sensitive, even if the file system itself is not (e.g. on Windows NTFS). 
-						Without doing this data which appears to validate on a Windows machine may then fail when further processing is carried out on a system where the file system 
-						is case sensitive (e.g. Unix/Linux). 
-						This setting is equivalent to using the -c true or --case-sensitive-paths true options when <a href="#command-line-tool">running via the Command Line</a>.
+						With this setting selected, validation treats filepaths as being case-sensitive, even if the file system itself is not (e.g. on Windows NTFS).
+						Without doing this, data which appears to validate on a Windows machine may then fail when further processing is carried out on a system where the file system
+						is case-sensitive (e.g. Unix/Linux).
+						This setting is equivalent to using the <code>-c true</code> or <code>--case-sensitive-paths true</code> options when <a href="#command-line-tool">running via the Command Line</a>.
 						</p>
 					</div>
 					<div>
 						<h4>UTF-8 Validation</h4>
 						<p>
-						This setting is on by default, meaning that the validator also verifies that the CSV file appears to contain only UTF-8 characters. 
-						It is ignored if CSV Encoding has been changed to something other than UTF-8, and can otherwise be disabled by unticking the checkbox.  
-						This setting is equivalent to using the --disable-utf8-validation option when <a href="#command-line-tool">running via the Command Line</a>.
+						This setting is on by default, meaning that the validator also verifies that the CSV file appears to contain only UTF-8 characters.
+						It is ignored if CSV Encoding has been changed to something other than UTF-8, and can otherwise be disabled by unselecting the checkbox.
+						This setting is equivalent to using the <code>--disable-utf8-validation</code> option when <a href="#command-line-tool">running via the Command Line</a>.
 						</p>
 					</div>
 					<div>
 						<h4><a id="path-substitutions"></a>Path Substitutions</h4>
 						<p>
 						Path Substitutions is a slightly tricky concept to grasp initially. As described in the <a href="#toc1">Background</a> section above, the original use case at
-						The National Archives was for a tool to validate metadata files.  These files generally describe a set of digital files being transferred to The National Archives 
+						The National Archives was for a tool to validate metadata files. Metadata files generally describe a set of digital files being transferred to The National Archives
 						and so contain information, including a filepath and checksum, about each file in a particular transfer. In addition to checking that the metadata files are 
 						correctly structured, we wish to check that the file actually exists at the filepath specified, and that when recalculated, the checksum for the files matches 
-						the value supplied in the CSV file.  To this end, the CSV Schema language contains a set of so-called 
-						<a href="http://digital-preservation.github.io/csv-schema/csv-schema-1.0.html#external-single-expressions">External Single Expressions</a>, which allow 
-						reference to other file system resources outside the CSV file being validated. However, it is likely that after transfer the drive letter or mount point (at least) 
-						will have changed from the original.  Path Substitutions allow us to overcome this at validation time by effectively performing a simple find-and-replace within the 
-						file during validation which maps the supplied filepath to the equivalent on the system where validation is actually taking place.
+						the value supplied in the CSV file. To this end, the CSV Schema language contains a set of so-called
+						<a href="https://digital-preservation.github.io/csv-schema/csv-schema-1.0.html#external-single-expressions">External Single Expressions</a>, which allow
+						reference to other file system resources outside the CSV file being validated. However, it is likely that after transfer, the drive letter or mount point (at least)
+						will have changed from the original. Path Substitutions allow us to overcome this at validation time by effectively performing a simple find-and-replace within the
+						file during validation, which maps the supplied filepath to the equivalent on the system where validation is actually taking place.
 						</p>
 						<p>
-						e.g. Lets assume that we have received the data alongwith a metadata file describing the data from someone else. On their machine, the data was stored on
-						the root folder under a folder <code>/TEST_1</code> This means the paths to the data as referenced in the metadata file are defined from that folder as shown below:
+						e.g. Lets assume that we have received the data along with a metadata file describing the data from someone else. On their machine, the data was stored on
+						the root folder under a folder <code>/TEST_1</code> This means that the paths to the data, as referenced in the metadata file, are defined from that folder as shown below:
 						<img src="images/1.3.0/original-paths.png" alt="Metadata file showing original paths" id="original-paths">	.
 						</p>
 						<p>
-						However, the same data is made available on the machine where csv-validator runs at a different location (<code>C:\test-data\example-schemas\example-data\TEST_1</code>) as shown below:
+						However, the same data is made available on the machine where CSV Validator runs at a different location (<code>C:\test-data\example-schemas\example-data\TEST_1</code>) as shown below:
 						<img src="images/1.3.0/data-location.png" alt="File browser showing data location" id="data-location">	.
 						</p>
 						<p>
-						In this case you can setup a path substitution From <code>file:///TEST_1/</code> To <code>C:\test-data\example-schemas\example-data\TEST_1\</code> so that, when
-						looking for the corresponding file, csv-validator will substitute the path before finding and reading the data file. Please note: If you supply the "To" path as a URI rather
+						In this case, you can set up a path substitution From <code>file:///TEST_1/</code> To <code>C:\test-data\example-schemas\example-data\TEST_1\</code> so that, when
+						looking for the corresponding file, CSV Validator will substitute the path before finding and reading the data file. Please note: If you supply the "To:" path as a URI rather
 						than a file system path, you may need to reverse the slashes on Windows systems.
 						</p>
 						<p>
@@ -247,24 +261,26 @@
 							<p>
 							To create a Path Substitution in the GUI, click the "Add Path Substitution..." button (highlighted):
 							</p>
-							<img src="images/1.3.0/settings-opened-create-substitution-highlighted.png" alt="Part of GUI, showing 'Add Path Substitution...' button highlighted" id="GUI-detail6">
+							<img src="images/1.4.0/settings-opened-create-substitution-highlighted.png" alt="Part of GUI, showing 'Add Path Substitution...' button highlighted" id="GUI-detail6">
 							<p>
 							This will open a popup:
 							</p>
-							<img src="images/1.3.0/add-path-substitution.png" alt="Popup window for entering substitution 'find-and-replace'" id="GUI-detail7">
+							<img src="images/1.4.0/add-path-substitution.png" alt="Popup window for entering substitution 'find-and-replace'" id="GUI-detail7">
 							<p>
-							in the first box enter the text string which will be found in the supplied CSV file, and in the second the text string which should be substituted.
-							So considering the examples already used in this document, the CSV file is found at C:\test-data\MUPT_2\metadata_v9_MUPT2Y17HS001.csv and we can see
-							that there is a folder named "content" alongside the CSV file, that folder contains the files which the CSV file describes.
-							When created, the metadata CSV file and images were on E: drive instead of the C: drive, and they are also now in a project-related folder structure.
-							So the filepaths in the metadata CSV file all begin file:/E:/MUPT_2/content/ - when we run the validator, we actually need to look for the content files at
-							C:\test-data\MUPT_2\content\ when we are checking for their existence and verifying the associated checksums.  So we enter those filepath fragments into
-							the "From:" and "To:" boxes respectively, and click OK.  This gives:
+							If the "identifier" column in your CSV is present, CSV Validator will look through it and find the parent folder for the files and then add it to the "From:" box for you, automatically.
+							If the "from" box has not been automatically populated, manually enter the top-level folder (as a text string) that all the file paths in the supplied CSV belong to (this string should be contained in the file paths),
+							and in the "To:" box, the top-level folder (as a text string) which should be substituted; this should be the folder on your computer that contains the files.
+							So considering the examples already used in this document, the metadata CSV file is found at <code>C:\test-data\MUPT_2\metadata_v9_MUPT2Y17HS001.csv</code>; we can see
+							that there is a folder named "content" alongside this file, that folder contains the files which this file describes.
+							When initially created, the metadata CSV file and files (the CSV describes) were on <code>E:</code> drive, and they are also now in a project-related folder structure.
+							So the filepaths in the metadata CSV file all begin <code>file:/E:/MUPT_2/content/</code> (where they came from) - when we run the validator, it will need to look for the "content" files at
+								<code>C:\test-data\MUPT_2\content\</code> (where they are now) in order to check for their existence and verify the associated checksums. We enter the folder paths into
+							the "From:" and "To:" boxes respectively, and click OK; this gives:
 							</p>
-							<img src="images/1.3.0/settings-with-entered-substitution.png" alt="Popup window for entering substitution 'find-and-replace'" id="GUI-detail8">
+							<img src="images/1.4.0/settings-with-entered-substitution.png" alt="Popup window for entering substitution 'find-and-replace'" id="GUI-detail8">
 							</p>
 							<p>
-							Creating a Path Substitution in this way is equivalent to running via the Command Line with the -p or --path flags and supplying a key:value pair.
+							Creating a Path Substitution in this way is equivalent to running via the Command Line with the <code>-p</code> or <code>--path</code> flags and supplying a key:value pair.
 							</p>
 						</div>
 						<div>
@@ -278,8 +294,16 @@
 							"selection colour" of the system being used.
 							</p>
 							<p>
-							To completely remove a path substitution, right-click on an existing path substitution definition, this will give a context menu with a single option, 
-							"<code>Remove Path Substitution</code>", clicking that will delete the path substitution definition.
+								To completely remove a path substitution:
+								<ol>
+									<li>click on an existing path substitution definition
+										<ol>
+											<li>NOTE: to select multiple definitions for deletion, hold down your mouse button and drag your cursor to the subsequent definition(s) you'd like to delete</li>
+											<li>alternatively, you can hold down the `Ctrl` (`Command` on a Mac) button on your keyboard and select the definitions you'd like to delete</li>
+										</ol>
+									</li>
+									<li>click the "<code>Remove Path Substitution</code>" button</li>
+								</ol>
 							</p>
 						</div>
 					</div>
@@ -287,9 +311,10 @@
 				<div>
 					<h3>Validating a CSV file and understanding program output</h3>
 					<p>
-					Having selected a CSV file and schema, and chosen which settings (if any) to apply, validation is performed by clicking the large "Validate" button.
-					If checksum verification is being performed, the validation can take a considerable amount of time, as each file described in the CSV file has to be read in full 
-					in order to calculate the checksum. The mouse pointer will change to the egg-timer (or equivalent) while validation is taking place.
+					Having selected a CSV file and schema, and chosen which settings (if any) to apply, validation is performed by either clicking the large "Validate" or the "Validate Metadata" buttons.
+					"Validate Metadata", will skip file validation: checksum, integrity and whether the "file exists" checks and only perform the metadata checks; "Validate" on the other hand, will do both
+					the metadata <em>and</em> file validation checks. If checksum verification is being performed, the validation can take a considerable amount of time, as each file described in the CSV file has to be read in full
+					in order to calculate the checksum. The mouse pointer will change to the egg-timer (or equivalent for your operating system) while validation is taking place.
 					</p>
 					<p>
 					If the data is completely clean, and validates perfectly against the schema, the only output returned to the output pane will be <code>PASS</code>.
@@ -297,20 +322,17 @@
 					<div>
 						<h4>Schema Errors</h4>
 						<p>
-						If you are developing schemas, it is possible to make syntax errors in the schema, for example a mismatch in the declared number of columns 
-						(using the <a href="http://digital-preservation.github.io/csv-schema/csv-schema-1.0.html#total-columns-directive">Total Columns Directive</a>) against the actual number of 
-						<a href="http://digital-preservation.github.io/csv-schema/csv-schema-1.0.html#column-definitions">Column Definitions</a> included in the schema (eg 
+						If you are developing schemas, it is possible to make syntax errors in the schema, for example, a mismatch in the declared number of columns
+						(using the <a href="https://digital-preservation.github.io/csv-schema/csv-schema-1.0.html#total-columns-directive">Total Columns Directive</a>) against the actual number of
+						<a href="https://digital-preservation.github.io/csv-schema/csv-schema-1.0.html#column-definitions">column definitions</a> included in the schema (e.g.
 						<code>@totalColumns = 9 but number of columns defined = 10 at line: 2, column: 1</code>).
-						The schema itself is always checked before validation of the data begins, and schema errors always terminate validation.
 						</p>
-						<img src="images/1.3.0/bad-total-columns.png" alt="@totalColumns = 9 but number of columns defined = 10 at line: 2, column: 1" id="totalColumnsErr">
-						<p>
-						Or, if the Version Declaration has been omitted from the schema, or is incorrect,
-						you will see a schema error saying that the <a href="http://digital-preservation.github.io/csv-schema/csv-schema-1.0.html#version-declaration">Version Declaration</a> is not present
-						(eg <code>[1.1] failure: version 1.0 missing or incorrect</code>).  You will also see this if you accidentally switch over the input filepaths in the validator, 
-						and put the filepath for the CSV data file into the field for the schema and vice versa:
+						<img src="images/1.4.0/bad-total-columns.png" alt="@totalColumns = 9 but number of columns defined = 10 at line: 2, column: 1" id="totalColumnsErr">
+						<p>The schema itself is always checked before validation of the data begins, and schema errors always terminate the validation. If the <a href="https://digital-preservation.github.io/csv-schema/csv-schema-1.0.html#version-declaration">Version Declaration</a>
+							has been omitted from the schema, or is incorrect, you will see a schema error saying that the Version Declaration is not present
+						(eg <code>[1.1] failure: version 1.0 missing or incorrect</code>); you will also see this if you accidentally put the filepath for the CSV data file into the field for the schema and vice versa:
 						</p>
-						<img src="images/1.1/version-declaration-error.png" alt="[1.1] failure: version 1.0 missing or incorrect
+						<img src="images/1.4.0/version-declaration-error.png" alt="[1.1] failure: version 1.0 missing or incorrect
 <br />
 batch_code,department,series,piece,item,ordinal,file_uuid,file_path,file_checksum,resource_uri,scan_operator,scan_id,scan_location,scan_native_format,scan_timestamp,image_resolution,image_width,image_height,image_tonal_resolution,image_format,image_colour_space,process_location,jp2_creation_timestamp,uuid_timestamp,embed_timestamp,image_split,image_split_other_uuid,image_split_operator,image_split_timestamp,image_crop,image_crop_operator,image_crop_timestamp,image_deskew,image_deskew_operator,image_deskew_timestamp,QA-code,comments,transcribed_volume_number,transcribed_birth_date_day,transcribed_birth_date_month,transcribed_birth_date_year,transcribed_official_number
 <br />
@@ -319,28 +341,31 @@ batch_code,department,series,piece,item,ordinal,file_uuid,file_path,file_checksu
 					<div>
 						<h4>Validation Errors</h4>
 						<p>
-						When <a href="http://digital-preservation.github.io/csv-schema/csv-schema-1.0.html#validation-errors">Validation Errors</a> occur they will be reported in the output pane on the completion of validation. 
-						The report will be prefixed <code>Error:  </code> and will then show the Validation Rule where the error has occurred, 
+						When <a href="https://digital-preservation.github.io/csv-schema/csv-schema-1.2.html#validation-errors">Validation Errors</a> occur, they will be reported in the output pane on the completion of validation.
+						The report will be prefixed with <code>Error:  </code> and will then show: the Validation Rule where the error has occurred,
 						the line and data column from the CSV file where the error has occurred, the actual data present in the file, and for rules such as checksum validation, 
-						what the computed value of the data was.
-						The line number refers to data lines only, so if the CSV file contains a header row, you may see an apparent discrepancy in the line numbers displayed when you view 
-						the data in a text editor or spreadsheet program, compared to the line number indicated by the csv-validator.
+						what the computed value of the data was. The line number refers to data lines only, so if the CSV file contains a header row, you may see an apparent discrepancy in the line numbers displayed when you view
+						the data in a text editor or spreadsheet program, compared to the line number indicated by the CSV Validator.
 						</p>
-						<img src="images/1.1/validation-error-checksum-mismatches.png" alt='Error:   checksum(file($file_path), "SHA-256") file "file:///TEST_1/1/1/1_1_001.xml" checksum match fails for line: 1, column: file_checksum, value: "fb58b56a17af0f52cf794c108e0c1574a3a2c02b25e22699668bb43801028432". Computed checksum value:"fb58b56a17af0f52cf794c108e0c1574a3a2c02b25e22699668bb43801028431"" " id="checksumErr1">'>
+						<img src="images/1.4.0/validation-error-checksum-mismatches.png" alt='Error:   checksum(file($file_path), "SHA-256") file "file:///TEST_1/1/1/1_1_001.xml" checksum match fails for line: 1, column: file_checksum, value: "fb58b56a17af0f52cf794c108e0c1574a3a2c02b25e22699668bb43801028432". Computed checksum value:"16f5e200047a0b71bea821ea6db7c3a79605079baae96940a1ec8bb0d6ab4d6d"" " id="checksumErr1">'>
 						<pre id="checksumErr2">
-Error:   checksum(file($file_path), "SHA-256") file "file:///TEST_1/1/1/1_1_001.xml" checksum match fails for line: 1, column: file_checksum, value: "fb58b56a17af0f52cf794c108e0c1574a3a2c02b25e22699668bb43801028432". Computed checksum value:"fb58b56a17af0f52cf794c108e0c1574a3a2c02b25e22699668bb43801028431"
+Error:   checksum(file($file_path), "SHA-256") file "file:///TEST_1/1/1/1_1_001.xml" checksum match fails for line: 1, column: file_checksum, value: "fb58b56a17af0f52cf794c108e0c1574a3a2c02b25e22699668bb43801028432". Computed checksum value:"16f5e200047a0b71bea821ea6db7c3a79605079baae96940a1ec8bb0d6ab4d6d"
 FAIL
 						</pre>
 						<p>
 						The next image shows a more varied selection of Validation Errors, and demonstrates that the basic format of the error messages is consistent:
 						</p>
-						<img src="images/1.1/validation-errors-various.png" alt="Various validation errors, beginning, 'Error:   ' are demonstrated" id="varValErrs">
+						<img src="images/1.4.0/validation-errors-various.png" alt="Various validation errors starting with 'Error:   ' are demonstrated" id="varValErrs">
 						<p>
-						The full text of each error message is shown below, the errors are: a checksum mismatch, note that both the checksum read from the CSV file, 
-						and the actual computed checksum value are shown; then a regex error, the regex shown only allows the number before .xml to go up to 010, 
-						rather than value of 011 that has been put in the CSV file; the concatenation of the various strings and field values shown does not match the value actually 
-						found in the CSV file (in this instance you would have to manually check the CSV file to see which field is in error); 
-						the image_width value is outside the specified range; and finally, an incorrect value ahs been supplied for image_format.
+						The full text of each of these example error messages is shown below, the errors are:
+						<ol>
+							<li>a checksum mismatch - note that both the checksum read from the CSV file and the actual computed checksum value are shown.</li>
+							<li>a regex error - the regex shown only allows the number before <code>.xml</code> to go up to 010, rather than value of 011 that has been put in the CSV file.</li>
+							<li>a concatenation mismatch - the concatenation of the various strings and field values shown does not match the value actually
+							found in the CSV file (in this instance you would have to manually check the CSV file to see which field is in error).</li>
+							<li>a range mismatch - the <code>image_width</code> value is outside the specified range.</li>
+							<li>a value error - an incorrect value has been supplied for <code>image_format</code>.</li>
+						</ol>
 						</p>
 						<pre id="varValErrsTxt">
 Error:   checksum(file($file_path), "SHA-256") file "file:///TEST_1/2/2/2_2_010.xml" checksum match fails for line: 40, column: file_checksum, value: "f7ab46b417eecb57c43e62996646780c1e9e2aa7da4af361dc4616c5aff26f65". Computed checksum value:"d59a033ebd100b08f1c93a0475c9f33f898bb13740fed61f8e86435d01a70e86"
@@ -352,20 +377,21 @@ FAIL
 						</pre>
 					</div>
 					<div>
-						<h4>Saving output as report</h4>
+						<h4>Saving output as a report</h4>
 						<p>
 						If you wish to save the validation output as a report, for example, in order to send it to whoever supplied the data so that they can correct it, 
-						simply click the "Save" button towards the bottom right of the CSV Validator window. If you have opened the settings pane, you may need to close it again, 
-						or move your mouse to the bottom of the window and drag downwards to expand it, in order to be able to see this button.  This will open a standard save dialogue box. 
-						Save the output as a simple text file at your desired location.
+						simply click the "Save Results..." button towards the bottom right of the CSV Validator window. If you have opened the Settings pane, you may need to close it again,
+						or move your mouse to the bottom of the window and drag the edge/corner downwards to expand it, in order to be able to see this button. Clicking the "Save Results" button
+						will open a standard "save" dialog box with a suggested file name (with the date that you clicked the button appended to it);
+						you can then save the output as a simple text file at your desired location.
 						</p>
 					</div>
 				</div>
 				<div>
-					<h3>Closing the Validator</h3>
+					<h3>Closing the validator</h3>
 					<p>
-					All standard means of closing the window should work, or click the close button at the bottom right of the validator window. If you have opened the settings pane, 
-					you may need to close it again, or move your mouse to the bottom of the window and drag downwards to expand it, in order to be able to see this button.
+					All standard means of closing the window should work, or click the "Close" button at the bottom right of the validator window. If you have opened the "Settings" pane,
+					you may need to close it again, or move your mouse to the bottom of the window and drag the edge/corner downwards to expand it, in order to be able to see this button.
 					</p>
 				</div>
             </div>
@@ -388,7 +414,7 @@ Try --help for more information.
 					</pre>
 					<p>Subsequently, executing with the <code>--help</code> argument, should produce the following help text:
 					<pre>
-CSV Validator - Command Line 1.3.0
+CSV Validator - Command Line 1.4.0
 Usage: validate [options] &lt;csv-path&gt; &lt;csv-schema-path&gt;
 
   --help
@@ -407,6 +433,10 @@ Usage: validate [options] &lt;csv-path&gt; &lt;csv-schema-path&gt;
         Defines the charset encoding used in the CSV Schema file
   --disable-utf8-validation
         Disable UTF-8 validation for CSV files.
+  --max-chars-per-cell
+        Maximum number of chars allowed in cell (is set to 4096 by default)
+  --skip-file-checks
+        Skip integrity, checksum and file existence checks
   --show-progress
         Show progress
   &lt;csv-path&gt;
@@ -418,25 +448,25 @@ Usage: validate [options] &lt;csv-path&gt; &lt;csv-schema-path&gt;
 				<div>
 					<h3>Using command line parameters</h3>
 					<p>
-					As a minimum you must supply two command line parameters in order to validate a CSV file.  The first parameter is the path to the CSV file you wish to validate, 
-					the second the path to the schema.  If a the path contains spaces, wrap it appropriately, e.g. in double quotes (") on Windows.
+					As a minimum, you must supply two command line parameters in order to validate a CSV file. The first parameter should be the path to the CSV file you wish to validate,
+					the second, the path to the schema. If the path contains spaces, wrap it appropriately, e.g. in double quotes (") on Windows.
 					</p>
 				</div>
  				<div>
 					<h3>Using command line options</h3>
 					<p>
-					Nine options (plus --help, which merely reproduces the usage text given above) are available to modify certain behaviours of the CSV Validator, 
-					or to provide debugging assistance.
+					11 options (plus <code>--help</code>, which merely reproduces the usage text given above) are available to modify certain behaviours of the CSV Validator,
+					or to provide debugging assistance, and they are:
 					</p>
 					<div>
 						<h4>Trace</h4>
 						<p>
-						The trace option produces terminal output describing how the CSV Schema has been parsed by the CSV Validator.  
-						Complex schemas have sometimes taken several minutes to parse, or even hung completely, in earlier versions of the CSV Validator.  
-						This output allows developers to understand where these problems have arisen in order to troubleshoot the parser.
+						The trace option produces terminal output describing how the CSV Schema has been parsed by the CSV Validator.
+						In earlier versions of the CSV Validator, complex schemas have sometimes taken several minutes to parse, or even hung completely.
+						This output is to allow developers to understand where problems have arisen in order to troubleshoot the parser.
 						</p>
 						<p>
-						This option is only available at the command line, and not via the Settings panel in the GUI version of the application.
+						This option is only available at the command line, and thus, not via the Settings panel in the GUI version of the application.
 						</p>
 					</div>
 					<div>
@@ -444,14 +474,14 @@ Usage: validate [options] &lt;csv-path&gt; &lt;csv-schema-path&gt;
 						<p>
 						To use the fail fast option, supply either of the flags <code>-f</code> or <code>--fail-fast</code> along with a (boolean) value. 
 						Using either <code>true</code> or <code>1</code> as the supplied value switches the option on. With this option in force, 
-						validation will be terminated when the first <a href="http://digital-preservation.github.io/csv-schema/csv-schema-1.0.html#validation-errors">Validation Error</a> is encountered.
+						validation will be terminated when the first <a href="https://digital-preservation.github.io/csv-schema/csv-schema-1.0.html#validation-errors">Validation Error</a> is encountered.
 						</p>
 						<p>
-						By default (or if you supply <code>false</code> or <code>0</code> with this option flag) validation continues to the end of the CSV file 
+						By default (or if you supply <code>false</code> or <code>0</code> with this option flag), validation continues to the end of the CSV file
 						being validated, and all validation errors are reported.
 						</p>
 						<p>
-						However, <a href="http://digital-preservation.github.io/csv-schemacsv-schema-1.0.html#schema-errors">Schema Errors</a> always 
+						However, <a href="https://digital-preservation.github.io/csv-schemacsv-schema-1.0.html#schema-errors">Schema Errors</a> always
 						cause immediate termination of validation, regardless of the use of this option.
 						</p>
 					</div>
@@ -459,11 +489,11 @@ Usage: validate [options] &lt;csv-path&gt; &lt;csv-schema-path&gt;
 						<h4>Path substitutions</h4>
 						<p>
 						To use the path substitution option, supply either of the flags <code>-p</code> or <code>--path</code> along with a <code>key=value</code> pair. 
-						The reasons for using path substitutions are discussed in more detail in <a href="#path-substitutions">Path Substitutions section under the use of GUI</a>. 
-						The <code>key</code> represents the string to be found in the CSV file being validated, the <code>value</code> the string to replace that with.
+						The reasons for using path substitutions are discussed in more detail in the <a href="#path-substitutions">Path Substitutions "GUI Application" section</a>.
+						The <code>key</code> represents the text string to be found in the CSV file being validated, the <code>value</code> represents the string to replace it with.
 						</p>
 						<p>
-						For the example path substitution given above, (in the <a href="#path-substitutions">Path Substitutions section under the use of GUI</a>) 
+						For the example path substitution given above (in the <a href="#path-substitutions">Path Substitutions "GUI Application" section</a>),
 						the command line parameter would be entered as:
 						</p>
 						<p>
@@ -475,16 +505,16 @@ Usage: validate [options] &lt;csv-path&gt; &lt;csv-schema-path&gt;
 						</p>
 					</div>
 					<div>
-						<h4>Case sensitive paths</h4>
+						<h4>Case-sensitive paths</h4>
 						<p>
-						To use the case sensitive paths option, supply either of the flags <code>-c</code> or <code>--case-sensitive-paths</code> along with a (boolean) value. 
-						Using either <code>true</code> or <code>1</code> as the supplied value switches the option on. With this option in force, 
-						file paths used with <a href="http://digital-preservation.github.io/csv-schema/csv-schema-1.0.html#column-validation-expressions">Column Validation Expressions</a> such as 
-						<a href="http://digital-preservation.github.io/csv-schema/csv-schema-1.0.html#file-exists-expressions">File Exists Expressions</a> will be treated as being case sensitive even on operating systems where 
+						To use the case-sensitive paths option, supply either of the flags <code>-c</code> or <code>--case-sensitive-paths</code> along with a (boolean) value.
+						Using either <code>true</code> or <code>1</code> as the supplied value, switches the option on. With this option in force,
+						file paths used with <a href="https://digital-preservation.github.io/csv-schema/csv-schema-1.0.html#column-validation-expressions">Column Validation Expressions</a> such as
+						<a href="https://digital-preservation.github.io/csv-schema/csv-schema-1.0.html#file-exists-expressions">File Exists Expressions</a> will be treated as being case-sensitive even on operating systems where
 						that would not normally be the case, such as Windows NTFS.
 						</p>
 						<p>
-						By default (or if you supply <code>false</code> or <code>0</code> with this option flag) the behaviour of the host operating system will be used.
+						By default (or if you supply <code>false</code> or <code>0</code> with this option flag), the behaviour of the host operating system will be used.
 						</p>
 						<p>
 						This helps to avoid inconsistent validation results when validating the same CSV file and schema on different operating systems.
@@ -492,20 +522,30 @@ Usage: validate [options] &lt;csv-path&gt; &lt;csv-schema-path&gt;
 					</div>
  					<div>
  						<h4>CSV File Encoding</h4>
- 						<p>To specify that the CSV file that you are validating uses a different character set encoding than the default (<code>UTF-8</code> without byte order marker), 
+ 						<p>To specify that the CSV file that you are validating uses a different character set encoding than the default (<code>UTF-8</code> without a byte order mark),
 						supply either of the flags <code>-x</code> or <code>--csv-encoding</code> along with the name of the character set encoding.</p>
  					</div>
  					<div>
  						<h4>CSV Schema File Encoding</h4>
- 						<p>To specify that the CSV Schema file that you are parsing uses a different character set encoding than the default (<code>UTF-8</code> without byte order marker), 
+ 						<p>To specify that the CSV Schema file that you are parsing uses a different character set encoding than the default (<code>UTF-8</code> without a byte order mark),
 						supply either of the flags <code>-y</code> or <code>--csv-schema-encoding</code> along with the name of the character set encoding.</p>
  					</div>
 					<div>
 						<h4>Disable UTF-8 Validation</h4>
-						<p>By default the validator also verifies that the CSV file appears to contain only UTF-8 characters.  
+						<p>By default, the validator also verifies that the CSV file appears to contain only UTF-8 characters.
 						UTF-8 validation is automatically disabled if the flags <code>-x</code> or <code>--csv-encoding</code> 
-						have been used to specify an encoding other than UTF-8.  To disable UTF-8 validation for some other reason, 
-						use the flag --disable-utf8-validation (there is deliberately no short form for this flag)</p>
+						have been used to specify an encoding other than UTF-8. To disable UTF-8 validation for some other reason,
+						use the flag <code>--disable-utf8-validation</code> (there is deliberately no short form for this flag)</p>
+					</div>
+					<div>
+						<h4>Max Chars Per Cell</h4>
+						<p>By default, the validator limits the number of characters allowed in a cell to 4096 to prevent crashing; if you'd like to
+							increase/decrease this limit, use the <code>--max-chars-per-cell</code> flag, followed by the number of characters a
+							cell is allowed to have e.g. <code>--max-chars-per-cell 50000</code>.</p>
+					</div>
+					<div>
+						<h4>Skip File Checks</h4>
+						<p>If you'd like to skip the integrity, checksum and file existence checks, use the flag <code>--skip-file-checks</code>.</p>
 					</div>
 					<div>
 						<h4>Show Progress</h4>
@@ -525,52 +565,65 @@ Usage: validate [options] &lt;csv-path&gt; &lt;csv-schema-path&gt;
 				</div>
 				<div>
 					<h3>Command line output</h3>
-					<p>All output is written to <em>stdout</em> by default, and so can be written to file by the usual terminal redirection means.  Reporting is otherwise identical to that produced by the GUI client, 
-					which is described in the section <a href="#toc8">Validating a CSV file and understanding program output</a> above.
+					<p>All output is written to <em>stdout</em> by default, and so can be written to a file by the usual terminal redirection means.  Reporting is otherwise identical to that produced by the GUI client,
+					which is described in the section <a href="#toc8">Validating a CSV file and understanding program output</a>, above.
 					</p>
 				</div>
             </div>
             <div>
-                <h2 id="example">Example CSV Schemas</h2>
+                <h2 id="example">A Validation Example</h2>
                 <p>
-				In order to understand how to use the Validator in practice, see the example CSV Schema file, 
-				<a href="http://github.com/digital-preservation/csv-schema/blob/master/example-schemas/digitised_surrogate_tech_acq_metadata_v1_TESTBATCH000.csvs">digitised_surrogate_tech_acq_metadata_v1_TESTBATCH000.csvs</a>,
-				in the GitHub repository <a href="http://github.com/digital-preservation/csv-schema">digital-preservation/csv-schema</a>. 
-				In the <a href="http://github.com/digital-preservation/csv-schema/tree/master/example-schemas/example-data">example-data</a> subfolder you will find a CSV file, 
-				<a href="http://github.com/digital-preservation/csv-schema/blob/master/example-schemas/example-data/digitised_surrogate_tech_acq_metadata_v1_TESTBATCH000.csv">digitised_surrogate_tech_acq_metadata_v1_TESTBATCH000.csv</a>, 
-				which complies with the schema. This CSV file refers to XML files in the folder structure below <a href="http://github.com/digital-preservation/csv-schema/tree/master/example-schemas/example-data/TEST_1">TEST_1</a>
+				In order to get a better understanding of how to use the validator, see the example CSV Schema file,
+				<a href="https://github.com/digital-preservation/csv-schema/blob/master/example-schemas/digitised_surrogate_tech_acq_metadata_v1_TESTBATCH000.csvs">digitised_surrogate_tech_acq_metadata_v1_TESTBATCH000.csvs</a>,
+				and the CSV File <a href="https://github.com/digital-preservation/csv-schema/blob/master/example-schemas/example-data/digitised_surrogate_tech_acq_metadata_v1_TESTBATCH000.csv">digitised_surrogate_tech_acq_metadata_v1_TESTBATCH000.csv</a>,
+				which complies with the schema. In the "file_path" column of the CSV file, are references to XML files in the folder structure below <a href="https://github.com/digital-preservation/csv-schema/tree/master/example-schemas/example-data/TEST_1">TEST_1</a>
 				</p>
 				<p>
-				If you download the csv-schema repository and run the csv-validator (by either of the methods described above), you will find that initially it reports validation errors 
-				as it cannot find the XML files for the fileExists or checksum column validation tests.  If you create a path substitution, replacing file:///TEST_1/ with 
-				file:///&lt;your system path&gt;/TEST_1/ (if you simply placed the repository on your C:\ drive on a Windows system, &lt;your system path&gt; will look something like,
-				C:\csv-schema\example-schemas\example-data, but as it's a URL, you should reverse the slashes, C:/csv-schema/example-schemas/example-data - in addition if there are any spaces in the path, 
-				you must escape them by replacing them with %20) you should then find that all tests pass.  On a Unix-based system you will not need to reverse the slashes, 
-				but spaces and other special characters will still need to be escaped.  There is an additional complication that the % character is treated as a 
-				special character in Windows scripts, and itself needs to be escaped, so you should actually use %%20 to obtain the desired behaviour (there can be a further complication 
-				if you are calling out from a controlling script to launch the validator ie <code>call csv-validator-cmd.bat</code> where the outer script will do a first replacement of the escaped
-				character, and so within the call statement you would actually need to use %%%%20 to obtain the desired behaviour (this is passed to the call statement itself as %%20).
+				<ol>
+				<li>Download the two files (mentioned above)</li>
+				<li>Add the filepaths of these files their respective boxes</li>
+				<li>Download and run the latest version of the validator, if you haven't already</li>
+				<li>Click the "Validate" button to run the CSV Validator on them (via either of the methods described above)</li>
+				<li>You will find that initially, it reports validation errors as it cannot find the XML files for the fileExists or checksum column validation tests.</li>
+				<li>Create a path substitution, replacing <code>file:///TEST_1/</code> with <code>file:///&lt;your system path&gt;/TEST_1/</code>
+				<ol>
+					<li>If you simply placed the repository somewhere on your <code>C:\</code> drive on a Windows system, &lt;your system path&gt; will look something like this,
+					<code>C:\csv-schema\example-schemas\example-data</code>, but as it's a URL, you should reverse the slashes, like this <code>C:/csv-schema/example-schemas/example-data</code>
+					<li>In addition, if there are any spaces in the path, you must escape them by replacing them with <code>%20</code> e.g. <code>C:/csv-schema/example-schemas/spaces in name</code> should become <code>C:/csv-schema/example-schemas/spaces%20in%20name</code></li></ol>
+				<li>After doing this, if you press the "validate" button, you should then find that all the validation tests pass.</li></ol>
+				</p>
+				<p>NOTE: On a Unix-based system e.g. macOS, Linux etc, you will <em>not</em> need to reverse the slashes, but spaces and other special characters will still need to be escaped.</p>
+				<p>NOTE: There is an additional complication in that the <code>%</code> character is treated as a special character in Windows <strong>scripts</strong>, and itself needs to be escaped,
+					so you should actually use <code>%%20</code> to obtain the desired behaviour (there can be a further complication if you are calling out from a controlling script to launch the validator i.e.
+					<code>call csv-validator-cmd.bat</code> where the outer script will do a first replacement of the escaped character, and so within the call statement you would actually need to use <code>%%%%20</code> to obtain the desired behaviour (this is passed to the call statement itself as <code>%%20</code>).
 				</p>
             </div>
+			<div>
+				<h2 id="example-schemas">Example CSV Schemas</h2>
+				<p>
+					More example of schemas can be found here <a href="https://github.com/digital-preservation/csv-schema/tree/master/example-schemas">Example Schemas</a>,
+					in the GitHub repository <a href="https://github.com/digital-preservation/csv-schema">digital-preservation/csv-schema</a>.
+				</p>
+			</div>
             <div>
 				<h2>System and Performance Considerations</h2>
 				<p>
-				Performance of the CSV Validator is generally limited by the rate at which data can be read from storage.  This is particularly true when the CSV Schema used includes 
-				checksum verification for files referred to in the metadata file, when the time taken to complete validation is almost entirely driven to read the files and compute 
+				Performance of the CSV Validator is generally limited by the rate at which data can be read from storage. This is particularly true when the CSV Schema used includes
+				checksum verification for files referred to in the metadata file, as the time taken to complete validation is almost entirely driven by the time it takes to read the files and compute
 				the checksums.  
 				</p>
 				<p>
 				The CSV file being validated is read line-by-line so the size of the file does not generally affect the memory required for processing, 
-				even when handling CSV files of the order of 0.5 gigabytes in total size, and a million rows.  
-				However, if the schema uses the <code>unique</code> Column Validation Expression to ensure that a given column 
+				even when handling CSV files of the order of 0.5 gigabytes in total size or a million rows.
+				However, if the <em>schema</em> uses the <code>unique</code> Column Validation Expression to ensure that a given column
 				(or combination of columns) has a unique value for each row of the CSV file, then a hash map is built by the validator to check the uniqueness.  
-				With this constraint, and a CSV file of the order of 0.5 gigabytes, and a million rows, 
-				it may be necessary to increase the Max Heap Size available to the Java Virtual Machine so that validation can complete.  
-				If the heap is not sufficient, validation will stall, and after a period of time Java will return an error message similar to: 
+				Building a hash map for a CSV file of the order of 0.5 gigabytes or a million rows, could use up a considerable amount of memory and therefore,
+				it may be necessary to increase the Max Heap Size available to the JVM so that validation can complete without issue.
+				If the heap is not sufficient, validation will stall, and after a period of time, Java will return an error message similar to:
 				"<code>java.lang.OutOfMemoryError: Java heap space.</code>"
 				</p>
 				<p>
-				Changing the heap size involves setting the -Xmx option, the scripts contained in the distribution package have the ability to configure
+				Changing the heap size involves setting the <code>-Xmx</code> option; the scripts contained in the distribution package have the ability to configure
 				maximum memory used by the JVM which runs CSV Validator. If you find that you are getting an error related to not having enough heap memory,
 				you can increase the memory by following the steps given below:
 
@@ -596,7 +649,8 @@ Usage: validate [options] &lt;csv-path&gt; &lt;csv-schema-path&gt;
            </div>
             <div>
                 <h2>For Software Developers</h2>
-            	<p>See <a href="https://github.com/digital-preservation/csv-validator">https://github.com/digital-preservation/csv-validator</a>.</p>
+                <p>You can find the repo for CSV Validator here: <a href="https://github.com/digital-preservation/csv-validator">https://github.com/digital-preservation/csv-validator</a>.</p>
+                <p>In order to update this page, visit this branch: <a href="https://github.com/digital-preservation/csv-validator/tree/gh-pages">https://github.com/digital-preservation/csv-validator/tree/gh-pages</a>.</p>
             </div>
         </div>
       </div>
@@ -604,7 +658,7 @@ Usage: validate [options] &lt;csv-path&gt; &lt;csv-schema-path&gt;
 
     <div id="footer">
       <div class="container">
-        <p class="text-muted credit">Copyright © 2016 <a href="http://nationalarchives.gov.uk">The National Archives</a>.</p>
+        <p class="text-muted credit">Copyright © 2016 <a href="https://nationalarchives.gov.uk">The National Archives</a>.</p>
       </div>
     </div>
 
@@ -612,8 +666,8 @@ Usage: validate [options] &lt;csv-path&gt; &lt;csv-schema-path&gt;
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
-    <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
-    <script src="http://netdna.bootstrapcdn.com/bootstrap/3.0.2/js/bootstrap.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
     <script src="js/jquery.toc.min.js"></script>
     <script language="JavaScript">
     <!--
