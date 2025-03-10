@@ -30,7 +30,7 @@ class AndRuleSpec extends Specification {
       val andRule = AndRule(leftInRule, rightInRule)
 
       andRule.evaluate(0, Row(List(Cell("Germany")), 1), schema) must beLike {
-        case Validated.Invalid(messages) => messages.toList mustEqual List("""in("Germany") and in("France") fails for line: 1, column: Country, value: "Germany"""")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("""in("Germany") and in("France") fails for row: 1, column: Country, value: "Germany"""")
       }
     }
 
@@ -44,7 +44,7 @@ class AndRuleSpec extends Specification {
       val andRule = AndRule(leftInRule, rightInRule)
 
       andRule.evaluate(0, Row(List(Cell("France")), 1), schema) must beLike {
-        case Validated.Invalid(messages) => messages.toList mustEqual List("""in("Germany") and in("France") fails for line: 1, column: Country, value: "France"""")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("""in("Germany") and in("France") fails for row: 1, column: Country, value: "France"""")
       }
     }
 
@@ -58,7 +58,7 @@ class AndRuleSpec extends Specification {
       val andRule = AndRule(leftInRule, rightInRule)
 
       andRule.evaluate(0, Row(List(Cell("SomethingElse")), 1), schema) must beLike {
-        case Validated.Invalid(messages) => messages.toList mustEqual List("""in("This") and in("That") fails for line: 1, column: ThisOrThat, value: "SomethingElse"""")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("""in("This") and in("That") fails for row: 1, column: ThisOrThat, value: "SomethingElse"""")
       }
     }
 
@@ -102,7 +102,7 @@ class AndRuleSpec extends Specification {
       val andRule = AndRule(leftInRule, rightInRule)
 
       andRule.evaluate(0, Row(List(Cell("SomethingElse")), 1), schema) must beLike {
-        case Validated.Invalid(messages) => messages.toList mustEqual List("""is("UK") and (is("UK") is("UK1")) fails for line: 1, column: Country, value: "SomethingElse"""")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("""is("UK") and (is("UK") is("UK1")) fails for row: 1, column: Country, value: "SomethingElse"""")
       }
     }
   }

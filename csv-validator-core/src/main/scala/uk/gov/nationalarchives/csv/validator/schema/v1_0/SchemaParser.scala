@@ -481,9 +481,9 @@ trait SchemaParser extends BaseSchemaParser {
     */
   lazy val fileExistsExpr: PackratParser[FileExistsRule] = "FileExistsExpr" ::= ("fileExists" ~> opt("(" ~> stringProvider <~ ")")).withFailureMessage("Invalid fileExists rule") ^^ {
     case None =>
-      FileExistsRule(pathSubstitutions, enforceCaseSensitivePathChecks)
+      FileExistsRule(pathSubstitutions, enforceCaseSensitivePathChecks, skipFileChecks = skipFileChecks)
     case Some(s) =>
-      FileExistsRule(pathSubstitutions, enforceCaseSensitivePathChecks, s)
+      FileExistsRule(pathSubstitutions, enforceCaseSensitivePathChecks, s, skipFileChecks = skipFileChecks)
   }
 
 
@@ -492,7 +492,7 @@ trait SchemaParser extends BaseSchemaParser {
     */
   lazy val checksumExpr = "ChecksumExpr" ::= ("checksum(" ~> fileExpr <~ ",") ~ stringLiteral <~ ")" ^^ {
     case files ~ algorithm =>
-      ChecksumRule(files._1.getOrElse(Literal(None)), files._2, algorithm, pathSubstitutions, enforceCaseSensitivePathChecks)
+      ChecksumRule(files._1.getOrElse(Literal(None)), files._2, algorithm, pathSubstitutions, enforceCaseSensitivePathChecks, skipFileChecks)
   }
 
   /**

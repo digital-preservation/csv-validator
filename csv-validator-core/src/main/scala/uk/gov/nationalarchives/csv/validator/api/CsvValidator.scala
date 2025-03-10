@@ -10,12 +10,15 @@ package uk.gov.nationalarchives.csv.validator.api
 
 import cats.data.{Chain, Validated, ValidatedNel}
 import cats.implicits._
+import com.univocity.parsers.csv.{CsvParser, CsvParserSettings}
 import uk.gov.nationalarchives.csv.validator._
-import uk.gov.nationalarchives.csv.validator.schema.{Schema, SchemaParser}
+import uk.gov.nationalarchives.csv.validator.schema.{Quoted, Schema, SchemaParser, Separator}
 
 import java.io.{Reader => JReader}
 import java.nio.charset.{Charset => JCharset}
 import java.nio.file.Path
+import scala.jdk.CollectionConverters._
+import scala.util.Try
 
 object CsvValidator {
 
@@ -27,11 +30,11 @@ object CsvValidator {
   type PathTo = String
   type SubstitutePath = (PathFrom, PathTo)
 
-  def createValidator(failFast: Boolean, pathSubstitutionsList: List[SubstitutePath], enforceCaseSensitivePathChecksSwitch: Boolean, traceSwitch: Boolean) = {
+  def createValidator(failFast: Boolean, pathSubstitutionsList: List[SubstitutePath], enforceCaseSensitivePathChecksSwitch: Boolean, traceSwitch: Boolean, skipFileChecksSwitch: Boolean, maxCharsPerCellLimit: Int) = {
     if(failFast) {
-      new CsvValidator with FailFastMetaDataValidator { val pathSubstitutions = pathSubstitutionsList; val enforceCaseSensitivePathChecks = enforceCaseSensitivePathChecksSwitch; val trace = traceSwitch }
+      new CsvValidator with FailFastMetaDataValidator { val pathSubstitutions = pathSubstitutionsList; val enforceCaseSensitivePathChecks = enforceCaseSensitivePathChecksSwitch; val trace = traceSwitch; val skipFileChecks = skipFileChecksSwitch; val maxCharsPerCell = maxCharsPerCellLimit}
     } else {
-      new CsvValidator with AllErrorsMetaDataValidator { val pathSubstitutions = pathSubstitutionsList; val enforceCaseSensitivePathChecks = enforceCaseSensitivePathChecksSwitch; val trace = traceSwitch }
+      new CsvValidator with AllErrorsMetaDataValidator { val pathSubstitutions = pathSubstitutionsList; val enforceCaseSensitivePathChecks = enforceCaseSensitivePathChecksSwitch; val trace = traceSwitch; val skipFileChecks = skipFileChecksSwitch; val maxCharsPerCell = maxCharsPerCellLimit }
     }
   }
 }
@@ -71,7 +74,19 @@ trait CsvValidator extends SchemaParser {
       case Some(errors) => Validated.invalid(errors)
     }
   }
-
+  
+  
+  
+  def loadCsvFile(csvFile: TextFile, csvSchemaFile: TextFile): List[Array[String]] = {
+    parseSchema(csvSchemaFile) match {
+      case Validated.Valid(schema) =>
+        withReader(csvFile) { reader =>
+          createCsvParser(schema, this.maxCharsPerCell).parseAll(reader)
+        }.asScala.toList
+      case Validated.Invalid(_) => Nil
+    }
+  }
+  
   def validateCsvFile(
     csvFile: TextFile,
     csvSchema: Schema,
@@ -84,8 +99,8 @@ trait CsvValidator extends SchemaParser {
 
     val csvValidation = withReader(csvFile) {
       reader =>
-        val totalRows = countRows(csvFile, csvSchema)
-        validateKnownRows(reader, csvSchema, progress.map(p => {ProgressFor(totalRows, p)} ), rowCallback)
+        val totalRows = countRows(csvFile)
+        validateKnownRows(reader, csvSchema, this.maxCharsPerCell, progress.map(p => {ProgressFor(totalRows, p)} ), rowCallback)
     }
     encodingValidationNel.isValid && csvValidation
   }

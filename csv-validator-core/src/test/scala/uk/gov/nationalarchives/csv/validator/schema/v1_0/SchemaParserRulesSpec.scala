@@ -77,7 +77,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                       @totalColumns 1
                       Name: fileExists"""
 
-      parse(new StringReader(schema)) must beLike { case Success(Schema(_, List(ColumnDefinition(NamedColumnIdentifier("Name"), List(FileExistsRule(emptyPathSubs, false, Literal(None))), _)), _), _) => ok }
+      parse(new StringReader(schema)) must beLike { case Success(Schema(_, List(ColumnDefinition(NamedColumnIdentifier("Name"), List(FileExistsRule(emptyPathSubs, false, Literal(None), false)), _)), _), _) => ok }
     }
 
 //    "fail for file exists rule with empty ()" in {
@@ -94,7 +94,7 @@ class SchemaParserRulesSpec extends SchemaSpecBase {
                       Name: fileExists("some/root/path")"""
 
       parse(new StringReader(schema)) must beLike {
-        case Success(Schema(_, List(ColumnDefinition(NamedColumnIdentifier("Name"), List(FileExistsRule(emptyPathSubs, false, Literal(Some(rootPath)))), _)), _), _) => {
+        case Success(Schema(_, List(ColumnDefinition(NamedColumnIdentifier("Name"), List(FileExistsRule(emptyPathSubs, false, Literal(Some(rootPath)), false)), _)), _), _) => {
           rootPath mustEqual "some/root/path"
         }
       }

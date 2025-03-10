@@ -41,7 +41,7 @@ class AnyRuleSpec extends Specification {
       val anyRule = AnyRule(List(Literal(Some("hello world"))))
 
       anyRule.evaluate(0, Row(List(Cell("hello world today")), 1), schema) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual """any("hello world") fails for line: 1, column: column1, value: "hello world today""""
+        case Validated.Invalid(messages) => messages.head mustEqual """any("hello world") fails for row: 1, column: column1, value: "hello world today""""
       }
     }
 

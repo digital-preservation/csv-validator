@@ -15,3 +15,7 @@ project/plugins/project/
 # IntelliJ specific
 .idea/*
 *.iml
+.bsp/
+
+# MacOS specific
+**/.DS_Store

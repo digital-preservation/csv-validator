@@ -54,7 +54,7 @@ class OrRuleSpec extends Specification {
       val orRule = OrRule(leftInRule, rightInRule)
 
       orRule.evaluate(0, Row(List(Cell("SomethingElse")), 1), schema) must beLike {
-        case Validated.Invalid(messages) => messages.toList mustEqual List("""in("This") or in("That") fails for line: 1, column: ThisOrThat, value: "SomethingElse"""")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("""in("This") or in("That") fails for row: 1, column: ThisOrThat, value: "SomethingElse"""")
       }
     }
 
@@ -67,7 +67,9 @@ class OrRuleSpec extends Specification {
 
       val orRule = OrRule(leftInRule, rightInRule)
 
-      orRule.evaluate(0, Row(List(Cell("UK")), 1), schema) must throwA[NoSuchElementException]
+      orRule.evaluate(0, Row(List(Cell("UK")), 1), schema) must beLike {
+        case Validated.Invalid(messages) => messages.head mustEqual """in($ConfigurableCountry) or in("France") fails for row: 1, column: Country, value: "UK""""
+      }
     }
 
     "succeed when 3 'or' rules valid for right rule" in {
@@ -107,7 +109,7 @@ class OrRuleSpec extends Specification {
       val orRule =  OrRule( OrRule(leftInRule, middleInRule), rightInRule )
 
       orRule.evaluate(0, Row(List(Cell("up")), 1), schema) must beLike {
-        case Validated.Invalid(messages) => messages.toList mustEqual List("""in("left") or in("middle") or in("right") fails for line: 1, column: Direction, value: "up"""")
+        case Validated.Invalid(messages) => messages.toList mustEqual List("""in("left") or in("middle") or in("right") fails for row: 1, column: Direction, value: "up"""")
       }
     }
   }

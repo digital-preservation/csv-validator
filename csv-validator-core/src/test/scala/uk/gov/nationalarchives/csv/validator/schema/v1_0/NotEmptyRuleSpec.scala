@@ -26,7 +26,7 @@ class NotEmptyRuleSpec extends Specification {
      "File if cell is empty" in {
        val notEmptyRule = NotEmptyRule()
        notEmptyRule.evaluate(0, Row(List(Cell("")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) must beLike {
-         case Validated.Invalid(messages) => messages.head mustEqual """notEmpty fails for line: 1, column: column1, value: """""
+         case Validated.Invalid(messages) => messages.head mustEqual """notEmpty fails for row: 1, column: column1, value: """""
        }
 
 

@@ -54,6 +54,11 @@ abstract class Rule(name: String, val argProviders: ArgProvider*) extends Positi
     else fail(columnIndex, row, schema)
   }
 
+  def argProviderHelper(provider: ArgProvider, columnDefinition: ColumnDefinition, columnIndex: Int, row: Row, schema: Schema, cellValue: String): (Option[FilePathBase], FilePathBase) = {
+    val ruleValue = provider.referenceValue(columnIndex, row, schema)
+
+    if (columnDefinition.directives.contains(IgnoreCase())) (ruleValue.map(_.toLowerCase), cellValue.toLowerCase) else (ruleValue, cellValue)
+  }
 
   def valid(cellValue: String, columnDefinition: ColumnDefinition, columnIndex: Int,
             row: Row, schema: Schema, mayBeLast: Option[Boolean] = None): Boolean =
@@ -62,7 +67,7 @@ abstract class Rule(name: String, val argProviders: ArgProvider*) extends Positi
 
   def fail(columnIndex: Int, row: Row, schema: Schema): RuleValidation[Any] = {
     val columnDefinition = schema.columnDefinitions(columnIndex)
-    s"$toError fails for line: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}".invalidNel[Any]
+    s"$toError fails for row: ${row.lineNumber}, column: ${columnDefinition.id}, ${toValueError(row,columnIndex)}".invalidNel[Any]
   }
 
   def cellValue(columnIndex: Int, row: Row, schema: Schema): String = {

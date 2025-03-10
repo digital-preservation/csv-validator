@@ -23,7 +23,7 @@ import java.nio.file.Paths
 class CsvValidatorSpec extends Specification with TestResources {
 
   "Parsing schema" should {
-    val app = new CsvValidator with AllErrorsMetaDataValidator { val pathSubstitutions = List[SubstitutePath](); val enforceCaseSensitivePathChecks = false; val trace = false }
+    val app = new CsvValidator with AllErrorsMetaDataValidator { val pathSubstitutions = List[SubstitutePath](); val enforceCaseSensitivePathChecks = false; val trace = false; val skipFileChecks = false; val maxCharsPerCell = 4096 }
 
     "report position on parse fail" in {
 
@@ -45,7 +45,7 @@ class CsvValidatorSpec extends Specification with TestResources {
   }
 
   "Validation" should {
-    val app = new CsvValidator with AllErrorsMetaDataValidator { val pathSubstitutions = List[(String,String)](); val enforceCaseSensitivePathChecks = false; val trace = false }
+    val app = new CsvValidator with AllErrorsMetaDataValidator { val pathSubstitutions = List[(String,String)](); val enforceCaseSensitivePathChecks = false; val trace = false; val skipFileChecks = false; val maxCharsPerCell = 4096 }
 
     def parse(filePath: String): Schema = app.parseSchema(TextFile(Paths.get(filePath))) fold (f => throw new IllegalArgumentException(f.toString()), s => s)
 
@@ -59,6 +59,24 @@ class CsvValidatorSpec extends Specification with TestResources {
       app.validate(TextFile(Paths.get(baseResourcePkgPath).resolve("metaData.csv")), parse(baseResourcePkgPath + "/schema.csvs"), None) must beLike {
         case Validated.Valid(_) => ok
       }
+    }
+
+    val callback = new ProgressCallback {
+      var processed = -1
+      var total = -2
+      override def update(complete: Percentage): Unit = throw new NotImplementedError()
+
+      override def update(_total: Int, _processed: Int): Unit = {
+        total = _total
+        processed = _processed
+      }
+    }
+
+    "have a total (of rows) equal to the actual number of rows in the metadata file even if there are multiple line breaks in a cell" in {
+      app.validate(TextFile(Paths.get(baseResourcePkgPath).resolve("metadataMultipleLineBreaksInCell.csv")), parse(baseResourcePkgPath + "/schema.csvs"), Some(callback)) must beLike {
+        case Validated.Valid(_) => ok
+      }
+      callback.total must beEqualTo(2)
     }
   }
 }

@@ -39,13 +39,17 @@ class FileExistsRuleSpec extends Specification with TestResources {
 
     "fail for non-existent file" in {
       FileExistsRule(emptyPathSubstitutions, false).evaluate(0, Row(List(Cell("some/non/existent/file")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual "fileExists fails for line: 1, column: column1, value: \"some/non/existent/file\""
+        case Validated.Invalid(messages) => messages.head mustEqual "fileExists fails for row: 1, column: column1, value: \"some/non/existent/file\""
       }
+    }
+
+    "succeed with a non-existent file if skipFileChecks is true" in {
+      FileExistsRule(emptyPathSubstitutions, false, skipFileChecks = true).evaluate(0, Row(List(Cell("some/non/existent/file")), 1), Schema(globalDirsOne, List(ColumnDefinition(NamedColumnIdentifier("column1"))))) must be_==(Validated.Valid(true))
     }
 
     "fail for empty file path" in {
       FileExistsRule(emptyPathSubstitutions, false).evaluate(1, Row(List(Cell("abc"), Cell("")), 2), Schema(globalDirsTwo, List(ColumnDefinition(NamedColumnIdentifier("column1")), ColumnDefinition(NamedColumnIdentifier("column2"))))) must beLike {
-        case Validated.Invalid(messages) => messages.head mustEqual "fileExists fails for line: 2, column: column2, value: \"\""
+        case Validated.Invalid(messages) => messages.head mustEqual "fileExists fails for row: 2, column: column2, value: \"\""
       }
     }
 

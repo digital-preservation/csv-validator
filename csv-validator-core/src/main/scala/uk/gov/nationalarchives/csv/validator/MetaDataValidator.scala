@@ -11,7 +11,8 @@ package uk.gov.nationalarchives.csv.validator
 
 import cats.data.{Chain, Validated, ValidatedNel}
 import cats.syntax.all._
-import com.univocity.parsers.csv.{CsvParser, CsvParserSettings}
+import com.univocity.parsers.common.TextParsingException
+import com.univocity.parsers.csv.{CsvParser, CsvParserSettings, CsvRoutines}
 import org.apache.commons.io.input.BOMInputStream
 import uk.gov.nationalarchives.csv.validator.api.TextFile
 import uk.gov.nationalarchives.csv.validator.metadata.{Cell, Row}
@@ -23,7 +24,7 @@ import java.nio.charset.{Charset, StandardCharsets}
 import java.nio.file.{Files, Path}
 import scala.annotation.tailrec
 import scala.language.{postfixOps, reflectiveCalls}
-import scala.util.{Try, Using}
+import scala.util.{Failure, Success, Try, Using}
 
 //error reporting classes
 sealed trait ErrorType
@@ -61,12 +62,14 @@ trait MetaDataValidator {
   def validate(
     csv: JReader,    
     schema: Schema,
+    maxCharsPerCell: Int = 4096,
     progress: Option[ProgressCallback]
   ): MetaDataValidation[Any] = {
     var results: Chain[List[FailMessage]] = Chain.empty
     validateReader(
       csv,
       schema,
+      maxCharsPerCell,
       progress,
       {
         case Validated.Invalid(x) => results = results :+ x.toList
@@ -82,6 +85,7 @@ trait MetaDataValidator {
   def validateReader(
     csv: JReader,
     schema: Schema,
+    maxCharsPerCell: Int,
     progress: Option[ProgressCallback],
     rowCallback: MetaDataValidation[Any] => Unit
   ): Boolean = {
@@ -101,16 +105,10 @@ trait MetaDataValidator {
       None
     }
 
-    validateKnownRows(csv, schema, pf, rowCallback)
+    validateKnownRows(csv, schema, maxCharsPerCell, pf, rowCallback)
   }
 
-  def validateKnownRows(
-    csv: JReader,
-    schema: Schema,
-    progress: Option[ProgressFor],
-    rowCallback: MetaDataValidation[Any] => Unit
-  ): Boolean = {
-
+  def createCsvParser(schema: Schema, maxCharsPerCell: Int): CsvParser = {
     val separator: Char = schema.globalDirectives.collectFirst {
       case Separator(sep) =>
         sep
@@ -130,13 +128,27 @@ trait MetaDataValidator {
     settings.setIgnoreLeadingWhitespaces(false)
     settings.setIgnoreTrailingWhitespaces(false)
     settings.setLineSeparatorDetectionEnabled(true)
+    settings.setMaxCharsPerColumn(maxCharsPerCell)
     // TODO(AR) should we be friendly and auto-detect line separator, or enforce RFC 1480?
     format.setQuoteEscape(CSV_RFC1480_QUOTE_ESCAPE_CHARACTER)
     //format.setLineSeparator(CSV_RFC1480_LINE_SEPARATOR)  // CRLF
 
     //we need a better CSV Reader!
+    new CsvParser(settings)
+  }
+
+
+  def validateKnownRows(
+    csv: JReader,
+    schema: Schema,
+    maxCharsPerCell: Int,
+    progress: Option[ProgressFor],
+    rowCallback: MetaDataValidation[Any] => Unit
+  ): Boolean = {
+
+    val parser = createCsvParser(schema, maxCharsPerCell)
+
     val result : Try[Boolean] = Using {
-      val parser = new CsvParser(settings)
       parser.beginParsing(csv)
       parser
     } {
@@ -147,7 +159,7 @@ trait MetaDataValidator {
         // if 'no header' is not set and 'permit empty' is not set but the file contains only one line - this is an error
 
 
-        val rowIt = new RowIterator(reader, progress)
+        val rowIt = new RowIterator(reader, progress, maxCharsPerCell)
 
         val maybeNoData =
           if (schema.globalDirectives.contains(NoHeader())) {
@@ -280,10 +292,10 @@ trait MetaDataValidator {
 
   protected def rulesForCell(columnIndex: Int, row: Row, schema: Schema, mayBeLast: Option[Boolean] = None): MetaDataValidation[Any]
 
-  protected def countRows(textFile: TextFile, schema: Schema): Int = {
+  protected def countRows(textFile: TextFile): Int = {
     withReader(textFile) {
-      reader =>
-        countRows(reader, schema)
+      // getInputDimension is more efficient and ignores new lines in cells but it closes the Reader after use; only use it when it's OK to discard the reader.
+      reader => Try(new CsvRoutines().getInputDimension(reader).rowCount().toInt).getOrElse(-1)
     }
   }
 
@@ -339,24 +351,34 @@ trait ProgressCallback {
   def update(total: Int, processed: Int): Unit = update((processed.toFloat / total.toFloat) * 100)
 }
 
-class RowIterator(parser: CsvParser, progress: Option[ProgressFor]) extends Iterator[Row] {
+class RowIterator(parser: CsvParser, progress: Option[ProgressFor], maxCharsPerCell: Int) extends Iterator[Row] {
 
   private var index = 1
-  private var current = toRow(Option(parser.parseNext()))
+  private var current = toRow(Try(parser.parseNext()))
+  private var potentialHeaderRow: Option[Row] = None
 
   @throws(classOf[IOException])
   override def next(): Row = {
     val row = current match {
-      case Some(row) =>
+      case Success(row) =>
+        if(index == 1 && potentialHeaderRow.isEmpty) potentialHeaderRow = Some(row) // this is here in case the old API is used that doesn't call 'skipHeader'
         row
-      case None => {
-        throw new IOException("End of file")
-      }
+      case Failure(ex: TextParsingException) if(ex.toString.contains("exceeds the maximum number of characters")) =>
+        val cellLocationMsg =
+          potentialHeaderRow match {
+            case Some(headerRow) => s"in the cell located at row: ${ex.getLineIndex}, column: ${headerRow.cells(ex.getColumnIndex).value},"
+            case None => s"in column ${ex.getColumnIndex + 1} of the header row"
+          }
+
+        val customMessage =
+          s"The number of characters $cellLocationMsg is larger than the maximum number of characters allowed in a cell ($maxCharsPerCell); increase this limit and re-run."
+        throw new Exception(customMessage)
+      case Failure(ex) => throw ex
     }
 
     //move to the next
     this.index = index + 1
-    this.current = toRow(Option(parser.parseNext()))
+    this.current = toRow(Try(parser.parseNext()))
 
     progress map {
       p =>
@@ -371,10 +393,15 @@ class RowIterator(parser: CsvParser, progress: Option[ProgressFor]) extends Iter
   @throws(classOf[IOException])
   def skipHeader(): Row = {
     this.index = index - 1
-    next()
+    val row = next()
+    this.potentialHeaderRow = Some(row)
+    row
   }
 
-  override def hasNext: Boolean = current.nonEmpty
+  override def hasNext: Boolean = current match {
+    case Failure(ex: NullPointerException) => false
+    case _ => true
+  }
 
-  private def toRow(rowData: Option[Array[String]]): Option[Row] = rowData.map(data => Row(data.toList.map(d => Cell(Option(d).getOrElse(""))), index))
+  private def toRow(rowData: Try[Array[String]]): Try[Row] = rowData.map(data => Row(data.toList.map(d => Cell(Option(d).getOrElse(""))), index))
 }

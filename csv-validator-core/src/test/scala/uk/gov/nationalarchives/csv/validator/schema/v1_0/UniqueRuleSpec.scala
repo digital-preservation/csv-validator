@@ -37,7 +37,7 @@ class UniqueRuleSpec extends Specification {
       rule.evaluate(0, Row(Cell("Ben") :: Nil, 2), schema)
 
       rule.evaluate(0, Row(Cell("Jim") :: Nil, 3), schema) must beLike {
-        case Validated.Invalid(msgs) => msgs.toList mustEqual List("unique fails for line: 3, column: Name, value: \"Jim\" (original at line: 1)")
+        case Validated.Invalid(msgs) => msgs.toList mustEqual List("unique fails for row: 3, column: Name, value: \"Jim\" (original at row: 1)")
       }
     }
 
@@ -48,7 +48,7 @@ class UniqueRuleSpec extends Specification {
       rule.evaluate(0, Row(Cell("Ben") :: Nil, 1), schema)
 
       rule.evaluate(0, Row(Cell("BEN") :: Nil, 2), schema) must beLike {
-        case Validated.Invalid(msgs) => msgs.toList mustEqual List("unique fails for line: 2, column: Name, value: \"BEN\" (original at line: 1)")
+        case Validated.Invalid(msgs) => msgs.toList mustEqual List("unique fails for row: 2, column: Name, value: \"BEN\" (original at row: 1)")
       }
     }
   }
