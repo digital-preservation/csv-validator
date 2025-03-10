@@ -148,7 +148,7 @@
         <scala.version>2.13</scala.version>
         <scala.lib.version>2.13.12</scala.lib.version>
         <cats.core.version>2.13.0</cats.core.version>
-        <cats.effect.version>3.5.1</cats.effect.version>
+        <cats.effect.version>3.6-623178c</cats.effect.version>
         <specs2.version>4.20.5</specs2.version>
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
