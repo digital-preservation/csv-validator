@@ -262,6 +262,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
   }
 
   private val txtArReport = new TextArea()
+  txtArReport.lineWrap = true
 
   /**
    * The main UI of the application
@@ -366,6 +367,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
 
     private val scrollPane = new ScrollPane
     txtArReport.peer.setTransferHandler(fileHandler)
+    scrollPane.preferredSize = new Dimension(300, 70)  // for some reason, line wap only works if this is here
     scrollPane.viewportView = txtArReport
 
     private val btnValidate = new Button("Validate")
