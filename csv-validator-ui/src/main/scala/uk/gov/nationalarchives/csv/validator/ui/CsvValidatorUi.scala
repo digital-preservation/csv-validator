@@ -366,6 +366,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
 
     private val scrollPane = new ScrollPane
     txtArReport.peer.setTransferHandler(fileHandler)
+    scrollPane.preferredSize = new Dimension(300, 70)
     scrollPane.viewportView = txtArReport
 
     private val btnValidate = new Button("Validate")
