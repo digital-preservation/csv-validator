@@ -62,29 +62,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
   private lazy val txtCsvFile = new JTextField(30)
   private lazy val txtCsvSchemaFile = new JTextField(30)
 
-  private def changeHeightOfOutputPane(heightDiff: Int): Unit = {
-    // need to normalise the height change by converting it to "rows"
-    val heightChangeAsRows = Math.ceil(heightDiff / 30f).toInt // 30 is just an arbitrary number that seemed to work fine
-    val newHeight = if(txtArReport.rows + heightChangeAsRows <= 1) 1
-    else if(txtArReport.rows + heightChangeAsRows > 40) 40
-    else txtArReport.rows + heightChangeAsRows
-
-    // sometimes the size and preferredSize height stay the same even when the window gets larger so just make box size large in this case
-    val finalHeight = if(heightDiff == 0 && !prefSizeHeightChanged) 40 else newHeight
-    txtArReport.rows = finalHeight
-  }
-
   def top: SJXFrame = new SJXFrame {
-    this.listenTo(this) // add a listener to the window to listen for all changes to the window
-    private var previousHeight = this.preferredSize.height
-    this.reactions += onResize {
-      val heightDiff = this.size.height - this.preferredSize.height
-
-      changeHeightOfOutputPane(heightDiff)
-      prefSizeHeightChanged = previousHeight != this.preferredSize.height
-      previousHeight = this.preferredSize.height
-    }
-
     title = "CSV Validator"
     peer.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
     contents = {
@@ -92,15 +70,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
 
       //handle resizing the main window, when resizing the settings panel
       settings.settingsGroup.reactions += SJXTaskPane.onViewStateChanged {
-        val newSize = if(settings.settingsGroup.collapsed) {
-          txtArReport.rows = 40
-          this.size
-        } else {
-          txtArReport.rows = 9
-          val settingsHeight = settings.size.getHeight
-          new Dimension(this.size.getWidth.toInt, (this.preferredSize.getHeight + settingsHeight).toInt)
-        }
-        this.preferredSize = newSize
+        this.preferredSize = this.size
         this.pack()
       }
       new ContentPanel(settings, this)
