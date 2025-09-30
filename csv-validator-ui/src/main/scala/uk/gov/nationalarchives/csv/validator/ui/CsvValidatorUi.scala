@@ -20,7 +20,7 @@ import uk.gov.nationalarchives.csv.validator.{EOL, FailMessage, ProgressCallback
 import java.awt.Cursor
 import java.awt.datatransfer.DataFlavor
 import java.io.{File, IOException}
-import java.net.URL
+import java.net.{URI, URL}
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.{Files, Path, Paths, StandardOpenOption}
@@ -542,7 +542,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
       fileButton.reactions += {
         case ev: ButtonClicked =>
           val startingDir = if(toPathField.text.isEmpty) userDir.toFile else Path.of(toPathField.text).toFile
-          val fromFolderName = Path.of(fromPathField.text).getFileName
+          val fromFolderName = Path.of(URI.create(fromPathField.text)).getFileName
           val helpText = s"Select the $fromFolderName folder"
           val fileChooser = new FileChooser(startingDir)
           fileChooser.multiSelectionEnabled = false
