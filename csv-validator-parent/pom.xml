@@ -119,12 +119,12 @@
                 <snapshotRepository>
                     <id>sonatype-nexus-snapshot-staging</id>
                     <name>Nexus Snapshot Repository</name>
-                    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+                    <url>https://ossrh-staging-api.central.sonatype.com/content/repositories/snapshots</url>
                 </snapshotRepository>
                 <repository>
                     <id>sonatype-nexus-release-staging</id>
                     <name>Nexus Release Repository</name>
-                    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+                    <url>https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/</url>
                 </repository>
             </distributionManagement>
         </profile>
@@ -395,7 +395,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     <pluginRepositories>
         <pluginRepository>
             <id>sonatype-releases</id>
-            <url>https://oss.sonatype.org/content/repositories/releases</url>
+            <url>https://ossrh-staging-api.central.sonatype.com/content/repositories/releases</url>
         </pluginRepository>
         <pluginRepository>
             <id>clojars.org</id>
