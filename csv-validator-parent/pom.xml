@@ -149,7 +149,7 @@
         <scala.lib.version>2.13.16</scala.lib.version>
         <cats.core.version>2.13.0</cats.core.version>
         <cats.effect.version>3.7-4972921</cats.effect.version>
-        <specs2.version>4.21.0</specs2.version>
+        <specs2.version>4.22.0</specs2.version>
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <contact.email>digitalpreservation@nationalarchives.gov.uk</contact.email>
@@ -180,7 +180,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.14.0</version>
+                    <version>3.14.1</version>
                 </plugin>
                 <plugin>
                     <groupId>com.code54.mojo</groupId>
