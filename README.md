@@ -20,9 +20,9 @@ The Validation tool and APIs are written in Scala 2.13 and may be used as:
 
 * A library in your Scala project.
 
-* A library in your Java project (We provide a Java 11 interface, to make things simple for Java programmers too).
+* A library in your Java project (We provide a Java 21 interface, to make things simple for Java programmers too).
 
-The Validation Tool and APIs can be used on any Java Virtual Machine which supports Java 11 or better (**NB Java 6 support was removed in version 1.1**). The source code is
+The Validation Tool and APIs can be used on any Java Virtual Machine which supports Java 21 or better (**NB Java 6 support was removed in version 1.1**). The source code is
 built using the [Apache Maven](https://maven.apache.org/) build tool:
 
 1. For use in other Java/Scala Applications, build by executing `mvn clean install`.
@@ -41,7 +41,7 @@ If you wish to use the CSV Validator from your own Java project, we provide a na
 <dependency>
 	<groupId>uk.gov.nationalarchives</groupId>
     <artifactId>csv-validator-java-api</artifactId>
-    <version>1.4.0</version>
+    <version>1.4.1</version>
 </dependency>
 ```
 
@@ -109,7 +109,7 @@ Likewise, if you wish to use the CSV Validator from your own Scala project, the 
 <dependency>
 	<groupId>uk.gov.nationalarchives</groupId>
     <artifactId>csv-validator-core</artifactId>
-    <version>1.3.0</version>
+    <version>1.4.1</version>
 </dependency>
 ```
 

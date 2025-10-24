@@ -5,7 +5,7 @@ This module assembles the csv-validator deliverable in a zip format.
 
 ---
 ### Structure of the generated ZIP file 
-The zip, which includes bundled JRE, has following structure.  
+The zip, which includes bundled JRE, has the following structure:
 
 ```
   csv-validator-application-<version_number>
