@@ -44,6 +44,7 @@ class SJXTaskPane(title: String) extends Panel with Publisher {
     this.collapsed = collapsed
   }
   def add(component: Component) = peer.add(component.peer)
+  def remove(component: Component) = peer.remove(component.peer)
   def collapsed = peer.isCollapsed
   def collapsed_= (c : Boolean) : Unit = {
     peer.setCollapsed(c)

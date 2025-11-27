@@ -71,6 +71,9 @@ object CsvValidatorUi extends SimpleSwingApplication {
       //handle resizing the main window, when resizing the settings panel
       settings.settingsGroup.reactions += SJXTaskPane.onViewStateChanged {
         this.preferredSize = this.size
+        if (settings.settingsGroup.collapsed) settings.settingsGroup.remove(settings.settingsGroupLayout)
+        else settings.settingsGroup.add(settings.settingsGroupLayout)
+
         this.pack()
       }
       new ContentPanel(settings, this)
@@ -582,7 +585,7 @@ object CsvValidatorUi extends SimpleSwingApplication {
     btnRemovePathSubstitution.reactions += onClick(tblPathSubstitutions.removeSelectedRows())
     btnAddPathSubstitution.reactions += onClick(tablePathDialog())
 
-    private val settingsGroupLayout = new GridBagPanel {
+    val settingsGroupLayout: GridBagPanel = new GridBagPanel {
       private val c = new Constraints
       c.anchor = Anchor.West
 
@@ -658,7 +661,6 @@ object CsvValidatorUi extends SimpleSwingApplication {
       c.anchor = Anchor.LastLineEnd
       layout(btnAddPathSubstitution) = c
     }
-    settingsGroup.add(settingsGroupLayout)
 
     add(settingsGroup)
 
