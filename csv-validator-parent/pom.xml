@@ -146,7 +146,7 @@
 
     <properties>
         <scala.version>2.13</scala.version>
-        <scala.lib.version>2.13.17</scala.lib.version>
+        <scala.lib.version>2.13.18</scala.lib.version>
         <cats.core.version>2.13.0</cats.core.version>
         <cats.effect.version>3.7-4972921</cats.effect.version>
         <specs2.version>4.22.0</specs2.version>
