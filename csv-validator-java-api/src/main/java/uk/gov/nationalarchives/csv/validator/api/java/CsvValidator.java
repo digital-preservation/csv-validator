@@ -195,7 +195,7 @@ public class CsvValidator {
         return CsvValidatorJavaBridge.validate(csvData, csvSchema, failFast, pathSubstitutions, enforceCaseSensitivePathChecks, trace, progress);
     }
 
-    static class ValidatorBuilder {
+    public static class ValidatorBuilder {
         private String csvFileName;
         private String csvSchemaFilename;
         private Reader csvReader;
