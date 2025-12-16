@@ -117,14 +117,12 @@
             </build>
             <distributionManagement>
                 <snapshotRepository>
-                    <id>sonatype-nexus-snapshot-staging</id>
-                    <name>Nexus Snapshot Repository</name>
-                    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+                    <id>ossrh</id>
+                    <url>https://ossrh-staging-api.central.sonatype.com/content/repositories/snapshots</url>
                 </snapshotRepository>
                 <repository>
-                    <id>sonatype-nexus-release-staging</id>
-                    <name>Nexus Release Repository</name>
-                    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+                    <id>ossrh</id>
+                    <url>https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/</url>
                 </repository>
             </distributionManagement>
         </profile>
