@@ -3,7 +3,7 @@
     <parent>
         <groupId>uk.gov.nationalarchives</groupId>
         <artifactId>csv-validator-parent</artifactId>
-        <version>1.4.3-SNAPSHOT</version>
+        <version>1.4.2-SNAPSHOT</version>
         <relativePath>../csv-validator-parent</relativePath>
     </parent>
     <artifactId>csv-validator-distribution</artifactId>
