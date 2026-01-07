@@ -75,7 +75,7 @@ Example Java code of using the CSV Validator through the Java API:
      csvReader, csvSchemaReader
  )
 
- List<FailMessage> messages = validateWithStringNames
+ Result result = validateWithStringNames
    .usingCsvEncoding(csvEncoding, validateCsvEncoding) // should only be `true` if using UTF-8 encoding, otherwise it will throw an exception
    .usingCsvSchemaEncoding(csvSchemaEncoding)
    .usingFailFast(failFast)
@@ -87,6 +87,8 @@ Example Java code of using the CSV Validator through the Java API:
    .usingMaxCharsPerCell(maxCharsPerCell)
    .runValidation();
 
+List<FailMessage> messages = ((CsvValidatorJavaBridge.ValidationResult)(result)).errors();
+ 
  if(messages.isEmpty()) {
    System.out.println("All worked OK");
  } else {
