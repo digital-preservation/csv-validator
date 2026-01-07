@@ -8,7 +8,7 @@
     <meta name="author" content="">
     <link rel="shortcut icon" href="images/favicon.png">
 
-    <title>CSV Validator 1.4.1</title>
+    <title>CSV Validator 1.4.3</title>
 
     <!-- Bootstrap core CSS -->
     <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
@@ -54,7 +54,7 @@
       <div class="container">
 
         <div class="page-header">
-          <h1>CSV Validator 1.4.1</h1>
+          <h1>CSV Validator 1.4.3</h1>
         </div>
         <p class="lead"><code>CSV Validator</code> is a CSV validation and reporting tool which implements <a href="https://digital-preservation.github.io/csv-schema"><code>CSV Schema Language</code></a>.
 		Released as Open Source under the <a href="https://www.mozilla.org/MPL/2.0/">Mozilla Public Licence version 2.0</a>.
@@ -91,9 +91,9 @@
                     </ul>
             </div>
 			<div>
-				<h3>New features in Version 1.4.1</h3>
+				<h3>New features in Version 1.4.3</h3>
 				<p>
-				A full list of changes associated with CSV Validator 1.4.1 can be found in the <a href="https://github.com/digital-preservation/csv-validator/releases/tag/1.4.1">release notes</a>.
+				A full list of changes associated with CSV Validator 1.4.3 can be found in the <a href="https://github.com/digital-preservation/csv-validator/releases/tag/1.4.3">release notes</a>.
 				</p>
 			</div>
 			<div>
@@ -102,18 +102,18 @@
 				The core of the CSV Validator is written in Scala 2.13, Scala runs in the JVM and requires Java 21 or newer to be available. For our Windows users,
 				we include a JRE (64-bit Java 21 Runtime) with the distribution package. For non-Windows users, you will need to have Java (21+) installed on your computer in order to run
 				the latest version of CSV Validator. The release build is published from <a href="https://github.com/digital-preservation/csv-validator">the source code repository
-				on GitHub</a> to Maven Central. Current release (as of 2nd October 2025), Version 1.4.1.
+				on GitHub</a> to Maven Central. Current release (as of 6th January 2026), Version 1.4.3.
 				</p>
 				<p>
-				CSV Validator 1.4.1 comes with 2 distribution packages.
+				CSV Validator 1.4.3 comes with 2 distribution packages.
 				<ul>
-					<li><strong>csv-validator-distribution-1.4.1-bin-win64-with-jre.zip</strong>: This package has a 64-bit JRE bundled with it. If you are a Windows OS user and do not manage your
+					<li><strong>csv-validator-distribution-1.4.3-bin-win64-with-jre.zip</strong>: This package has a 64-bit JRE bundled with it. If you are a Windows OS user and do not manage your
 						own java installation, this package is most suitable for you </li>
-					<li><strong>csv-validator-distribution-1.4.1-bin.zip</strong>: This package comprises only the binary files of CSV Validator. If you are a Linux or Mac user, this package is
+					<li><strong>csv-validator-distribution-1.4.3-bin.zip</strong>: This package comprises only the binary files of CSV Validator. If you are a Linux or Mac user, this package is
 						most suitable for you. If you are a Windows user who wants to use your own version of Java, you can use this package</li>
 				</ul>
-				To install, download the appropriate distribution package from <a href="https://central.sonatype.com/search?q=uk.gov.nationalarchives.csv-validator-distribution%20%20v:1.4.1">maven central</a> or
-				GitHub <a href="https://github.com/digital-preservation/csv-validator/releases/tag/1.4.1">release page</a>. Once downloaded, simply extract the entire contents of the zip to your
+				To install, download the appropriate distribution package from <a href="https://central.sonatype.com/search?q=uk.gov.nationalarchives.csv-validator-distribution%20%20v:1.4.3">maven central</a> or
+				GitHub <a href="https://github.com/digital-preservation/csv-validator/releases/tag/1.4.3">release page</a>. Once downloaded, simply extract the entire contents of the zip to your
 				desired installation location.  The packages have <code>.bat</code> (for Windows OS) and shell scripts (for Linux, Mac) to launch the command line tool or the GUI application.
 				The package also has a text file (running-csv-validator.txt) that has detailed instructions about running the CSV Validator.
 				</p>
@@ -130,7 +130,7 @@
 					</ol>
 					You should then see the following:
 					</p>
-					<img src="images/1.4.1/main-screen.png" alt="The basic GUI, boxes to enter file names for data and schema, 'Validate' button, text box for output" id="GUI">
+					<img src="images/1.4.3/main-screen.png" alt="The basic GUI, boxes to enter file names for data and schema, 'Validate' button, text box for output" id="GUI">
 				</div>
 				<div>
 					<h3>Selecting metadata and schema for validation</h3>
@@ -145,14 +145,14 @@
 					<h4>Select the files via the dialog window</h4>
 					In order to select the files via a dialog window, click the buttons labelled "Choose..." (highlighted in the image below):
 					</p>
-					<img src="images/1.4.1/gui-file-selects-highlighted.png" alt="Part of GUI, showing in detail, the boxes to enter file names for data and schema, file open dialog buttons highlighted in yellow" id="GUI-detail1">
+					<img src="images/1.4.3/gui-file-selects-highlighted.png" alt="Part of GUI, showing in detail, the boxes to enter file names for data and schema, file open dialog buttons highlighted in yellow" id="GUI-detail1">
 					<p>
 					This will open up a standard File picker dialog. The dialog only shows the files of the type being chosen. You can navigate to the file you want to choose
 					in the file system and select it:
 					</p>
-					<img src="images/1.4.1/file-open.png" alt="Standard file open dialog, with CSV file selected" id="GUI-detail2">
+					<img src="images/1.4.3/file-open.png" alt="Standard file open dialog, with CSV file selected" id="GUI-detail2">
 					<p>Clicking "OK" will populate the related text box:</p>
-					<img src="images/1.4.1/filepath-text-box-populated.png" alt="Part of GUI, showing completed CSV file text box" id="GUI-detai3l">
+					<img src="images/1.4.3/filepath-text-box-populated.png" alt="Part of GUI, showing completed CSV file text box" id="GUI-detai3l">
 					This location will be remembered for subsequent file selections.
 					<h4>Drag and drop the files onto the application</h4>
 					Go to your file explorer, select the file(s) (you can either drop the files one by one or both together) and drag and drop them onto the application.
@@ -167,7 +167,7 @@
 					(note that there is one additional option at the command line that is not available within Settings, to produce a detailed report on the parse of the schema itself). 
 					To open up Settings, click on the downward-facing double arrow below the file dialog buttons (highlighted below):
 					</p>
-					<img src="images/1.4.1/highlight-settings-arrow.png" alt="Part of GUI, highlighting Settings box" id="GUI-detail4">
+					<img src="images/1.4.3/highlight-settings-arrow.png" alt="Part of GUI, highlighting Settings box" id="GUI-detail4">
 					<p>
 					Having opened up Settings, you will see that there are 8 sets of options:
 						<ol>
@@ -189,7 +189,7 @@
 							<li><code>Path Substitutions</code></li>
 						</ol>
 					</p>
-					<img src="images/1.4.1/settings-opened.png" alt="Part of GUI, showing opened Settings section" id="GUI-detail5">
+					<img src="images/1.4.3/settings-opened.png" alt="Part of GUI, showing opened Settings section" id="GUI-detail5">
 					<div>
 						<h4>Maximum number of errors to display</h4>
 						<p>This setting will determine the number of lines of errors that are output in the output pane; it is set to 2000 by default.</p>
@@ -261,11 +261,11 @@
 							<p>
 							To create a Path Substitution in the GUI, click the "Add Path Substitution..." button (highlighted):
 							</p>
-							<img src="images/1.4.1/settings-opened-create-substitution-highlighted.png" alt="Part of GUI, showing 'Add Path Substitution...' button highlighted" id="GUI-detail6">
+							<img src="images/1.4.3/settings-opened-create-substitution-highlighted.png" alt="Part of GUI, showing 'Add Path Substitution...' button highlighted" id="GUI-detail6">
 							<p>
 							This will open a popup:
 							</p>
-							<img src="images/1.4.1/add-path-substitution.png" alt="Popup window for entering substitution 'find-and-replace'" id="GUI-detail7">
+							<img src="images/1.4.3/add-path-substitution.png" alt="Popup window for entering substitution 'find-and-replace'" id="GUI-detail7">
 							<p>
 							If the "identifier" column in your CSV is present, CSV Validator will look through it and find the parent folder for the files and then add it to the "From:" box for you, automatically.
 							If the "from" box has not been automatically populated, manually enter the top-level folder (as a text string) that all the file paths in the supplied CSV belong to (this string should be contained in the file paths),
@@ -277,7 +277,7 @@
 								<code>C:\test-data\MUPT_2\content\</code> (where they are now) in order to check for their existence and verify the associated checksums. We enter the folder paths into
 							the "From:" and "To:" boxes respectively, and click OK; this gives:
 							</p>
-							<img src="images/1.4.1/settings-with-entered-substitution.png" alt="Popup window for entering substitution 'find-and-replace'" id="GUI-detail8">
+							<img src="images/1.4.3/settings-with-entered-substitution.png" alt="Popup window for entering substitution 'find-and-replace'" id="GUI-detail8">
 							</p>
 							<p>
 							Creating a Path Substitution in this way is equivalent to running via the Command Line with the <code>-p</code> or <code>--path</code> flags and supplying a key:value pair.
@@ -327,12 +327,12 @@
 						<a href="https://digital-preservation.github.io/csv-schema/csv-schema-1.0.html#column-definitions">column definitions</a> included in the schema (e.g.
 						<code>@totalColumns = 9 but number of columns defined = 10 at line: 2, column: 1</code>).
 						</p>
-						<img src="images/1.4.1/bad-total-columns.png" alt="@totalColumns = 9 but number of columns defined = 10 at line: 2, column: 1" id="totalColumnsErr">
+						<img src="images/1.4.3/bad-total-columns.png" alt="@totalColumns = 9 but number of columns defined = 10 at line: 2, column: 1" id="totalColumnsErr">
 						<p>The schema itself is always checked before validation of the data begins, and schema errors always terminate the validation. If the <a href="https://digital-preservation.github.io/csv-schema/csv-schema-1.0.html#version-declaration">Version Declaration</a>
 							has been omitted from the schema, or is incorrect, you will see a schema error saying that the Version Declaration is not present
 						(eg <code>[1.1] failure: version 1.0 missing or incorrect</code>); you will also see this if you accidentally put the filepath for the CSV data file into the field for the schema and vice versa:
 						</p>
-						<img src="images/1.4.1/version-declaration-error.png" alt="[1.1] failure: version 1.0 missing or incorrect
+						<img src="images/1.4.3/version-declaration-error.png" alt="[1.1] failure: version 1.0 missing or incorrect
 <br />
 batch_code,department,series,piece,item,ordinal,file_uuid,file_path,file_checksum,resource_uri,scan_operator,scan_id,scan_location,scan_native_format,scan_timestamp,image_resolution,image_width,image_height,image_tonal_resolution,image_format,image_colour_space,process_location,jp2_creation_timestamp,uuid_timestamp,embed_timestamp,image_split,image_split_other_uuid,image_split_operator,image_split_timestamp,image_crop,image_crop_operator,image_crop_timestamp,image_deskew,image_deskew_operator,image_deskew_timestamp,QA-code,comments,transcribed_volume_number,transcribed_birth_date_day,transcribed_birth_date_month,transcribed_birth_date_year,transcribed_official_number
 <br />
@@ -347,7 +347,7 @@ batch_code,department,series,piece,item,ordinal,file_uuid,file_path,file_checksu
 						what the computed value of the data was. The line number refers to data lines only, so if the CSV file contains a header row, you may see an apparent discrepancy in the line numbers displayed when you view
 						the data in a text editor or spreadsheet program, compared to the line number indicated by the CSV Validator.
 						</p>
-						<img src="images/1.4.1/validation-error-checksum-mismatches.png" alt='Error:   checksum(file($file_path), "SHA-256") file "file:///TEST_1/1/1/1_1_001.xml" checksum match fails for line: 1, column: file_checksum, value: "fb58b56a17af0f52cf794c108e0c1574a3a2c02b25e22699668bb43801028432". Computed checksum value:"16f5e200047a0b71bea821ea6db7c3a79605079baae96940a1ec8bb0d6ab4d6d"" " id="checksumErr1">'>
+						<img src="images/1.4.3/validation-error-checksum-mismatches.png" alt='Error:   checksum(file($file_path), "SHA-256") file "file:///TEST_1/1/1/1_1_001.xml" checksum match fails for line: 1, column: file_checksum, value: "fb58b56a17af0f52cf794c108e0c1574a3a2c02b25e22699668bb43801028432". Computed checksum value:"16f5e200047a0b71bea821ea6db7c3a79605079baae96940a1ec8bb0d6ab4d6d"" " id="checksumErr1">'>
 						<pre id="checksumErr2">
 Error:   checksum(file($file_path), "SHA-256") file "file:///TEST_1/1/1/1_1_001.xml" checksum match fails for line: 1, column: file_checksum, value: "fb58b56a17af0f52cf794c108e0c1574a3a2c02b25e22699668bb43801028432". Computed checksum value:"16f5e200047a0b71bea821ea6db7c3a79605079baae96940a1ec8bb0d6ab4d6d"
 FAIL
@@ -355,7 +355,7 @@ FAIL
 						<p>
 						The next image shows a more varied selection of Validation Errors, and demonstrates that the basic format of the error messages is consistent:
 						</p>
-						<img src="images/1.4.1/validation-errors-various.png" alt="Various validation errors starting with 'Error:   ' are demonstrated" id="varValErrs">
+						<img src="images/1.4.3/validation-errors-various.png" alt="Various validation errors starting with 'Error:   ' are demonstrated" id="varValErrs">
 						<p>
 						The full text of each of these example error messages is shown below, the errors are:
 						<ol>
@@ -414,7 +414,7 @@ Try --help for more information.
 					</pre>
 					<p>Subsequently, executing with the <code>--help</code> argument, should produce the following help text:
 					<pre>
-CSV Validator - Command Line 1.4.1
+CSV Validator - Command Line 1.4.3
 Usage: validate [options] &lt;csv-path&gt; &lt;csv-schema-path&gt;
 
   --help
