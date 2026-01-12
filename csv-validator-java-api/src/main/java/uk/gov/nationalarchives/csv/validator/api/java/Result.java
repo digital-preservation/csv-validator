@@ -8,9 +8,8 @@
  */
 package uk.gov.nationalarchives.csv.validator.api.java;
 
-import java.util.ArrayList;
+import java.util.List;
 
 public interface Result {
-    ArrayList<FailMessage> errors = new ArrayList<>();
-    Request validatorRequest = null;
+    List<FailMessage> getErrors();
 }
