@@ -85,7 +85,8 @@ List<FailMessage> messages = validateWithStringNames
    .usingProgress(progress)
    .usingSkipFileChecks(skipFileChecks)
    .usingMaxCharsPerCell(maxCharsPerCell)
-   .runValidation().getErrors();
+   .runValidation()
+   .getErrors();
  
  if(messages.isEmpty()) {
    System.out.println("All worked OK");

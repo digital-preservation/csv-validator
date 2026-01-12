@@ -24,33 +24,33 @@ public class CsvValidatorTest {
     @Test
     public void defaultValuesAreUsedWhenUsingTextFileMethod() {
         Result result = new CsvValidator.ValidatorBuilder("csvFile", "csvSchema").runValidation();
-        CsvValidatorJavaBridge.ValidationResult validationResult = (CsvValidatorJavaBridge.ValidationResult) result;
-        Assert.assertEquals("csvFile", validationResult.validatorRequest().csvFile());
-        Assert.assertEquals(StandardCharsets.UTF_8, validationResult.validatorRequest().csvEncoding());
-        Assert.assertEquals("csvSchema", validationResult.validatorRequest().csvSchemaFile());
-        Assert.assertEquals(StandardCharsets.UTF_8, validationResult.validatorRequest().csvSchemaEncoding());
-        Assert.assertFalse(validationResult.validatorRequest().failFast());
-        Assert.assertEquals(new ArrayList<Substitution>(), validationResult.validatorRequest().pathSubstitutionsList());
-        Assert.assertFalse(validationResult.validatorRequest().enforceCaseSensitivePathChecks());
-        Assert.assertFalse(validationResult.validatorRequest().trace());
-        Assert.assertNull(validationResult.validatorRequest().progress());
-        Assert.assertFalse(validationResult.validatorRequest().skipFileChecks());
-        Assert.assertEquals(4096, validationResult.validatorRequest().maxCharsPerCellLimit());
+        CsvValidatorJavaBridge.ValidationRequest validationRequest = ((CsvValidatorJavaBridge.ValidationResult) result).validatorRequest();
+        Assert.assertEquals("csvFile", validationRequest.csvFile());
+        Assert.assertEquals(StandardCharsets.UTF_8, validationRequest.csvEncoding());
+        Assert.assertEquals("csvSchema", validationRequest.csvSchemaFile());
+        Assert.assertEquals(StandardCharsets.UTF_8, validationRequest.csvSchemaEncoding());
+        Assert.assertFalse(validationRequest.failFast());
+        Assert.assertEquals(new ArrayList<Substitution>(), validationRequest.pathSubstitutionsList());
+        Assert.assertFalse(validationRequest.enforceCaseSensitivePathChecks());
+        Assert.assertFalse(validationRequest.trace());
+        Assert.assertNull(validationRequest.progress());
+        Assert.assertFalse(validationRequest.skipFileChecks());
+        Assert.assertEquals(4096, validationRequest.maxCharsPerCellLimit());
     }
 
     @Test
     public void defaultValuesAreUsedWhenUsingReaderMethod() {
         Result result = new CsvValidator.ValidatorBuilder(csvFileReader, csvSchemaReader).runValidation();
-        CsvValidatorJavaBridge.ReaderValidationResult validationResult = (CsvValidatorJavaBridge.ReaderValidationResult) result;
-        Assert.assertEquals(csvFileReader, validationResult.validatorRequest().csvReader());
-        Assert.assertEquals(csvSchemaReader, validationResult.validatorRequest().csvSchemaReader());
-        Assert.assertFalse(validationResult.validatorRequest().failFast());
-        Assert.assertEquals(new ArrayList<Substitution>(), validationResult.validatorRequest().pathSubstitutionsList());
-        Assert.assertFalse(validationResult.validatorRequest().enforceCaseSensitivePathChecks());
-        Assert.assertFalse(validationResult.validatorRequest().trace());
-        Assert.assertNull(validationResult.validatorRequest().progress());
-        Assert.assertFalse(validationResult.validatorRequest().skipFileChecks());
-        Assert.assertEquals(4096, validationResult.validatorRequest().maxCharsPerCellLimit());
+        CsvValidatorJavaBridge.ReaderValidationRequest validationRequest = ((CsvValidatorJavaBridge.ReaderValidationResult) result).validatorRequest();
+        Assert.assertEquals(csvFileReader, validationRequest.csvReader());
+        Assert.assertEquals(csvSchemaReader, validationRequest.csvSchemaReader());
+        Assert.assertFalse(validationRequest.failFast());
+        Assert.assertEquals(new ArrayList<Substitution>(), validationRequest.pathSubstitutionsList());
+        Assert.assertFalse(validationRequest.enforceCaseSensitivePathChecks());
+        Assert.assertFalse(validationRequest.trace());
+        Assert.assertNull(validationRequest.progress());
+        Assert.assertFalse(validationRequest.skipFileChecks());
+        Assert.assertEquals(4096, validationRequest.maxCharsPerCellLimit());
     }
 
     @Test
@@ -79,19 +79,19 @@ public class CsvValidatorTest {
                 .usingSkipFileChecks(true)
                 .usingMaxCharsPerCell(8096)
                 .runValidation();
-        CsvValidatorJavaBridge.ValidationResult validationResult = (CsvValidatorJavaBridge.ValidationResult) result;
-        Assert.assertEquals("csvFile", validationResult.validatorRequest().csvFile());
-        Assert.assertEquals(StandardCharsets.ISO_8859_1, validationResult.validatorRequest().csvEncoding());
-        Assert.assertEquals("csvSchema", validationResult.validatorRequest().csvSchemaFile());
-        Assert.assertEquals(StandardCharsets.ISO_8859_1, validationResult.validatorRequest().csvSchemaEncoding());
-        Assert.assertTrue(validationResult.validatorRequest().failFast());
-        Assert.assertEquals("fromPath", validationResult.validatorRequest().pathSubstitutionsList().get(0).getFrom());
-        Assert.assertEquals("toPath", validationResult.validatorRequest().pathSubstitutionsList().get(0).getTo());
-        Assert.assertTrue(validationResult.validatorRequest().enforceCaseSensitivePathChecks());
-        Assert.assertTrue(validationResult.validatorRequest().trace());
-        Assert.assertEquals(progressCallback, validationResult.validatorRequest().progress());
-        Assert.assertTrue(validationResult.validatorRequest().skipFileChecks());
-        Assert.assertEquals(8096, validationResult.validatorRequest().maxCharsPerCellLimit());
+        CsvValidatorJavaBridge.ValidationRequest validationRequest = ((CsvValidatorJavaBridge.ValidationResult) result).validatorRequest();
+        Assert.assertEquals("csvFile", validationRequest.csvFile());
+        Assert.assertEquals(StandardCharsets.ISO_8859_1, validationRequest.csvEncoding());
+        Assert.assertEquals("csvSchema", validationRequest.csvSchemaFile());
+        Assert.assertEquals(StandardCharsets.ISO_8859_1, validationRequest.csvSchemaEncoding());
+        Assert.assertTrue(validationRequest.failFast());
+        Assert.assertEquals("fromPath", validationRequest.pathSubstitutionsList().get(0).getFrom());
+        Assert.assertEquals("toPath", validationRequest.pathSubstitutionsList().get(0).getTo());
+        Assert.assertTrue(validationRequest.enforceCaseSensitivePathChecks());
+        Assert.assertTrue(validationRequest.trace());
+        Assert.assertEquals(progressCallback, validationRequest.progress());
+        Assert.assertTrue(validationRequest.skipFileChecks());
+        Assert.assertEquals(8096, validationRequest.maxCharsPerCellLimit());
     }
 
     @Test
@@ -109,17 +109,17 @@ public class CsvValidatorTest {
                 .usingMaxCharsPerCell(16096)
                 .runValidation();
 
-        CsvValidatorJavaBridge.ReaderValidationResult validationResult = (CsvValidatorJavaBridge.ReaderValidationResult) result;
-        Assert.assertEquals(csvFileReader, validationResult.validatorRequest().csvReader());
-        Assert.assertEquals(csvSchemaReader, validationResult.validatorRequest().csvSchemaReader());
-        Assert.assertTrue(validationResult.validatorRequest().failFast());
-        Assert.assertEquals("fromPath", validationResult.validatorRequest().pathSubstitutionsList().get(0).getFrom());
-        Assert.assertEquals("toPath", validationResult.validatorRequest().pathSubstitutionsList().get(0).getTo());
-        Assert.assertTrue(validationResult.validatorRequest().enforceCaseSensitivePathChecks());
-        Assert.assertTrue(validationResult.validatorRequest().trace());
-        Assert.assertEquals(progressCallback, validationResult.validatorRequest().progress());
-        Assert.assertTrue(validationResult.validatorRequest().skipFileChecks());
-        Assert.assertEquals(16096, validationResult.validatorRequest().maxCharsPerCellLimit());
+        CsvValidatorJavaBridge.ReaderValidationRequest validationRequest = ((CsvValidatorJavaBridge.ReaderValidationResult) result).validatorRequest();
+        Assert.assertEquals(csvFileReader, validationRequest.csvReader());
+        Assert.assertEquals(csvSchemaReader, validationRequest.csvSchemaReader());
+        Assert.assertTrue(validationRequest.failFast());
+        Assert.assertEquals("fromPath", validationRequest.pathSubstitutionsList().get(0).getFrom());
+        Assert.assertEquals("toPath", validationRequest.pathSubstitutionsList().get(0).getTo());
+        Assert.assertTrue(validationRequest.enforceCaseSensitivePathChecks());
+        Assert.assertTrue(validationRequest.trace());
+        Assert.assertEquals(progressCallback, validationRequest.progress());
+        Assert.assertTrue(validationRequest.skipFileChecks());
+        Assert.assertEquals(16096, validationRequest.maxCharsPerCellLimit());
     }
 }
 
