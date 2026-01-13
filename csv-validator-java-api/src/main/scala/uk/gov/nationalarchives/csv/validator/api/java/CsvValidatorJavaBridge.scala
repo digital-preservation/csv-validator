@@ -137,9 +137,13 @@ object CsvValidatorJavaBridge {
     case SFailMessage(SchemaDefinitionError, msg, lineNr, columnIdx) => new ErrorMessage(msg, lineNr.getOrElse(-1), columnIdx.getOrElse(-1)).asInstanceOf[FailMessage]
   }
 
-   case class ValidationResult(errors: JList[FailMessage], validatorRequest: ValidationRequest) extends Result
-   case class ValidationRequest(csvFile: String, csvEncoding: Charset, validateCsvEncoding: Boolean, csvSchemaFile: String, csvSchemaEncoding: Charset, validateCsvSchemaEncoding: Boolean, failFast: Boolean, pathSubstitutionsList: JList[Substitution], enforceCaseSensitivePathChecks: Boolean, trace: Boolean, progress: ProgressCallback, skipFileChecks: Boolean, maxCharsPerCellLimit: Int) extends Request
+   case class ValidationResult(errors: JList[FailMessage], validatorRequest: ValidationRequest) extends Result {
+     override def getErrors: JList[FailMessage] = errors
+   }
+   case class ValidationRequest(csvFile: String, csvEncoding: Charset, validateCsvEncoding: Boolean, csvSchemaFile: String, csvSchemaEncoding: Charset, validateCsvSchemaEncoding: Boolean, failFast: Boolean, pathSubstitutionsList: JList[Substitution], enforceCaseSensitivePathChecks: Boolean, trace: Boolean, progress: ProgressCallback, skipFileChecks: Boolean, maxCharsPerCellLimit: Int)
 
-   case class ReaderValidationResult(errors: JList[FailMessage], validatorRequest: ReaderValidationRequest) extends Result
-   case class ReaderValidationRequest(csvReader: JReader, csvSchemaReader: JReader, failFast: Boolean, pathSubstitutionsList: JList[Substitution], enforceCaseSensitivePathChecks: Boolean, trace: Boolean, progress: ProgressCallback, skipFileChecks: Boolean, maxCharsPerCellLimit: Int) extends Request
+   case class ReaderValidationResult(errors: JList[FailMessage], validatorRequest: ReaderValidationRequest) extends Result {
+     override def getErrors: JList[FailMessage] = errors
+   }
+   case class ReaderValidationRequest(csvReader: JReader, csvSchemaReader: JReader, failFast: Boolean, pathSubstitutionsList: JList[Substitution], enforceCaseSensitivePathChecks: Boolean, trace: Boolean, progress: ProgressCallback, skipFileChecks: Boolean, maxCharsPerCellLimit: Int)
 }
