@@ -9,7 +9,7 @@
 package uk.gov.nationalarchives.csv.validator.api.java
 
 import java.util.{ArrayList => JArrayList, List => JList}
-import cats.data.Validated
+import cats.data.{NonEmptyList, Validated, ValidatedNel}
 import uk.gov.nationalarchives.csv.validator.{SchemaDefinitionError, ValidationError, ValidationWarning, FailMessage => SFailMessage, ProgressCallback => SProgressCallback}
 import uk.gov.nationalarchives.csv.validator.Util._
 import uk.gov.nationalarchives.csv.validator.api.CsvValidator.createValidator
@@ -29,39 +29,39 @@ object CsvValidatorJavaBridge {
 
   @deprecated
   def validate(csvFile: String, csvEncoding: Charset, csvSchemaFile: String, csvSchemaEncoding: Charset, failFast: Boolean, pathSubstitutionsList: JList[Substitution], enforceCaseSensitivePathChecks: Boolean, trace: Boolean): JList[FailMessage] =
-    validateTextFile(csvFile, csvEncoding, true, csvSchemaFile, csvSchemaEncoding, false, failFast, pathSubstitutionsList, enforceCaseSensitivePathChecks, trace, None)
+    collecting(callback => validateTextFile(csvFile, csvEncoding, true, csvSchemaFile, csvSchemaEncoding, false, failFast, pathSubstitutionsList, enforceCaseSensitivePathChecks, trace, None, callback = callback))
 
   @deprecated
   def validate(csvFile: String, csvEncoding: Charset, csvSchemaFile: String, csvSchemaEncoding: Charset, failFast: Boolean, pathSubstitutionsList: JList[Substitution], enforceCaseSensitivePathChecks: Boolean, trace: Boolean, progress: ProgressCallback): JList[FailMessage] = {
     val sProgressCallback = new SProgressCallback {
       override def update(complete: this.type#Percentage) = progress.update(complete)
     }
-    validateTextFile(csvFile, csvEncoding, true, csvSchemaFile, csvSchemaEncoding, false, failFast, pathSubstitutionsList, enforceCaseSensitivePathChecks, trace, Some(sProgressCallback))
+    collecting(callback => validateTextFile(csvFile, csvEncoding, true, csvSchemaFile, csvSchemaEncoding, false, failFast, pathSubstitutionsList, enforceCaseSensitivePathChecks, trace, Some(sProgressCallback), callback = callback))
   }
 
   @deprecated("use latest validate")
   def validate(csvFile: String, csvEncoding: Charset, validateCsvEncoding: Boolean, csvSchemaFile: String, csvSchemaEncoding: Charset, validateCsvSchemaEncoding: Boolean, failFast: Boolean, pathSubstitutionsList: JList[Substitution], enforceCaseSensitivePathChecks: Boolean, trace: Boolean): JList[FailMessage] =
-    validateTextFile(csvFile, csvEncoding, validateCsvEncoding, csvSchemaFile, csvSchemaEncoding, validateCsvSchemaEncoding, failFast, pathSubstitutionsList, enforceCaseSensitivePathChecks, trace, None)
+    collecting(callback => validateTextFile(csvFile, csvEncoding, validateCsvEncoding, csvSchemaFile, csvSchemaEncoding, validateCsvSchemaEncoding, failFast, pathSubstitutionsList, enforceCaseSensitivePathChecks, trace, None, callback = callback))
 
   @deprecated("use latest validate")
   def validate(csvFile: String, csvEncoding: Charset, validateCsvEncoding: Boolean, csvSchemaFile: String, csvSchemaEncoding: Charset, validateCsvSchemaEncoding: Boolean, failFast: Boolean, pathSubstitutionsList: JList[Substitution], enforceCaseSensitivePathChecks: Boolean, trace: Boolean, progress: ProgressCallback): JList[FailMessage] = {
     val sProgressCallback = new SProgressCallback {
       override def update(complete: this.type#Percentage) = progress.update(complete)
     }
-    validateTextFile(csvFile, csvEncoding, validateCsvEncoding, csvSchemaFile, csvSchemaEncoding, validateCsvSchemaEncoding, failFast, pathSubstitutionsList, enforceCaseSensitivePathChecks, trace, Some(sProgressCallback))
+    collecting(callback => validateTextFile(csvFile, csvEncoding, validateCsvEncoding, csvSchemaFile, csvSchemaEncoding, validateCsvSchemaEncoding, failFast, pathSubstitutionsList, enforceCaseSensitivePathChecks, trace, Some(sProgressCallback), callback = callback))
   }
 
   def validate(validationRequest: ValidationRequest): ValidationResult = {
-    val request = validationRequest
-    val potentialSProgressCallback = Option(request.progress).map(progress => new SProgressCallback {
-      override def update(complete: this.type#Percentage) = progress.update(complete)
-    })
-
-    val errors: JList[FailMessage] = validateTextFile(request.csvFile, request.csvEncoding, request.validateCsvEncoding, request.csvSchemaFile, request.csvSchemaEncoding, request.validateCsvSchemaEncoding, request.failFast, request.pathSubstitutionsList, request.enforceCaseSensitivePathChecks, request.trace, potentialSProgressCallback, request.skipFileChecks, request.maxCharsPerCellLimit)
+    val errors = collecting(validate(validationRequest, _))
     ValidationResult(errors, validationRequest)
   }
 
-  private def validateTextFile(csvFile: String, csvEncoding: Charset, validateCsvEncoding: Boolean, csvSchemaFile: String, csvSchemaEncoding: Charset, validateCsvSchemaEncoding: Boolean, failFast: Boolean, pathSubstitutionsList: JList[Substitution], enforceCaseSensitivePathChecks: Boolean, trace: Boolean, progress: Option[SProgressCallback], skipFileChecks: Boolean=false, maxCharsPerCellLimit: Int=4096): JList[FailMessage] = {
+  def validate(validationRequest: ValidationRequest, callback: FailMessageCallback): Boolean = {
+    val request = validationRequest
+    validateTextFile(request.csvFile, request.csvEncoding, request.validateCsvEncoding, request.csvSchemaFile, request.csvSchemaEncoding, request.validateCsvSchemaEncoding, request.failFast, request.pathSubstitutionsList, request.enforceCaseSensitivePathChecks, request.trace, asScala(request.progress), request.skipFileChecks, request.maxCharsPerCellLimit, callback)
+  }
+
+  private def validateTextFile(csvFile: String, csvEncoding: Charset, validateCsvEncoding: Boolean, csvSchemaFile: String, csvSchemaEncoding: Charset, validateCsvSchemaEncoding: Boolean, failFast: Boolean, pathSubstitutionsList: JList[Substitution], enforceCaseSensitivePathChecks: Boolean, trace: Boolean, progress: Option[SProgressCallback], skipFileChecks: Boolean=false, maxCharsPerCellLimit: Int=4096, callback: FailMessageCallback): Boolean = {
 
     import scala.jdk.CollectionConverters._
 
@@ -72,46 +72,46 @@ object CsvValidatorJavaBridge {
 
     checkFilesReadable(csvTextFile.file :: csvSchemaTextFile.file :: Nil) match {
       case Validated.Invalid(errors) =>
-        errors.map{ asJavaMessage(_) }.toList.asJava
+        report(errors, callback)
+        false
 
       case Validated.Valid(_) =>
         val validator = createValidator(failFast, pathSubs, enforceCaseSensitivePathChecks, trace, skipFileChecks, maxCharsPerCellLimit)
         validator.parseSchema(csvSchemaTextFile) match {
 
           case Validated.Invalid(errors) =>
-            errors.map(asJavaMessage(_)).toList.asJava
+            report(errors, callback)
+            false
 
           case Validated.Valid(schema) =>
-            validator.validate(csvTextFile, schema, progress) match {
-              case Validated.Invalid(errors) => errors.map(asJavaMessage(_)).toList.asJava
-              case Validated.Valid(_) => new JArrayList[FailMessage]
-            }
+            validator.validateCsvFile(csvTextFile, schema, progress, rowCallback(callback))
         }
     }
   }
 
   @deprecated("use latest validate")
   def validate(csvData: JReader, csvSchema: JReader, failFast: Boolean, pathSubstitutionsList: JList[Substitution], enforceCaseSensitivePathChecks: Boolean, trace: Boolean): JList[FailMessage] =
-    validateReader(csvData, csvSchema, failFast, pathSubstitutionsList, enforceCaseSensitivePathChecks, trace, None)
+    collecting(callback => validateReader(csvData, csvSchema, failFast, pathSubstitutionsList, enforceCaseSensitivePathChecks, trace, None, callback = callback))
 
   @deprecated("use latest validate")
   def validate(csvData: JReader, csvSchema: JReader, failFast: Boolean, pathSubstitutionsList: JList[Substitution], enforceCaseSensitivePathChecks: Boolean, trace: Boolean, progress: ProgressCallback): JList[FailMessage] = {
     val sProgressCallback = new SProgressCallback {
       override def update(complete: this.type#Percentage) = progress.update(complete)
     }
-    validateReader(csvData, csvSchema, failFast, pathSubstitutionsList, enforceCaseSensitivePathChecks, trace, Some(sProgressCallback))
+    collecting(callback => validateReader(csvData, csvSchema, failFast, pathSubstitutionsList, enforceCaseSensitivePathChecks, trace, Some(sProgressCallback), callback = callback))
   }
 
   def validate(validationRequest: ReaderValidationRequest): ReaderValidationResult = {
-    val request = validationRequest
-    val potentialSProgressCallback = if(request.progress == null) None else Some(new SProgressCallback {
-      override def update(complete: this.type#Percentage) = request.progress.update(complete)
-    })
-    val errors = validateReader(request.csvReader, request.csvSchemaReader, request.failFast, request.pathSubstitutionsList, request.enforceCaseSensitivePathChecks, request.trace, potentialSProgressCallback, request.skipFileChecks, request.maxCharsPerCellLimit)
+    val errors = collecting(validate(validationRequest, _))
     ReaderValidationResult(errors, validationRequest)
   }
 
-  private def validateReader(csvData: JReader, csvSchema: JReader, failFast: Boolean, pathSubstitutionsList: JList[Substitution], enforceCaseSensitivePathChecks: Boolean, trace: Boolean, progress: Option[SProgressCallback], skipFileChecks: Boolean = false, maxCharsPerCell: Int = 4096): JList[FailMessage] = {
+  def validate(validationRequest: ReaderValidationRequest, callback: FailMessageCallback): Boolean = {
+    val request = validationRequest
+    validateReader(request.csvReader, request.csvSchemaReader, request.failFast, request.pathSubstitutionsList, request.enforceCaseSensitivePathChecks, request.trace, asScala(request.progress), request.skipFileChecks, request.maxCharsPerCellLimit, callback)
+  }
+
+  private def validateReader(csvData: JReader, csvSchema: JReader, failFast: Boolean, pathSubstitutionsList: JList[Substitution], enforceCaseSensitivePathChecks: Boolean, trace: Boolean, progress: Option[SProgressCallback], skipFileChecks: Boolean = false, maxCharsPerCell: Int = 4096, callback: FailMessageCallback): Boolean = {
 
     import scala.jdk.CollectionConverters._
 
@@ -121,15 +121,32 @@ object CsvValidatorJavaBridge {
     validator.parseSchema(csvSchema) match {
 
       case Validated.Invalid(errors) =>
-        errors.map(asJavaMessage(_)).toList.asJava
+        report(errors, callback)
+        false
 
       case Validated.Valid(schema) =>
-        validator.validate(csvData, schema, maxCharsPerCell, progress) match {
-          case Validated.Invalid(errors) => errors.map(asJavaMessage(_)).toList.asJava
-          case Validated.Valid(_) => new JArrayList[FailMessage]
-        }
+        validator.validateReader(csvData, schema, maxCharsPerCell, progress, rowCallback(callback))
     }
   }
+
+  private def collecting(validation: FailMessageCallback => Boolean): JList[FailMessage] = {
+    val messages = new JArrayList[FailMessage]
+    validation(message => messages.add(message))
+    messages
+  }
+
+  private def rowCallback(callback: FailMessageCallback): ValidatedNel[SFailMessage, Any] => Unit = {
+    case Validated.Invalid(messages) => report(messages, callback)
+    case _ =>
+  }
+
+  private def report(messages: NonEmptyList[SFailMessage], callback: FailMessageCallback): Unit =
+    messages.toList.foreach(message => callback.onFailMessage(asJavaMessage(message)))
+
+  private def asScala(progress: ProgressCallback): Option[SProgressCallback] =
+    Option(progress).map(progress => new SProgressCallback {
+      override def update(complete: this.type#Percentage) = progress.update(complete)
+    })
 
   private def asJavaMessage(f: SFailMessage): FailMessage = f match {
     case SFailMessage(ValidationWarning, msg, lineNr, columnIdx) => new WarningMessage(msg, lineNr.getOrElse(-1), columnIdx.getOrElse(-1)).asInstanceOf[FailMessage]
