@@ -102,6 +102,15 @@ List<FailMessage> messages = validateWithStringNames
 }
 ```
 
+`runValidation()` holds every error and warning in memory until the end of the validation, which can run out of heap
+on a large CSV file failing on many rows. To receive each message as soon as it is found instead, pass a callback:
+
+```java
+boolean valid = validateWithReaders.runValidation(message -> System.out.println(message.getMessage()));
+```
+
+`valid` is `true` if no error was found, warnings aside.
+
 
 Scala API
 =========

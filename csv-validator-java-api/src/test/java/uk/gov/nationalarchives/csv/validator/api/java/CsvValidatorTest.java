@@ -11,9 +11,15 @@ package uk.gov.nationalarchives.csv.validator.api.java;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertThrows;
 
@@ -121,5 +127,73 @@ public class CsvValidatorTest {
         Assert.assertTrue(validationRequest.skipFileChecks());
         Assert.assertEquals(16096, validationRequest.maxCharsPerCellLimit());
     }
-}
 
+    private static final String SCHEMA = "version 1.0\n@totalColumns 2\nname: notEmpty\nage: positiveInteger\n";
+
+    @Test
+    public void callbackReceivesEveryErrorWhenUsingReaderMethod() {
+        List<FailMessage> messages = new ArrayList<>();
+        boolean valid = new CsvValidator.ValidatorBuilder(
+                new StringReader("name,age\nAda,-1\n,36\nBob,40\n"), new StringReader(SCHEMA)
+        ).runValidation(messages::add);
+
+        Assert.assertFalse(valid);
+        Assert.assertEquals(2, messages.size());
+        Assert.assertTrue(messages.stream().allMatch(message -> message instanceof ErrorMessage));
+        Assert.assertEquals(Arrays.asList(1, 2), messages.stream().map(FailMessage::getLineNumber).collect(Collectors.toList()));
+    }
+
+    @Test
+    public void callbackReceivesNothingForAValidFileWhenUsingReaderMethod() {
+        List<FailMessage> messages = new ArrayList<>();
+        boolean valid = new CsvValidator.ValidatorBuilder(
+                new StringReader("name,age\nAda,36\n"), new StringReader(SCHEMA)
+        ).runValidation(messages::add);
+
+        Assert.assertTrue(valid);
+        Assert.assertTrue(messages.isEmpty());
+    }
+
+    @Test
+    public void callbackReceivesSchemaErrors() {
+        List<FailMessage> messages = new ArrayList<>();
+        boolean valid = new CsvValidator.ValidatorBuilder(
+                new StringReader("name,age\nAda,36\n"), new StringReader("not a schema")
+        ).runValidation(messages::add);
+
+        Assert.assertFalse(valid);
+        Assert.assertFalse(messages.isEmpty());
+    }
+
+    @Test
+    public void callbackReceivesEveryErrorWhenUsingTextFileMethod() throws IOException {
+        Path csv = Files.createTempFile("data", ".csv");
+        Path schema = Files.createTempFile("schema", ".csvs");
+        try {
+            Files.write(csv, "name,age\nAda,-1\n,36\n".getBytes(StandardCharsets.UTF_8));
+            Files.write(schema, SCHEMA.getBytes(StandardCharsets.UTF_8));
+            List<FailMessage> messages = new ArrayList<>();
+
+            boolean valid = new CsvValidator.ValidatorBuilder(csv.toString(), schema.toString()).runValidation(messages::add);
+
+            Assert.assertFalse(valid);
+            Assert.assertEquals(2, messages.size());
+        } finally {
+            Files.delete(csv);
+            Files.delete(schema);
+        }
+    }
+
+    @Test
+    public void resultHoldsTheSameErrorsAsTheCallback() {
+        String csv = "name,age\nAda,-1\n,36\n";
+        List<FailMessage> streamed = new ArrayList<>();
+        new CsvValidator.ValidatorBuilder(new StringReader(csv), new StringReader(SCHEMA)).runValidation(streamed::add);
+
+        List<FailMessage> collected = new CsvValidator.ValidatorBuilder(new StringReader(csv), new StringReader(SCHEMA)).runValidation().getErrors();
+
+        Assert.assertEquals(
+                streamed.stream().map(FailMessage::getMessage).collect(Collectors.toList()),
+                collected.stream().map(FailMessage::getMessage).collect(Collectors.toList()));
+    }
+}
