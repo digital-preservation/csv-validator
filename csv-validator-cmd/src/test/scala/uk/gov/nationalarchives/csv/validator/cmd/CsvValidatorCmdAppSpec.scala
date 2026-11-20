@@ -89,6 +89,24 @@ class CsvValidatorCmdAppSpec extends Specification with TestResources {
     }
   }
 
+  "--skip-file-checks" should {
+    val fileSchemaPath = relResourcePath("skipFileChecks.csvs")
+    val missingFilePath = relResourcePath("skipFileChecks.csv")
+    val invalidMetadataPath = relResourcePath("skipFileChecksInvalid.csv")
+
+    "reject a missing file by default" in {
+      CsvValidatorCmdApp.run(Array(missingFilePath, fileSchemaPath))._2 mustEqual SystemExitCodes.InvalidCsv
+    }
+
+    "skip file existence checks when requested" in {
+      CsvValidatorCmdApp.run(Array("--skip-file-checks", missingFilePath, fileSchemaPath)) mustEqual Tuple2("PASS", SystemExitCodes.ValidCsv)
+    }
+
+    "still validate metadata when skipping file checks" in {
+      CsvValidatorCmdApp.run(Array("--skip-file-checks", invalidMetadataPath, fileSchemaPath))._2 mustEqual SystemExitCodes.InvalidCsv
+    }
+  }
+
   "--path and file args" in {
     //    "find " {
     //
