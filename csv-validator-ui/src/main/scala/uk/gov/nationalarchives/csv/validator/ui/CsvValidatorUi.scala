@@ -496,12 +496,9 @@ object CsvValidatorUi extends SimpleSwingApplication {
    */
   private class SettingsPanel(parentFrame: SJXFrame) extends SJXTaskPaneContainer {
 
+    // Since JDK 18 defaultCharset is UTF-8 on most platforms, so windows-1252 is added explicitly.
     private lazy val CHARACTER_ENCODINGS =
-      if(Charset.defaultCharset.name == "UTF-8") {
-        Seq(Charset.defaultCharset)
-      } else {
-        Seq(Charset.forName("UTF-8"), Charset.defaultCharset)
-      }
+      Seq(Charset.forName("UTF-8"), Charset.defaultCharset, Charset.forName("windows-1252")).distinct
 
     val settingsGroup = new SJXTaskPane("Settings", true)
     private val lblCsvEncoding = new Label("CSV Encoding:")
