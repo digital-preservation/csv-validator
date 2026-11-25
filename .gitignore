@@ -17,5 +17,5 @@ project/plugins/project/
 *.iml
 .bsp/
 
-# MacOS specific
+# macOS-specific
 **/.DS_Store

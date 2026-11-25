@@ -41,7 +41,7 @@ If you wish to use the CSV Validator from your own Java project, we provide a na
 <dependency>
 	<groupId>uk.gov.nationalarchives</groupId>
     <artifactId>csv-validator-java-api</artifactId>
-    <version>1.4.1</version>
+    <version>1.4.4</version>
 </dependency>
 ```
 
@@ -110,7 +110,7 @@ Likewise, if you wish to use the CSV Validator from your own Scala project, the 
 <dependency>
 	<groupId>uk.gov.nationalarchives</groupId>
     <artifactId>csv-validator-core</artifactId>
-    <version>1.4.1</version>
+    <version>1.4.4</version>
 </dependency>
 ```
 
