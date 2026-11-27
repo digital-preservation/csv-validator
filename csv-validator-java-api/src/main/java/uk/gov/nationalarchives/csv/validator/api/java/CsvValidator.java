@@ -274,6 +274,10 @@ public class CsvValidator {
             return this;
         }
 
+        /**
+         * Validates the CSV file, holding all the errors and warnings in memory until the end.
+         * Prefer {@link #runValidation(FailMessageCallback)} for large CSV files.
+         */
         public Result runValidation() {
             if(textFileValidation) {
                 return CsvValidatorJavaBridge.validate(new CsvValidatorJavaBridge.ValidationRequest(this.csvFileName, this.csvEncoding, this.validateUtf8Encoding, this.csvSchemaFilename, this.csvSchemaEncoding, true,  this.failFast, this.pathSubstitutions, this.enforceCaseSensitivePathChecks, this.trace, this.progress, this.skipFileChecks, this.maxCharsPerCell));
@@ -281,6 +285,21 @@ public class CsvValidator {
                 return CsvValidatorJavaBridge.validate(new CsvValidatorJavaBridge.ReaderValidationRequest(this.csvReader, this.csvSchemaReader, this.failFast, this.pathSubstitutions, this.enforceCaseSensitivePathChecks, this.trace, this.progress, this.skipFileChecks, this.maxCharsPerCell));
             }
          }
+
+        /**
+         * Validates the CSV file, passing each error and warning to the callback as soon as it is found.
+         *
+         * @param callback receives the errors and warnings
+         *
+         * @return true if no error was found, warnings aside
+         */
+        public boolean runValidation(FailMessageCallback callback) {
+            if(textFileValidation) {
+                return CsvValidatorJavaBridge.validate(new CsvValidatorJavaBridge.ValidationRequest(this.csvFileName, this.csvEncoding, this.validateUtf8Encoding, this.csvSchemaFilename, this.csvSchemaEncoding, true,  this.failFast, this.pathSubstitutions, this.enforceCaseSensitivePathChecks, this.trace, this.progress, this.skipFileChecks, this.maxCharsPerCell), callback);
+            } else {
+                return CsvValidatorJavaBridge.validate(new CsvValidatorJavaBridge.ReaderValidationRequest(this.csvReader, this.csvSchemaReader, this.failFast, this.pathSubstitutions, this.enforceCaseSensitivePathChecks, this.trace, this.progress, this.skipFileChecks, this.maxCharsPerCell), callback);
+            }
+        }
     }
 }
 
