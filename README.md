@@ -7,7 +7,7 @@ A Validation Tool and APIs for validating CSV (Comma Separated Value) files by u
 
 Released under the [Mozilla Public Licence version 2.0](http://www.mozilla.org/MPL/2.0/).
 
-A [comprehensive user guide is available in GitHub pages](http://digital-preservation.github.io/csv-validator/), along with a more [complete specification of the CSV Schema language](http://digital-preservation.github.io/csv-schema/csv-schema-1.1.html).
+A [comprehensive user guide is available in GitHub pages](http://digital-preservation.github.io/csv-validator/), along with a more [complete specification of the CSV Schema language](http://digital-preservation.github.io/csv-schema/csv-schema-1.2.html).
 
 
 Technology
@@ -41,7 +41,7 @@ If you wish to use the CSV Validator from your own Java project, we provide a na
 <dependency>
 	<groupId>uk.gov.nationalarchives</groupId>
     <artifactId>csv-validator-java-api</artifactId>
-    <version>1.4.1</version>
+    <version>1.4.4</version>
 </dependency>
 ```
 
@@ -110,7 +110,7 @@ Likewise, if you wish to use the CSV Validator from your own Scala project, the 
 <dependency>
 	<groupId>uk.gov.nationalarchives</groupId>
     <artifactId>csv-validator-core</artifactId>
-    <version>1.4.1</version>
+    <version>1.4.4</version>
 </dependency>
 ```
 
